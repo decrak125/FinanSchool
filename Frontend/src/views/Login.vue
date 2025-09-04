@@ -1,9 +1,12 @@
 <template>
-  <p>Se connecter</p>
-  <div>
-    <input v-model="email" type="email" placeholder="Email" />
-    <input v-model="password" type="password" placeholder="Mot de passe" />
-    <button @click="handleLogin">Se connecter</button>
+  <div class="login-page">
+    <h1>Connexion</h1>
+    <form @submit.prevent="handleLogin">
+      <input type="email" placeholder="Email" v-model="email" required />
+      <input type="password" placeholder="Mot de passe" v-model="password" required />
+      <button type="submit">Se connecter</button>
+    </form>
+    <p v-if="errorMessage" style="color:red">{{ errorMessage }}</p>
   </div>
 </template>
 
@@ -32,3 +35,21 @@ async function handleLogin() {
   }
 }
 </script>
+
+<style scoped>
+.login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 100px;
+}
+input {
+  display: block;
+  margin: 10px 0;
+  padding: 8px;
+  width: 200px;
+}
+button {
+  padding: 8px 12px;
+}
+</style>
