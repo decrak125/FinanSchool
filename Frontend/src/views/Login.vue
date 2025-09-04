@@ -1,4 +1,11 @@
-
+<template>
+  <p>Se connecter</p>
+  <div>
+    <input v-model="email" type="email" placeholder="Email" />
+    <input v-model="password" type="password" placeholder="Mot de passe" />
+    <button @click="handleLogin">Se connecter</button>
+  </div>
+</template>
 
 <script setup>
 import { ref } from 'vue';
