@@ -438,3 +438,46 @@
 #40 D:\\Stage\\Finances\\FinanSchool\\Backend\\artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
 #41 {main}
 "} 
+[2025-09-04 12:44:53] local.ERROR: Class "Laravel\Sanctum\SanctumServiceProvider" not found {"exception":"[object] (Error(code: 0): Class \"Laravel\\Sanctum\\SanctumServiceProvider\" not found at D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php:960)
+[stacktrace]
+#0 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(892): Illuminate\\Foundation\\Application->resolveProvider('Laravel\\\\Sanctum...')
+#1 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\ProviderRepository.php(74): Illuminate\\Foundation\\Application->register('Laravel\\\\Sanctum...')
+#2 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(870): Illuminate\\Foundation\\ProviderRepository->load(Array)
+#3 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Bootstrap\\RegisterProviders.php(37): Illuminate\\Foundation\\Application->registerConfiguredProviders()
+#4 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(341): Illuminate\\Foundation\\Bootstrap\\RegisterProviders->bootstrap(Object(Illuminate\\Foundation\\Application))
+#5 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(186): Illuminate\\Foundation\\Application->bootstrapWith(Array)
+#6 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(170): Illuminate\\Foundation\\Http\\Kernel->bootstrap()
+#7 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#8 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#9 D:\\Stage\\Finances\\FinanSchool\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#10 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\Stage\\\\Financ...')
+#11 {main}
+"} 
+[2025-09-04 12:46:05] local.ERROR: Class "Laravel\Sanctum\SanctumServiceProvider" not found {"exception":"[object] (Error(code: 0): Class \"Laravel\\Sanctum\\SanctumServiceProvider\" not found at D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php:960)
+[stacktrace]
+#0 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(892): Illuminate\\Foundation\\Application->resolveProvider('Laravel\\\\Sanctum...')
+#1 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\ProviderRepository.php(74): Illuminate\\Foundation\\Application->register('Laravel\\\\Sanctum...')
+#2 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(870): Illuminate\\Foundation\\ProviderRepository->load(Array)
+#3 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Bootstrap\\RegisterProviders.php(37): Illuminate\\Foundation\\Application->registerConfiguredProviders()
+#4 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(341): Illuminate\\Foundation\\Bootstrap\\RegisterProviders->bootstrap(Object(Illuminate\\Foundation\\Application))
+#5 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(186): Illuminate\\Foundation\\Application->bootstrapWith(Array)
+#6 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(170): Illuminate\\Foundation\\Http\\Kernel->bootstrap()
+#7 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Http\\Kernel.php(144): Illuminate\\Foundation\\Http\\Kernel->sendRequestThroughRouter(Object(Illuminate\\Http\\Request))
+#8 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1219): Illuminate\\Foundation\\Http\\Kernel->handle(Object(Illuminate\\Http\\Request))
+#9 D:\\Stage\\Finances\\FinanSchool\\Backend\\public\\index.php(20): Illuminate\\Foundation\\Application->handleRequest(Object(Illuminate\\Http\\Request))
+#10 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\resources\\server.php(23): require_once('D:\\\\Stage\\\\Financ...')
+#11 {main}
+"} 
+[2025-09-04 12:46:15] local.ERROR: Class "Laravel\Sanctum\SanctumServiceProvider" not found {"exception":"[object] (Error(code: 0): Class \"Laravel\\Sanctum\\SanctumServiceProvider\" not found at D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php:960)
+[stacktrace]
+#0 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(892): Illuminate\\Foundation\\Application->resolveProvider('Laravel\\\\Sanctum...')
+#1 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\ProviderRepository.php(74): Illuminate\\Foundation\\Application->register('Laravel\\\\Sanctum...')
+#2 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(870): Illuminate\\Foundation\\ProviderRepository->load(Array)
+#3 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Bootstrap\\RegisterProviders.php(37): Illuminate\\Foundation\\Application->registerConfiguredProviders()
+#4 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(341): Illuminate\\Foundation\\Bootstrap\\RegisterProviders->bootstrap(Object(Illuminate\\Foundation\\Application))
+#5 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(473): Illuminate\\Foundation\\Application->bootstrapWith(Array)
+#6 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Console\\Kernel.php(195): Illuminate\\Foundation\\Console\\Kernel->bootstrap()
+#7 D:\\Stage\\Finances\\FinanSchool\\Backend\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Application.php(1234): Illuminate\\Foundation\\Console\\Kernel->handle(Object(Symfony\\Component\\Console\\Input\\ArgvInput), Object(Symfony\\Component\\Console\\Output\\ConsoleOutput))
+#8 D:\\Stage\\Finances\\FinanSchool\\Backend\\artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
+#9 {main}
+"} 
