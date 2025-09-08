@@ -481,3 +481,23 @@
 #8 D:\\Stage\\Finances\\FinanSchool\\Backend\\artisan(16): Illuminate\\Foundation\\Application->handleCommand(Object(Symfony\\Component\\Console\\Input\\ArgvInput))
 #9 {main}
 "} 
+[2025-09-08 07:20:42] local.DEBUG: From: Laravel <hello@example.com>
+To: adresse_destinataire@test.com
+Subject: Test Laravel SMTP
+MIME-Version: 1.0
+Date: Mon, 08 Sep 2025 07:20:42 +0000
+Message-ID: <117fda5db5cf43a0de7241dc05f500da@example.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Test envoi email  
+[2025-09-08 07:21:57] local.DEBUG: From: Laravel <hello@example.com>
+To: adresse_destinataire@test.com
+Subject: Test Laravel SMTP
+MIME-Version: 1.0
+Date: Mon, 08 Sep 2025 07:21:57 +0000
+Message-ID: <0721c884cca6be171f171e297019340a@example.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+
+Test envoi email  
