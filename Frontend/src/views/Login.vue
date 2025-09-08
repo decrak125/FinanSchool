@@ -6,6 +6,7 @@
       <input type="password" placeholder="Mot de passe" v-model="password" required />
       <button type="submit">Se connecter</button>
     </form>
+    <p>Mot de passe oublié? <RouterLink to="/forgot-password">Cliquez ici</RouterLink></p>
     <p v-if="errorMessage" style="color:red">{{ errorMessage }}</p>
   </div>
 </template>
@@ -13,6 +14,7 @@
 <script setup>
 import { ref } from 'vue';
 import axios from 'axios';
+import { RouterLink } from 'vue-router';
 
 const email = ref('');
 const password = ref('');
