@@ -23,5 +23,9 @@ Route::middleware('api')->group(function () {
 
     Route::get('password/reset/{token}', [ForgotPasswordController::class, 'showResetForm'])
     ->name('password.reset');
+
+    Route::post('/request-verification', [AuthController::class, 'requestVerification']);
+    Route::post('/register', [AuthController::class, 'register']);
+
     
 });
