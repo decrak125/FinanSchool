@@ -7,6 +7,7 @@
       <button type="submit">Se connecter</button>
     </form>
     <p>Mot de passe oublié? <RouterLink to="/forgot-password">Cliquez ici</RouterLink></p>
+    <p>Vous venez d'arriver? <RouterLink to="/signup">S'inscrire</RouterLink></p>
     <p v-if="errorMessage" style="color:red">{{ errorMessage }}</p>
   </div>
 </template>

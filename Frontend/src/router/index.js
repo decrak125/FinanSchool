@@ -4,6 +4,7 @@ import HelloWorld from "../components/HelloWorld.vue"; // page d'accueil
 import Connexion from "../views/Login.vue"; // page de connexion
 import ForgotPassword from "@/views/ForgotPassword.vue";
 import ResetPassword from "@/views/ResetPassword.vue";
+import Register from "@/views/Register.vue";
 
 const routes = [
   {
@@ -30,6 +31,11 @@ const routes = [
     path: "/reset-password",
     name: "ResetPassword",
     component: ResetPassword
+  },
+  {
+    path: "/signup",
+    name: "Register",
+    component: Register
   }
 
 ];
