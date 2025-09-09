@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import Produits from "../views/Produits.vue"; // page Produits
+import Dashboard from "../views/Dashboard.vue"; // page Dashboard
 import HelloWorld from "../components/HelloWorld.vue"; // page d'accueil
 import Connexion from "../views/Login.vue"; // page de connexion
 import ForgotPassword from "@/views/ForgotPassword.vue";
@@ -9,19 +10,22 @@ import Register from "@/views/Register.vue";
 const routes = [
   {
     path: "/",
-    name: "Accueil",
-    component: HelloWorld
+    name: "Login",
+    component: Connexion
   },
   {
     path: "/produits",
     name: "Produits",
     component: Produits
   },
+    
+    
   {
-    path: "/login",
-    name: "Login",
-    component: Connexion
+    path: "/dashboard",
+    name: "Dashboard",
+    component: Dashboard
   },
+
   {
     path: "/forgot-password",
     name: "ForgotPassword",

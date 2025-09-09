@@ -3,42 +3,48 @@
 namespace App\Http\Controllers\Auth;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+
 use App\Http\Controllers\Controller;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 use App\Models\EmailVerification;
 use App\Notifications\EmailVerificationCode;
-use Illuminate\Support\Str;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
+   
     public function login(Request $request)
     {
-        // Validation rapide
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
-        $credentials = $request->only('email', 'password');
+        $user = User::where('email', $request->email)->first();
 
-        // Auth::attempt vérifie automatiquement le hash
-        if (Auth::attempt($credentials)) {
-            $user = Auth::user();
-
-            // Exemple de retour JSON
-            return response()->json([
-                'success' => true,
-                'user' => $user,
-            ]);
+        if (!$user || !Hash::check($request->password, $user->password)) {
+            return response()->json(['message' => 'Identifiants incorrects'], 401);
         }
 
+        $token = $user->createToken('app-token')->plainTextToken;
+
         return response()->json([
-            'success' => false,
-            'message' => 'Email ou mot de passe incorrect'
-        ], 401);
+            'user' => $user,
+            'token' => $token
+        ]);
+    }
+
+    // Logout
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+        return response()->json(['message' => 'Déconnecté']);
+    }
+
+    // Get current user
+    public function user(Request $request)
+    {
+        return response()->json($request->user());
     }
 
    
