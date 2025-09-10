@@ -29,11 +29,11 @@ export default {
         this.user = res.data;
       } else {
         // pas de token → retour à login
-        this.$router.push("/login");
+        this.$router.push("/");
       }
     } catch (err) {
       console.error(err.response?.data);
-      this.$router.push("/login");
+      this.$router.push("/");
     }
   }
 };
