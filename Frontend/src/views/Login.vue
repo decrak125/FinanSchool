@@ -6,6 +6,7 @@
       <input type="password" placeholder="Mot de passe" v-model="password" required />
       <button type="submit">Se connecter</button>
     </form>
+
     <p>Mot de passe oublié? <RouterLink to="/forgot-password">Cliquez ici</RouterLink></p>
     <p>Vous venez d'arriver? <RouterLink to="/signup">S'inscrire</RouterLink></p>
 
@@ -44,33 +45,38 @@ export default {
         this.token = res.data.token;
         this.user = res.data.user;
 
-        // Stocker le token pour persister
+        // Stocker le token
         localStorage.setItem('token', this.token);
 
-        // ✅ Afficher message succès
+        // Message de succès
         this.successMessage = `Bonjour ${this.user.name}, connexion réussie !`;
+        this.errorMessage = '';
 
-        console.log('Connecté', this.user, this.token);
-
-        // ✅ Redirection après 1.5s
+        // Redirection après 1.5s
         setTimeout(() => {
           this.$router.push('/dashboard');
         }, 1500);
+
       } catch (err) {
-        this.errorMessage = err.response?.data.message || 'Erreur de connexion';
+        console.log(err); // Debug pour voir exactement la réponse
+        // Affiche le message envoyé par Laravel
+        this.errorMessage = err.response?.data?.message || 'Erreur inconnue';
         this.successMessage = '';
       }
     },
+
     async fetchUser() {
       try {
         const token = localStorage.getItem('token');
         if (!token) return;
+
         const res = await getUser(token);
         this.user = res.data;
       } catch (err) {
         console.error(err.response?.data);
       }
     },
+
     async handleLogout() {
       try {
         const token = localStorage.getItem('token');
@@ -98,12 +104,14 @@ export default {
   align-items: center;
   margin-top: 100px;
 }
+
 input {
   display: block;
   margin: 10px 0;
   padding: 8px;
   width: 200px;
 }
+
 button {
   padding: 8px 12px;
 }

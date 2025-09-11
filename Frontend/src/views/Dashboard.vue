@@ -1,19 +1,16 @@
 <template>
   <div class="dashboard">
-    <h1>Tableau de bord</h1>
+    <h1>Bonjour <strong>{{ user.name }}</strong>, bienvenue sur ton tableau de bord !</h1>
 
-    <p v-if="user">
-      👋 Bonjour <strong>{{ user.name }}</strong>, bienvenue sur ton tableau de bord !
-    </p>
+    <!-- Ton ancien code est gardé -->
 
-    <p v-else>
-      Chargement de vos informations...
-    </p>
+    <!-- ✅ Bouton de déconnexion ajouté -->
+    <button @click="logout">Déconnexion</button>
   </div>
 </template>
 
 <script>
-import { getUser } from "../services/Auth";
+import { getUser } from "../services/Auth"; // si tu utilises ce service
 
 export default {
   data() {
@@ -35,16 +32,29 @@ export default {
       console.error(err.response?.data);
       this.$router.push("/");
     }
+  },
+  methods: {
+    logout() {
+      // Supprimer le token
+      localStorage.removeItem("token");
+
+      // Rediriger vers login
+      this.$router.push("/");
+    }
   }
 };
 </script>
 
 <style scoped>
-.dashboard {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 80px;
-  font-size: 20px;
+button {
+  background: red;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+button:hover {
+  background: darkred;
 }
 </style>

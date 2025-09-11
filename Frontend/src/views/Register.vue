@@ -8,15 +8,28 @@
       <button @click="sendCode">Envoyer le code</button>
     </div>
 
-    <!-- Étape 2 : Code + Nom + Mot de passe -->
-    <div v-if="step === 2">
+    <!-- Étape 2 : Code à 6 chiffres -->
+    <div v-if="step === 2" class="code-inputs">
+      <div class="code-boxes">
+        <input v-for="(digit, index) in codeDigits" 
+               :key="index" 
+               type="text" 
+               maxlength="1" 
+               v-model="codeDigits[index]"
+               @input="focusNext(index, $event)" />
+      </div>
+      <button @click="verifyCode">Vérifier le code</button>
+    </div>
+
+    <!-- Étape 3 : Nom + mot de passe -->
+    <div v-if="step === 3">
       <input type="text" v-model="name" placeholder="Votre nom" />
       <input type="password" v-model="password" placeholder="Mot de passe" />
       <input type="password" v-model="password_confirmation" placeholder="Confirmer mot de passe" />
-      <input type="text" v-model="code" placeholder="Code de vérification" />
-      <button @click="verifyCode">Valider l'inscription</button>
+      <button @click="registerUser">Finaliser l'inscription</button>
     </div>
 
+    <!-- Messages -->
     <p v-if="message" :class="{'error': error}">{{ message }}</p>
   </div>
 </template>
@@ -30,7 +43,7 @@ const email = ref('')
 const name = ref('')
 const password = ref('')
 const password_confirmation = ref('')
-const code = ref('')
+const codeDigits = ref(['', '', '', '', '', ''])
 const message = ref('')
 const error = ref(false)
 
@@ -42,7 +55,7 @@ const sendCode = async () => {
   error.value = false
   try {
     const res = await axios.post(`${API_URL}/request-verification`, { email: email.value })
-    if(res.data.status === 'success'){
+    if (res.data.status === 'success') {
       step.value = 2
       message.value = res.data.message
     }
@@ -52,33 +65,65 @@ const sendCode = async () => {
   }
 }
 
-// Étape 2 : vérifier le code et créer l’utilisateur
+// Gérer le focus automatique sur chaque input du code
+const focusNext = (index, e) => {
+  if (e.inputType === 'insertText' && index < 5) {
+    const nextInput = e.target.parentNode.children[index + 1]
+    nextInput.focus()
+  }
+}
+
+// Étape 2 : vérifier le code
 const verifyCode = async () => {
+  message.value = ''
+  error.value = false
+  const code = codeDigits.value.join('')
+  try {
+    const res = await axios.post(`${API_URL}/request-verification`, { email: email.value, code })
+    if (res.data.status === 'success') {
+      step.value = 3
+      message.value = 'Code validé ✅'
+    }
+  } catch (err) {
+    error.value = true
+    message.value = err.response?.data?.message || 'Code invalide'
+  }
+}
+
+// Étape 3 : finaliser inscription
+const registerUser = async () => {
   message.value = ''
   error.value = false
   try {
     const res = await axios.post(`${API_URL}/register`, {
       email: email.value,
-      code: code.value,
       name: name.value,
       password: password.value,
       password_confirmation: password_confirmation.value
     })
-    if(res.data.status === 'success'){
+    if (res.data.status === 'success') {
       message.value = 'Inscription réussie 🎉'
-      step.value = 1
+      
       // Réinitialiser les champs
+      step.value = 1
       email.value = ''
       name.value = ''
       password.value = ''
       password_confirmation.value = ''
-      code.value = ''
+      codeDigits.value = ['', '', '', '', '', '']
+
+      // ✅ Redirection vers login après 1 seconde
+      setTimeout(() => {
+        window.location.href = '/'  // ou this.$router.push('/') si tu es dans un component classique
+      }, 1000)
     }
-  } catch(err) {
+  } catch (err) {
     error.value = true
-    message.value = err.response?.data?.message || 'Erreur lors de la vérification'
+    message.value = err.response?.data?.message || 'Erreur lors de la création'
   }
 }
+
+
 </script>
 
 <style scoped>
@@ -93,6 +138,8 @@ const verifyCode = async () => {
 input {
   padding: 8px;
   font-size: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 button {
@@ -106,5 +153,23 @@ button {
 
 .error {
   color: red;
+}
+
+.code-inputs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.code-boxes {
+  display: flex;
+  gap: 5px;
+}
+
+.code-boxes input {
+  width: 40px;
+  text-align: center;
+  font-size: 24px;
+  padding: 5px;
 }
 </style>

@@ -11,6 +11,8 @@ Route::middleware('api')->group(function () {
         return response()->json(['message' => 'POST request received']);
     });
 
+    Route::get('/errors/{id}', [AuthController::class, 'getErrorMessage']);
+
     Route::get('/test', function () {
         return response()->json(['message' => 'API is working']);
     });
