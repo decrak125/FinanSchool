@@ -55,7 +55,7 @@ export default {
         // Redirection après 1.5s
         setTimeout(() => {
           this.$router.push('/dashboard');
-        }, 1500);
+        }, 500);
 
       } catch (err) {
         console.log(err); // Debug pour voir exactement la réponse

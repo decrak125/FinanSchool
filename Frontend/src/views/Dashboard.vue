@@ -1,16 +1,16 @@
 <template>
   <div class="dashboard">
-    <h1>Bonjour <strong>{{ user.name }}</strong>, bienvenue sur ton tableau de bord !</h1>
+    <!-- ✅ Message personnalisé -->
+    <h1 v-if="user">Bienvenue, {{ user.name }} </h1>
+    <h1 v-else>Bienvenue sur le Dashboard</h1>
 
-    <!-- Ton ancien code est gardé -->
-
-    <!-- ✅ Bouton de déconnexion ajouté -->
+    <!-- ✅ Bouton de déconnexion -->
     <button @click="logout">Déconnexion</button>
   </div>
 </template>
 
 <script>
-import { getUser } from "../services/Auth"; // si tu utilises ce service
+import { getUser } from "../services/Auth"; // vérifie le chemin
 
 export default {
   data() {
@@ -23,9 +23,8 @@ export default {
       const token = localStorage.getItem("token");
       if (token) {
         const res = await getUser(token);
-        this.user = res.data;
+        this.user = res.data; // ⚠️ ici "res.data" doit contenir "name"
       } else {
-        // pas de token → retour à login
         this.$router.push("/");
       }
     } catch (err) {
@@ -35,10 +34,7 @@ export default {
   },
   methods: {
     logout() {
-      // Supprimer le token
       localStorage.removeItem("token");
-
-      // Rediriger vers login
       this.$router.push("/");
     }
   }
