@@ -9,6 +9,7 @@ import Input from '../atoms/Input.vue';
 import Bouton from '../atoms/Bouton.vue';
 import Icon from '../atoms/Icon.vue';
 import Popup from '../molecules/Pop-up-card.vue';
+import BoutonLoading from '../atoms/Bouton-loading.vue';
 
 const step = ref(1)
 const email = ref('')
@@ -18,6 +19,8 @@ const password_confirmation = ref('')
 const codeDigits = ref(['', '', '', '', '', ''])
 const message = ref('')
 const error = ref(false)
+const loading = ref(false)
+const successMessage = ref('')
 
 const API_URL = 'http://localhost:8000/api'
 
@@ -26,6 +29,7 @@ const sendCode = async () => {
     message.value = ''
     error.value = false
     try {
+        loading.value = true
         const res = await axios.post(`${API_URL}/request-verification`, { email: email.value })
         if (res.data.status === 'success') {
             step.value = 2
@@ -34,6 +38,9 @@ const sendCode = async () => {
     } catch (err) {
         error.value = true
         message.value = err.response?.data?.message || 'Erreur lors de l\'envoi du code'
+    }
+    finally {
+        loading.value = false
     }
 }
 
@@ -51,6 +58,7 @@ const verifyCode = async () => {
     error.value = false
     const code = codeDigits.value.join('')
     try {
+        loading.value = true
         const res = await axios.post(`${API_URL}/request-verification`, { email: email.value, code })
         if (res.data.status === 'success') {
             step.value = 3
@@ -60,6 +68,9 @@ const verifyCode = async () => {
         error.value = true
         message.value = err.response?.data?.message || 'Code invalide'
     }
+    finally {
+        loading.value = false
+    }
 }
 
 // Étape 3 : finaliser inscription
@@ -67,6 +78,7 @@ const registerUser = async () => {
     message.value = ''
     error.value = false
     try {
+        loading.value = true
         const res = await axios.post(`${API_URL}/register`, {
             email: email.value,
             name: name.value,
@@ -74,7 +86,7 @@ const registerUser = async () => {
             password_confirmation: password_confirmation.value
         })
         if (res.data.status === 'success') {
-            message.value = 'Inscription réussie 🎉'
+            successMessage.value = 'Inscription réussie'
 
             // Réinitialiser les champs
             step.value = 1
@@ -85,15 +97,21 @@ const registerUser = async () => {
             codeDigits.value = ['', '', '', '', '', '']
 
             // ✅ Redirection vers login après 1 seconde
-            setTimeout(() => {
-                window.location.href = '/'  // ou this.$router.push('/') si tu es dans un component classique
-            }, 1000)
+            // setTimeout(() => {
+            //     window.location.href = '/'  // ou this.$router.push('/') si tu es dans un component classique
+            // }, 1000)
         }
     } catch (err) {
         error.value = true
         message.value = err.response?.data?.message || 'Erreur lors de la création'
     }
+    finally {
+        loading.value = false
+    }
 }
+const login = async () => {
+    window.location.href = '/';
+};
 </script>
 <template>
     <Page>
@@ -106,11 +124,17 @@ const registerUser = async () => {
                 </div>
             </div>
             <div class="droite">
+                <Popup v-if="successMessage">
+                <Icon :color="'vert'" :icon="'bi bi-check2'" />
+                    <Texte :type="'bold-dark'" texte="Félicitacions, vous etes inscrit !" />
+                    <Bouton @click="login" :type="'input'" :texte="'Se connecter'" />
+                </Popup>
                 <formCard v-if="step === 1">
                     <Texte type="bold-dark" texte="Inscrivez-vous !" />
                     <Input :label="'Email'" :type="'email'" v-model="email" :required="'true'" />
                     <div class="button">
-                        <Bouton @click="sendCode" :type="'input'" :texte="'Confirmer email'" />
+                        <Bouton v-if="!loading" @click="sendCode" :type="'input'" :texte="'Confirmer email'" />
+                        <BoutonLoading v-if="loading" :type="'input'" :texte="'Connexion ...'" />
                         <div class="forgot-pwd">
                             <Texte :type="'thin-dark'" :texte="'Vous avez déjà un compte?'" />
                             <a href="/">
@@ -133,9 +157,11 @@ const registerUser = async () => {
                         type="text" 
                         maxlength="1" 
                         v-model="codeDigits[index]"
-                        @input="focusNext(index, $event)" />
+                        @input="focusNext(index, $event)" 
+                        required/>
                     </div>
-                    <Bouton @click="verifyCode" :type="'input'" :texte="'Vérifier le code'" />
+                    <Bouton v-if="!loading" @click="verifyCode" :type="'input'" :texte="'Vérifier le code'" />
+                    <BoutonLoading v-if="loading" :type="'input'" :texte="'Connexion ...'" />
                     <Texte @click="sendCode" :type="'primary'" :texte="'Renvoyer le code.'" />
                     <Texte v-if="message" :class="{'error': error}" :type="'thin-success'"
                         :texte="message" />
@@ -150,7 +176,8 @@ const registerUser = async () => {
                     <Input :label="'Mot de passe'" :type="'password'" v-model="password" :required="'true'"/>
                     <Input  :label="'Confirmer mot de passe'" :type="'password'" v-model="password_confirmation" :required="'true'" />
                 </div>
-                    <Bouton @click="registerUser" :type="'input'" :texte="'Finaliser l\'inscription'" />
+                    <Bouton v-if="!loading" @click="registerUser" :type="'input'" :texte="'Finaliser l\'inscription'" />
+                    <BoutonLoading v-if="loading" :type="'input'" :texte="'Connexion ...'" />
                 </formCard>
             </div>
         </div>

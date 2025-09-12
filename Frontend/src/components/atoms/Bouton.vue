@@ -27,5 +27,11 @@ defineProps({
   .button-input:hover {
     @include bouton($secondary, $light, $radius-pm, $stara, 270px);
   }
+  .button-loading {
+    cursor: not-allowed;
+      @include bouton($secondary, $light, $radius-pm, $stara, 270px);
+      transition: all 0.5s ease-in-out;
+      
+  }
   </style>
   

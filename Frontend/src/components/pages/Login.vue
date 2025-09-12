@@ -9,6 +9,7 @@ import Bouton from '../atoms/Bouton.vue';
 
 <script>
 import { login, getUser, logout } from '../../services/Auth';
+import BoutonLoading from '../atoms/Bouton-loading.vue';
 
 export default {
   data() {
@@ -18,12 +19,14 @@ export default {
       token: '',
       user: null,
       errorMessage: '',
-      successMessage: ''
+      successMessage: '',
+      loading: false
     };
   },
   methods: {
     async handleLogin() {
       try {
+        this.loading = true; // démarrer le loader
         const res = await login(this.email, this.password);
         this.token = res.data.token;
         this.user = res.data.user;
@@ -36,15 +39,18 @@ export default {
         this.errorMessage = '';
 
         // Redirection après 1.5s
-        setTimeout(() => {
+        // setTimeout(() => {
           this.$router.push('/dashboard');
-        }, 500);
+        // }, 500);
 
       } catch (err) {
         console.log(err); // Debug pour voir exactement la réponse
         // Affiche le message envoyé par Laravel
         this.errorMessage = err.response?.data?.message || 'Erreur inconnue';
         this.successMessage = '';
+      }
+      finally {
+        this.loading = false; // arrêter le loader
       }
     },
 
@@ -104,7 +110,8 @@ export default {
                         </a>
                     </div>
                     <div class="button">
-                        <Bouton :type="'input'" :texte="'Se connecter'" />
+                        <Bouton v-if="!loading" :type="'input'" :texte="'Se connecter'" />
+                        <BoutonLoading v-if="loading" :type="'input'" :texte="'Connexion ...'" />
                         <div class="forgot-pwd">
                             <Texte :type="'thin-dark'" :texte="'Vous venez d\'arriver ?'" />
                             <a href="/signup">

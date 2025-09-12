@@ -8,17 +8,23 @@ import axios from 'axios'
 import Icon from '../atoms/Icon.vue';
 import { ref } from 'vue';
 import Popup from '../molecules/Pop-up-card.vue';
+import BoutonLoading from '../atoms/Bouton-loading.vue';
 
 const email = ref('')
 const showOpenMail = ref(false)
+const loading = ref(false)
 
 const sendLink = async () => {
     try {
+        loading.value = true
         await axios.post('http://127.0.0.1:8000/api/forgot-password', { email: email.value })
         // alert('Lien envoyé par email !')
         showOpenMail.value = true
     } catch (err) {
         alert('Erreur : ' + err.response.data.message)
+    }
+    finally {
+        loading.value = false
     }
 }
 
@@ -54,7 +60,8 @@ const openGmail = () => {
                     </div>
                     <Input :label="'Email'" :type="'email'" v-model="email" :required="'true'"/>
                     <div class="button">
-                        <Bouton @click="sendLink" :type="'input'" :texte="'Envoyer le lien'" />
+                        <Bouton v-if="!loading" @click="sendLink" :type="'input'" :texte="'Envoyer le lien'" />
+                        <BoutonLoading v-if="loading" :type="'input'" :texte="'Connexion ...'" />
                         <div class="forgot-pwd">
                             <Texte :type="'thin-dark'" :texte="'Vous venez d\'arriver ?'" />
                             <a href="/signup">

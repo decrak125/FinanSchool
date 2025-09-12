@@ -8,6 +8,7 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import Icon from '../atoms/Icon.vue';
 import Popup from '../molecules/Pop-up-card.vue';
+import BoutonLoading from '../atoms/Bouton-loading.vue';
 
 
 const email = ref('');
@@ -16,6 +17,7 @@ const password_confirmation = ref('');
 const token = ref('');
 const errorMessage = ref('');
 const successMessage = ref('');
+const loading = ref(false);
 
 // Récupérer token + email depuis l'URL
 onMounted(() => {
@@ -26,6 +28,7 @@ onMounted(() => {
 
 const submitForm = async () => {
     try {
+        loading.value = true;
         await axios.post('http://127.0.0.1:8000/api/reset-password', {
             token: token.value,
             email: email.value,
@@ -38,6 +41,9 @@ const submitForm = async () => {
         console.error(error);
         errorMessage.value = 'Erreur lors de la réinitialisation.';
         successMessage.value = '';
+    }
+    finally {
+        loading.value = false;
     }
 };
 const login = async () => {
@@ -70,7 +76,8 @@ const login = async () => {
                         <Input :label="'Confirmer le mot de passe'" :type="'password'" v-model="password_confirmation"
                             :required="'true'" />
                         <div class="button" style="margin-top: 24px;">
-                            <Bouton :type="'input'" :texte="'Réinitialiser'" />
+                            <Bouton v-if="!loading" :type="'input'" :texte="'Réinitialiser'" />
+                            <BoutonLoading v-if="loading" :type="'input'" :texte="'Connexion ...'" />
                         </div>
                     </form>
                     <Texte v-if="errorMessage" :type="'thin-error'" :texte="errorMessage" />
