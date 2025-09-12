@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import { defineProps, defineEmits, readonly } from 'vue';
 import Texte from './Texte.vue';
 
 const emit = defineEmits();
@@ -19,6 +19,14 @@ const props = defineProps({
   placeholder: {
     type: String,
     default: ''
+  },
+  required: {
+    Boolean: String,
+    default: false
+  },
+  read: {
+    type: Boolean,
+    default: false
   },
   modelValue: {  // Changement de 'value' à 'modelValue'
     type: String,
@@ -44,7 +52,8 @@ const handleInput = (event) => {
     v-bind:v-model="name"
     :value="modelValue"
     @input="handleInput"
-    required
+    v-bind:required="required"
+    v-bind:readonly="read"
   />
   </div>
 </template>

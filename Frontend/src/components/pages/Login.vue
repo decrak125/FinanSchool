@@ -92,10 +92,11 @@ export default {
             </div>
             <div class="droite">
                 <formCard>
+                  
                     <Texte type="bold-dark" texte="Connectez-vous !" />
                     <form @submit.prevent="handleLogin">
-                    <Input :label="'Email'" :type="'email'" v-model="email"/>
-                    <Input :label="'Mot de passe'" :type="'password'" v-model="password"/>
+                    <Input :label="'Email'" :type="'email'" v-model="email" :required="'true'"/>
+                    <Input :label="'Mot de passe'" :type="'password'" v-model="password" :required="'true'"/>
                     <div class="forgot-pwd">
                         <Texte :type="'thin-dark'" :texte="'Mot de passe oublié ?'" />
                         <a href="/forgot-password">

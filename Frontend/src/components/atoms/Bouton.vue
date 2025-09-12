@@ -21,11 +21,11 @@ defineProps({
 
   .button-input {
     cursor: pointer;
-      @include bouton($primary, $light, $radius-pm, $stara, 250px);
+      @include bouton($primary, $light, $radius-pm, $stara, 270px);
       transition: all 0.5s ease-in-out;
   }
   .button-input:hover {
-    @include bouton($secondary, $light, $radius-pm, $stara, 250px);
+    @include bouton($secondary, $light, $radius-pm, $stara, 270px);
   }
   </style>
   

@@ -1,0 +1,222 @@
+<script setup>
+import { ref } from 'vue'
+import axios from 'axios'
+
+import Page from '../template/Page.vue';
+import formCard from '../molecules/Form-card.vue';
+import Texte from '../atoms/Texte.vue';
+import Input from '../atoms/Input.vue';
+import Bouton from '../atoms/Bouton.vue';
+import Icon from '../atoms/Icon.vue';
+import Popup from '../molecules/Pop-up-card.vue';
+
+const step = ref(1)
+const email = ref('')
+const name = ref('')
+const password = ref('')
+const password_confirmation = ref('')
+const codeDigits = ref(['', '', '', '', '', ''])
+const message = ref('')
+const error = ref(false)
+
+const API_URL = 'http://localhost:8000/api'
+
+// Étape 1 : envoyer le code
+const sendCode = async () => {
+    message.value = ''
+    error.value = false
+    try {
+        const res = await axios.post(`${API_URL}/request-verification`, { email: email.value })
+        if (res.data.status === 'success') {
+            step.value = 2
+            message.value = res.data.message
+        }
+    } catch (err) {
+        error.value = true
+        message.value = err.response?.data?.message || 'Erreur lors de l\'envoi du code'
+    }
+}
+
+// Gérer le focus automatique sur chaque input du code
+const focusNext = (index, e) => {
+    if (e.inputType === 'insertText' && index < 5) {
+        const nextInput = e.target.parentNode.children[index + 1]
+        nextInput.focus()
+    }
+}
+
+// Étape 2 : vérifier le code
+const verifyCode = async () => {
+    message.value = ''
+    error.value = false
+    const code = codeDigits.value.join('')
+    try {
+        const res = await axios.post(`${API_URL}/request-verification`, { email: email.value, code })
+        if (res.data.status === 'success') {
+            step.value = 3
+            message.value = 'Code validé, finalisez votre inscription'
+        }
+    } catch (err) {
+        error.value = true
+        message.value = err.response?.data?.message || 'Code invalide'
+    }
+}
+
+// Étape 3 : finaliser inscription
+const registerUser = async () => {
+    message.value = ''
+    error.value = false
+    try {
+        const res = await axios.post(`${API_URL}/register`, {
+            email: email.value,
+            name: name.value,
+            password: password.value,
+            password_confirmation: password_confirmation.value
+        })
+        if (res.data.status === 'success') {
+            message.value = 'Inscription réussie 🎉'
+
+            // Réinitialiser les champs
+            step.value = 1
+            email.value = ''
+            name.value = ''
+            password.value = ''
+            password_confirmation.value = ''
+            codeDigits.value = ['', '', '', '', '', '']
+
+            // ✅ Redirection vers login après 1 seconde
+            setTimeout(() => {
+                window.location.href = '/'  // ou this.$router.push('/') si tu es dans un component classique
+            }, 1000)
+        }
+    } catch (err) {
+        error.value = true
+        message.value = err.response?.data?.message || 'Erreur lors de la création'
+    }
+}
+</script>
+<template>
+    <Page>
+        <div class="main">
+            <div class="gauche">
+                <div class="welcome">
+                    <Texte type="title-light" texte="Bonjour." />
+                    <Texte type="light"
+                        texte="Bienvenue sur votre espace financier sécurisé. Suivez, analysez et maîtrisez vos états financiers en toute confiance." />
+                </div>
+            </div>
+            <div class="droite">
+                <formCard v-if="step === 1">
+                    <Texte type="bold-dark" texte="Inscrivez-vous !" />
+                    <Input :label="'Email'" :type="'email'" v-model="email" :required="'true'" />
+                    <div class="button">
+                        <Bouton @click="sendCode" :type="'input'" :texte="'Confirmer email'" />
+                        <div class="forgot-pwd">
+                            <Texte :type="'thin-dark'" :texte="'Vous avez déjà un compte?'" />
+                            <a href="/">
+                                <Texte :type="'thin-primary'" :texte="'Connectez-vous.'" />
+                            </a>
+                        </div>
+                    </div>
+                    <Texte v-if="message" :class="{'error': error}" :type="'thin-error'"
+                        :texte="message" />
+                </formCard>
+                <formCard v-if="step === 2">
+                    <Icon :color="'primary'" :icon="'bi bi-envelope'" />
+                    <Texte type="bold-dark" texte="Consultez votre email." />
+                    <Texte :type="'thin-dark'" :texte="'Entrez le code à 6 chiffres envoyé à votre email ' +  email " />
+                    <div class="code-boxes">
+                        
+                        <!-- original -->
+                        <input class="digit" v-for="(digit, index) in codeDigits" 
+                        :key="index" 
+                        type="text" 
+                        maxlength="1" 
+                        v-model="codeDigits[index]"
+                        @input="focusNext(index, $event)" />
+                    </div>
+                    <Bouton @click="verifyCode" :type="'input'" :texte="'Vérifier le code'" />
+                    <Texte @click="sendCode" :type="'primary'" :texte="'Renvoyer le code.'" />
+                    <Texte v-if="message" :class="{'error': error}" :type="'thin-success'"
+                        :texte="message" />
+                </formCard>
+                <formCard v-if="step === 3">
+                    <Icon :color="'primary'" :icon="'bi bi-pencil-square'" />
+                    <Texte type="bold-dark" texte="Finalisez votre inscription." />
+                    <Texte v-if="message" :class="{'error': error}" :type="'thin-success'"
+                        :texte="message" />
+                <div class="">
+                    <Input  :label="'Nom d\'utilisateur'" :type="'text'" v-model="name" :required="'true'" />
+                    <Input :label="'Mot de passe'" :type="'password'" v-model="password" :required="'true'"/>
+                    <Input  :label="'Confirmer mot de passe'" :type="'password'" v-model="password_confirmation" :required="'true'" />
+                </div>
+                    <Bouton @click="registerUser" :type="'input'" :texte="'Finaliser l\'inscription'" />
+                </formCard>
+            </div>
+        </div>
+    </Page>
+    <div v-if="user">
+        <h2>Utilisateur connecté :</h2>
+        <pre>{{ user }}</pre>
+        <button @click="handleLogout">Déconnecter</button>
+    </div>
+
+    <!-- Message d'erreur -->
+    <p v-if="errorMessage" style="color:red">{{ errorMessage }}</p>
+
+    <!-- Message de succès -->
+    <p v-if="successMessage" style="color:green">{{ successMessage }}</p>
+</template>
+<style lang="scss" scoped>
+
+.digit{
+  @include digit($dark, $dark, $radius-pm, $stara);
+    width: 24px;
+    .input::placeholder{
+        color: $dark;
+    }
+}
+.forgot-pwd {
+    display: flex;
+    width: auto;
+    gap: 8px;
+    justify-content: center;
+
+    a {
+        text-decoration: none;
+        height: 0px;
+        margin: 0%;
+        padding: 0%;
+    }
+}
+
+.main {
+    display: flex;
+    width: 100%;
+    height: 100%;
+
+    .gauche {
+        @include position-contenus(flex, center, center);
+        width: 100%;
+        height: 100vh;
+        border-radius: 0 var(--border-radius, 32px) var(--border-radius, 32px) 0;
+    }
+}
+.code-boxes {
+  display: flex;
+  gap: 5px;
+}
+.welcome {
+    display: flex;
+    width: 494px;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+</style>

@@ -17,7 +17,7 @@
     border-radius: $radius-pm;
     width: 566px;
     height: 100vh;
-    // padding: 10px 64px;
+    // padding: 10px 64px; 
     display: flex;
     gap: 24px;
     flex-shrink: 0;
