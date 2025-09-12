@@ -216,7 +216,12 @@ const login = async () => {
         padding: 0%;
     }
 }
-
+.droite {
+    opacity: 0;
+    transform: translateX(500px);
+    animation: fadeInUp 1s ease-out forwards;
+    animation-delay: 0.4s;
+}
 .main {
     display: flex;
     width: 100%;
@@ -238,7 +243,18 @@ const login = async () => {
     width: 494px;
     flex-direction: column;
     align-items: flex-start;
-}
+    opacity: 0;
+    transform: translateY(40px);
+    transform: translateX(400px);
+    animation: fadeInUp 1s ease-out forwards;
+    // animation-delay: 0.3s;
+  }
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
 .button {
     display: flex;

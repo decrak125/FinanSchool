@@ -98,7 +98,6 @@ export default {
             </div>
             <div class="droite">
                 <formCard>
-                  
                     <Texte type="bold-dark" texte="Connectez-vous !" />
                     <form @submit.prevent="handleLogin">
                     <Input :label="'Email'" :type="'email'" v-model="email" :required="'true'"/>
@@ -154,6 +153,12 @@ export default {
         padding: 0%;
     }
 }
+.droite {
+    opacity: 0;
+    transform: translateX(500px);
+    animation: fadeInUp 1s ease-out forwards;
+    animation-delay: 0.4s;
+}
 .main {
     display: flex;
     width: 100%;
@@ -164,13 +169,25 @@ export default {
         height: 100vh;
         border-radius: 0 var(--border-radius, 32px) var(--border-radius, 32px) 0;
     }
+    
 }
 .welcome{
     display: flex;
     width: 494px;
     flex-direction: column;
     align-items: flex-start;
-}
+    opacity: 0;
+    transform: translateY(40px);
+    transform: translateX(400px);
+    animation: fadeInUp 1s ease-out forwards;
+    // animation-delay: 0.3s;
+  }
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 .button {
     display: flex;
     flex-direction: column;
