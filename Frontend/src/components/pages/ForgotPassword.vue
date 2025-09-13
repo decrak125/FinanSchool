@@ -99,7 +99,10 @@ const openGmail = () => {
     display: flex;
     width: 100%;
     height: 100%;
-
+    background: url('@/assets/img/pattern01.png') repeat-x; // répétition horizontale
+    background-size: auto 100%; // garde la taille du pattern
+    animation: scroll-bg 60s linear infinite;
+    
     .gauche {
         @include position-contenus(flex, center, center);
         width: 100%;

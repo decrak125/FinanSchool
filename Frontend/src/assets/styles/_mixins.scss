@@ -140,3 +140,20 @@
         opacity: 1;
     }
 }
+
+@keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  // Animation : déplace le fond de gauche à droite
+@keyframes scroll-bg {
+  from {
+    background-position: 805% 0;
+  }
+  to {
+    background-position: -1000% 0;
+  }
+}

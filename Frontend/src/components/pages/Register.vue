@@ -130,6 +130,7 @@ const login = async () => {
                     <Bouton @click="login" :type="'input'" :texte="'Se connecter'" />
                 </Popup>
                 <formCard v-if="step === 1">
+                    <img class="logo" src="../../assets/img/Tracage300.png" alt="">
                     <Texte type="bold-dark" texte="Inscrivez-vous !" />
                     <Input :label="'Email'" :type="'email'" v-model="email" :required="'true'" />
                     <div class="button">
@@ -216,6 +217,11 @@ const login = async () => {
         padding: 0%;
     }
 }
+.logo {
+    width: 130px;
+    height: auto;
+    margin-bottom: 20px;
+}
 .droite {
     opacity: 0;
     transform: translateX(500px);
@@ -226,7 +232,9 @@ const login = async () => {
     display: flex;
     width: 100%;
     height: 100%;
-
+    background: url('@/assets/img/pattern01.png') repeat-x; // répétition horizontale
+    background-size: auto 100%; // garde la taille du pattern
+    animation: scroll-bg 60s linear infinite;
     .gauche {
         @include position-contenus(flex, center, center);
         width: 100%;
@@ -249,12 +257,7 @@ const login = async () => {
     animation: fadeInUp 1s ease-out forwards;
     // animation-delay: 0.3s;
   }
-  @keyframes fadeInUp {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+
 
 .button {
     display: flex;
@@ -262,4 +265,5 @@ const login = async () => {
     align-items: center;
     gap: 10px;
 }
+
 </style>

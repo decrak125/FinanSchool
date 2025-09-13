@@ -98,6 +98,7 @@ export default {
             </div>
             <div class="droite">
                 <formCard>
+                  <img class="logo" src="../../assets/img/Tracage300.png" alt="">
                     <Texte type="bold-dark" texte="Connectez-vous !" />
                     <form @submit.prevent="handleLogin">
                     <Input :label="'Email'" :type="'email'" v-model="email" :required="'true'"/>
@@ -159,10 +160,19 @@ export default {
     animation: fadeInUp 1s ease-out forwards;
     animation-delay: 0.4s;
 }
+.logo {
+    width: 130px;
+    height: auto;
+    margin-bottom: 20px;
+}
 .main {
     display: flex;
     width: 100%;
     height: 100%;
+    background: url('@/assets/img/pattern01.png') repeat-x; // répétition horizontale
+    background-size: auto 100%; // garde la taille du pattern
+    animation: scroll-bg 60s linear infinite;
+
     .gauche {
         @include position-contenus(flex, center, center);
         width: 100%;
