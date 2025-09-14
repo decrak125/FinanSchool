@@ -31,6 +31,7 @@ Route::middleware('api')->group(function () {
     ->name('password.reset');
 
     Route::post('/request-verification', [AuthController::class, 'requestVerification']);
+    Route::post('/verify-code', [AuthController::class, 'verifyCode']);
     Route::post('/register', [AuthController::class, 'register']);
 
     

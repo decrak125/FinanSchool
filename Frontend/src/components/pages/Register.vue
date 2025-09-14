@@ -59,7 +59,7 @@ const verifyCode = async () => {
     const code = codeDigits.value.join('')
     try {
         loading.value = true
-        const res = await axios.post(`${API_URL}/request-verification`, { email: email.value, code })
+        const res = await axios.post(`${API_URL}/verify-code`, { email: email.value, code })
         if (res.data.status === 'success') {
             step.value = 3
             message.value = 'Code validé, finalisez votre inscription'

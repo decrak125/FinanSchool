@@ -11,6 +11,7 @@ use App\Helpers\ErrorHelper;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\EmailVerificationCode;
+use Illuminate\Support\Facades\Cache;
 
 class AuthController extends Controller
 {
@@ -65,27 +66,63 @@ class AuthController extends Controller
     // -------------------
     // DEMANDER CODE VERIFICATION EMAIL
     // -------------------
-    public function requestVerification(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email|unique:users,email',
-        ], [
-            'email.required' => ErrorHelper::get(4),
-            'email.unique' => ErrorHelper::get(6),
-        ]);
+public function requestVerification(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+    ]);
 
-        $code = rand(100000, 999999);
+    // Générer un code à 6 chiffres
+    $code = rand(100000, 999999);
 
-        EmailVerification::updateOrCreate(
-            ['email' => $request->email],
-            ['token' => $code, 'created_at' => now()]
-        );
+    // Stocker dans le cache pour 10 minutes
+    Cache::put('email_verification_' . $request->email, $code, now()->addMinutes(10));
 
-        Notification::route('mail', $request->email)
-            ->notify(new EmailVerificationCode($code));
+    // Envoyer le code par email
+    Notification::route('mail', $request->email)
+        ->notify(new EmailVerificationCode($code));
 
-        return response()->json(['status' => 'success', 'message' => 'Code envoyé à votre email.']);
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Code envoyé à votre email.'
+    ]);
+}
+
+public function verifyCode(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'code' => 'required|numeric',
+    ]);
+
+    // Récupérer le code depuis le cache
+    $cachedCode = Cache::get('email_verification_' . $request->email);
+
+    // Vérifier la validité
+    if (!$cachedCode) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Code expiré ou inexistant.'
+        ], 400);
     }
+
+    if ($request->code != $cachedCode) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Code invalide.'
+        ], 400);
+    }
+
+    // ✅ Vérification réussie → supprimer le code
+    Cache::forget('email_verification_' . $request->email);
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Email vérifié avec succès.'
+    ]);
+}
+
+
 
     // -------------------
     // REGISTER
