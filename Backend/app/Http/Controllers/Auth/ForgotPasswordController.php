@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Http\Request;
+use App\Helpers\ErrorHelper;
 
 class ForgotPasswordController extends Controller
 {
@@ -17,7 +18,7 @@ class ForgotPasswordController extends Controller
 
         return $status === Password::RESET_LINK_SENT
             ? response()->json(['message' => 'Email envoyé !'])
-            : response()->json(['message' => 'Erreur'], 400);
+            : response()->json(['message' => ErrorHelper::get(7)] , 400);
     }
 
 public function showResetForm(Request $request, $token = null)

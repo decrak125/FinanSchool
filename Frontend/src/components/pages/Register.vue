@@ -21,19 +21,21 @@ const message = ref('')
 const error = ref(false)
 const loading = ref(false)
 const successMessage = ref('')
+const registered = ref('')
 
 const API_URL = 'http://localhost:8000/api'
 
 // Étape 1 : envoyer le code
 const sendCode = async () => {
     message.value = ''
+    successMessage.value = ''
     error.value = false
     try {
         loading.value = true
         const res = await axios.post(`${API_URL}/request-verification`, { email: email.value })
         if (res.data.status === 'success') {
             step.value = 2
-            message.value = res.data.message
+            successMessage.value = res.data.message
         }
     } catch (err) {
         error.value = true
@@ -55,6 +57,7 @@ const focusNext = (index, e) => {
 // Étape 2 : vérifier le code
 const verifyCode = async () => {
     message.value = ''
+    successMessage.value = ''
     error.value = false
     const code = codeDigits.value.join('')
     try {
@@ -62,7 +65,7 @@ const verifyCode = async () => {
         const res = await axios.post(`${API_URL}/verify-code`, { email: email.value, code })
         if (res.data.status === 'success') {
             step.value = 3
-            message.value = 'Code validé, finalisez votre inscription'
+            successMessage.value = 'Code validé, finalisez votre inscription'
         }
     } catch (err) {
         error.value = true
@@ -76,6 +79,8 @@ const verifyCode = async () => {
 // Étape 3 : finaliser inscription
 const registerUser = async () => {
     message.value = ''
+    successMessage.value = ''
+    registered.value = ''
     error.value = false
     try {
         loading.value = true
@@ -87,6 +92,7 @@ const registerUser = async () => {
         })
         if (res.data.status === 'success') {
             successMessage.value = 'Inscription réussie'
+            registered.value = 'Inscription réussie'
 
             // Réinitialiser les champs
             step.value = 1
@@ -116,6 +122,11 @@ const login = async () => {
 <template>
     <Page>
         <div class="main">
+            <Popup v-if="registered">
+                <Icon :color="'vert'" :icon="'bi bi-check2'" />
+                    <Texte :type="'bold-dark'" texte="Félicitations, vous etes inscrit !" />
+                    <Bouton @click="login" :type="'input'" :texte="'Se connecter'" />
+                </Popup>
             <div class="gauche">
                 <div class="welcome">
                     <Texte type="title-light" texte="Bonjour." />
@@ -124,11 +135,6 @@ const login = async () => {
                 </div>
             </div>
             <div class="droite">
-                <Popup v-if="successMessage">
-                <Icon :color="'vert'" :icon="'bi bi-check2'" />
-                    <Texte :type="'bold-dark'" texte="Félicitacions, vous etes inscrit !" />
-                    <Bouton @click="login" :type="'input'" :texte="'Se connecter'" />
-                </Popup>
                 <formCard v-if="step === 1">
                     <img class="logo" src="../../assets/img/Tracage300.png" alt="">
                     <Texte type="bold-dark" texte="Inscrivez-vous !" />
@@ -145,6 +151,8 @@ const login = async () => {
                     </div>
                     <Texte v-if="message" :class="{'error': error}" :type="'thin-error'"
                         :texte="message" />
+                    <Texte v-if="successMessage" :class="{'error': error}" :type="'thin-success'"
+                        :texte="successMessage" />
                 </formCard>
                 <formCard v-if="step === 2">
                     <Icon :color="'primary'" :icon="'bi bi-envelope'" />
@@ -164,14 +172,18 @@ const login = async () => {
                     <Bouton v-if="!loading" @click="verifyCode" :type="'input'" :texte="'Vérifier le code'" />
                     <BoutonLoading v-if="loading" :type="'input'" :texte="'Connexion ...'" />
                     <Texte @click="sendCode" :type="'primary'" :texte="'Renvoyer le code.'" />
-                    <Texte v-if="message" :class="{'error': error}" :type="'thin-success'"
+                    <Texte v-if="message" :class="{'error': error}" :type="'thin-error'"
                         :texte="message" />
+                    <Texte v-if="successMessage" :class="{'error': error}" :type="'thin-success'"
+                        :texte="successMessage" />
                 </formCard>
                 <formCard v-if="step === 3">
                     <Icon :color="'primary'" :icon="'bi bi-pencil-square'" />
                     <Texte type="bold-dark" texte="Finalisez votre inscription." />
-                    <Texte v-if="message" :class="{'error': error}" :type="'thin-success'"
+                    <Texte v-if="message" :class="{'error': error}" :type="'thin-error'"
                         :texte="message" />
+                        <Texte v-if="successMessage" :class="{'error': error}" :type="'thin-success'"
+                        :texte="successMessage" />
                 <div class="">
                     <Input  :label="'Nom d\'utilisateur'" :type="'text'" v-model="name" :required="'true'" />
                     <Input :label="'Mot de passe'" :type="'password'" v-model="password" :required="'true'"/>
@@ -190,10 +202,10 @@ const login = async () => {
     </div>
 
     <!-- Message d'erreur -->
-    <p v-if="errorMessage" style="color:red">{{ errorMessage }}</p>
+    <!-- <p v-if="errorMessage" style="color:red">{{ errorMessage }}</p> -->
 
     <!-- Message de succès -->
-    <p v-if="successMessage" style="color:green">{{ successMessage }}</p>
+    <!-- <p v-if="successMessage" style="color:green">{{ successMessage }}</p> -->
 </template>
 <style lang="scss" scoped>
 

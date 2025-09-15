@@ -13,6 +13,7 @@ import BoutonLoading from '../atoms/Bouton-loading.vue';
 const email = ref('')
 const showOpenMail = ref(false)
 const loading = ref(false)
+const message = ref('')
 
 const sendLink = async () => {
     try {
@@ -21,7 +22,7 @@ const sendLink = async () => {
         // alert('Lien envoyé par email !')
         showOpenMail.value = true
     } catch (err) {
-        alert('Erreur : ' + err.response.data.message)
+        message.value = err.response?.data?.message
     }
     finally {
         loading.value = false
@@ -69,6 +70,8 @@ const openGmail = () => {
                             </a>
                         </div>
                     </div>
+                    <Texte v-if="message" :class="{'error': true}" :type="'thin-error'"
+                        :texte="message" />
                     <!-- <div v-if="showOpenMail">
                         <button @click="openGmail">📧 Ouvrir Gmail</button>
                     </div> -->
