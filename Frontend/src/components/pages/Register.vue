@@ -136,7 +136,7 @@ const login = async () => {
             </div>
             <div class="droite">
                 <formCard v-if="step === 1">
-                    <img class="logo" src="../../assets/img/Tracage300.png" alt="">
+                    <img class="logo" src="../../assets/img/01Raitra kidz 300px.png" alt="">
                     <Texte type="bold-dark" texte="Inscrivez-vous !" />
                     <Input :label="'Email'" :type="'email'" v-model="email" :required="'true'" />
                     <div class="button">
@@ -230,7 +230,7 @@ const login = async () => {
     }
 }
 .logo {
-    width: 130px;
+    width: 140px;
     height: auto;
     margin-bottom: 20px;
 }

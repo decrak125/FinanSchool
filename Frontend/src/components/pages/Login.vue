@@ -98,7 +98,7 @@ export default {
             </div>
             <div class="droite">
                 <formCard>
-                  <img class="logo" src="../../assets/img/Tracage300.png" alt="">
+                  <img class="logo" src="../../assets/img/01Raitra kidz 300px.png" alt="">
                     <Texte type="bold-dark" texte="Connectez-vous !" />
                     <form @submit.prevent="handleLogin">
                     <Input :label="'Email'" :type="'email'" v-model="email" :required="'true'"/>
@@ -161,7 +161,7 @@ export default {
     animation-delay: 0.4s;
 }
 .logo {
-    width: 130px;
+    width: 140px;
     height: auto;
     margin-bottom: 20px;
 }
