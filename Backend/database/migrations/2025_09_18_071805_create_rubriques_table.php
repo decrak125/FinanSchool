@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('Id_Classe')
                 ->constrained('classes', 'Id_Classe')
                 ->onDelete('cascade');
-            $table->timestamps();
+            // $table->timestamps();
     });
     }
 

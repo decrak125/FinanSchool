@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('Id_Compte')
                 ->constrained('comptes', 'Id_Compte')
                 ->onDelete('cascade');
-            $table->timestamps();
+            // $table->timestamps();
         });
 
     }

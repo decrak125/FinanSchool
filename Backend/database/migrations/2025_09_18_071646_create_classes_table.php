@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('Id_Classe');
             $table->string('Code', 1)->unique();
             $table->string('Libelle', 255);
-            $table->timestamps();
+            // $table->timestamps();
         });
     }
 
