@@ -1,15 +1,15 @@
 <script setup>
-import Page from '../template/Page.vue';
-import formCard from '../molecules/Form-card.vue';
-import Texte from '../atoms/Texte.vue';
-import Input from '../atoms/Input.vue';
-import Bouton from '../atoms/Bouton.vue';
+import Page from '@/components/template/Page.vue';
+import formCard from '@/components/molecules/Form-card.vue';
+import Texte from '@/components/atoms/Texte.vue';
+import Input from '@/components/atoms/Input.vue';
+import Bouton from '@/components/atoms/Bouton.vue';
 
 </script>
 
 <script>
-import { login, getUser, logout } from '../../services/Auth';
-import BoutonLoading from '../atoms/Bouton-loading.vue';
+import { login, getUser, logout } from '../../../services/Auth';
+import BoutonLoading from '@/components/atoms/Bouton-loading.vue';
 
 export default {
   data() {

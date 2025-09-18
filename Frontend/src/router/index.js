@@ -2,10 +2,10 @@ import { createRouter, createWebHistory } from "vue-router";
 import Produits from "../views/Produits.vue"; // page Produits
 import Dashboard from "../views/Dashboard.vue"; // page Dashboard
 import HelloWorld from "../components/HelloWorld.vue"; // page d'accueil
-import Login from "@/components/pages/Login.vue";
-import ForgotPassword from "@/components/pages/ForgotPassword.vue";
-import ResetPassword from "@/components/pages/ResetPassword.vue";
-import Register from "@/components/pages/Register.vue";
+import Login from "@/components/pages/users/Login.vue";
+import ForgotPassword from "@/components/pages/users/ForgotPassword.vue";
+import ResetPassword from "@/components/pages/users/ResetPassword.vue";
+import Register from "@/components/pages/users/Register.vue";
 
 const routes = [
   {
