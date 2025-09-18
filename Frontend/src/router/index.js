@@ -6,6 +6,7 @@ import Login from "@/components/pages/users/Login.vue";
 import ForgotPassword from "@/components/pages/users/ForgotPassword.vue";
 import ResetPassword from "@/components/pages/users/ResetPassword.vue";
 import Register from "@/components/pages/users/Register.vue";
+import Compte from "@/components/pages/configuration/Compte.vue";
 
 const routes = [
   {
@@ -40,7 +41,13 @@ const routes = [
     path: "/signup",
     name: "Register",
     component: Register
+  },
+  {
+    path: "/compte",
+    name: "Compte",
+    component: Compte
   }
+
 
 ];
 
