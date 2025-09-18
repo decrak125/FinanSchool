@@ -6,7 +6,6 @@ import { debounce } from 'lodash'
 const classes = ref([])
 const rubriques = ref([])
 const comptes = ref([])
-const filteredComptes = ref([])
 const showModal = ref(false)
 const isEditing = ref(false)
 
@@ -27,50 +26,56 @@ const form = ref({
   rubrique_id: ''
 })
 
+// Charger classes
 const loadClasses = async () => {
   try {
     const response = await axios.get(`${API_URL}/classes`)
     classes.value = response.data.data || response.data
   } catch (error) {
-    console.error('Erreur lors du chargement des classes:', error)
+    console.error('Erreur chargement classes:', error)
   }
 }
 
+// Charger rubriques
 const loadRubriques = async () => {
   try {
-    const response = await axios.get(`${API_URL}/rubriques`, {
-      params: { classe_id: filters.value.classe_id }
-    })
+    const response = await axios.get(`${API_URL}/rubriques`)
     rubriques.value = response.data.data || response.data
-    if (!filters.value.classe_id) {
-      filters.value.rubrique_id = ''
-    }
-    loadComptes()
   } catch (error) {
-    console.error('Erreur lors du chargement des rubriques:', error)
+    console.error('Erreur chargement rubriques:', error)
   }
 }
 
+// Charger comptes (sans filtre, on filtre côté front)
 const loadComptes = async () => {
   try {
-    const response = await axios.get(`${API_URL}/comptes`, {
-      params: {
-        classe_id: filters.value.classe_id,
-        rubrique_id: filters.value.rubrique_id,
-        search: filters.value.search
-      }
-    })
+    const response = await axios.get(`${API_URL}/comptes`)
     comptes.value = response.data.data || response.data
-    filteredComptes.value = comptes.value
   } catch (error) {
-    console.error('Erreur lors du chargement des comptes:', error)
+    console.error('Erreur chargement comptes:', error)
   }
 }
 
-const debounceSearch = debounce(() => {
-  loadComptes()
+// Recherche avec debounce (juste pour input)
+const debounceSearch = debounce((val) => {
+  filters.value.search = val
 }, 300)
 
+// Filtrage côté front
+const filteredComptes = computed(() => {
+  return comptes.value.filter(c => {
+    const matchClasse = !filters.value.classe_id || c.rubrique?.Id_Classe == filters.value.classe_id
+    const matchRubrique = !filters.value.rubrique_id || c.Id_Rubrique == filters.value.rubrique_id
+    const matchCompte = !filters.value.compte_id || c.Id_Compte == filters.value.compte_id
+    const matchSearch = !filters.value.search ||
+      c.Code_compte?.toLowerCase().includes(filters.value.search.toLowerCase()) ||
+      c.Libelle?.toLowerCase().includes(filters.value.search.toLowerCase())
+    return matchClasse && matchRubrique && matchCompte && matchSearch
+  })
+})
+
+
+// Modal
 const openCreateModal = () => {
   isEditing.value = false
   form.value = { id: null, numero: '', nom: '', classe_id: '', rubrique_id: '' }
@@ -79,36 +84,44 @@ const openCreateModal = () => {
 
 const openEditModal = (compte) => {
   isEditing.value = true
-  form.value = { ...compte }
+  form.value = {
+    id: compte.id,
+    numero: compte.Code_compte,
+    nom: compte.Libelle,
+    classe_id: compte.rubrique?.Id_Classe || '',
+    rubrique_id: compte.rubrique?.id || ''
+  }
   showModal.value = true
 }
 
+// Sauvegarde
 const saveCompte = async () => {
   try {
     if (isEditing.value) {
       await axios.put(`${API_URL}/comptes/${form.value.id}`, form.value)
-      toast.success('Compte modifié avec succès')
+      alert('Compte modifié avec succès')
     } else {
       await axios.post(`${API_URL}/comptes`, form.value)
-      toast.success('Compte créé avec succès')
+      alert('Compte créé avec succès')
     }
     showModal.value = false
     loadComptes()
   } catch (error) {
-    console.error('Erreur lors de l\'enregistrement du compte:', error.response?.data || error.message)
-    toast.error('Erreur lors de l\'enregistrement du compte')
+    console.error('Erreur enregistrement compte:', error.response?.data || error.message)
+    alert('Erreur enregistrement compte')
   }
 }
 
+// Suppression
 const deleteCompte = async (id) => {
   if (confirm('Voulez-vous vraiment supprimer ce compte ?')) {
     try {
       await axios.delete(`${API_URL}/comptes/${id}`)
-      toast.success('Compte supprimé avec succès')
+      alert('Compte supprimé avec succès')
       loadComptes()
     } catch (error) {
-      console.error('Erreur lors de la suppression du compte:', error.response?.data || error.message)
-      toast.error('Erreur lors de la suppression du compte')
+      console.error('Erreur suppression compte:', error.response?.data || error.message)
+      alert('Erreur suppression compte')
     }
   }
 }
@@ -126,33 +139,37 @@ onMounted(() => {
     
     <!-- Filtres -->
     <div class="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Classe -->
       <div>
         <label class="block text-sm font-medium text-gray-700">Classe</label>
-        <select v-model="filters.classe_id" @change="loadRubriques" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+        <select v-model="filters.classe_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
           <option value="">Toutes les classes</option>
-          <option v-for="classe in classes" :key="classe.id" :value="classe.id">{{ classe.Code }}</option>
+          <option v-for="classe in classes" :key="classe.id" :value="classe.Id_Classe">{{ classe.Code }}</option>
         </select>
       </div>
       
+      <!-- Rubrique -->
       <div>
         <label class="block text-sm font-medium text-gray-700">Rubrique</label>
-        <select v-model="filters.rubrique_id" @change="loadComptes" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+        <select v-model="filters.rubrique_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
           <option value="">Toutes les rubriques</option>
-          <option v-for="rubrique in rubriques" :key="rubrique.id" :value="rubrique.id">{{ rubrique.Code_rubrique }}</option>
+          <option v-for="rubrique in rubriques" :key="rubrique.id" :value="rubrique.Id_Rubrique">{{ rubrique.Code_rubrique }}</option>
         </select>
       </div>
       
+      <!-- Compte -->
       <div>
         <label class="block text-sm font-medium text-gray-700">Compte</label>
         <select v-model="filters.compte_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
           <option value="">Tous les comptes</option>
-          <option v-for="compte in comptes" :key="compte.id" :value="compte.id">{{ compte.Code_compte }}</option>
+          <option v-for="compte in comptes" :key="compte.id" :value="compte.Id_Compte">{{ compte.Code_compte }}</option>
         </select>
       </div>
       
+      <!-- Recherche -->
       <div>
         <label class="block text-sm font-medium text-gray-700">Recherche</label>
-        <input v-model="filters.search" @input="debounceSearch" type="text" placeholder="Rechercher un compte..." 
+        <input :value="filters.search" @input="debounceSearch($event.target.value)" type="text" placeholder="Rechercher un compte..." 
                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
       </div>
     </div>
@@ -176,11 +193,11 @@ onMounted(() => {
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           <tr v-for="compte in filteredComptes" :key="compte.id">
-            <td class="px-6 py-3 text-left whitespace-nowrap">{{ compte.Code_compte }}</td>
-            <td class="px-6 py-3 text-left whitespace-nowrap">{{ compte.Libelle }}</td>
-            <td class="px-6 py-3 text-left whitespace-nowrap">{{ compte.rubrique?.Id_Classe }}</td>
-            <td class="px-6 py-3 text-left whitespace-nowrap">{{ compte.rubrique?.Libelle }}</td>
-            <td class="px-6 py-3 text-left whitespace-nowrap">
+            <td class="px-6 py-3">{{ compte.Code_compte }}</td>
+            <td class="px-6 py-3">{{ compte.Libelle }}</td>
+            <td class="px-6 py-3">{{ compte.rubrique?.Id_Classe }}</td>
+            <td class="px-6 py-3">{{ compte.rubrique?.Libelle }}</td>
+            <td class="px-6 py-3">
               <button @click="openEditModal(compte)" class="text-blue-600 hover:text-blue-900 mr-2">Modifier</button>
               <button @click="deleteCompte(compte.id)" class="text-red-600 hover:text-red-900">Supprimer</button>
             </td>
@@ -189,7 +206,7 @@ onMounted(() => {
       </table>
     </div>
 
-    <!-- Modal pour créer/modifier -->
+    <!-- Modal -->
     <div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
       <div class="bg-white p-6 rounded-lg w-full max-w-md">
         <h2 class="text-xl font-bold mb-4">{{ isEditing ? 'Modifier le compte' : 'Nouveau compte' }}</h2>
@@ -205,13 +222,13 @@ onMounted(() => {
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Classe</label>
             <select v-model="form.classe_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-              <option v-for="classe in classes" :key="classe.id" :value="classe.id">{{ classe.nom }}</option>
+              <option v-for="classe in classes" :key="classe.id" :value="classe.id">{{ classe.Code }}</option>
             </select>
           </div>
           <div class="mb-4">
             <label class="block text-sm font-medium text-gray-700">Rubrique</label>
             <select v-model="form.rubrique_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-              <option v-for="rubrique in rubriques" :key="rubrique.id" :value="rubrique.id">{{ rubrique.nom }}</option>
+              <option v-for="rubrique in rubriques" :key="rubrique.id" :value="rubrique.id">{{ rubrique.Code_rubrique }}</option>
             </select>
           </div>
           <div class="flex justify-end">
@@ -223,9 +240,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-
-
-<style scoped>
-/* Styles supplémentaires si nécessaire */
-</style>
