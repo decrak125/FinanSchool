@@ -8,57 +8,41 @@ INSERT INTO classes ("Code", "Libelle") VALUES
 
 -- 30 Stocks de matieres premieres (et fournitures)
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('30', 'Stocks de matieres premieres et fournitures', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
-
-INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('301', 'Matiere (ou groupe) A', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '30')),
-('302', 'Matiere (ou groupe) B', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '30')),
-('303', 'Matiere (ou groupe) C', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '30')),
-('308', 'Autres matieres premieres et fournitures', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '30'));
+('31', 'Stocks de matieres premieres et fournitures', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
 
 -- 31 Stocks d'autres approvisionnements
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('31', 'Stocks dautres approvisionnements', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
+('32', 'Stocks dautres approvisionnements', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('311', 'Matiere consommables', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '31')),
-('312', 'Fournitures consommables', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '31')),
-('316', 'Emballages', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '31'));
+('321', 'Matiere consommables', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '32')),
+('322', 'Fournitures consommables', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '32')),
+('326', 'Emballages', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '32'));
 
 -- 32 En-cours de production de biens
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('32', 'En-cours de production de biens', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
+('33', 'En-cours de production de biens', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('321', 'Biens en-cours A', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '32')),
-('322', 'Biens en-cours B', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '32')),
-('328', 'Autres en-cours de production de biens', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '32'));
+('331', 'Produit en-cours', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '33')),
+('335', 'Travaux en-cours ', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '33')),
 
 -- 33 En-cours de production de services
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('33', 'En-cours de production de services', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
+('34', 'En-cours de production de services', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('331', 'Services en-cours A', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '33')),
-('332', 'Services en-cours B', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '33')),
-('338', 'Autres en-cours de production de services', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '33'));
+('341', 'Etudes en-cours', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '34')),
+('345', 'Prestations de service en cours', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '34')),
 
 -- 34 Produits intermediaires et finis
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('34', 'Produits intermediaires et finis', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
+('35', 'Produits intermediaires et finis', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('341', 'Produits intermediaires', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '34')),
-('345', 'Produits finis', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '34'));
-
--- 35 Stocks de marchandises
-INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('35', 'Stocks de marchandises', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
-
-INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('351', 'Marchandises A', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '35')),
-('352', 'Marchandises B', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '35')),
-('358', 'Autres marchandises', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '35'));
+('351', 'Produits intermediaires', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '35')),
+('355', 'Produits finis', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '35'));
+('358', 'Produits residuels ou matieres de recuperation (dechets,rebuts)', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '35'));
 
 -- 36 Disponible
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
@@ -66,19 +50,12 @@ INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
 
 -- 37 Stocks provenant d'approvisionnements
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('37', 'Stocks provenant dapprovisionnements', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
-
-INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('371', 'Matiere ou fournitures A', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '37')),
-('372', 'Matiere ou fournitures B', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '37')),
-('378', 'Autres stocks provenant dapprovisionnements', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '37'));
+('37', 'Stocks de marchandises', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
 
 -- 38 Stocks provenant dimmobilisations
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('38', 'Stocks provenant dimmobilisations', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
-
-INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('381', 'Immobilisations destinees a la vente', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '38'));
+('38', 'Stocks à lextérieur (en cours de route, en dépôt ou en
+consignation)', (SELECT "Id_Classe" FROM classes WHERE "Code" = '3'));
 
 -- 39 Pertes de valeur sur stocks et en-cours
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
