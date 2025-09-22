@@ -216,7 +216,7 @@ onMounted(() => {
           <tr v-for="compte in filteredComptes" :key="compte.id">
             <td class="px-6 py-3">{{ compte.Code_compte }}</td>
             <td class="px-6 py-3">{{ compte.Libelle }}</td>
-            <td class="px-6 py-3">{{ compte.rubrique?.Id_Classe }}</td>
+            <td class="px-6 py-3">{{ compte.rubrique?.classe?.Code }}</td>
             <td class="px-6 py-3">{{ compte.rubrique?.Libelle }}</td>
             <td class="px-6 py-3">
               <button @click="openEditModal(compte)" class="text-blue-600 hover:text-blue-900 mr-2">Modifier</button>

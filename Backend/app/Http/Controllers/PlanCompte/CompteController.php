@@ -10,9 +10,10 @@ use Illuminate\Http\Request;
 class CompteController extends Controller
 {
     public function index()
-    {
-        return Compte::with('rubrique')->get(); // inclure la rubrique liée
-    }
+{
+    return Compte::with('rubrique.classe')->get();
+}
+
 
     public function show($id)
     {
