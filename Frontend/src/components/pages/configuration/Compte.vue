@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { debounce } from 'lodash'
 
@@ -20,10 +20,11 @@ const filters = ref({
 
 const form = ref({
   id: null,
-  numero: '',
-  nom: '',
-  classe_id: '',
-  rubrique_id: ''
+  Code_compte: '',
+  Libelle: '',
+  Id_Rubrique: '',
+  Id_Classe: '',
+  suffixe: ''
 })
 
 // Charger classes
@@ -46,7 +47,7 @@ const loadRubriques = async () => {
   }
 }
 
-// Charger comptes (sans filtre, on filtre côté front)
+// Charger comptes
 const loadComptes = async () => {
   try {
     const response = await axios.get(`${API_URL}/comptes`)
@@ -55,11 +56,6 @@ const loadComptes = async () => {
     console.error('Erreur chargement comptes:', error)
   }
 }
-
-// Recherche avec debounce (juste pour input)
-const debounceSearch = debounce((val) => {
-  filters.value.search = val
-}, 300)
 
 // Filtrage côté front
 const filteredComptes = computed(() => {
@@ -74,28 +70,57 @@ const filteredComptes = computed(() => {
   })
 })
 
+// Debounce search
+const debounceSearch = debounce((val) => {
+  filters.value.search = val
+}, 300)
 
-// Modal
+// Modal création
 const openCreateModal = () => {
   isEditing.value = false
-  form.value = { id: null, numero: '', nom: '', classe_id: '', rubrique_id: '' }
+  form.value = { id: null, Code_compte: '', Libelle: '', Id_Rubrique: '', Id_Classe: '', suffixe: '' }
   showModal.value = true
 }
 
+// Modal édition
 const openEditModal = (compte) => {
   isEditing.value = true
   form.value = {
-    id: compte.id,
-    numero: compte.Code_compte,
-    nom: compte.Libelle,
-    classe_id: compte.rubrique?.Id_Classe || '',
-    rubrique_id: compte.rubrique?.id || ''
+    id: compte.Id_Compte,
+    Code_compte: compte.Code_compte,
+    Libelle: compte.Libelle,
+    Id_Rubrique: compte.Id_Rubrique,
+    Id_Classe: compte.rubrique?.Id_Classe || '',
+    suffixe: compte.Code_compte.slice(-1) // récupérer le dernier chiffre comme suffixe
   }
   showModal.value = true
 }
 
+// Génération automatique du Code_compte
+const updateCode = () => {
+  const rubrique = rubriques.value.find(r => r.Id_Rubrique === form.value.Id_Rubrique)
+  if (rubrique && form.value.suffixe) {
+    form.value.Code_compte = `${rubrique.Code_rubrique}${form.value.suffixe.padStart(1, '0')}`
+  } else {
+    form.value.Code_compte = ''
+  }
+}
+
+// Watch pour mettre à jour Code_compte automatiquement
+watch(
+  () => [form.value.Id_Rubrique, form.value.suffixe],
+  () => {
+    updateCode()
+  }
+)
+
 // Sauvegarde
 const saveCompte = async () => {
+  if (!form.value.Code_compte || !form.value.Libelle || !form.value.Id_Rubrique) {
+    alert('Tous les champs sont obligatoires')
+    return
+  }
+
   try {
     if (isEditing.value) {
       await axios.put(`${API_URL}/comptes/${form.value.id}`, form.value)
@@ -108,7 +133,7 @@ const saveCompte = async () => {
     loadComptes()
   } catch (error) {
     console.error('Erreur enregistrement compte:', error.response?.data || error.message)
-    alert('Erreur enregistrement compte')
+    alert(error.response?.data?.message || 'Erreur enregistrement compte')
   }
 }
 
@@ -139,7 +164,6 @@ onMounted(() => {
     
     <!-- Filtres -->
     <div class="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-      <!-- Classe -->
       <div>
         <label class="block text-sm font-medium text-gray-700">Classe</label>
         <select v-model="filters.classe_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
@@ -148,7 +172,6 @@ onMounted(() => {
         </select>
       </div>
       
-      <!-- Rubrique -->
       <div>
         <label class="block text-sm font-medium text-gray-700">Rubrique</label>
         <select v-model="filters.rubrique_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
@@ -157,7 +180,6 @@ onMounted(() => {
         </select>
       </div>
       
-      <!-- Compte -->
       <div>
         <label class="block text-sm font-medium text-gray-700">Compte</label>
         <select v-model="filters.compte_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
@@ -166,7 +188,6 @@ onMounted(() => {
         </select>
       </div>
       
-      <!-- Recherche -->
       <div>
         <label class="block text-sm font-medium text-gray-700">Recherche</label>
         <input :value="filters.search" @input="debounceSearch($event.target.value)" type="text" placeholder="Rechercher un compte..." 
@@ -199,7 +220,7 @@ onMounted(() => {
             <td class="px-6 py-3">{{ compte.rubrique?.Libelle }}</td>
             <td class="px-6 py-3">
               <button @click="openEditModal(compte)" class="text-blue-600 hover:text-blue-900 mr-2">Modifier</button>
-              <button @click="deleteCompte(compte.id)" class="text-red-600 hover:text-red-900">Supprimer</button>
+              <button @click="deleteCompte(compte.Id_Compte)" class="text-red-600 hover:text-red-900">Supprimer</button>
             </td>
           </tr>
         </tbody>
@@ -211,31 +232,40 @@ onMounted(() => {
       <div class="bg-white p-6 rounded-lg w-full max-w-md">
         <h2 class="text-xl font-bold mb-4">{{ isEditing ? 'Modifier le compte' : 'Nouveau compte' }}</h2>
         <form @submit.prevent="saveCompte">
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Numéro</label>
-            <input v-model="form.numero" type="text" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-          </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Nom</label>
-            <input v-model="form.nom" type="text" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-          </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Classe</label>
-            <select v-model="form.classe_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-              <option v-for="classe in classes" :key="classe.id" :value="classe.id">{{ classe.Code }}</option>
-            </select>
-          </div>
-          <div class="mb-4">
-            <label class="block text-sm font-medium text-gray-700">Rubrique</label>
-            <select v-model="form.rubrique_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-              <option v-for="rubrique in rubriques" :key="rubrique.id" :value="rubrique.id">{{ rubrique.Code_rubrique }}</option>
-            </select>
-          </div>
-          <div class="flex justify-end">
-            <button type="button" @click="showModal = false" class="mr-2 px-4 py-2 text-gray-600">Annuler</button>
-            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Enregistrer</button>
-          </div>
-        </form>
+  <div class="mb-4">
+    <label>Rubrique</label>
+    <select v-model="form.Id_Rubrique" @change="updateCode" required class="mt-1 block w-full border rounded-md">
+      <option value="">Sélectionner une rubrique</option>
+      <option v-for="rubrique in rubriques" :key="rubrique.Id_Rubrique" :value="rubrique.Id_Rubrique">
+        {{ rubrique.Code_rubrique }} - {{ rubrique.Libelle }}
+      </option>
+    </select>
+  </div>
+
+  <div class="mb-4">
+    <label>Suffixe</label>
+    <input type="text" v-model="form.suffixe" @input="updateCode" maxlength="1" placeholder="1"
+           class="mt-1 block w-full border rounded-md" required />
+  </div>
+
+  <div class="mb-4">
+    <label>Code complet</label>
+    <input type="text" v-model="form.Code_compte" readonly class="mt-1 block w-full border rounded-md" />
+  </div>
+
+  <div class="mb-4">
+    <label>Libellé</label>
+    <input type="text" v-model="form.Libelle" class="mt-1 block w-full border rounded-md" required />
+  </div>
+
+  <div class="flex justify-end">
+    <button type="button" @click="showModal = false" class="mr-2 px-4 py-2 border rounded">Annuler</button>
+    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+      {{ isEditing ? 'Modifier' : 'Enregistrer' }}
+    </button>
+  </div>
+</form>
+
       </div>
     </div>
   </div>
