@@ -140,7 +140,7 @@ onMounted(() => {
         <select v-model="filters.compte_id" class="mt-1 block w-full border rounded-md">
           <option value="">Tous les comptes</option>
           <option v-for="compte in comptes" :key="compte.Id_Compte" :value="compte.Id_Compte">
-            {{ compte.Code_compte }}
+            {{ compte.Code_compte }} - {{ compte.Libelle }}
           </option>
         </select>
       </div>
@@ -186,7 +186,7 @@ onMounted(() => {
             <label>Compte</label>
             <select v-model="form.Id_Compte" @change="updateCode" required class="mt-1 block w-full border rounded-md">
               <option v-for="compte in comptes" :key="compte.Id_Compte" :value="compte.Id_Compte">
-                {{ compte.Code_compte }}
+                {{ compte.Code_compte }} - {{compte.Libelle }}
               </option>
             </select>
           </div>
