@@ -21,21 +21,55 @@ class SousCompteController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'Code_sous_compte' => 'required|string|unique:sous_comptes,Code_sous_compte',
+            'suffixe' => 'required|string|max:10',
             'Libelle' => 'required|string|max:255',
             'Id_Compte' => 'required|exists:comptes,Id_Compte',
         ]);
 
-        return SousCompte::create($request->all());
+        $compte = \App\Models\PlanCompte\Compte::findOrFail($request->Id_Compte);
+        $codeSousCompte = $compte->Code_compte . str_pad($request->suffixe, 3, "0", STR_PAD_LEFT);
+
+        // Vérifier si le code existe déjà
+        if (\App\Models\PlanCompte\SousCompte::where('Code_sous_compte', $codeSousCompte)->exists()) {
+            return response()->json(['message' => 'Ce code sous-compte existe déjà'], 422);
+        }
+
+        $sousCompte = new SousCompte();
+        $sousCompte->Code_sous_compte = $codeSousCompte;
+        $sousCompte->Libelle = $request->Libelle;
+        $sousCompte->Id_Compte = $request->Id_Compte;
+        $sousCompte->save();
+
+        return response()->json($sousCompte->load('compte'));
     }
 
     public function update(Request $request, $id)
     {
-        $sousCompte = SousCompte::findOrFail($id);
-        $sousCompte->update($request->all());
+        $request->validate([
+            'suffixe' => 'required|string|max:10',
+            'Libelle' => 'required|string|max:255',
+            'Id_Compte' => 'required|exists:comptes,Id_Compte',
+        ]);
 
-        return $sousCompte;
+        $sousCompte = SousCompte::findOrFail($id);
+        $compte = \App\Models\PlanCompte\Compte::findOrFail($request->Id_Compte);
+        $codeSousCompte = $compte->Code_compte . str_pad($request->suffixe, 3, "0", STR_PAD_LEFT);
+
+        // Vérifier doublon, sauf pour le même en cours de modification
+        if (SousCompte::where('Code_sous_compte', $codeSousCompte)
+            ->where('Id_Sous_compte', '<>', $id)
+            ->exists()) {
+            return response()->json(['message' => 'Ce code sous-compte existe déjà'], 422);
+        }
+
+        $sousCompte->Code_sous_compte = $codeSousCompte;
+        $sousCompte->Libelle = $request->Libelle;
+        $sousCompte->Id_Compte = $request->Id_Compte;
+        $sousCompte->save();
+
+        return response()->json($sousCompte->load('compte'));
     }
+
 
     public function destroy($id)
     {
