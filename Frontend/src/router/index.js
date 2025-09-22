@@ -7,6 +7,7 @@ import ForgotPassword from "@/components/pages/users/ForgotPassword.vue";
 import ResetPassword from "@/components/pages/users/ResetPassword.vue";
 import Register from "@/components/pages/users/Register.vue";
 import Compte from "@/components/pages/configuration/Compte.vue";
+import SousCompte from "@/components/pages/configuration/SousCompte.vue";
 import InsertSousCompte from "@/components/pages/configuration/InsertSousCompte.vue";
 
 const routes = [
@@ -49,9 +50,9 @@ const routes = [
     component: Compte
   },
   {
-    path: "/InsertSousCompte",
-    name: "InsertSousCompte",
-    component: InsertSousCompte
+    path: "/souscompte",
+    name: "SousCompte",
+    component: SousCompte
   }
 
 
