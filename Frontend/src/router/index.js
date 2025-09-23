@@ -10,6 +10,8 @@ import Compte from "@/components/pages/configuration/Compte.vue";
 import SousCompte from "@/components/pages/configuration/SousCompte.vue";
 import Rubrique from "@/components/pages/configuration/Rubrique.vue";
 import TypeJournal from "@/components/pages/configuration/TypeJournal.vue";
+import Devise from "@/components/pages/configuration/Devise.vue";
+import Journal from "@/components/pages/configuration/Journal.vue";
 const routes = [
   {
     path: "/",
@@ -63,7 +65,18 @@ const routes = [
     path: "/type-journal",
     name: TypeJournal,
     component: TypeJournal
+  },
+  {
+    path: "/devise",
+    name: Devise,
+    component: Devise
+  },
+  {
+    path: "/journal",
+    name: Journal,
+    component: Journal
   }
+
 
 
 ];
