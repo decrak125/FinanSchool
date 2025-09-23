@@ -10,7 +10,7 @@ class JournalController extends Controller
 {
     public function index()
     {
-        return Journal::all();
+        return Journal::with('typeJournal','sousCompte')->get();
     }
 
     public function show($id)
