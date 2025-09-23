@@ -14,6 +14,7 @@ use App\Http\Controllers\Saisie\ModePaiementController;
 use App\Http\Controllers\Saisie\JournalController;
 use App\Http\Controllers\Saisie\MouvementEcritureController;
 use App\Http\Controllers\Saisie\LigneEcritureController;
+use App\Http\Controllers\Saisie\DeviseController;
 
 Route::middleware('api')->group(function () {
     Route::post('/example', function (Request $request) {
@@ -48,14 +49,12 @@ Route::middleware('api')->group(function () {
     Route::apiResource('sous-comptes', SousCompteController::class);
     Route::apiResource('rubriques', RubriqueController::class);
     Route::apiResource('classes', ClasseController::class);
-    
+
     // crud saisie
     Route::apiResource('type-journals', TypeJournalController::class);
     Route::apiResource('mode-paiements', ModePaiementController::class);
     Route::apiResource('journals', JournalController::class);
     Route::apiResource('mouvements', MouvementEcritureController::class);
     Route::apiResource('lignes', LigneEcritureController::class);
-
-
-
+    Route::apiResource('devises', DeviseController::class);
 });
