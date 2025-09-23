@@ -13,6 +13,7 @@ import TypeJournal from "@/components/pages/configuration/TypeJournal.vue";
 import Devise from "@/components/pages/configuration/Devise.vue";
 import Journal from "@/components/pages/configuration/Journal.vue";
 import ModePaiement from "@/components/pages/configuration/ModePaiement.vue";
+import Ecriture from "@/components/pages/Saisie/Ecriture.vue";
 const routes = [
   {
     path: "/",
@@ -78,11 +79,16 @@ const routes = [
     component: Journal
   },
 
-{
-    path: "/paiement-mode",
-    name: ModePaiement,
-    component: ModePaiement
-  }
+  {
+      path: "/paiement-mode",
+      name: ModePaiement,
+      component: ModePaiement
+  },
+  {
+    path: "/ecriture",
+    name: Ecriture,
+    component: Ecriture
+}
 
 
 ];

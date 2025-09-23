@@ -10,7 +10,7 @@ class LigneEcritureController extends Controller
 {
     public function index()
     {
-        return LigneEcriture::all();
+        return LigneEcriture::with('journal','sousCompte','mouvement','modePaiement')->get();
     }
 
     public function show($id)
