@@ -3,6 +3,7 @@
 namespace App\Models\Saisie;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\PlanCompte\SousCompte;
 
 class Journal extends Model
 {

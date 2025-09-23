@@ -3,6 +3,10 @@
 namespace App\Models\Saisie;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Saisie\ModePaiement;
+use App\Models\Saisie\MouvementEcriture;
+use App\Models\Saisie\Journal;
+use App\Models\PlanCompte\SousCompte;
 
 class LigneEcriture extends Model
 {
