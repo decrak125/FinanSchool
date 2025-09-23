@@ -54,9 +54,9 @@ CREATE TABLE Journal (
     Code VARCHAR(50) NOT NULL UNIQUE,
     Libelle VARCHAR(50) NOT NULL,
     Id_Type_Journal INT NOT NULL,
-    Id_Sous_compte INT NOT NULL,
+    Id_Sous_compte INT,
     FOREIGN KEY (Id_Type_Journal) REFERENCES Type_Journal(Id_Type_Journal),
-    FOREIGN KEY (Id_Sous_compte) REFERENCES Sous_compte(Id_Sous_compte)
+    FOREIGN KEY (Id_Sous_compte) REFERENCES Sous_comptes("Id_Sous_compte")
 );
 
 -- =====================================
@@ -78,14 +78,14 @@ CREATE TABLE Ligne_ecriture (
     Libelle VARCHAR(255) NOT NULL,
     Debit NUMERIC(15,2) NOT NULL,
     Credit NUMERIC(15,2) NOT NULL,
-    Reference VARCHAR(50) NOT NULL,
+    Reference VARCHAR(50),
     Quantite INT,
-    Id_Mode_paiement INT NOT NULL,
+    Id_Mode_paiement INT,
     Id_Mouvement_ecriture INT NOT NULL,
     Id_Journal INT NOT NULL,
     Id_Sous_compte INT NOT NULL,
     FOREIGN KEY (Id_Mode_paiement) REFERENCES Mode_paiement(Id_Mode_paiement),
     FOREIGN KEY (Id_Mouvement_ecriture) REFERENCES Mouvement_ecriture(Id_Mouvement_ecriture),
     FOREIGN KEY (Id_Journal) REFERENCES Journal(Id_Journal),
-    FOREIGN KEY (Id_Sous_compte) REFERENCES Sous_compte(Id_Sous_compte)
+    FOREIGN KEY (Id_Sous_compte) REFERENCES Sous_comptes("Id_Sous_compte")
 );
