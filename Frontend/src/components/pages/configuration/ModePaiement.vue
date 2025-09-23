@@ -1,13 +1,20 @@
 <template>
   <div class="p-6">
-    <h2 class="text-2xl font-bold mb-4">Gestion des Types de Journal</h2>
+    <h2 class="text-2xl font-bold mb-4">Gestion des Modes de Paiement</h2>
 
     <!-- Formulaire -->
-    <form @submit.prevent="isEditing ? updateTypeJournal() : addTypeJournal()" class="mb-6 space-y-4">
+    <form @submit.prevent="isEditing ? updateModePaiement() : addModePaiement()" class="mb-6 space-y-4">
       <input
-        v-model="form.Type"
+        v-model="form.Libelle"
         type="text"
-        placeholder="Type de journal"
+        placeholder="Libellé"
+        class="border rounded px-3 py-2 w-full"
+        required
+      />
+      <input
+        v-model="form.Abr"
+        type="text"
+        placeholder="Abréviation"
         class="border rounded px-3 py-2 w-full"
         required
       />
@@ -30,23 +37,25 @@
       <thead>
         <tr class="bg-gray-200">
           <th class="border border-gray-300 px-4 py-2">ID</th>
-          <th class="border border-gray-300 px-4 py-2">Type</th>
+          <th class="border border-gray-300 px-4 py-2">Libellé</th>
+          <th class="border border-gray-300 px-4 py-2">Abréviation</th>
           <th class="border border-gray-300 px-4 py-2">Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="journal in typeJournals" :key="journal.id">
-          <td class="border border-gray-300 px-4 py-2">{{ journal.Id_Type_Journal }}</td>
-          <td class="border border-gray-300 px-4 py-2">{{ journal.Type }}</td>
+        <tr v-for="mode in modePaiements" :key="mode.Id_Mode_paiement">
+          <td class="border border-gray-300 px-4 py-2">{{ mode.Id_Mode_paiement }}</td>
+          <td class="border border-gray-300 px-4 py-2">{{ mode.Libelle }}</td>
+          <td class="border border-gray-300 px-4 py-2">{{ mode.Abr }}</td>
           <td class="border border-gray-300 px-4 py-2">
             <button
-              @click="editTypeJournal(journal)"
+              @click="editModePaiement(mode)"
               class="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
             >
               Modifier
             </button>
             <button
-              @click="deleteTypeJournal(journal.Id_Type_Journal)"
+              @click="deleteModePaiement(mode.Id_Mode_paiement)"
               class="bg-red-500 text-white px-2 py-1 rounded"
             >
               Supprimer
@@ -62,60 +71,61 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api/type-journals";
+const API_URL = "http://localhost:8000/api/mode-paiements";
 
-const typeJournals = ref([]);
+const modePaiements = ref([]);
 const isEditing = ref(false);
 const editId = ref(null);
 
 const form = ref({
-  Type: "",
+  Libelle: "",
+  Abr: "",
 });
 
-// Charger les types de journal
-const fetchTypeJournals = async () => {
+// Charger les modes de paiement
+const fetchModePaiements = async () => {
   const response = await axios.get(API_URL);
-  typeJournals.value = response.data;
+  modePaiements.value = response.data;
 };
 
 // Ajouter
-const addTypeJournal = async () => {
+const addModePaiement = async () => {
   await axios.post(API_URL, form.value);
-  fetchTypeJournals();
+  fetchModePaiements();
   resetForm();
 };
 
 // Supprimer
-const deleteTypeJournal = async (id) => {
-  if (confirm("Voulez-vous vraiment supprimer ce type de journal ?")) {
+const deleteModePaiement = async (id) => {
+  if (confirm("Voulez-vous vraiment supprimer ce mode de paiement ?")) {
     await axios.delete(`${API_URL}/${id}`);
-    fetchTypeJournals();
+    fetchModePaiements();
   }
 };
 
 // Préparer édition
-const editTypeJournal = (journal) => {
+const editModePaiement = (mode) => {
   isEditing.value = true;
-  editId.value = journal.Id_Type_Journal;
-  form.value = { ...journal };
+  editId.value = mode.Id_Mode_paiement;
+  form.value = { ...mode };
 };
 
 // Mettre à jour
-const updateTypeJournal = async () => {
+const updateModePaiement = async () => {
   await axios.put(`${API_URL}/${editId.value}`, form.value);
-  fetchTypeJournals();
+  fetchModePaiements();
   resetForm();
 };
 
 // Réinitialiser
 const resetForm = () => {
-  form.value = { Type: "" };
+  form.value = { Libelle: "", Abr: "" };
   isEditing.value = false;
   editId.value = null;
 };
 
 // Charger au montage
-onMounted(fetchTypeJournals);
+onMounted(fetchModePaiements);
 </script>
 
 <style scoped>
