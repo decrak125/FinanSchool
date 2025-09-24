@@ -76,6 +76,16 @@
   const isEditing = ref(false);
   const editingId = ref(null);
   
+  const token = localStorage.getItem("token"); // Récupérer le token
+
+if (!token) {
+  // Redirection vers login si pas de token
+  window.location.href = "/";
+} else {
+  // Configurer Axios pour inclure le token dans toutes les requêtes
+  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+}
+
   // Charger toutes les données nécessaires
   const fetchCentres = async () => {
     const res = await axios.get("http://127.0.0.1:8000/api/centres");
