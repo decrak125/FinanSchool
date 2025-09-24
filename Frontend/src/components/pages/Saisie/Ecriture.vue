@@ -51,68 +51,61 @@
       <button @click="successMessage = ''" class="float-right font-bold">&times;</button>
     </div>
 
-    <!-- TABLEAU DES MOUVEMENTS ET LIGNES -->
-    <div v-if="!isLoading" v-for="m in mouvements" :key="m.Id_Mouvement_ecriture" class="mb-8 border rounded-lg p-4 shadow-sm">
-      <!-- En-tête du mouvement avec statut d'équilibre -->
-      <div class="flex justify-between items-center mb-4">
-        <div>
-          <h2 class="font-bold text-lg">{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }}</h2>
-          <p class="text-sm text-gray-600">{{ formatDate(m.Date_mouvement) }} - {{ getJournalLibelle(m.Id_Journal) }}</p>
-        </div>
-        <div class="flex items-center space-x-2">
-          <span v-if="!isEquilibre(m)" class="bg-red-100 text-red-700 px-3 py-1 rounded text-sm font-semibold">
-            ⚠️ Non équilibré ({{ formatMontant(getDifference(m)) }})
-          </span>
-          <span v-else class="bg-green-100 text-green-700 px-3 py-1 rounded text-sm font-semibold">
-            ✓ Équilibré
-          </span>
-          <button 
-            v-if="isEquilibre(m) && !m.valide" 
-            @click="validerMouvement(m.Id_Mouvement_ecriture)"
-            :disabled="isValidating"
-            class="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50"
-          >
-            {{ isValidating ? 'Validation...' : 'Valider' }}
-          </button>
-          <span v-if="m.valide" class="bg-blue-100 text-blue-700 px-3 py-1 rounded text-sm font-semibold">
-            📋 Validé
-          </span>
-          <button 
-            @click="deleteMouvement(m.Id_Mouvement_ecriture)"
-            :disabled="m.valide || isDeletingMouvement"
-            class="bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700 disabled:opacity-50"
-            title="Supprimer le mouvement"
-          >
-            🗑️
-          </button>
-        </div>
-      </div>
-
-      <!-- Tableau des écritures -->
-      <div class="overflow-x-auto">
-        <table class="w-full border-collapse border border-gray-300">
-          <thead>
-            <tr class="bg-gray-200">
-              <th class="border border-gray-300 px-3 py-2 text-left w-20">N° Pièce</th>
-              <th class="border border-gray-300 px-3 py-2 text-left w-48">Sous-compte</th>
-              <th class="border border-gray-300 px-3 py-2 text-left">Libellé</th>
-              <th class="border border-gray-300 px-3 py-2 text-right w-24">Débit</th>
-              <th class="border border-gray-300 px-3 py-2 text-right w-24">Crédit</th>
-              <th class="border border-gray-300 px-3 py-2 text-left w-32">Référence</th>
-              <th class="border border-gray-300 px-3 py-2 text-center w-20">Qté</th>
-              <th class="border border-gray-300 px-3 py-2 text-left w-32">Mode Paiement</th>
-              <th class="border border-gray-300 px-3 py-2 text-center w-20">Actions</th>
+    <!-- TABLEAU UNIQUE DES MOUVEMENTS ET LIGNES -->
+    <div v-if="!isLoading && mouvements.length > 0" class="overflow-x-auto">
+      <table class="w-full border-collapse border border-gray-300">
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="border border-gray-300 px-3 py-2 text-left w-20">N° Pièce</th>
+            <th class="border border-gray-300 px-3 py-2 text-left w-48">Sous-compte</th>
+            <th class="border border-gray-300 px-3 py-2 text-left">Libellé</th>
+            <th class="border border-gray-300 px-3 py-2 text-right w-24">Débit</th>
+            <th class="border border-gray-300 px-3 py-2 text-right w-24">Crédit</th>
+            <th class="border border-gray-300 px-3 py-2 text-left w-32">Référence</th>
+            <th class="border border-gray-300 px-3 py-2 text-center w-20">Qté</th>
+            <th class="border border-gray-300 px-3 py-2 text-left w-32">Mode Paiement</th>
+            <th class="border border-gray-300 px-3 py-2 text-center w-20">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Regroupement par numéro de pièce -->
+          <template v-for="m in mouvements" :key="m.Id_Mouvement_ecriture">
+            <!-- En-tête du mouvement -->
+            <tr class="bg-gray-100 font-semibold">
+              <td class="border border-gray-300 px-2 py-1" colspan="9">
+                {{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }} - {{ formatDate(m.Date_mouvement) }} - {{ getJournalLibelle(m.Id_Journal) }}
+                <span v-if="isEquilibre(m)" class="ml-2 bg-green-100 text-green-700 px-2 py-1 rounded text-sm">
+                  ✓ Équilibré
+                </span>
+                <span v-else class="ml-2 bg-red-100 text-red-700 px-2 py-1 rounded text-sm">
+                  ⚠️ Non équilibré ({{ formatMontant(getDifference(m)) }})
+                </span>
+                <button 
+                  v-if="isEquilibre(m) && !m.valide" 
+                  @click="validerMouvement(m.Id_Mouvement_ecriture)"
+                  :disabled="isValidating"
+                  class="ml-2 bg-green-600 text-white px-2 py-1 rounded text-sm hover:bg-green-700 disabled:opacity-50"
+                >
+                  {{ isValidating ? 'Validation...' : 'Valider' }}
+                </button>
+                <span v-if="m.valide" class="ml-2 bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm">
+                  📋 Validé
+                </span>
+                <button 
+                  @click="deleteMouvement(m.Id_Mouvement_ecriture)"
+                  :disabled="m.valide || isDeletingMouvement"
+                  class="ml-2 bg-red-600 text-white px-2 py-1 rounded text-sm hover:bg-red-700 disabled:opacity-50"
+                >
+                  🗑️
+                </button>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            <!-- Lignes existantes -->
+            <!-- Lignes d'écriture -->
             <tr v-for="(ligne, index) in m.lignes" :key="ligne.Id_Ligne_ecriture || `new-${index}`" 
                 class="hover:bg-gray-50" :class="{'bg-yellow-50': !ligne.Id_Ligne_ecriture}">
-              
               <td class="border border-gray-300 px-2 py-1 text-sm">
                 {{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }}
               </td>
-              
               <!-- Sous-compte avec recherche dynamique -->
               <td class="border border-gray-300 px-2 py-1">
                 <div class="relative">
@@ -144,7 +137,6 @@
                   <div v-if="ligne.sousCompteError" class="text-red-500 text-xs mt-1">{{ ligne.sousCompteError }}</div>
                 </div>
               </td>
-              
               <!-- Libellé -->
               <td class="border border-gray-300 px-2 py-1">
                 <input 
@@ -154,7 +146,6 @@
                   placeholder="Libellé de l'opération..."
                 />
               </td>
-              
               <!-- Débit -->
               <td class="border border-gray-300 px-2 py-1">
                 <input 
@@ -168,7 +159,6 @@
                   placeholder="0,00"
                 />
               </td>
-              
               <!-- Crédit -->
               <td class="border border-gray-300 px-2 py-1">
                 <input 
@@ -182,7 +172,6 @@
                   placeholder="0,00"
                 />
               </td>
-              
               <!-- Référence -->
               <td class="border border-gray-300 px-2 py-1">
                 <input 
@@ -192,7 +181,6 @@
                   placeholder="Réf..."
                 />
               </td>
-              
               <!-- Quantité -->
               <td class="border border-gray-300 px-2 py-1">
                 <input 
@@ -203,7 +191,6 @@
                   class="w-full px-2 py-1 border rounded text-xs text-center focus:border-blue-500"
                 />
               </td>
-              
               <!-- Mode de paiement -->
               <td class="border border-gray-300 px-2 py-1">
                 <select 
@@ -217,7 +204,6 @@
                   </option>
                 </select>
               </td>
-              
               <!-- Actions -->
               <td class="border border-gray-300 px-2 py-1 text-center">
                 <button 
@@ -230,8 +216,7 @@
                 </button>
               </td>
             </tr>
-            
-            <!-- Ligne pour ajouter une nouvelle écriture -->
+            <!-- Bouton pour ajouter une nouvelle ligne -->
             <tr v-if="!m.valide" class="bg-blue-50">
               <td class="border border-gray-300 px-2 py-1 text-sm">{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }}</td>
               <td class="border border-gray-300 px-2 py-1" colspan="7">
@@ -244,36 +229,35 @@
               </td>
               <td class="border border-gray-300 px-2 py-1"></td>
             </tr>
-          </tbody>
-          
-          <!-- Ligne de total -->
-          <tfoot>
-            <tr class="bg-gray-100 font-bold text-sm">
-              <td class="border border-gray-300 px-2 py-1" colspan="3">TOTAUX</td>
-              <td class="border border-gray-300 px-2 py-1 text-right" 
-                  :class="{'text-red-600': !isEquilibre(m), 'text-green-600': isEquilibre(m) && getTotalDebit(m) > 0}">
-                {{ formatMontant(getTotalDebit(m)) }}
-              </td>
-              <td class="border border-gray-300 px-2 py-1 text-right" 
-                  :class="{'text-red-600': !isEquilibre(m), 'text-green-600': isEquilibre(m) && getTotalCredit(m) > 0}">
-                {{ formatMontant(getTotalCredit(m)) }}
-              </td>
-              <td class="border border-gray-300 px-2 py-1" colspan="4">
-                <div class="flex items-center justify-between">
-                  <span v-if="!isEquilibre(m)" class="text-red-600 text-xs">
-                    Différence: {{ formatMontant(getDifference(m)) }}
-                  </span>
-                  <span v-else-if="getTotalDebit(m) > 0" class="text-green-600 text-xs">✓ Équilibré</span>
-                  <span v-else class="text-gray-500 text-xs">Aucune écriture</span>
-                  <span class="text-gray-500 text-xs">{{ m.lignes.length }} ligne(s)</span>
-                </div>
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+          </template>
+        </tbody>
+        <!-- Totaux globaux -->
+        <tfoot>
+          <tr class="bg-gray-100 font-bold text-sm">
+            <td class="border border-gray-300 px-2 py-1" colspan="3">TOTAUX GÉNÉRAUX</td>
+            <td class="border border-gray-300 px-2 py-1 text-right" 
+                :class="{'text-red-600': getTotalGeneralDebit() !== getTotalGeneralCredit(), 'text-green-600': getTotalGeneralDebit() === getTotalGeneralCredit() && getTotalGeneralDebit() > 0}">
+              {{ formatMontant(getTotalGeneralDebit()) }}
+            </td>
+            <td class="border border-gray-300 px-2 py-1 text-right" 
+                :class="{'text-red-600': getTotalGeneralDebit() !== getTotalGeneralCredit(), 'text-green-600': getTotalGeneralDebit() === getTotalGeneralCredit() && getTotalGeneralCredit() > 0}">
+              {{ formatMontant(getTotalGeneralCredit()) }}
+            </td>
+            <td class="border border-gray-300 px-2 py-1" colspan="4">
+              <div class="flex items-center justify-between">
+                <span v-if="getTotalGeneralDebit() !== getTotalGeneralCredit()" class="text-red-600 text-xs">
+                  Différence: {{ formatMontant(Math.abs(getTotalGeneralDebit() - getTotalGeneralCredit())) }}
+                </span>
+                <span v-else-if="getTotalGeneralDebit() > 0" class="text-green-600 text-xs">✓ Équilibré</span>
+                <span v-else class="text-gray-500 text-xs">Aucune écriture</span>
+                <span class="text-gray-500 text-xs">{{ totalLignes }} ligne(s)</span>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
-    
+
     <!-- Message si aucun mouvement -->
     <div v-if="!isLoading && mouvements.length === 0" class="text-center py-12 text-gray-500">
       <div class="text-6xl mb-4">📊</div>
@@ -284,7 +268,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from "vue";
+import { ref, onMounted, nextTick, computed } from "vue";
 import axios from "axios";
 
 // État de l'application
@@ -308,10 +292,14 @@ const mouvementForm = ref({
   Id_Journal: "",
 });
 
+// Calcul du nombre total de lignes
+const totalLignes = computed(() => {
+  return mouvements.value.reduce((total, m) => total + m.lignes.length, 0);
+});
+
 // Gestion des erreurs
 const handleError = (error, defaultMessage = 'Une erreur est survenue') => {
   console.error('Erreur API:', error);
-  
   if (error.response?.data?.message) {
     errorMessage.value = error.response.data.message;
   } else if (error.response?.data?.error) {
@@ -319,8 +307,6 @@ const handleError = (error, defaultMessage = 'Une erreur est survenue') => {
   } else {
     errorMessage.value = defaultMessage;
   }
-  
-  // Auto-hide after 5 seconds
   setTimeout(() => {
     errorMessage.value = '';
   }, 5000);
@@ -339,7 +325,6 @@ const fetchMouvements = async () => {
     const res = await axios.get("http://127.0.0.1:8000/api/mouvements");
     const mouvementsData = res.data;
 
-    // Pour chaque mouvement, récupérer ses lignes
     for (let m of mouvementsData) {
       try {
         const lignesRes = await axios.get(`http://127.0.0.1:8000/api/lignes?mouvement_id=${m.Id_Mouvement_ecriture}`);
@@ -391,11 +376,8 @@ const createMouvement = async () => {
   
   try {
     await axios.post("http://127.0.0.1:8000/api/mouvements", mouvementForm.value);
-    
-    // Reset form
     mouvementForm.value.Date_mouvement = "";
     mouvementForm.value.Id_Journal = "";
-    
     showSuccess('Mouvement créé avec succès');
     await fetchMouvements();
   } catch (error) {
@@ -448,8 +430,6 @@ const addNewLigne = (mouvementId) => {
   };
 
   mouvement.lignes.push(nouvelleLigne);
-  
-  // Focus sur le champ sous-compte de la nouvelle ligne
   nextTick(() => {
     const inputs = document.querySelectorAll(`input[placeholder="Code ou libellé..."]`);
     const lastInput = inputs[inputs.length - 1];
@@ -542,12 +522,10 @@ const selectSousCompte = (mouvementId, ligneIndex, sousCompte) => {
   ligne.selectedSuggestionIndex = -1;
   ligne.sousCompteError = '';
   
-  // Auto-remplir le libellé si vide
   if (!ligne.Libelle || ligne.Libelle.trim() === '') {
     ligne.Libelle = sousCompte.Libelle;
   }
 
-  // Sauvegarder automatiquement
   updateLigne(mouvementId, ligneIndex);
 };
 
@@ -562,7 +540,6 @@ const validateSousCompte = (mouvementId, ligneIndex) => {
     ligne.selectedSuggestionIndex = -1;
 
     if (ligne.sousCompteSearch && !ligne.Id_Sous_compte) {
-      // Essayer de trouver une correspondance exacte
       const found = sousComptes.value.find(compte =>
         `${compte.Code_sous_compte} - ${compte.Libelle}` === ligne.sousCompteSearch ||
         compte.Code_sous_compte === ligne.sousCompteSearch.trim()
@@ -593,11 +570,9 @@ const onMontantChange = (mouvementId, ligneIndex, type) => {
 
   const ligne = mouvement.lignes[ligneIndex];
   
-  // Empêcher les valeurs négatives
   if (ligne.Debit < 0) ligne.Debit = 0;
   if (ligne.Credit < 0) ligne.Credit = 0;
   
-  // Règle comptable : une ligne ne peut avoir que débit OU crédit
   if (type === 'debit' && ligne.Debit > 0) {
     ligne.Credit = 0;
   } else if (type === 'credit' && ligne.Credit > 0) {
@@ -612,9 +587,8 @@ const updateLigne = async (mouvementId, ligneIndex) => {
 
   const ligne = mouvement.lignes[ligneIndex];
   
-  // Validation des champs obligatoires
   if (!ligne.Id_Sous_compte || (!ligne.Debit && !ligne.Credit)) {
-    return; // Ne pas sauvegarder si données incomplètes
+    return;
   }
 
   try {
@@ -627,19 +601,15 @@ const updateLigne = async (mouvementId, ligneIndex) => {
       Id_Mode_paiement: ligne.Id_Mode_paiement || null,
       Id_Sous_compte: ligne.Id_Sous_compte,
       Id_Mouvement_ecriture: mouvementId,
-      Id_Journal: ligne.Id_Journal
+      Id_Journal: mouvement.Id_Journal
     };
 
     if (ligne.Id_Ligne_ecriture) {
-      // Mise à jour
       const res = await axios.put(`http://127.0.0.1:8000/api/lignes/${ligne.Id_Ligne_ecriture}`, ligneData);
-      // Mettre à jour avec les données retournées
       Object.assign(ligne, res.data);
     } else {
-      // Création
       const res = await axios.post("http://127.0.0.1:8000/api/lignes", ligneData);
       ligne.Id_Ligne_ecriture = res.data.Id_Ligne_ecriture || res.data.id;
-      // Mettre à jour avec les données retournées
       Object.assign(ligne, res.data);
     }
   } catch (error) {
@@ -670,31 +640,32 @@ const deleteLigne = async (mouvementId, ligneIndex) => {
   }
 };
 
-// Calculer les totaux
+// Calculer les totaux par mouvement
 const getTotalDebit = (mouvement) => {
-  return mouvement.lignes.reduce((total, ligne) => {
-    const debit = parseFloat(ligne.Debit) || 0;
-    return total + debit;
-  }, 0);
+  return mouvement.lignes.reduce((total, ligne) => total + (parseFloat(ligne.Debit) || 0), 0);
 };
 
 const getTotalCredit = (mouvement) => {
-  return mouvement.lignes.reduce((total, ligne) => {
-    const credit = parseFloat(ligne.Credit) || 0;
-    return total + credit;
-  }, 0);
+  return mouvement.lignes.reduce((total, ligne) => total + (parseFloat(ligne.Credit) || 0), 0);
 };
 
-// Calculer la différence
 const getDifference = (mouvement) => {
   return Math.abs(getTotalDebit(mouvement) - getTotalCredit(mouvement));
 };
 
-// Vérifier l'équilibre
 const isEquilibre = (mouvement) => {
   const totalDebit = getTotalDebit(mouvement);
   const totalCredit = getTotalCredit(mouvement);
   return Math.abs(totalDebit - totalCredit) < 0.01 && totalDebit > 0;
+};
+
+// Calculer les totaux généraux
+const getTotalGeneralDebit = () => {
+  return mouvements.value.reduce((total, m) => total + getTotalDebit(m), 0);
+};
+
+const getTotalGeneralCredit = () => {
+  return mouvements.value.reduce((total, m) => total + getTotalCredit(m), 0);
 };
 
 // Valider un mouvement
@@ -714,15 +685,12 @@ const validerMouvement = async (mouvementId) => {
   isValidating.value = true;
 
   try {
-    // Essayer différentes routes possibles pour la validation
     let validationSuccess = false;
-    
     try {
       await axios.post(`http://127.0.0.1:8000/api/mouvements/${mouvementId}/valider`);
       validationSuccess = true;
     } catch (error) {
       if (error.response?.status === 404) {
-        // Essayer avec une mise à jour du statut
         await axios.put(`http://127.0.0.1:8000/api/mouvements/${mouvementId}`, { valide: true });
         validationSuccess = true;
       } else {
@@ -749,7 +717,6 @@ const getJournalLibelle = (journalId) => {
 
 const formatDate = (dateStr) => {
   if (!dateStr) return 'Date invalide';
-  
   try {
     const date = new Date(dateStr);
     return date.toLocaleDateString('fr-FR', {
@@ -767,7 +734,6 @@ const formatMontant = (montant) => {
   if (montant === null || montant === undefined || isNaN(montant)) {
     return '0,00';
   }
-  
   return new Intl.NumberFormat('fr-FR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
@@ -777,7 +743,6 @@ const formatMontant = (montant) => {
 // Initialisation
 onMounted(async () => {
   isLoading.value = true;
-  
   try {
     await fetchOptions();
     await fetchMouvements();
@@ -786,8 +751,6 @@ onMounted(async () => {
   } finally {
     isLoading.value = false;
   }
-  
-  // Définir la date par défaut à aujourd'hui
   const today = new Date().toISOString().split('T')[0];
   mouvementForm.value.Date_mouvement = today;
 });
@@ -795,22 +758,16 @@ onMounted(async () => {
 // Raccourcis clavier globaux
 onMounted(() => {
   const handleKeydown = (event) => {
-    // Ctrl+N : Nouveau mouvement
     if (event.ctrlKey && event.key === 'n') {
       event.preventDefault();
       document.querySelector('input[type="date"]')?.focus();
     }
-    
-    // Escape : Fermer les messages
     if (event.key === 'Escape') {
       errorMessage.value = '';
       successMessage.value = '';
     }
   };
-
   document.addEventListener('keydown', handleKeydown);
-  
-  // Cleanup
   return () => {
     document.removeEventListener('keydown', handleKeydown);
   };
@@ -818,7 +775,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Animation pour le loader */
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -829,7 +785,6 @@ onMounted(() => {
   animation: spin 1s linear infinite;
 }
 
-/* Focus states améliorés */
 input:focus,
 select:focus {
   outline: none;
@@ -837,7 +792,6 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Hover effects */
 .hover\:bg-gray-50:hover {
   background-color: #f9fafb;
 }
@@ -858,7 +812,6 @@ select:focus {
   background-color: #b91c1c;
 }
 
-/* Transitions */
 button {
   transition: all 0.2s ease-in-out;
 }
@@ -867,7 +820,6 @@ input, select {
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
-/* Disabled states */
 .disabled\:opacity-50:disabled {
   opacity: 0.5;
 }
@@ -876,7 +828,6 @@ input, select {
   cursor: not-allowed;
 }
 
-/* Table responsive */
 .overflow-x-auto {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 #f1f5f9;
@@ -895,12 +846,10 @@ input, select {
   border-radius: 3px;
 }
 
-/* Suggestions dropdown */
 .z-20 {
   z-index: 20;
 }
 
-/* Print styles */
 @media print {
   .no-print {
     display: none !important;
@@ -916,7 +865,6 @@ input, select {
   }
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   .grid-cols-2 {
     grid-template-columns: 1fr;
