@@ -292,6 +292,16 @@ const mouvementForm = ref({
   Id_Journal: "",
 });
 
+const token = localStorage.getItem("token"); // Récupérer le token
+
+if (!token) {
+  // Redirection vers login si pas de token
+  window.location.href = "/";
+} else {
+  // Configurer Axios pour inclure le token dans toutes les requêtes
+  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+}
+
 // Calcul du nombre total de lignes
 const totalLignes = computed(() => {
   return mouvements.value.reduce((total, m) => total + m.lignes.length, 0);

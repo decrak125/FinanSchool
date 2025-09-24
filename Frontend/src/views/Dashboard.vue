@@ -6,6 +6,13 @@
 
     <!-- ✅ Bouton de déconnexion -->
     <button @click="logout">Déconnexion</button>
+    <button @click="journal">Journal</button>
+    <button @click="ecriture">Ecriture</button>
+    <button @click="logout">Déconnexion</button>
+    <button @click="logout">Déconnexion</button>
+    <button @click="logout">Déconnexion</button>
+    <button @click="logout">Déconnexion</button>
+    <button @click="logout">Déconnexion</button>
   </div>
 </template>
 
@@ -36,7 +43,17 @@ export default {
     logout() {
       localStorage.removeItem("token");
       this.$router.push("/");
+    },
+     journal() {
+      
+      this.$router.push("/journal");
+    },
+    ecriture(){
+      
+      this.$router.push("/ecriture");
     }
+
+
   }
 };
 </script>

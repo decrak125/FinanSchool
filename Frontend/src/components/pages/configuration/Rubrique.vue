@@ -12,6 +12,16 @@ const isEditing = ref(false)
 const filters = ref({ search: '', classe: '' })
 const form = ref({ id: null, Code_rubrique: '', Libelle: '', Id_Classe: '', suffixe: '' })
 
+const token = localStorage.getItem("token"); // Récupérer le token
+
+if (!token) {
+  // Redirection vers login si pas de token
+  window.location.href = "/";
+} else {
+  // Configurer Axios pour inclure le token dans toutes les requêtes
+  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+}
+
 const loadClasses = async () => {
   const res = await axios.get(`${API_URL}/classes`)
   classes.value = res.data.data || res.data

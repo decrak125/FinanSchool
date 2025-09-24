@@ -27,6 +27,16 @@ const form = ref({
   suffixe: ''
 })
 
+const token = localStorage.getItem("token"); // Récupérer le token
+
+if (!token) {
+  // Redirection vers login si pas de token
+  window.location.href = "/";
+} else {
+  // Configurer Axios pour inclure le token dans toutes les requêtes
+  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+}
+
 // Charger classes
 const loadClasses = async () => {
   try {

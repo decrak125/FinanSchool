@@ -74,37 +74,47 @@
   </template>
   
   <script setup>
-  import { ref, onMounted } from "vue";
-  import axios from "axios";
-  
-  const journals = ref([]);
-  const typeJournals = ref([]);
-  const sousComptes = ref([]);
-  
-  const form = ref({
-    Code: "",
-    Libelle: "",
-    Id_Type_Journal: "",
-    Id_Sous_compte: "",
-  });
-  
-  const isEditing = ref(false);
-  const editingId = ref(null);
-  
-  // Charger tous les journaux avec relations
-  const fetchJournals = async () => {
-    const res = await axios.get("http://127.0.0.1:8000/api/journals");
-    journals.value = res.data;
-  };
-  
-  // Charger les types de journaux et sous-comptes pour select
-  const fetchOptions = async () => {
-    const types = await axios.get("http://127.0.0.1:8000/api/type-journals");
-    typeJournals.value = types.data;
-  
-    const comptes = await axios.get("http://127.0.0.1:8000/api/sous-comptes");
-    sousComptes.value = comptes.data;
-  };
+import { ref, onMounted } from "vue";
+import axios from "axios";
+
+const journals = ref([]);
+const typeJournals = ref([]);
+const sousComptes = ref([]);
+
+const form = ref({
+  Code: "",
+  Libelle: "",
+  Id_Type_Journal: "",
+  Id_Sous_compte: "",
+});
+
+const isEditing = ref(false);
+const editingId = ref(null);
+
+const token = localStorage.getItem("token"); // Récupérer le token
+
+if (!token) {
+  // Redirection vers login si pas de token
+  window.location.href = "/";
+} else {
+  // Configurer Axios pour inclure le token dans toutes les requêtes
+  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+}
+
+// Puis le reste de ton code fetch reste identique
+const fetchJournals = async () => {
+  const res = await axios.get("http://127.0.0.1:8000/api/journals");
+  journals.value = res.data;
+};
+
+const fetchOptions = async () => {
+  const types = await axios.get("http://127.0.0.1:8000/api/type-journals");
+  typeJournals.value = types.data;
+
+  const comptes = await axios.get("http://127.0.0.1:8000/api/sous-comptes");
+  sousComptes.value = comptes.data;
+};
+
   
   // Ajouter ou modifier un journal
   const saveJournal = async () => {
