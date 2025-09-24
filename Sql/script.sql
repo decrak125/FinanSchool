@@ -89,3 +89,37 @@ CREATE TABLE Ligne_ecriture (
     FOREIGN KEY (Id_Journal) REFERENCES Journal(Id_Journal),
     FOREIGN KEY (Id_Sous_compte) REFERENCES Sous_comptes("Id_Sous_compte")
 );
+
+-- ANALATYQUE LELENTY E 
+
+
+-- Table des axes analytiques (cycle, nature, etc.)
+CREATE TABLE AxesAnalytique (
+    id_axe SERIAL PRIMARY KEY,
+    axe VARCHAR(100) NOT NULL,
+    description VARCHAR(100) NOT NULL
+);
+
+-- Table des types de centre (coût, profit, etc.)
+CREATE TABLE TypeCentre (
+    id_type SERIAL PRIMARY KEY,
+    code VARCHAR(20) NOT NULL,
+    libelle VARCHAR(100) NOT NULL
+);
+
+-- Table des centres analytiques
+CREATE TABLE CentreAnalytique (
+    id_centre SERIAL PRIMARY KEY,
+    nom VARCHAR(150) NOT NULL,
+    description VARCHAR(100) NOT NULL,
+    id_axe INT NOT NULL REFERENCES AxesAnalytique(id_axe),
+    id_type INT NOT NULL REFERENCES TypeCentre(id_type)
+);
+
+-- Table des affectations analytiques
+CREATE TABLE AffectationAnalytique (
+    id_affectation SERIAL PRIMARY KEY,
+    Id_Sous_compte INT NOT NULL REFERENCES Sous_comptes("Id_Sous_compte"), -- à relier à ta table SousCompte plus tard
+    id_centre INT NOT NULL REFERENCES CentreAnalytique(id_centre),
+    description VARCHAR(100) NOT NULL
+);

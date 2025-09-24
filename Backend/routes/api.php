@@ -15,6 +15,10 @@ use App\Http\Controllers\Saisie\JournalController;
 use App\Http\Controllers\Saisie\MouvementEcritureController;
 use App\Http\Controllers\Saisie\LigneEcritureController;
 use App\Http\Controllers\Saisie\DeviseController;
+use App\Http\Controllers\ParametresAnalytique\AxeAnalytiqueController;
+use App\Http\Controllers\ParametresAnalytique\TypeCentreController;
+use App\Http\Controllers\ParametresAnalytique\CentreAnalytiqueController;
+use App\Http\Controllers\ParametresAnalytique\AffectationAnalytiqueController;
 
 Route::middleware('api')->group(function () {
     Route::post('/example', function (Request $request) {
@@ -57,4 +61,10 @@ Route::middleware('api')->group(function () {
     Route::apiResource('mouvements', MouvementEcritureController::class);
     Route::apiResource('lignes', LigneEcritureController::class);
     Route::apiResource('devises', DeviseController::class);
+
+    // crud parametres analytiques
+    Route::apiResource('axes', AxeAnalytiqueController::class);
+    Route::apiResource('types', TypeCentreController::class);
+    Route::apiResource('centres', CentreAnalytiqueController::class);
+    Route::apiResource('affectations', AffectationAnalytiqueController::class);
 });

@@ -1,0 +1,32 @@
+<?php
+
+namespace App\Models\ParametresAnalytique;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class AffectationAnalytique extends Model
+{
+    use HasFactory;
+
+    protected $table = 'affectationanalytique';
+    protected $primaryKey = 'id_affectation';
+    public $timestamps = false;
+
+    protected $fillable = [
+        'Id_Sous_compte',
+        'id_centre',
+        'description',
+    ];
+
+    public function centre()
+    {
+        return $this->belongsTo(CentreAnalytique::class, 'id_centre');
+    }
+
+    // À relier si tu as le modèle SousCompte
+    public function sousCompte()
+    {
+        return $this->belongsTo(SousCompte::class, 'Id_Sous_compte');
+    }
+}
