@@ -12,7 +12,11 @@ return new class extends Migration {
 
             // Relations
             $table->foreignId('id_centre')->constrained('centreanalytique', 'id_centre')->onDelete('cascade');
-            $table->foreignId('Id_Sous_compte')->constrained('sous_comptes', 'Id_Sous_compte')->onDelete('cascade')->unique();
+            $table->foreignId('Id_Sous_compte')
+                ->constrained('sous_comptes', 'Id_Sous_compte')
+                ->onDelete('cascade');
+
+            $table->unique('Id_Sous_compte');
 
             // Pas de timestamps
             // $table->timestamps();
