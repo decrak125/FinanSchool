@@ -9,7 +9,7 @@ class AffectationAnalytiqueController extends Controller
 {
     public function index()
     {
-        return AffectationAnalytique::all();
+        return AffectationAnalytique::with('centre','sousCompte')->get();
     }
 
     public function show($id)
@@ -20,9 +20,9 @@ class AffectationAnalytiqueController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'Id_Sous_compte' => 'required|integer',
-            'id_centre' => 'required|integer',
-            'description' => 'required|string|max:100',
+            'Id_Sous_compte' => 'required|exists:sous_comptes,Id_Sous_compte',
+            'id_centre' => 'required|integer|exists:centreanalytique,id_centre',
+            'description' => 'required|string|max:255',
         ]);
 
         return AffectationAnalytique::create($request->all());

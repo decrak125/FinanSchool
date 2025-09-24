@@ -4,6 +4,8 @@ namespace App\Models\ParametresAnalytique;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ParametresAnalytique\CentreAnalytique;
+use App\Models\PlanCompte\SousCompte;
 
 class AffectationAnalytique extends Model
 {
@@ -24,9 +26,9 @@ class AffectationAnalytique extends Model
         return $this->belongsTo(CentreAnalytique::class, 'id_centre');
     }
 
-    // À relier si tu as le modèle SousCompte
     public function sousCompte()
-    {
-        return $this->belongsTo(SousCompte::class, 'Id_Sous_compte');
-    }
+{
+    return $this->belongsTo(SousCompte::class, 'Id_Sous_compte');
+}
+
 }

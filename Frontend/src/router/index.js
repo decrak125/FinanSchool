@@ -16,6 +16,9 @@ import ModePaiement from "@/components/pages/configuration/ModePaiement.vue";
 import Ecriture from "@/components/pages/saisie/Ecriture.vue";
 import TypeCentre from "@/components/pages/configAnalytique/TypeCentre.vue";
 import AxeAnalytique from "@/components/pages/configAnalytique/AxeAnalytique.vue";
+import CentreAnalytique from "@/components/pages/configAnalytique/CentreAnalytique.vue";
+import AffectationAnalytique from "@/components/pages/configAnalytique/AffectationAnalytique.vue";
+
 const routes = [
   {
     path: "/",
@@ -102,7 +105,18 @@ const routes = [
     path: "/axe-analytique",
     name: AxeAnalytique,
     component: AxeAnalytique
+  },
+  {
+    path: "/centre-analytique",
+    name: CentreAnalytique,
+    component: CentreAnalytique
+  },
+  {
+    path: "/affectation-analytique",
+    name: AffectationAnalytique,
+    component: AffectationAnalytique
   }
+
 
 ];
 

@@ -9,7 +9,7 @@ return new class extends Migration {
         Schema::create('mouvement_ecritures', function (Blueprint $table) {
             $table->id('Id_Mouvement_ecriture');
             $table->date('Date_mouvement');
-            $table->string('Numero_piece', 50)->nullable();
+            $table->string('Numero_piece', 50)->nullable()->unique();
             $table->foreignId('Id_Journal')->constrained('journals', 'Id_Journal');
             // $table->timestamps();
         });

@@ -22,7 +22,7 @@ class CentreAnalytique extends Model
 
     public function axe()
     {
-        return $this->belongsTo(AxesAnalytique::class, 'id_axe');
+        return $this->belongsTo(AxeAnalytique::class, 'id_axe');
     }
 
     public function type()
