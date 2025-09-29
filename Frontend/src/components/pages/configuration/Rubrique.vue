@@ -195,7 +195,7 @@ onMounted(() => {
                     <button @click="openEditModal(rubrique)" class="btn btn-primary text-base">
                       <i class="bi bi-pencil mr-1"></i> Modifier
                     </button>
-                    <button @click="deleteRubrique(rubrique.Id_Rubrique)" class="btn btn-error text-base">
+                    <button @click="deleteRubrique(rubrique.Id_Rubrique)" class="btn btn-error text-base" style="height: 40px; margin-top: 10px;">
                       <i class="bi bi-trash mr-1"></i> Supprimer
                     </button>
                   </td>

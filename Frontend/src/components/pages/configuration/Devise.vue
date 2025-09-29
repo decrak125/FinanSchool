@@ -82,15 +82,15 @@
                   <td class="d-flex gap-2 justify-center">
                     <button
                       @click="editDevise(devise)"
-                      class="btn btn-warning btn-sm"
+                      class="btn btn-primary text-base"
                     >
                       ✏️
                     </button>
                     <button
                       @click="deleteDevise(devise.Id_Devise)"
-                      class="btn btn-error btn-sm"
+                      class="btn btn-error text-base" style="height: 40px; margin-top: 10px;"
                     >
-                      🗑️
+                      Supprimer
                     </button>
                   </td>
                 </tr>

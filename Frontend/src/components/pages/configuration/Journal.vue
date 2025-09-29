@@ -1,86 +1,90 @@
 <template>
-  <div class="dashboard-container">
+  <div class="dashboard-container w-full">
     <Header />
     <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
 
-    <div class="main-content">
-      <div class="p-6">
-        <h1 class="text-2xl font-bold mb-4">Gestion des Journaux</h1>
+    <div class="main-content p-6">
+        <div class="card card-form">
+        <div class="p-6">
+            <div class="card-header">
+          <h1 class="card-title text-3xl">Gestion des Journaux</h1>
+            </div>
+          
+          <!-- ✅ Formulaire stylisé avec style.css -->
+          <form @submit.prevent="saveJournal" class="card-form">
+            <div class="form-group">
+              <label class="form-label required">Code</label>
+              <input v-model="form.Code" type="text" class="form-input" required />
+            </div>
 
-        <!-- ✅ Formulaire stylisé avec style.css -->
-        <form @submit.prevent="saveJournal" class="card-form">
-          <div class="form-group">
-            <label class="form-label required">Code</label>
-            <input v-model="form.Code" type="text" class="form-input" required />
+            <div class="form-group">
+              <label class="form-label required">Libellé</label>
+              <input v-model="form.Libelle" type="text" class="form-input" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label required">Type Journal</label>
+              <select v-model="form.Id_Type_Journal" class="form-select" required>
+                <option value="">-- Sélectionner --</option>
+                <option v-for="type in typeJournals" :key="type.Id_Type_Journal" :value="type.Id_Type_Journal">
+                  {{ type.Type }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Sous-compte (optionnel)</label>
+              <select v-model="form.Id_Sous_compte" class="form-select">
+                <option value="">-- Sélectionner --</option>
+                <option v-for="compte in sousComptes" :key="compte.Id_Sous_compte" :value="compte.Id_Sous_compte">
+                  {{ compte.Code_sous_compte }} - {{ compte.Libelle }}
+                </option>
+              </select>
+            </div>
+
+            <div class="d-flex gap-2">
+              <!-- ✅ Boutons avec tes classes -->
+              <button type="submit" class="btn btn-primary">
+                {{ isEditing ? "Mettre à jour" : "Ajouter" }}
+              </button>
+              <button v-if="isEditing" type="button" @click="cancelEdit" class="btn btn-outline">
+                Annuler
+              </button>
+            </div>
+          </form>
+
+          <!-- ✅ Tableau stylisé -->
+          <div class="table-container mt-6">
+            <table class="table table-bordered table-striped w-full">
+              <thead>
+                <tr>
+                  <th class="text-base p-4">#</th>
+                  <th class="text-base p-4">Code</th>
+                  <th class="text-base p-4">Libellé</th>
+                  <th class="text-base p-4">Type Journal</th>
+                  <th class="text-base p-4">Sous-compte</th>
+                  <th class="text-base p-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="journal in journals" :key="journal.Id_Journal">
+                  <td class="p-4 text-base">{{ journal.Id_Journal }}</td>
+                  <td class="p-4 text-base">{{ journal.Code }}</td>
+                  <td class="p-4 text-base">{{ journal.Libelle }}</td>
+                  <td class="p-4 text-base">{{ journal.type_journal?.Type || '-' }}</td>
+                  <td class="p-4 text-base">{{ journal.sous_compte?.Libelle || '-' }}</td>
+                  <td class="text-center">
+                    <button @click="editJournal(journal)" class="btn btn-primary text-base"> Modifier</button>
+                    <button @click="deleteJournal(journal.Id_Journal)" class="btn btn-error text-base" style="height: 40px; margin-top: 10px;margin-left: 20px;">Supprimer</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div class="form-group">
-            <label class="form-label required">Libellé</label>
-            <input v-model="form.Libelle" type="text" class="form-input" required />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label required">Type Journal</label>
-            <select v-model="form.Id_Type_Journal" class="form-select" required>
-              <option value="">-- Sélectionner --</option>
-              <option v-for="type in typeJournals" :key="type.Id_Type_Journal" :value="type.Id_Type_Journal">
-                {{ type.Type }}
-              </option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Sous-compte (optionnel)</label>
-            <select v-model="form.Id_Sous_compte" class="form-select">
-              <option value="">-- Sélectionner --</option>
-              <option v-for="compte in sousComptes" :key="compte.Id_Sous_compte" :value="compte.Id_Sous_compte">
-                {{ compte.Code_sous_compte }} - {{ compte.Libelle }}
-              </option>
-            </select>
-          </div>
-
-          <div class="d-flex gap-2">
-            <!-- ✅ Boutons avec tes classes -->
-            <button type="submit" class="btn btn-primary">
-              {{ isEditing ? "Mettre à jour" : "Ajouter" }}
-            </button>
-            <button v-if="isEditing" type="button" @click="cancelEdit" class="btn btn-outline">
-              Annuler
-            </button>
-          </div>
-        </form>
-
-        <!-- ✅ Tableau stylisé -->
-        <div class="table-container mt-4">
-          <table class="table table-striped table-bordered">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Code</th>
-                <th>Libellé</th>
-                <th>Type Journal</th>
-                <th>Sous-compte</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="journal in journals" :key="journal.Id_Journal">
-                <td>{{ journal.Id_Journal }}</td>
-                <td>{{ journal.Code }}</td>
-                <td>{{ journal.Libelle }}</td>
-                <td>{{ journal.type_journal?.Type || '-' }}</td>
-                <td>{{ journal.sous_compte?.Libelle || '-' }}</td>
-                <td class="text-center">
-                  <button @click="editJournal(journal)" class="btn btn-warning btn-sm">✏️</button>
-                  <button @click="deleteJournal(journal.Id_Journal)" class="btn btn-error btn-sm">🗑️</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <AppFooter />
         </div>
-
-        <AppFooter />
-      </div>
+        </div>
     </div>
   </div>
 </template>

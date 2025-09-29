@@ -69,13 +69,13 @@
                   <td class="d-flex gap-2">
                     <button
                       @click="editModePaiement(mode)"
-                      class="btn btn-warning btn-sm"
+                      class="btn btn-primary text-base"
                     >
                       Modifier
                     </button>
                     <button
                       @click="deleteModePaiement(mode.Id_Mode_paiement)"
-                      class="btn btn-error btn-sm"
+                      class="btn btn-error text-base" style="height: 40px; margin-top: 10px;"
                     >
                       Supprimer
                     </button>

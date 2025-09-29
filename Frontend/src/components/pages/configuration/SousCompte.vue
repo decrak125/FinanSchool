@@ -221,10 +221,10 @@ onMounted(() => {
                   <td>{{ sc.Libelle }}</td>
                   <td>{{ sc.compte?.Code_compte }}</td>
                   <td class="d-flex gap-2">
-                    <button @click="openEditModal(sc)" class="btn btn-primary btn-sm">
+                    <button @click="openEditModal(sc)" class="btn btn-primary text-base">
                       Modifier
                     </button>
-                    <button @click="deleteSousCompte(sc.Id_Sous_compte)" class="btn btn-error btn-sm">
+                    <button @click="deleteSousCompte(sc.Id_Sous_compte)" class="btn btn-error text-base" style="height: 40px; margin-top: 10px;">
                       Supprimer
                     </button>
                   </td>
