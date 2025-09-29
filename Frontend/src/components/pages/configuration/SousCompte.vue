@@ -2,6 +2,16 @@
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { debounce } from 'lodash'
+import { useRouter } from 'vue-router'
+import Sidebar from "../../molecules/Sidebar.vue";
+import Header from "../../molecules/Header.vue";
+import AppFooter from "../../molecules/Footer.vue";
+
+const router = useRouter();
+
+const handleNavigation = (item) => {
+  router.push(item.route);
+};
 
 const API_URL = 'http://localhost:8000/api'
 
@@ -9,6 +19,8 @@ const comptes = ref([])
 const sousComptes = ref([])
 const showModal = ref(false)
 const isEditing = ref(false)
+const currentPage = ref(1)
+const itemsPerPage = 10
 
 const filters = ref({
   compte_id: '',
@@ -23,17 +35,14 @@ const form = ref({
   Libelle: ''
 })
 
-const token = localStorage.getItem("token"); // Récupérer le token
+const token = localStorage.getItem("token");
 
 if (!token) {
-  // Redirection vers login si pas de token
   window.location.href = "/";
 } else {
-  // Configurer Axios pour inclure le token dans toutes les requêtes
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
 
-// Charger comptes depuis l'API
 const loadComptes = async () => {
   try {
     const response = await axios.get(`${API_URL}/comptes`)
@@ -47,7 +56,6 @@ const loadComptes = async () => {
   }
 }
 
-// Met à jour le code complet automatiquement
 const updateCode = () => {
   const compte = comptes.value.find(c => c.Id_Compte === form.value.Id_Compte)
   if (compte && compte.Code_compte) {
@@ -57,14 +65,12 @@ const updateCode = () => {
   }
 }
 
-// Ouvrir modal création
 const openCreateModal = () => {
   isEditing.value = false
   form.value = { id: null, Id_Compte: comptes.value[0]?.Id_Compte || '', suffixe: '', Code_sous_compte: '', Libelle: '' }
   showModal.value = true
 }
 
-// Ouvrir modal édition
 const openEditModal = async (sousCompte) => {
   isEditing.value = true
   form.value.id = sousCompte.Id_Sous_compte
@@ -75,7 +81,6 @@ const openEditModal = async (sousCompte) => {
   showModal.value = true
 }
 
-// Sauvegarder (création / modification)
 const saveSousCompte = async () => {
   try {
     if (isEditing.value) {
@@ -87,19 +92,22 @@ const saveSousCompte = async () => {
     }
     showModal.value = false
     loadSousComptes()
+    currentPage.value = 1
   } catch (error) {
     console.error('Erreur enregistrement sous-compte:', error.response?.data || error.message)
     alert('Erreur enregistrement sous-compte')
   }
 }
 
-// Supprimer
 const deleteSousCompte = async (id) => {
   if (confirm('Voulez-vous vraiment supprimer ce sous-compte ?')) {
     try {
       await axios.delete(`${API_URL}/sous-comptes/${id}`)
       alert('Sous-compte supprimé avec succès')
       loadSousComptes()
+      if (filteredSousComptes.value.length <= (currentPage.value - 1) * itemsPerPage) {
+        currentPage.value = Math.max(1, currentPage.value - 1)
+      }
     } catch (error) {
       console.error('Erreur suppression sous-compte:', error.response?.data || error.message)
       alert('Erreur suppression sous-compte')
@@ -107,7 +115,6 @@ const deleteSousCompte = async (id) => {
   }
 }
 
-// Liste des sous-comptes
 const loadSousComptes = async () => {
   try {
     const res = await axios.get(`${API_URL}/sous-comptes`)
@@ -117,12 +124,11 @@ const loadSousComptes = async () => {
   }
 }
 
-// Recherche avec debounce
 const debounceSearch = debounce((val) => {
   filters.value.search = val
+  currentPage.value = 1
 }, 300)
 
-// Sous-comptes filtrés
 const filteredSousComptes = computed(() => {
   return sousComptes.value.filter(sc => {
     const matchCompte = !filters.value.compte_id || sc.Id_Compte == filters.value.compte_id
@@ -133,6 +139,32 @@ const filteredSousComptes = computed(() => {
   })
 })
 
+const paginatedSousComptes = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredSousComptes.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredSousComptes.value.length / itemsPerPage)
+})
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const goToPage = (page) => {
+  currentPage.value = page
+}
+
 onMounted(() => {
   loadComptes()
   loadSousComptes()
@@ -140,87 +172,183 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">Gestion des sous-comptes</h1>
-
-    <!-- Filtres -->
-    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label>Compte</label>
-        <select v-model="filters.compte_id" class="mt-1 block w-full border rounded-md">
-          <option value="">Tous les comptes</option>
-          <option v-for="compte in comptes" :key="compte.Id_Compte" :value="compte.Id_Compte">
-            {{ compte.Code_compte }} - {{ compte.Libelle }}
-          </option>
-        </select>
-      </div>
-      <div>
-        <label>Recherche</label>
-        <input type="text" placeholder="Code ou libellé..." class="mt-1 block w-full border rounded-md"
-               :value="filters.search" @input="debounceSearch($event.target.value)" />
-      </div>
-    </div>
-
-    <button @click="openCreateModal" class="mb-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-      Nouveau sous-compte
-    </button>
-
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-6 py-3 text-left">Code</th>
-          <th class="px-6 py-3 text-left">Libellé</th>
-          <th class="px-6 py-3 text-left">Compte</th>
-          <th class="px-6 py-3 text-left">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-        <tr v-for="sc in filteredSousComptes" :key="sc.Id_Sous_compte">
-          <td class="px-6 py-3">{{ sc.Code_sous_compte }}</td>
-          <td class="px-6 py-3">{{ sc.Libelle }}</td>
-          <td class="px-6 py-3">{{ sc.compte?.Code_compte }}</td>
-          <td class="px-6 py-3">
-            <button @click="openEditModal(sc)" class="text-blue-600 hover:text-blue-900 mr-2">Modifier</button>
-            <button @click="deleteSousCompte(sc.Id_Sous_compte)" class="text-red-600 hover:text-red-900">Supprimer</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <!-- Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-      <div class="bg-white p-6 rounded-lg w-full max-w-md">
-        <h2 class="text-xl font-bold mb-4">{{ isEditing ? 'Modifier le sous-compte' : 'Nouveau sous-compte' }}</h2>
-        <form @submit.prevent="saveSousCompte">
-          <div class="mb-4">
-            <label>Compte</label>
-            <select v-model="form.Id_Compte" @change="updateCode" required class="mt-1 block w-full border rounded-md">
-              <option v-for="compte in comptes" :key="compte.Id_Compte" :value="compte.Id_Compte">
-                {{ compte.Code_compte }} - {{compte.Libelle }}
-              </option>
-            </select>
+  <div class="dashboard-container">
+    <Header />
+    <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
+    <div class="main-content p-4">
+      <div class="card card-form">
+        <div class="card-header">
+          <h1 class="card-title text-2xl">Gestion des Sous-comptes</h1>
+        </div>
+        <div class="card-body">
+          <div class="d-flex flex-column md:flex-row gap-3 mb-4">
+            <div class="form-group w-full">
+              <label for="compte" class="form-label">Compte</label>
+              <select v-model="filters.compte_id" class="form-select w-full">
+                <option value="">Tous les comptes</option>
+                <option v-for="compte in comptes" :key="compte.Id_Compte" :value="compte.Id_Compte">
+                  {{ compte.Code_compte }} - {{ compte.Libelle }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group w-full">
+              <label for="search" class="form-label">Recherche</label>
+              <input
+                type="text"
+                placeholder="Code ou libellé..."
+                :value="filters.search"
+                @input="debounceSearch($event.target.value)"
+                class="form-input w-full"
+              />
+            </div>
           </div>
-          <div class="mb-4">
-            <label>Suffixe</label>
-            <input type="text" v-model="form.suffixe" @input="updateCode" maxlength="3" placeholder="001"
-                   class="mt-1 block w-full border rounded-md" required />
+          <button @click="openCreateModal" class="btn btn-primary mb-4">
+            Nouveau sous-compte
+          </button>
+          <div class="table-container" style="margin-top: 20px;">
+            <table class="table table-bordered table-striped">
+              <thead>
+                <tr>
+                  <th class="text-sm">Code</th>
+                  <th class="text-sm">Libellé</th>
+                  <th class="text-sm">Compte</th>
+                  <th class="text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="sc in paginatedSousComptes" :key="sc.Id_Sous_compte" class="fade-in">
+                  <td>{{ sc.Code_sous_compte }}</td>
+                  <td>{{ sc.Libelle }}</td>
+                  <td>{{ sc.compte?.Code_compte }}</td>
+                  <td class="d-flex gap-2">
+                    <button @click="openEditModal(sc)" class="btn btn-primary btn-sm">
+                      Modifier
+                    </button>
+                    <button @click="deleteSousCompte(sc.Id_Sous_compte)" class="btn btn-error btn-sm">
+                      Supprimer
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="mb-4">
-            <label>Code complet</label>
-            <input type="text" v-model="form.Code_sous_compte" readonly class="mt-1 block w-full border rounded-md" />
-          </div>
-          <div class="mb-4">
-            <label>Libellé</label>
-            <input type="text" v-model="form.Libelle" class="mt-1 block w-full border rounded-md" required />
-          </div>
-          <div class="flex justify-end">
-            <button type="button" @click="showModal = false" class="mr-2 px-4 py-2 border rounded">Annuler</button>
-            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-              {{ isEditing ? 'Modifier' : 'Enregistrer' }}
+          <div v-if="totalPages > 1" class="d-flex justify-center mt-6 gap-2">
+            <button
+              @click="prevPage"
+              :disabled="currentPage === 1"
+              class="btn btn-ghost btn-sm text-base"
+              aria-label="Page précédente"
+            >
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button
+              v-for="page in totalPages"
+              :key="page"
+              @click="goToPage(page)"
+              class="btn"
+              :class="{'btn-primary': currentPage === page, 'btn-ghost': currentPage !== page}"
+              aria-label="Page {{ page }}"
+            >
+              {{ page }}
+            </button>
+            <button
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="btn btn-ghost btn-sm text-base"
+              aria-label="Page suivante"
+            >
+              <i class="bi bi-chevron-right"></i>
             </button>
           </div>
-        </form>
+          <div v-if="showModal" class="modal-overlay">
+            <div class="modal">
+              <div class="modal-header">
+                <h2 class="modal-title">
+                  {{ isEditing ? 'Modifier le sous-compte' : 'Nouveau sous-compte' }}
+                </h2>
+                <button @click="showModal = false" class="modal-close">×</button>
+              </div>
+              <form @submit.prevent="saveSousCompte" class="modal-body">
+                <div class="form-group">
+                  <label for="compte" class="form-label required">Compte</label>
+                  <select
+                    v-model="form.Id_Compte"
+                    @change="updateCode"
+                    class="form-select w-full"
+                    required
+                  >
+                    <option v-for="compte in comptes" :key="compte.Id_Compte" :value="compte.Id_Compte">
+                      {{ compte.Code_compte }} - {{ compte.Libelle }}
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="suffixe" class="form-label required">Suffixe</label>
+                  <input
+                    type="text"
+                    v-model="form.suffixe"
+                    @input="updateCode"
+                    maxlength="3"
+                    placeholder="001"
+                    class="form-input w-full"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="code-sous-compte" class="form-label">Code complet</label>
+                  <input
+                    type="text"
+                    v-model="form.Code_sous_compte"
+                    readonly
+                    class="form-input w-full"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="libelle" class="form-label required">Libellé</label>
+                  <input
+                    type="text"
+                    v-model="form.Libelle"
+                    class="form-input w-full"
+                    required
+                  />
+                </div>
+                <div class="modal-footer">
+                  <button type="button" @click="showModal = false" class="btn btn-ghost">
+                    Annuler
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    {{ isEditing ? 'Modifier' : 'Enregistrer' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <AppFooter />
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.main-content {
+  margin-left: 278px;
+  padding: 32px;
+  flex: 1;
+  background: #f8fafc;
+  min-height: calc(100vh - 80px);
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
+  }
+}
+</style>

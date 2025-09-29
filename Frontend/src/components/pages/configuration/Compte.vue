@@ -2,12 +2,24 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { debounce } from 'lodash'
+import { useRouter } from 'vue-router'
+import Sidebar from "../../molecules/Sidebar.vue";
+import Header from "../../molecules/Header.vue";
+import AppFooter from "../../molecules/Footer.vue";
+
+const router = useRouter();
+
+const handleNavigation = (item) => {
+  router.push(item.route);
+};
 
 const classes = ref([])
 const rubriques = ref([])
 const comptes = ref([])
 const showModal = ref(false)
 const isEditing = ref(false)
+const currentPage = ref(1)
+const itemsPerPage = 10
 
 const API_URL = 'http://localhost:8000/api'
 
@@ -27,17 +39,14 @@ const form = ref({
   suffixe: ''
 })
 
-const token = localStorage.getItem("token"); // Récupérer le token
+const token = localStorage.getItem("token");
 
 if (!token) {
-  // Redirection vers login si pas de token
   window.location.href = "/";
 } else {
-  // Configurer Axios pour inclure le token dans toutes les requêtes
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
 
-// Charger classes
 const loadClasses = async () => {
   try {
     const response = await axios.get(`${API_URL}/classes`)
@@ -47,7 +56,6 @@ const loadClasses = async () => {
   }
 }
 
-// Charger rubriques
 const loadRubriques = async () => {
   try {
     const response = await axios.get(`${API_URL}/rubriques`)
@@ -57,7 +65,6 @@ const loadRubriques = async () => {
   }
 }
 
-// Charger comptes
 const loadComptes = async () => {
   try {
     const response = await axios.get(`${API_URL}/comptes`)
@@ -67,7 +74,6 @@ const loadComptes = async () => {
   }
 }
 
-// Filtrage côté front
 const filteredComptes = computed(() => {
   return comptes.value.filter(c => {
     const matchClasse = !filters.value.classe_id || c.rubrique?.Id_Classe == filters.value.classe_id
@@ -80,19 +86,43 @@ const filteredComptes = computed(() => {
   })
 })
 
-// Debounce search
+const paginatedComptes = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage
+  const end = start + itemsPerPage
+  return filteredComptes.value.slice(start, end)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredComptes.value.length / itemsPerPage)
+})
+
+const prevPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--
+  }
+}
+
+const nextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++
+  }
+}
+
+const goToPage = (page) => {
+  currentPage.value = page
+}
+
 const debounceSearch = debounce((val) => {
   filters.value.search = val
+  currentPage.value = 1
 }, 300)
 
-// Modal création
 const openCreateModal = () => {
   isEditing.value = false
   form.value = { id: null, Code_compte: '', Libelle: '', Id_Rubrique: '', Id_Classe: '', suffixe: '' }
   showModal.value = true
 }
 
-// Modal édition
 const openEditModal = (compte) => {
   isEditing.value = true
   form.value = {
@@ -101,12 +131,11 @@ const openEditModal = (compte) => {
     Libelle: compte.Libelle,
     Id_Rubrique: compte.Id_Rubrique,
     Id_Classe: compte.rubrique?.Id_Classe || '',
-    suffixe: compte.Code_compte.slice(-1) // récupérer le dernier chiffre comme suffixe
+    suffixe: compte.Code_compte.slice(-1)
   }
   showModal.value = true
 }
 
-// Génération automatique du Code_compte
 const updateCode = () => {
   const rubrique = rubriques.value.find(r => r.Id_Rubrique === form.value.Id_Rubrique)
   if (rubrique && form.value.suffixe) {
@@ -116,7 +145,6 @@ const updateCode = () => {
   }
 }
 
-// Watch pour mettre à jour Code_compte automatiquement
 watch(
   () => [form.value.Id_Rubrique, form.value.suffixe],
   () => {
@@ -124,7 +152,6 @@ watch(
   }
 )
 
-// Sauvegarde
 const saveCompte = async () => {
   if (!form.value.Code_compte || !form.value.Libelle || !form.value.Id_Rubrique) {
     alert('Tous les champs sont obligatoires')
@@ -141,19 +168,22 @@ const saveCompte = async () => {
     }
     showModal.value = false
     loadComptes()
+    currentPage.value = 1
   } catch (error) {
     console.error('Erreur enregistrement compte:', error.response?.data || error.message)
     alert(error.response?.data?.message || 'Erreur enregistrement compte')
   }
 }
 
-// Suppression
 const deleteCompte = async (id) => {
   if (confirm('Voulez-vous vraiment supprimer ce compte ?')) {
     try {
       await axios.delete(`${API_URL}/comptes/${id}`)
       alert('Compte supprimé avec succès')
       loadComptes()
+      if (filteredComptes.value.length <= (currentPage.value - 1) * itemsPerPage) {
+        currentPage.value = Math.max(1, currentPage.value - 1)
+      }
     } catch (error) {
       console.error('Erreur suppression compte:', error.response?.data || error.message)
       alert('Erreur suppression compte')
@@ -169,114 +199,210 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">Gestion des comptes comptables</h1>
-    
-    <!-- Filtres -->
-    <div class="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Classe</label>
-        <select v-model="filters.classe_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-          <option value="">Toutes les classes</option>
-          <option v-for="classe in classes" :key="classe.id" :value="classe.Id_Classe">{{ classe.Code }}</option>
-        </select>
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Rubrique</label>
-        <select v-model="filters.rubrique_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-          <option value="">Toutes les rubriques</option>
-          <option v-for="rubrique in rubriques" :key="rubrique.id" :value="rubrique.Id_Rubrique">{{ rubrique.Code_rubrique }}</option>
-        </select>
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Compte</label>
-        <select v-model="filters.compte_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-          <option value="">Tous les comptes</option>
-          <option v-for="compte in comptes" :key="compte.id" :value="compte.Id_Compte">{{ compte.Code_compte }}</option>
-        </select>
-      </div>
-      
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Recherche</label>
-        <input :value="filters.search" @input="debounceSearch($event.target.value)" type="text" placeholder="Rechercher un compte..." 
-               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-      </div>
-    </div>
-
-    <!-- Bouton nouveau compte -->
-    <button @click="openCreateModal" class="mb-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-      Nouveau compte
-    </button>
-
-    <!-- Tableau des comptes -->
-    <div class="overflow-x-auto">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Numéro</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Classe</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Rubrique</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="compte in filteredComptes" :key="compte.id">
-            <td class="px-6 py-3">{{ compte.Code_compte }}</td>
-            <td class="px-6 py-3">{{ compte.Libelle }}</td>
-            <td class="px-6 py-3">{{ compte.rubrique?.classe?.Code }}</td>
-            <td class="px-6 py-3">{{ compte.rubrique?.Libelle }}</td>
-            <td class="px-6 py-3">
-              <button @click="openEditModal(compte)" class="text-blue-600 hover:text-blue-900 mr-2">Modifier</button>
-              <button @click="deleteCompte(compte.Id_Compte)" class="text-red-600 hover:text-red-900">Supprimer</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Modal -->
-    <div v-if="showModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center">
-      <div class="bg-white p-6 rounded-lg w-full max-w-md">
-        <h2 class="text-xl font-bold mb-4">{{ isEditing ? 'Modifier le compte' : 'Nouveau compte' }}</h2>
-        <form @submit.prevent="saveCompte">
-  <div class="mb-4">
-    <label>Rubrique</label>
-    <select v-model="form.Id_Rubrique" @change="updateCode" required class="mt-1 block w-full border rounded-md">
-      <option value="">Sélectionner une rubrique</option>
-      <option v-for="rubrique in rubriques" :key="rubrique.Id_Rubrique" :value="rubrique.Id_Rubrique">
-        {{ rubrique.Code_rubrique }} - {{ rubrique.Libelle }}
-      </option>
-    </select>
-  </div>
-
-  <div class="mb-4">
-    <label>Suffixe</label>
-    <input type="text" v-model="form.suffixe" @input="updateCode" maxlength="1" placeholder="1"
-           class="mt-1 block w-full border rounded-md" required />
-  </div>
-
-  <div class="mb-4">
-    <label>Code complet</label>
-    <input type="text" v-model="form.Code_compte" readonly class="mt-1 block w-full border rounded-md" />
-  </div>
-
-  <div class="mb-4">
-    <label>Libellé</label>
-    <input type="text" v-model="form.Libelle" class="mt-1 block w-full border rounded-md" required />
-  </div>
-
-  <div class="flex justify-end">
-    <button type="button" @click="showModal = false" class="mr-2 px-4 py-2 border rounded">Annuler</button>
-    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-      {{ isEditing ? 'Modifier' : 'Enregistrer' }}
-    </button>
-  </div>
-</form>
-
+  <div class="dashboard-container">
+    <Header />
+    <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
+    <div class="main-content p-4">
+      <div class="card card-form">
+        <div class="card-header">
+          <h1 class="card-title text-2xl">Gestion des Comptes Comptables</h1>
+        </div>
+        <div class="card-body">
+          <div class="d-flex flex-column md:flex-row gap-3 mb-4">
+            <div class="form-group w-full">
+              <label for="classe" class="form-label">Classe</label>
+              <select v-model="filters.classe_id" class="form-select w-full">
+                <option value="">Toutes les classes</option>
+                <option v-for="classe in classes" :key="classe.id" :value="classe.Id_Classe">
+                  {{ classe.Code }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group w-full">
+              <label for="rubrique" class="form-label">Rubrique</label>
+              <select v-model="filters.rubrique_id" class="form-select w-full">
+                <option value="">Toutes les rubriques</option>
+                <option v-for="rubrique in rubriques" :key="rubrique.id" :value="rubrique.Id_Rubrique">
+                  {{ rubrique.Code_rubrique }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group w-full">
+              <label for="compte" class="form-label">Compte</label>
+              <select v-model="filters.compte_id" class="form-select w-full">
+                <option value="">Tous les comptes</option>
+                <option v-for="compte in comptes" :key="compte.id" :value="compte.Id_Compte">
+                  {{ compte.Code_compte }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group w-full">
+              <label for="search" class="form-label">Recherche</label>
+              <input
+                :value="filters.search"
+                @input="debounceSearch($event.target.value)"
+                type="text"
+                placeholder="Rechercher un compte..."
+                class="form-input w-full"
+              />
+            </div>
+          </div>
+          <button @click="openCreateModal" class="btn btn-primary mb-4">
+            Nouveau compte
+          </button>
+          
+          <div class="table-container" style="margin-top: 20px;">
+            <table class="table table-bordered table-striped">
+              <thead>
+                <tr>
+                  <th class="text-sm">Numéro</th>
+                  <th class="text-sm">Nom</th>
+                  <th class="text-sm">Classe</th>
+                  <th class="text-sm">Rubrique</th>
+                  <th class="text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="compte in paginatedComptes" :key="compte.id" class="fade-in">
+                  <td>{{ compte.Code_compte }}</td>
+                  <td>{{ compte.Libelle }}</td>
+                  <td>{{ compte.rubrique?.classe?.Code }}</td>
+                  <td>{{ compte.rubrique?.Libelle }}</td>
+                  <td class="d-flex gap-2">
+                    <button @click="openEditModal(compte)" class="btn btn-primary btn-sm">
+                      Modifier
+                    </button>
+                    <button @click="deleteCompte(compte.Id_Compte)" class="btn btn-error btn-sm">
+                      Supprimer
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <br>
+          <div v-if="totalPages > 1" class="d-flex justify-center mt-6 gap-2">
+            <button
+              @click="prevPage"
+              :disabled="currentPage === 1"
+              class="btn btn-ghost btn-sm text-base"
+              aria-label="Page précédente"
+            >
+              <i class="bi bi-chevron-left"></i>
+            </button>
+            <button
+              v-for="page in totalPages"
+              :key="page"
+              @click="goToPage(page)"
+              class="btn"
+              :class="{'btn-primary': currentPage === page, 'btn-ghost': currentPage !== page}"
+              aria-label="Page {{ page }}"
+            >
+              {{ page }}
+            </button>
+            <button
+              @click="nextPage"
+              :disabled="currentPage === totalPages"
+              class="btn btn-ghost btn-sm text-base"
+              aria-label="Page suivante"
+            >
+              <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+          <div v-if="showModal" class="modal-overlay">
+            <div class="modal">
+              <div class="modal-header">
+                <h2 class="modal-title">
+                  {{ isEditing ? 'Modifier le compte' : 'Nouveau compte' }}
+                </h2>
+                <button @click="showModal = false" class="modal-close">×</button>
+              </div>
+              <form @submit.prevent="saveCompte" class="modal-body">
+                <div class="form-group">
+                  <label for="rubrique" class="form-label required">Rubrique</label>
+                  <select
+                    v-model="form.Id_Rubrique"
+                    @change="updateCode"
+                    class="form-select w-full"
+                    required
+                  >
+                    <option value="">Sélectionner une rubrique</option>
+                    <option
+                      v-for="rubrique in rubriques"
+                      :key="rubrique.Id_Rubrique"
+                      :value="rubrique.Id_Rubrique"
+                    >
+                      {{ rubrique.Code_rubrique }} - {{ rubrique.Libelle }}
+                    </option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="suffixe" class="form-label required">Suffixe</label>
+                  <input
+                    type="text"
+                    v-model="form.suffixe"
+                    @input="updateCode"
+                    maxlength="1"
+                    placeholder="1"
+                    class="form-input w-full"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="code-compte" class="form-label">Code complet</label>
+                  <input
+                    type="text"
+                    v-model="form.Code_compte"
+                    readonly
+                    class="form-input w-full"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="libelle" class="form-label required">Libellé</label>
+                  <input
+                    type="text"
+                    v-model="form.Libelle"
+                    class="form-input w-full"
+                    required
+                  />
+                </div>
+                <div class="modal-footer">
+                  <button type="button" @click="showModal = false" class="btn btn-ghost">
+                    Annuler
+                  </button>
+                  <button type="submit" class="btn btn-primary">
+                    {{ isEditing ? 'Modifier' : 'Enregistrer' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        <AppFooter />
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.main-content {
+  margin-left: 278px;
+  padding: 32px;
+  flex: 1;
+  background: #f8fafc;
+  min-height: calc(100vh - 80px);
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
+  }
+}
+</style>

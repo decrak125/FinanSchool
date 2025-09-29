@@ -1,22 +1,31 @@
 <template>
-  <div class="p-6">
+  <div class="dashboard-container">
+    <!-- Header -->
+    <Header />
+
+    <!-- Sidebar -->
+    <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
+
+
+    <div class="main-content">
+    <div class="p-6">
     <h1 class="text-2xl font-bold mb-4">Écriture Comptable</h1>
 
     <!-- FORMULAIRE MOUVEMENT -->
-    <form @submit.prevent="createMouvement" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
-      <div class="grid grid-cols-2 gap-4">
+    <form @submit.prevent="createMouvement" class="card-form">
+      <div class="input-group">
         <div>
           <label class="block font-semibold">Date du Mouvement</label>
           <input 
             v-model="mouvementForm.Date_mouvement" 
             type="date" 
-            class="w-full border rounded px-2 py-1" 
+            class="form-input" 
             required 
           />
         </div>
         <div>
           <label class="block font-semibold">Journal</label>
-          <select v-model="mouvementForm.Id_Journal" class="w-full border rounded px-2 py-1" required>
+          <select v-model="mouvementForm.Id_Journal" class="form-input" required>
             <option value="">-- Sélectionner --</option>
             <option v-for="journal in journals" :key="journal.Id_Journal" :value="journal.Id_Journal">
               {{ journal.Code }} - {{ journal.Libelle }}
@@ -24,13 +33,13 @@
           </select>
         </div>
       </div>
-      <button 
+      <Button 
         type="submit" 
         :disabled="isCreatingMouvement"
-        class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+        class="btn btn-primary"
       >
         {{ isCreatingMouvement ? 'Création...' : 'Créer Mouvement' }}
-      </button>
+      </Button>
     </form>
 
     <!-- LOADER -->
@@ -264,12 +273,27 @@
       <h3 class="text-lg font-semibold mb-2">Aucun mouvement d'écriture</h3>
       <p>Créez votre premier mouvement d'écriture en utilisant le formulaire ci-dessus.</p>
     </div>
+  <AppFooter />
+  </div>
+  </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, nextTick, computed } from "vue";
 import axios from "axios";
+import App from "@/App.vue";
+import { useRouter } from 'vue-router'
+import Sidebar from "../../molecules/Sidebar.vue";
+import Header from "../../molecules/Header.vue";
+import AppFooter from "../../molecules/Footer.vue";
+
+const router = useRouter();
+
+// Ajouter cette méthode pour gérer la navigation
+const handleNavigation = (item) => {
+  router.push(item.route);
+};
 
 // État de l'application
 const mouvements = ref([]);
@@ -893,4 +917,26 @@ input, select {
     padding: 0.25rem !important;
   }
 }
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.main-content {
+  margin-left: 278px;
+  padding: 32px;
+  flex: 1;
+  background: #f8fafc;
+  min-height: calc(100vh - 80px);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
+  }
+}
+
 </style>

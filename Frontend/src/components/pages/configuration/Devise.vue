@@ -1,61 +1,124 @@
 <template>
-    <div class="p-6">
-      <h1 class="text-2xl font-bold mb-4">Gestion des Devises</h1>
-  
-      <!-- Formulaire -->
-      <form @submit.prevent="saveDevise" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
-        <div>
-          <label class="block font-semibold">Libellé</label>
-          <input v-model="form.Libelle" type="text" class="w-full border rounded px-2 py-1" required />
+  <div class="dashboard-container">
+    <!-- Header -->
+    <Header />
+
+    <!-- Sidebar -->
+    <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
+
+    <!-- Main content -->
+    <div class="main-content p-4">
+      <div class="card card-form">
+        <div class="card-header">
+          <h1 class="card-title text-2xl">Gestion des Devises</h1>
         </div>
-        <div>
-          <label class="block font-semibold">Code</label>
-          <input v-model="form.Code" type="text" class="w-full border rounded px-2 py-1" required />
+        
+        <div class="card-body">
+          <!-- Formulaire -->
+          <form @submit.prevent="saveDevise" class="form-group">
+            <div class="form-group">
+              <label for="libelle" class="form-label required">Libellé</label>
+              <input
+                v-model="form.Libelle"
+                id="libelle"
+                type="text"
+                class="form-input w-full"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="code" class="form-label required">Code</label>
+              <input
+                v-model="form.Code"
+                id="code"
+                type="text"
+                class="form-input w-full"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="sigle" class="form-label required">Sigle</label>
+              <input
+                v-model="form.Sigle"
+                id="sigle"
+                type="text"
+                class="form-input w-full"
+                required
+              />
+            </div>
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                {{ isEditing ? "Mettre à jour" : "Ajouter" }}
+              </button>
+              <button
+                v-if="isEditing"
+                type="button"
+                @click="cancelEdit"
+                class="btn btn-ghost"
+              >
+                Annuler
+              </button>
+            </div>
+          </form>
+
+          <!-- Tableau des devises -->
+          <div class="table-container mt-4">
+            <table class="table table-bordered table-striped">
+              <thead>
+                <tr>
+                  <th class="text-sm">#</th>
+                  <th class="text-sm">Libellé</th>
+                  <th class="text-sm">Code</th>
+                  <th class="text-sm">Sigle</th>
+                  <th class="text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="devise in devises" :key="devise.Id_Devise" class="fade-in">
+                  <td>{{ devise.Id_Devise }}</td>
+                  <td>{{ devise.Libelle }}</td>
+                  <td>{{ devise.Code }}</td>
+                  <td>{{ devise.Sigle }}</td>
+                  <td class="d-flex gap-2 justify-center">
+                    <button
+                      @click="editDevise(devise)"
+                      class="btn btn-warning btn-sm"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      @click="deleteDevise(devise.Id_Devise)"
+                      class="btn btn-error btn-sm"
+                    >
+                      🗑️
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div>
-          <label class="block font-semibold">Sigle</label>
-          <input v-model="form.Sigle" type="text" class="w-full border rounded px-2 py-1" required />
-        </div>
-        <div>
-          <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
-            {{ isEditing ? "Mettre à jour" : "Ajouter" }}
-          </button>
-          <button v-if="isEditing" type="button" @click="cancelEdit" class="ml-2 bg-gray-500 text-white px-4 py-2 rounded">
-            Annuler
-          </button>
-        </div>
-      </form>
-  
-      <!-- Tableau des devises -->
-      <table class="w-full border-collapse border">
-        <thead>
-          <tr class="bg-gray-200">
-            <th class="border px-3 py-2">#</th>
-            <th class="border px-3 py-2">Libellé</th>
-            <th class="border px-3 py-2">Code</th>
-            <th class="border px-3 py-2">Sigle</th>
-            <th class="border px-3 py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="devise in devises" :key="devise.Id_Devise">
-            <td class="border px-3 py-2">{{ devise.Id_Devise }}</td>
-            <td class="border px-3 py-2">{{ devise.Libelle }}</td>
-            <td class="border px-3 py-2">{{ devise.Code }}</td>
-            <td class="border px-3 py-2">{{ devise.Sigle }}</td>
-            <td class="border px-3 py-2 text-center">
-              <button @click="editDevise(devise)" class="bg-yellow-500 text-white px-2 py-1 rounded">✏️</button>
-              <button @click="deleteDevise(devise.Id_Devise)" class="ml-2 bg-red-600 text-white px-2 py-1 rounded">🗑️</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+        
+        <AppFooter />
+      </div>
     </div>
-  </template>
+  </div>
+</template>
   
   <script setup>
   import { ref, onMounted } from "vue";
   import axios from "axios";
+  import { useRouter } from 'vue-router'
+import Sidebar from "../../molecules/Sidebar.vue";
+import Header from "../../molecules/Header.vue";
+import AppFooter from "../../molecules/Footer.vue";
+
+const router = useRouter();
+
+// Ajouter cette méthode pour gérer la navigation
+const handleNavigation = (item) => {
+  router.push(item.route);
+};
   
   const devises = ref([]);
   const form = ref({
@@ -126,8 +189,26 @@ if (!token) {
   </script>
   
   <style scoped>
-  table {
-    margin-top: 1rem;
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.main-content {
+  margin-left: 278px;
+  padding: 32px;
+  flex: 1;
+  background: #f8fafc;
+  min-height: calc(100vh - 80px);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
   }
-  </style>
+}
+</style>
   

@@ -1,66 +1,97 @@
 <template>
-  <div class="p-6">
-    <h2 class="text-2xl font-bold mb-4">Gestion des Types de Journal</h2>
+  <div class="dashboard-container">
+    <Header />
+    <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
+    
+    <div class="main-content p-4">
+      <div class="card card-form">
+        <div class="card-header">
+          <h2 class="card-title text-2xl">Gestion des Types de Journal</h2>
+        </div>
+        
+        <div class="card-body">
+          <!-- Formulaire -->
+          <form @submit.prevent="isEditing ? updateTypeJournal() : addTypeJournal()" class="form-group">
+            <div class="form-group">
+              <label for="journal-type" class="form-label required">Type de journal</label>
+              <input
+                v-model="form.Type"
+                id="journal-type"
+                type="text"
+                placeholder="Type de journal"
+                class="form-input w-full"
+                required
+              />
+            </div>
 
-    <!-- Formulaire -->
-    <form @submit.prevent="isEditing ? updateTypeJournal() : addTypeJournal()" class="mb-6 space-y-4">
-      <input
-        v-model="form.Type"
-        type="text"
-        placeholder="Type de journal"
-        class="border rounded px-3 py-2 w-full"
-        required
-      />
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary">
+                {{ isEditing ? "Mettre à jour" : "Ajouter" }}
+              </button>
+              <button
+                v-if="isEditing"
+                type="button"
+                @click="resetForm"
+                class="btn btn-ghost"
+              >
+                Annuler
+              </button>
+            </div>
+          </form>
 
-      <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">
-        {{ isEditing ? "Mettre à jour" : "Ajouter" }}
-      </button>
-      <button
-        v-if="isEditing"
-        type="button"
-        @click="resetForm"
-        class="bg-gray-500 text-white px-4 py-2 rounded ml-2"
-      >
-        Annuler
-      </button>
-    </form>
-
-    <!-- Tableau -->
-    <table class="min-w-full border-collapse border border-gray-300">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="border border-gray-300 px-4 py-2">ID</th>
-          <th class="border border-gray-300 px-4 py-2">Type</th>
-          <th class="border border-gray-300 px-4 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="journal in typeJournals" :key="journal.id">
-          <td class="border border-gray-300 px-4 py-2">{{ journal.Id_Type_Journal }}</td>
-          <td class="border border-gray-300 px-4 py-2">{{ journal.Type }}</td>
-          <td class="border border-gray-300 px-4 py-2">
-            <button
-              @click="editTypeJournal(journal)"
-              class="bg-yellow-500 text-white px-2 py-1 rounded mr-2"
-            >
-              Modifier
-            </button>
-            <button
-              @click="deleteTypeJournal(journal.Id_Type_Journal)"
-              class="bg-red-500 text-white px-2 py-1 rounded"
-            >
-              Supprimer
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+          <!-- Tableau -->
+          <div class="table-container mt-4">
+            <table class="table table-bordered table-striped">
+              <thead>
+                <tr>
+                  <th class="text-sm">ID</th>
+                  <th class="text-sm">Type</th>
+                  <th class="text-sm">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="journal in typeJournals" :key="journal.id" class="fade-in">
+                  <td>{{ journal.Id_Type_Journal }}</td>
+                  <td>{{ journal.Type }}</td>
+                  <td class="d-flex gap-2">
+                    <button
+                      @click="editTypeJournal(journal)"
+                      class="btn btn-warning btn-sm"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      @click="deleteTypeJournal(journal.Id_Type_Journal)"
+                      class="btn btn-error btn-sm"
+                    >
+                      Supprimer
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <AppFooter />
+      </div>
+    </div>
+  </div>  
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
+import { useRouter } from 'vue-router'
+import Sidebar from "../../molecules/Sidebar.vue";
+import Header from "../../molecules/Header.vue";
+import AppFooter from "../../molecules/Footer.vue";
+
+const router = useRouter();
+
+const handleNavigation = (item) => {
+  router.push(item.route);
+};
 
 const API_URL = "http://localhost:8000/api/type-journals";
 
@@ -129,7 +160,24 @@ onMounted(fetchTypeJournals);
 </script>
 
 <style scoped>
-table {
-  margin-top: 20px;
+.dashboard-container {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.main-content {
+  margin-left: 278px;
+  padding: 32px;
+  flex: 1;
+  background: #f8fafc;
+  min-height: calc(100vh - 80px);
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
+  }
 }
 </style>
