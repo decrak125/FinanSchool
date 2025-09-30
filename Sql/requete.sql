@@ -1,7 +1,12 @@
 -- affichage des couts centre
 
 SELECT ca.nom AS centre,
-       SUM(le."Debit" - le."Credit") AS montant
+       SUM(le."Debit" - le."Credit") AS montant,
+       ROUND(
+    SUM(le."Debit" - le."Credit") * 100.0
+    / NULLIF(SUM(SUM(le."Debit" - le."Credit")) OVER (), 0),
+    2
+  )                                       AS pourcentage
 FROM Ligne_ecritures le
 JOIN AffectationAnalytique aa ON le."Id_Sous_compte" = aa."Id_Sous_compte"
 JOIN CentreAnalytique ca ON aa.id_centre = ca.id_centre

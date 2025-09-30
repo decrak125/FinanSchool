@@ -18,6 +18,7 @@ import TypeCentre from "@/components/pages/configAnalytique/TypeCentre.vue";
 import AxeAnalytique from "@/components/pages/configAnalytique/AxeAnalytique.vue";
 import CentreAnalytique from "@/components/pages/configAnalytique/CentreAnalytique.vue";
 import AffectationAnalytique from "@/components/pages/configAnalytique/AffectationAnalytique.vue";
+import CoutsEtProfits from "@/components/pages/analyses/CoutsEtProfits.vue";
 
 const routes = [
   {
@@ -115,6 +116,11 @@ const routes = [
     path: "/affectation-analytique",
     name: AffectationAnalytique,
     component: AffectationAnalytique
+  },
+  {
+    path: "/couts-et-profits",
+    name: CoutsEtProfits,
+    component: CoutsEtProfits
   }
 
 
