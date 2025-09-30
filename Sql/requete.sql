@@ -10,6 +10,9 @@ SELECT ca.nom AS centre,
 FROM Ligne_ecritures le
 JOIN AffectationAnalytique aa ON le."Id_Sous_compte" = aa."Id_Sous_compte"
 JOIN CentreAnalytique ca ON aa.id_centre = ca.id_centre
+JOIN mouvement_ecritures me
+  ON le."Id_Mouvement_ecriture" = me."Id_Mouvement_ecriture"
+WHERE me."Date_mouvement" BETWEEN DATE '2025-01-01' AND DATE '2025-12-31'
 GROUP BY ca.nom;
 
 -- affichage des pourcentages et repartitions de couts en details
