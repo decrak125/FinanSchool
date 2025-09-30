@@ -19,6 +19,7 @@ import AxeAnalytique from "@/components/pages/configAnalytique/AxeAnalytique.vue
 import CentreAnalytique from "@/components/pages/configAnalytique/CentreAnalytique.vue";
 import AffectationAnalytique from "@/components/pages/configAnalytique/AffectationAnalytique.vue";
 import CoutsEtProfits from "@/components/pages/analyses/CoutsEtProfits.vue";
+import EcritureJournal from "@/components/pages/configuration/EcritureJournal.vue";
 
 const routes = [
   {
@@ -121,7 +122,14 @@ const routes = [
     path: "/couts-et-profits",
     name: CoutsEtProfits,
     component: CoutsEtProfits
+  },
+  {
+    path:"/ecritures-journal/:id",
+    name: EcritureJournal,
+    component: EcritureJournal,
+    props: true,
   }
+
 
 
 ];

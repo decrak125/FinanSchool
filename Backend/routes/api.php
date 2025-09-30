@@ -57,6 +57,7 @@ Route::middleware('api')->group(function () {
     // crud saisie
     Route::apiResource('type-journals', TypeJournalController::class);
     Route::apiResource('mode-paiements', ModePaiementController::class);
+    Route::get('journals/{id}/ecritures', [JournalController::class, 'ecritures']);
     Route::apiResource('journals', JournalController::class);
     Route::apiResource('mouvements', MouvementEcritureController::class);
     Route::apiResource('lignes', LigneEcritureController::class);

@@ -53,4 +53,11 @@ class JournalController extends Controller
 
         return response()->json(['message' => 'Journal supprimé']);
     }
+
+     public function ecritures($id)
+    {
+        $journal = Journal::with(['lignes.sousCompte', 'lignes.modePaiement', 'lignes.mouvement'])->findOrFail($id);
+        return $journal->lignes;
+    }
+
 }
