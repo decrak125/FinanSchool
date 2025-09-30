@@ -14,8 +14,9 @@ class CoutEtProfitController extends Controller
         // Dates paramétrables via l'URL ou valeur par défaut
         $dateStart = $request->input('date_start', '2025-01-01');
         $dateEnd = $request->input('date_end', '2025-12-31');
+        $idCentre  = $request->input('id_centre'); // facultatif
 
-        $results = DB::table('ligne_ecritures as le')
+        $query = DB::table('ligne_ecritures as le')
             ->select(
                 'ca.id_centre',
                 'ca.nom as centre',
@@ -25,7 +26,14 @@ class CoutEtProfitController extends Controller
             ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
             ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
             ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')
-            ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd])
+            ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd]);
+
+            // Filtrer par centre si fourni
+            if ($idCentre) {
+                $query->where('ca.id_centre', $idCentre);
+            }
+
+            $results = $query
             ->groupBy('ca.id_centre', 'ca.nom')
             ->get();
 
