@@ -25,7 +25,7 @@ INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
 ('331', 'Produit en-cours', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '33')),
-('335', 'Travaux en-cours ', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '33')),
+('335', 'Travaux en-cours ', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '33'));
 
 -- 33 En-cours de production de services
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
@@ -33,7 +33,7 @@ INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
 ('341', 'Etudes en-cours', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '34')),
-('345', 'Prestations de service en cours', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '34')),
+('345', 'Prestations de service en cours', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '34'));
 
 -- 34 Produits intermediaires et finis
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
@@ -41,7 +41,7 @@ INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
 ('351', 'Produits intermediaires', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '35')),
-('355', 'Produits finis', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '35'));
+('355', 'Produits finis', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '35')),
 ('358', 'Produits residuels ou matieres de recuperation (dechets,rebuts)', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '35'));
 
 -- 36 Disponible
