@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Saisie;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Saisie\LigneEcriture;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+
 
 class LigneEcritureController extends Controller
 {
@@ -50,4 +53,25 @@ class LigneEcritureController extends Controller
 
         return response()->json(['message' => 'Ligne supprimée']);
     }
+
+        public function valider($id)
+    {
+        $ecriture = LigneEcriture::findOrFail($id);
+
+        if ($ecriture->statut === 'valide') {
+            return response()->json(['message' => 'Cette écriture est déjà validée'], 400);
+        }
+
+        $ecriture->update([
+            'statut' => 'valide',
+            'date_validation' => now(),
+            'valide_par' => Auth::user()->id, // utilise l'ID de l'utilisateur authentifié
+        ]);
+
+        return response()->json([
+            'message' => 'Écriture validée avec succès',
+            'data' => $ecriture
+        ]);
+    }
+
 }

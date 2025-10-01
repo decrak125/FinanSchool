@@ -28,7 +28,11 @@ class LigneEcriture extends Model
         'Id_Mouvement_ecriture',
         'Id_Journal',
         'Id_Sous_compte',
+        'statut',
+        'date_validation',
+        'valide_par',
     ];
+
 
     public function modePaiement() {
         return $this->belongsTo(ModePaiement::class, 'Id_Mode_paiement');

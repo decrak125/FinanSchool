@@ -63,5 +63,6 @@ Route::middleware('api')->group(function () {
     Route::apiResource('journals', JournalController::class);
     Route::apiResource('mouvements', MouvementEcritureController::class);
     Route::apiResource('lignes', LigneEcritureController::class);
+    Route::post('lignes/{id}/valider', [LigneEcritureController::class, 'valider']);
     Route::apiResource('devises', DeviseController::class);
 });

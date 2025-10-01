@@ -123,3 +123,9 @@ CREATE TABLE AffectationAnalytique (
     id_centre INT NOT NULL REFERENCES CentreAnalytique(id_centre),
     description VARCHAR(100) NOT NULL
 );
+
+ALTER TABLE Ligne_ecriture
+ADD COLUMN statut VARCHAR(20) DEFAULT 'brouillon' NOT NULL, -- brouillon | valide | annule
+ADD COLUMN date_validation TIMESTAMP NULL,
+ADD COLUMN valide_par INT NULL,
+ADD CONSTRAINT fk_valide_par FOREIGN KEY (valide_par) REFERENCES Users(id);
