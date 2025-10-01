@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Saisie\MouvementEcriture;
 use App\Models\Saisie\Journal;
+use App\Models\Saisie\LigneEcriture;
+use Illuminate\Support\Facades\Auth;
 
 class MouvementEcritureController extends Controller
 {
@@ -66,5 +68,35 @@ class MouvementEcritureController extends Controller
         $mouvement->delete();
 
         return response()->json(['message' => 'Mouvement supprimé']);
+    }
+
+    public function valider($id)
+    {
+        $mouvement = MouvementEcriture::findOrFail($id);
+
+        if ($mouvement->valide) {
+            return response()->json(['message' => 'Ce mouvement est déjà validé'], 400);
+        }
+
+        // Récupérer toutes les lignes d'écriture associées au mouvement
+        $lignes = LigneEcriture::where('Id_Mouvement_ecriture', $id)->get();
+
+        foreach ($lignes as $ligne) {
+            if ($ligne->statut !== 'valide') {
+                $ligne->update([
+                    'statut' => 'valide',
+                    'date_validation' => now(),
+                    'valide_par' => Auth::id(),
+                ]);
+            }
+        }
+
+        // Valider le mouvement lui-même
+        $mouvement->update(['valide' => true]);
+
+        return response()->json([
+            'message' => 'Mouvement et toutes ses écritures validés avec succès',
+            'data' => $mouvement
+        ]);
     }
 }

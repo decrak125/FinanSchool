@@ -10,12 +10,12 @@
       <div class="p-4">
         <div class="card card-form">
           <div class="card-header">
-            <h1 class="card-title text-3xl" style="margin-bottom: var(--spacing-lg);">Écriture Comptable</h1>
+            <h1 class="card-title text-3xl mb-4">Écriture Comptable</h1>
           </div>
-
+          
           <!-- FORMULAIRE MOUVEMENT -->
           <form @submit.prevent="createMouvement" class="card-form">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="form-group">
                 <label class="form-label required">Date du Mouvement</label>
                 <input 
@@ -38,115 +38,22 @@
             <button 
               type="submit" 
               :disabled="isCreatingMouvement"
-              class="btn btn-primary"
+              class="btn btn-primary mt-4"
             >
+              <i class="bi bi-plus-circle me-2"></i>
               {{ isCreatingMouvement ? 'Création...' : 'Créer Mouvement' }}
             </button>
           </form>
 
-          <!-- FILTRES -->
-          <div class="filters-section" style="margin-top: var(--spacing-xl); padding: var(--spacing-lg); background: var(--gray-50); border-radius: var(--radius-md); border: 1px solid var(--gray-200);">
-            <div style="display: flex; align-items: center; gap: var(--spacing-sm); margin-bottom: var(--spacing-md);">
-              <span style="font-weight: 600; color: var(--gray-700);">🔍 Filtres</span>
-              <button 
-                v-if="hasActiveFilters"
-                @click="resetFilters" 
-                class="btn btn-xs btn-ghost"
-                style="color: var(--primary-color);"
-              >
-                Réinitialiser
-              </button>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md);">
-              <!-- Filtre par période -->
-              <div class="form-group">
-                <label class="form-label">Période</label>
-                <select v-model="filters.periode" @change="applyPeriodeFilter" class="form-select form-input-sm">
-                  <option value="">Toutes les dates</option>
-                  <option value="today">Aujourd'hui</option>
-                  <option value="week">Cette semaine</option>
-                  <option value="month">Ce mois</option>
-                  <option value="quarter">Ce trimestre</option>
-                  <option value="year">Cette année</option>
-                  <option value="custom">Personnalisé</option>
-                </select>
-              </div>
-
-              <!-- Date début -->
-              <div class="form-group">
-                <label class="form-label">Date début</label>
-                <input 
-                  v-model="filters.dateDebut" 
-                  type="date" 
-                  class="form-input form-input-sm"
-                  :disabled="filters.periode && filters.periode !== 'custom'"
-                />
-              </div>
-
-              <!-- Date fin -->
-              <div class="form-group">
-                <label class="form-label">Date fin</label>
-                <input 
-                  v-model="filters.dateFin" 
-                  type="date" 
-                  class="form-input form-input-sm"
-                  :disabled="filters.periode && filters.periode !== 'custom'"
-                />
-              </div>
-
-              <!-- Filtre par journal -->
-              <div class="form-group">
-                <label class="form-label">Journal</label>
-                <select v-model="filters.journalId" class="form-select form-input-sm">
-                  <option value="">Tous les journaux</option>
-                  <option v-for="journal in journals" :key="journal.Id_Journal" :value="journal.Id_Journal">
-                    {{ journal.Code }} - {{ journal.Libelle }}
-                  </option>
-                </select>
-              </div>
-
-              <!-- Filtre par statut -->
-              <div class="form-group">
-                <label class="form-label">Statut</label>
-                <select v-model="filters.statut" class="form-select form-input-sm">
-                  <option value="">Tous</option>
-                  <option value="valide">Validés</option>
-                  <option value="non_valide">Non validés</option>
-                  <option value="equilibre">Équilibrés</option>
-                  <option value="non_equilibre">Non équilibrés</option>
-                </select>
-              </div>
-
-              <!-- Recherche par numéro -->
-              <div class="form-group">
-                <label class="form-label">N° Pièce / Référence</label>
-                <input 
-                  v-model="filters.searchText" 
-                  type="text" 
-                  class="form-input form-input-sm"
-                  placeholder="Rechercher..."
-                />
-              </div>
-            </div>
-
-            <!-- Résultats du filtre -->
-            <div v-if="hasActiveFilters" style="margin-top: var(--spacing-md); padding-top: var(--spacing-md); border-top: 1px solid var(--gray-200);">
-              <span class="text-sm" style="color: var(--gray-600);">
-                📊 {{ mouvementsFiltres.length }} mouvement(s) trouvé(s) sur {{ mouvements.length }}
-              </span>
-            </div>
-          </div>
-
           <!-- LOADER -->
-          <div v-if="isLoading" style="text-align: center; padding: var(--spacing-2xl) 0;">
+          <div v-if="isLoading" class="text-center py-8">
             <div class="spinner spinner-lg"></div>
-            <p style="margin-top: var(--spacing-md); color: var(--gray-600);">Chargement...</p>
+            <p class="mt-2 text-gray-600">Chargement...</p>
           </div>
 
           <!-- MESSAGES D'ERREUR -->
           <div v-if="errorMessage" class="alert alert-error">
-            <span class="alert-icon">⚠️</span>
+            <i class="bi bi-exclamation-triangle me-2"></i>
             <div class="alert-content">
               <p class="alert-message">{{ errorMessage }}</p>
             </div>
@@ -155,285 +62,268 @@
 
           <!-- MESSAGES DE SUCCÈS -->
           <div v-if="successMessage" class="alert alert-success">
-            <span class="alert-icon">✓</span>
+            <i class="bi bi-check-circle me-2"></i>
             <div class="alert-content">
               <p class="alert-message">{{ successMessage }}</p>
             </div>
             <button @click="successMessage = ''" class="alert-dismiss">&times;</button>
           </div>
 
-          <!-- STATISTIQUES RAPIDES -->
-          <div v-if="!isLoading && mouvementsFiltres.length > 0" class="stats-grid" style="margin-top: var(--spacing-xl); display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md);">
-            <div class="stat-card">
-              <div class="stat-label">Total Débits</div>
-              <div class="stat-value" style="color: var(--success-color);">{{ formatMontant(getTotalGeneralDebit()) }}</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Total Crédits</div>
-              <div class="stat-value" style="color: var(--primary-color);">{{ formatMontant(getTotalGeneralCredit()) }}</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Mouvements validés</div>
-              <div class="stat-value">{{ mouvementsValides }} / {{ mouvementsFiltres.length }}</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Total Lignes</div>
-              <div class="stat-value">{{ totalLignes }}</div>
-            </div>
-          </div>
-
           <!-- TABLEAU UNIQUE DES MOUVEMENTS ET LIGNES -->
-          <div v-if="!isLoading && mouvementsFiltres.length > 0" class="table-container" style="margin-top: var(--spacing-xl);">
-            <table class="table table-bordered table-striped w-100">
-  <thead class="table-light">
-    <tr>
-      <th style="width: 80px;">N° Pièce</th>
-      <th style="width: 200px; text-align: left;">Sous-compte</th>
-      <th>Libellé</th>
-      <th style="width: 100px;" class="text-end">Débit</th>
-      <th style="width: 100px;" class="text-end">Crédit</th>
-      <th style="width: 120px;">Référence</th>
-      <th style="width: 100px;" class="text-center">Qté</th>
-      <th style="width: 100px;">Mode Paiement</th>
-      <th style="width: 30px;" class="text-center">Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <!-- Regroupement par numéro de pièce -->
-    <template v-for="m in mouvementsFiltres" :key="m.Id_Mouvement_ecriture">
-      <!-- En-tête du mouvement -->
-      <tr class="table-secondary fw-bold">
-        <td colspan="9" class="p-3">
-          <div class="d-flex align-items-center flex-wrap gap-2">
-            <span style="text-align: center; margin-top: 7px;">{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }} - {{ formatDate(m.Date_mouvement) }} - {{ getJournalLibelle(m.Id_Journal) }}</span>
-            <span v-if="isEquilibre(m)" class="badge bg-success">
-              <i class="bi bi-check-circle me-1"> </i> Équilibré
-            </span>
-            <span v-else class="badge bg-danger">
-              <i class="bi bi-exclamation-circle me-1"></i> Non équilibré ({{ formatMontant(getDifference(m)) }})
-            </span>
-            <button
-              v-if="isEquilibre(m) && !m.valide"
-              @click="validerMouvement(m.Id_Mouvement_ecriture)"
-              :disabled="isValidating"
-              class="btn btn-sm btn-success"
-            >
-              <i class="bi bi-check-circle me-1"></i> {{ isValidating ? 'Validation...' : 'Valider' }}
-            </button>
-            <span v-if="m.valide" class="badge bg-primary">
-              <i class="bi bi-file-earmark-check me-1"></i> Validé
-            </span>
-            <button
-              @click="deleteMouvement(m.Id_Mouvement_ecriture)"
-              :disabled="m.valide || isDeletingMouvement"
-              class="btn btn-sm btn-danger"
-            >
-              <i class="bi bi-trash"></i>
-            </button>
-          </div>
-        </td>
-      </tr>
-      <!-- Lignes d'écriture -->
-      <tr
-        v-for="(ligne, index) in m.lignes"
-        :key="ligne.Id_Ligne_ecriture || `new-${index}`"
-        :class="{ 'table-warning': !ligne.Id_Ligne_ecriture }"
-      >
-        <td>
-          <span class="fs-6">{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }}</span>
-        </td>
-        <!-- Sous-compte avec recherche dynamique -->
-        <td>
-          <div class="position-relative">
-            <input
-              v-model="ligne.sousCompteSearch"
-              @input="searchSousCompte(m.Id_Mouvement_ecriture, index, $event.target.value)"
-              @focus="onSousCompteFocus(m.Id_Mouvement_ecriture, index)"
-              @blur="validateSousCompte(m.Id_Mouvement_ecriture, index)"
-              @keydown.enter.prevent="selectFirstSuggestion(m.Id_Mouvement_ecriture, index)"
-              @keydown.escape="closeSuggestions(m.Id_Mouvement_ecriture, index)"
-              @keydown.arrow-down.prevent="navigateSuggestions(m.Id_Mouvement_ecriture, index, 'down')"
-              @keydown.arrow-up.prevent="navigateSuggestions(m.Id_Mouvement_ecriture, index, 'up')"
-              class="form-control form-control-sm"
-              :class="{ 'is-invalid': ligne.sousCompteError, 'is-valid': ligne.Id_Sous_compte }"
-              placeholder="Code ou libellé..."
-            />
-            <!-- Dropdown de suggestions -->
-            <div
-              v-if="ligne.showSuggestions && ligne.suggestions?.length"
-              class="position-absolute w-100 bg-white border rounded shadow-lg"
-              style="max-height: 160px; overflow-y: auto; z-index: 1000; top: 100%; margin-top: 2px;"
-            >
-              <div
-                v-for="(suggestion, suggIndex) in ligne.suggestions"
-                :key="suggestion.Id_Sous_compte"
-                @mousedown="selectSousCompte(m.Id_Mouvement_ecriture, index, suggestion)"
-                class="p-2 border-bottom"
-                :class="{ 'bg-light': suggIndex === ligne.selectedSuggestionIndex }"
-                style="cursor: pointer;"
-                @mouseover="ligne.selectedSuggestionIndex = suggIndex"
-              >
-                <div class="fw-semibold small">{{ suggestion.Code_sous_compte }}</div>
-                <div class="text-muted small">{{ suggestion.Libelle }}</div>
-              </div>
-            </div>
-            <div v-if="ligne.sousCompteError" class="invalid-feedback">{{ ligne.sousCompteError }}</div>
-          </div>
-        </td>
-        <!-- Libellé -->
-        <td>
-          <input
-            v-model="ligne.Libelle"
-            @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
-            class="form-control form-control-sm"
-            placeholder="Libellé de l'opération..."
-          />
-        </td>
-        <!-- Débit -->
-        <td>
-          <input
-            v-model.number="ligne.Debit"
-            @input="onMontantChange(m.Id_Mouvement_ecriture, index, 'debit')"
-            @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
-            type="number"
-            step="0.01"
-            min="0"
-            class="form-control form-control-sm text-end"
-            placeholder="0.00"
-          />
-        </td>
-        <!-- Crédit -->
-        <td>
-          <input
-            v-model.number="ligne.Credit"
-            @input="onMontantChange(m.Id_Mouvement_ecriture, index, 'credit')"
-            @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
-            type="number"
-            step="0.01"
-            min="0"
-            class="form-control form-control-sm text-end"
-            placeholder="0.00"
-          />
-        </td>
-        <!-- Référence -->
-        <td>
-          <input
-            v-model="ligne.Reference"
-            @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
-            class="form-control form-control-sm"
-            placeholder="Réf..."
-          />
-        </td>
-        <!-- Quantité -->
-        <td>
-          <input
-            v-model.number="ligne.Quantite"
-            @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
-            type="number"
-            min="1"
-            class="form-control form-control-sm text-center"
-          />
-        </td>
-        <!-- Mode de paiement -->
-        <td>
-          <select
-            v-model="ligne.Id_Mode_paiement"
-            @change="updateLigne(m.Id_Mouvement_ecriture, index)"
-            class="form-select form-control-sm"
-          >
-            <option value="">-</option>
-            <option v-for="mode in modesPaiement" :key="mode.Id_Mode_paiement" :value="mode.Id_Mode_paiement">
-              {{ mode.Libelle }}
-            </option>
-          </select>
-        </td>
-        <!-- Actions -->
-        <td class="text-center">
-          <button
-            @click="deleteLigne(m.Id_Mouvement_ecriture, index)"
-            :disabled="m.valide"
-            class="btn btn-sm btn-outline-danger"
-            title="Supprimer la ligne"
-          >
-            <i class="bi bi-trash"></i>
-          </button>
-        </td>
-      </tr>
-      <!-- Bouton pour ajouter une nouvelle ligne -->
-      <tr v-if="!m.valide" class="table-light">
-        <td>
-          <span class="fs-6">{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }}</span>
-        </td>
-        <td colspan="7">
-          <button
-            @click="addNewLigne(m.Id_Mouvement_ecriture)"
-            class="btn btn-outline-primary w-100"
-          >
-            <i class="bi bi-plus-circle me-1"></i> Ajouter une ligne d'écriture
-          </button>
-        </td>
-        <td></td>
-      </tr>
-    </template>
-  </tbody>
-  <!-- Totaux globaux -->
-  <tfoot class="table-secondary fw-bold">
-    <tr>
-      <td colspan="3" class="p-3">TOTAUX GÉNÉRAUX</td>
-      <td
-        class="text-end p-3"
-        :class="{
-          'text-danger': getTotalGeneralDebit() !== getTotalGeneralCredit(),
-          'text-success': getTotalGeneralDebit() === getTotalGeneralCredit() && getTotalGeneralDebit() > 0
-        }"
-      >
-        {{ formatMontant(getTotalGeneralDebit()) }}
-      </td>
-      <td
-        class="text-end p-3"
-        :class="{
-          'text-danger': getTotalGeneralDebit() !== getTotalGeneralCredit(),
-          'text-success': getTotalGeneralDebit() === getTotalGeneralCredit() && getTotalGeneralCredit() > 0
-        }"
-      >
-        {{ formatMontant(getTotalGeneralCredit()) }}
-      </td>
-      <td colspan="4" class="p-3">
-        <div class="d-flex align-items-center justify-content-between">
-          <span
-            v-if="getTotalGeneralDebit() !== getTotalGeneralCredit()"
-            class="small text-danger"
-          >
-            Différence: {{ formatMontant(Math.abs(getTotalGeneralDebit() - getTotalGeneralCredit())) }}
-          </span>
-          <span
-            v-else-if="getTotalGeneralDebit() > 0"
-            class="small text-success"
-          >
-            <i class="bi bi-check-circle me-1"></i> Équilibré
-          </span>
-          <span v-else class="small text-muted">Aucune écriture</span>
-          <span class="small text-muted">{{ totalLignes }} ligne(s)</span>
-        </div>
-      </td>
-    </tr>
-  </tfoot>
-</table>
+          <div v-if="!isLoading && mouvements.length > 0" class="table-container mt-6">
+            <table class="table table-bordered table-striped w-full">
+              <thead>
+                <tr>
+                  <th class="w-20">N° Pièce</th>
+                  <th class="text-left">Sous-compte</th>
+                  <th>Libellé</th>
+                  <th class="text-right w-24">Débit</th>
+                  <th class="text-right w-24">Crédit</th>
+                  <th class="w-28">Référence</th>
+                  <th class="text-center w-20">Qté</th>
+                  <th class="w-32">Mode Paiement</th>
+                  <th class="text-center w-16" style="width: 20px;">Actions</th>
+                </tr>
+              </thead> 
+              <tbody>
+                <!-- Regroupement par numéro de pièce -->
+                <template v-for="m in mouvements" :key="m.Id_Mouvement_ecriture">
+                  <!-- En-tête du mouvement -->
+                  <tr class="bg-gray-100 font-semibold">
+                    <td colspan="9" class="p-3">
+                      <div class="flex items-center flex-wrap gap-2">
+                        <span>{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }} - {{ formatDate(m.Date_mouvement) }} - {{ getJournalLibelle(m.Id_Journal) }}</span>
+                        
+                        <span v-if="isEquilibre(m)" class="badge badge-success" style="margin-left: 10px; height: 28px;">
+                          <i class="bi bi-check-circle me-1" style="margin-right: 5px;"></i> Équilibré
+                        </span>
+                        <span v-else class="badge badge-error" style="margin-left: 10px; height: 28px;">
+                          <i class="bi bi-exclamation-triangle me-1" style="margin-right: 5px;"> </i> Non équilibré ({{ formatMontant(getDifference(m)) }})
+                        </span>
+                        
+                        <button 
+                          v-if="isEquilibre(m) && !isMouvementValide(m)" 
+                          @click="validerMouvement(m.Id_Mouvement_ecriture)"
+                          :disabled="isValidating"
+                          class="btn btn-sm btn-success"
+                          style="margin-left: 10px;"
+                          >
+                          <i class="bi bi-check-lg me-1"></i>
+                          {{ isValidating ? 'Validation...' : 'Valider' }}
+                        </button>
+                        
+                        <span v-if="isMouvementValide(m)" class="badge badge-primary">
+                          <i class="bi bi-lock me-1"></i> Validé
+                        </span>
+                        
+                        <button 
+                          @click="deleteMouvement(m.Id_Mouvement_ecriture)"
+                          :disabled="isMouvementValide(m) || isDeletingMouvement"
+                          class="btn btn-sm btn-error"
+                          style="margin-left: 10px;"
+                        >
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  
+                  <!-- Lignes d'écriture -->
+                  <tr v-for="(ligne, index) in m.lignes" 
+                      :key="ligne.Id_Ligne_ecriture || `new-${index}`"
+                      :class="!ligne.Id_Ligne_ecriture ? 'bg-warning-light' : ''">
+                    <td>
+                      <span class="text-sm" style="font-size: 10px;">{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }}</span>
+                    </td>
+                    
+                    <!-- Sous-compte avec recherche dynamique -->
+                    <td style="font-size: 12px;">
+                      <div class="input-group relative text-left" >
+                        <input
+                          v-model="ligne.sousCompteSearch"
+                          @input="searchSousCompte(m.Id_Mouvement_ecriture, index, $event.target.value)"
+                          @focus="onSousCompteFocus(m.Id_Mouvement_ecriture, index)"
+                          @blur="validateSousCompte(m.Id_Mouvement_ecriture, index)"
+                          @keydown.enter.prevent="selectFirstSuggestion(m.Id_Mouvement_ecriture, index)"
+                          @keydown.escape="closeSuggestions(m.Id_Mouvement_ecriture, index)"
+                          @keydown.arrow-down.prevent="navigateSuggestions(m.Id_Mouvement_ecriture, index, 'down')"
+                          @keydown.arrow-up.prevent="navigateSuggestions(m.Id_Mouvement_ecriture, index, 'up')"
+                          class="form-input form-input-max"
+                          :class="{ 'is-invalid': ligne.sousCompteError, 'is-valid': ligne.Id_Sous_compte }"
+                          placeholder="Code ou libellé..."
+                          style="padding-left: 10px; height: 20px; font-size: 12px; width: 68px;"
+                        />
+                        
+                        <!-- Dropdown de suggestions -->
+                        <div v-if="ligne.showSuggestions && ligne.suggestions?.length" 
+                             class="absolute z-30 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto top-full mt-1 left-0" style="background-color: white;">
+                          <div v-for="(suggestion, suggIndex) in ligne.suggestions" 
+                               :key="suggestion.Id_Sous_compte"
+                               @mousedown="selectSousCompte(m.Id_Mouvement_ecriture, index, suggestion)"
+                               :class="{
+                                 'bg-secondary-light': suggIndex === ligne.selectedSuggestionIndex
+                               }"
+                               class="p-2 cursor-pointer border-b border-gray-200 hover:bg-secondary-light"
+                               @mouseover="ligne.selectedSuggestionIndex = suggIndex">
+                            <div class="font-semibold text-xs">{{ suggestion.Code_sous_compte }}</div>
+                            <div class="text-xs text-gray-600">{{ suggestion.Libelle }}</div>
+                          </div>
+                        </div>
+                        
+                        <div v-if="ligne.sousCompteError" class="form-error">{{ ligne.sousCompteError }}</div>
+                      </div>
+                    </td>
+                    
+                    <!-- Libellé -->
+                    <td>
+                      <input 
+                        v-model="ligne.Libelle"
+                        @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
+                        class="form-input form-input-sm"
+                        placeholder="Libellé de l'opération..."
+                        style="width: 150px; font-size: 12px;"
+                      />
+                    </td>
+                    
+                    <!-- Débit -->
+                    <td>
+                      <input 
+                        v-model.number="ligne.Debit"
+                        @input="onMontantChange(m.Id_Mouvement_ecriture, index, 'debit')"
+                        @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
+                        type="number" 
+                        step="0.01"
+                        min="0"
+                        class="form-input form-input-sm text-right"
+                        placeholder="0,00"
+                        style="width: 120px; font-size: 12px;"
+                      />
+                    </td>
+                    
+                    <!-- Crédit -->
+                    <td>
+                      <input 
+                        v-model.number="ligne.Credit"
+                        @input="onMontantChange(m.Id_Mouvement_ecriture, index, 'credit')"
+                        @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
+                        type="number" 
+                        step="0.01"
+                        min="0"
+                        class="form-input form-input-sm text-right"
+                        placeholder="0,00"
+                        style="width: 120px; font-size: 12px;"
+                      />
+                    </td>
+                    
+                    <!-- Référence -->
+                    <td>
+                      <input 
+                        v-model="ligne.Reference"
+                        @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
+                        class="form-input form-input-sm"
+                        placeholder="Réf..."
+                        style="font-size: 12px;"
+                      />
+                    </td>
+                    
+                    <!-- Quantité -->
+                    <td>
+                      <input 
+                        v-model.number="ligne.Quantite"
+                        @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
+                        type="number"
+                        min="1"
+                        style="width: 40px; font-size: 12px;"
+                        class="form-input form-input-sm text-center"
+                      />
+                    </td>
+                    
+                    <!-- Mode de paiement -->
+                    <td>
+                      <select 
+                        v-model="ligne.Id_Mode_paiement"
+                        @change="updateLigne(m.Id_Mouvement_ecriture, index)"
+                        class="form-select form-input-sm"
+                        style="width: 50px; font-size: 12px;"
+                      >
+                        <option value="">-</option>
+                        <option v-for="mode in modesPaiement" :key="mode.Id_Mode_paiement" :value="mode.Id_Mode_paiement">
+                          {{ mode.Libelle }}
+                        </option>
+                      </select>
+                    </td>
+                    
+                    <!-- Actions -->
+                    <td class="text-center">
+                      <button 
+                        @click="deleteLigne(m.Id_Mouvement_ecriture, index)"
+                        :disabled="isMouvementValide(m)"
+                        class="btn btn-xs btn-ghost text-error"
+                        title="Supprimer la ligne"
+                        style="width: 20px;"
+                      >
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  
+                  <!-- Bouton pour ajouter une nouvelle ligne -->
+                  <tr v-if="!isMouvementValide(m)" class="bg-secondary-light">
+                    <td>
+                      <span class="text-sm" style="font-size: 10px;">{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }}</span>
+                    </td>
+                    <td colspan="7">
+                      <button 
+                        @click="addNewLigne(m.Id_Mouvement_ecriture)"
+                        class="btn btn-ghost w-full text-primary font-semibold"
+                      >
+                        <i class="bi bi-plus-circle me-2"></i>Ajouter une ligne d'écriture
+                      </button>
+                    </td>
+                    <td></td>
+                  </tr>
+                </template>
+              </tbody>
+              
+              <!-- Totaux globaux -->
+              <tfoot>
+                <tr class="bg-gray-100 font-bold">
+                  <td colspan="3" class="p-3">TOTAUX GÉNÉRAUX</td>
+                  <td class="text-right p-3" 
+                      :class="{
+                        'text-error': getTotalGeneralDebit() !== getTotalGeneralCredit(),
+                        'text-success': getTotalGeneralDebit() === getTotalGeneralCredit() && getTotalGeneralDebit() > 0
+                      }">
+                    {{ formatMontant(getTotalGeneralDebit()) }}
+                  </td>
+                  <td class="text-right p-3"
+                      :class="{
+                        'text-error': getTotalGeneralDebit() !== getTotalGeneralCredit(),
+                        'text-success': getTotalGeneralDebit() === getTotalGeneralCredit() && getTotalGeneralCredit() > 0
+                      }">
+                    {{ formatMontant(getTotalGeneralCredit()) }}
+                  </td>
+                  <td colspan="4" class="p-3">
+                    <div class="flex items-center justify-between">
+                      <span v-if="getTotalGeneralDebit() !== getTotalGeneralCredit()" class="text-xs text-error">
+                        Différence: {{ formatMontant(Math.abs(getTotalGeneralDebit() - getTotalGeneralCredit())) }}
+                      </span>
+                      <span v-else-if="getTotalGeneralDebit() > 0" class="text-xs text-success">
+                        <i class="bi bi-check-circle me-1" style="margin-right: 5px;"></i>Équilibré
+                      </span>
+                      <span v-else class="text-xs text-gray-500">Aucune écriture</span>
+                      <span class="text-xs text-gray-500">{{ totalLignes }} ligne(s)</span>
+                    </div>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
 
           <!-- Message si aucun mouvement -->
-          <div v-if="!isLoading && mouvementsFiltres.length === 0 && mouvements.length > 0" style="text-align: center; padding: var(--spacing-2xl) 0; color: var(--gray-500);">
-            <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">🔍</div>
-            <h3 class="text-lg font-semibold" style="margin-bottom: var(--spacing-sm);">Aucun résultat</h3>
-            <p>Aucun mouvement ne correspond aux critères de recherche.</p>
-            <button @click="resetFilters" class="btn btn-primary" style="margin-top: var(--spacing-md);">
-              Réinitialiser les filtres
-            </button>
-          </div>
-
-          <div v-if="!isLoading && mouvements.length === 0" style="text-align: center; padding: var(--spacing-2xl) 0; color: var(--gray-500);">
-            <div style="font-size: 4rem; margin-bottom: var(--spacing-md);">📊</div>
-            <h3 class="text-lg font-semibold" style="margin-bottom: var(--spacing-sm);">Aucun mouvement d'écriture</h3>
+          <div v-if="!isLoading && mouvements.length === 0" class="text-center py-8 text-gray-500">
+            <i class="bi bi-journal-text display-4 mb-4"></i>
+            <h3 class="text-lg font-semibold mb-2">Aucun mouvement d'écriture</h3>
             <p>Créez votre premier mouvement d'écriture en utilisant le formulaire ci-dessus.</p>
           </div>
           
@@ -447,6 +337,7 @@
 <script setup>
 import { ref, onMounted, nextTick, computed } from "vue";
 import axios from "axios";
+import App from "@/App.vue";
 import { useRouter } from 'vue-router'
 import Sidebar from "../../molecules/Sidebar.vue";
 import Header from "../../molecules/Header.vue";
@@ -454,28 +345,19 @@ import AppFooter from "../../molecules/Footer.vue";
 
 const router = useRouter();
 
+// Ajouter cette méthode pour gérer la navigation
 const handleNavigation = (item) => {
   router.push(item.route);
 };
 
-// État de l'application - MODIFIÉ : pas de chargement depuis la base
-const mouvements = ref([]); // Liste des mouvements de la session uniquement
+// État de l'application
+const mouvements = ref([]);
 const journals = ref([]);
 const sousComptes = ref([]);
 const modesPaiement = ref([]);
 
-// Filtres
-const filters = ref({
-  periode: '',
-  dateDebut: '',
-  dateFin: '',
-  journalId: '',
-  statut: '',
-  searchText: ''
-});
-
 // États de chargement
-const isLoading = ref(false); // Plus de chargement initial
+const isLoading = ref(true);
 const isCreatingMouvement = ref(false);
 const isValidating = ref(false);
 const isDeletingMouvement = ref(false);
@@ -489,147 +371,20 @@ const mouvementForm = ref({
   Id_Journal: "",
 });
 
-const token = localStorage.getItem("token");
+const token = localStorage.getItem("token"); // Récupérer le token
 
 if (!token) {
+  // Redirection vers login si pas de token
   window.location.href = "/";
 } else {
+  // Configurer Axios pour inclure le token dans toutes les requêtes
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
 
-// Computed: Mouvements filtrés
-const mouvementsFiltres = computed(() => {
-  let filtered = [...mouvements.value];
-
-  // Filtre par date
-  if (filters.value.dateDebut) {
-    const dateDebut = new Date(filters.value.dateDebut);
-    filtered = filtered.filter(m => new Date(m.Date_mouvement) >= dateDebut);
-  }
-
-  if (filters.value.dateFin) {
-    const dateFin = new Date(filters.value.dateFin);
-    dateFin.setHours(23, 59, 59, 999);
-    filtered = filtered.filter(m => new Date(m.Date_mouvement) <= dateFin);
-  }
-
-  // Filtre par journal
-  if (filters.value.journalId) {
-    filtered = filtered.filter(m => m.Id_Journal === filters.value.journalId);
-  }
-
-  // Filtre par statut
-  if (filters.value.statut) {
-    switch (filters.value.statut) {
-      case 'valide':
-        filtered = filtered.filter(m => m.valide);
-        break;
-      case 'non_valide':
-        filtered = filtered.filter(m => !m.valide);
-        break;
-      case 'equilibre':
-        filtered = filtered.filter(m => isEquilibre(m));
-        break;
-      case 'non_equilibre':
-        filtered = filtered.filter(m => !isEquilibre(m));
-        break;
-    }
-  }
-
-  // Filtre par texte de recherche
-  if (filters.value.searchText) {
-    const searchLower = filters.value.searchText.toLowerCase();
-    filtered = filtered.filter(m => {
-      const numeroPiece = (m.Numero_piece || '').toLowerCase();
-      const hasMatchInLines = m.lignes.some(l => 
-        (l.Reference || '').toLowerCase().includes(searchLower) ||
-        (l.Libelle || '').toLowerCase().includes(searchLower)
-      );
-      return numeroPiece.includes(searchLower) || hasMatchInLines;
-    });
-  }
-
-  return filtered;
-});
-
-// Vérifier si des filtres sont actifs
-const hasActiveFilters = computed(() => {
-  return filters.value.periode !== '' ||
-         filters.value.dateDebut !== '' ||
-         filters.value.dateFin !== '' ||
-         filters.value.journalId !== '' ||
-         filters.value.statut !== '' ||
-         filters.value.searchText !== '';
-});
-
-// Nombre de mouvements validés
-const mouvementsValides = computed(() => {
-  return mouvementsFiltres.value.filter(m => m.valide).length;
-});
-
 // Calcul du nombre total de lignes
 const totalLignes = computed(() => {
-  return mouvementsFiltres.value.reduce((total, m) => total + m.lignes.length, 0);
+  return mouvements.value.reduce((total, m) => total + m.lignes.length, 0);
 });
-
-// Appliquer un filtre de période prédéfini
-const applyPeriodeFilter = () => {
-  const today = new Date();
-  const periode = filters.value.periode;
-
-  if (periode === 'custom') {
-    return;
-  }
-
-  switch (periode) {
-    case 'today':
-      filters.value.dateDebut = today.toISOString().split('T')[0];
-      filters.value.dateFin = today.toISOString().split('T')[0];
-      break;
-    
-    case 'week':
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay() + 1);
-      filters.value.dateDebut = startOfWeek.toISOString().split('T')[0];
-      filters.value.dateFin = today.toISOString().split('T')[0];
-      break;
-    
-    case 'month':
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      filters.value.dateDebut = startOfMonth.toISOString().split('T')[0];
-      filters.value.dateFin = today.toISOString().split('T')[0];
-      break;
-    
-    case 'quarter':
-      const quarter = Math.floor(today.getMonth() / 3);
-      const startOfQuarter = new Date(today.getFullYear(), quarter * 3, 1);
-      filters.value.dateDebut = startOfQuarter.toISOString().split('T')[0];
-      filters.value.dateFin = today.toISOString().split('T')[0];
-      break;
-    
-    case 'year':
-      const startOfYear = new Date(today.getFullYear(), 0, 1);
-      filters.value.dateDebut = startOfYear.toISOString().split('T')[0];
-      filters.value.dateFin = today.toISOString().split('T')[0];
-      break;
-    
-    default:
-      filters.value.dateDebut = '';
-      filters.value.dateFin = '';
-  }
-};
-
-// Réinitialiser les filtres
-const resetFilters = () => {
-  filters.value = {
-    periode: '',
-    dateDebut: '',
-    dateFin: '',
-    journalId: '',
-    statut: '',
-    searchText: ''
-  };
-};
 
 // Gestion des erreurs
 const handleError = (error, defaultMessage = 'Une erreur est survenue') => {
@@ -653,10 +408,40 @@ const showSuccess = (message) => {
   }, 3000);
 };
 
-// Cache pour les sous-comptes
-const sousComptesCache = ref(new Map());
+// Charger tous les mouvements avec leurs lignes
+const fetchMouvements = async () => {
+  try {
+    const res = await axios.get("http://127.0.0.1:8000/api/mouvements");
+    const mouvementsData = res.data;
 
-// MODIFIÉ : Charger options uniquement (pas les mouvements)
+    for (let m of mouvementsData) {
+      try {
+        const lignesRes = await axios.get(`http://127.0.0.1:8000/api/lignes?mouvement_id=${m.Id_Mouvement_ecriture}`);
+        m.lignes = (lignesRes.data || [])
+          .filter(l => l.Id_Mouvement_ecriture === m.Id_Mouvement_ecriture)
+          .map(ligne => ({
+            ...ligne,
+            sousCompteSearch: ligne.sous_compte ? `${ligne.sous_compte.Code_sous_compte} - ${ligne.sous_compte.Libelle}` : '',
+            showSuggestions: false,
+            suggestions: [],
+            selectedSuggestionIndex: -1,
+            sousCompteError: ''
+          }));
+      } catch (error) {
+        console.error(`Erreur lors du chargement des lignes pour le mouvement ${m.Id_Mouvement_ecriture}:`, error);
+        m.lignes = [];
+      }
+    }
+    
+    mouvements.value = mouvementsData
+      .filter(m => !isMouvementValide(m)) // Filtrer pour n'afficher que les mouvements non validés (non clos)
+      .sort((a, b) => new Date(b.Date_mouvement) - new Date(a.Date_mouvement));
+  } catch (error) {
+    handleError(error, 'Erreur lors du chargement des mouvements');
+  }
+};
+
+// Charger options
 const fetchOptions = async () => {
   try {
     const [journalsRes, sousComptesRes, modesRes] = await Promise.all([
@@ -668,50 +453,30 @@ const fetchOptions = async () => {
     journals.value = journalsRes.data || [];
     sousComptes.value = sousComptesRes.data || [];
     modesPaiement.value = modesRes.data || [];
-
-    // Créer un cache pour recherche rapide
-    sousComptes.value.forEach(compte => {
-      sousComptesCache.value.set(compte.Id_Sous_compte, compte);
-    });
   } catch (error) {
     console.error('Erreur lors du chargement des options:', error);
   }
 };
 
-// MODIFIÉ : Créer un mouvement et l'ajouter à la session
+// Créer un mouvement
 const createMouvement = async () => {
+  if (isCreatingMouvement.value) return;
+  
   isCreatingMouvement.value = true;
   errorMessage.value = '';
-  successMessage.value = '';
-
+  
   try {
-    // Envoi du mouvement au backend
-    const res = await axios.post('http://127.0.0.1:8000/api/mouvements', mouvementForm.value);
-
-    // Ajout du mouvement retourné (avec Numero_piece généré) à la liste locale
-    mouvements.value.push(res.data);
-
-    showSuccess("Mouvement créé !");
+    await axios.post("http://127.0.0.1:8000/api/mouvements", mouvementForm.value);
+    mouvementForm.value.Date_mouvement = "";
+    mouvementForm.value.Id_Journal = "";
+    showSuccess('Mouvement créé avec succès');
+    await fetchMouvements();
   } catch (error) {
-    handleError(error, "Erreur lors de la création du mouvement");
+    handleError(error, 'Erreur lors de la création du mouvement');
   } finally {
     isCreatingMouvement.value = false;
   }
 };
-
-// Initialisation - MODIFIÉ : charger uniquement les options
-onMounted(async () => {
-  isLoading.value = true;
-  try {
-    await fetchOptions();
-  } catch (error) {
-    handleError(error, 'Erreur lors de l\'initialisation');
-  } finally {
-    isLoading.value = false;
-  }
-  const today = new Date().toISOString().split('T')[0];
-  mouvementForm.value.Date_mouvement = today;
-});
 
 // Supprimer un mouvement
 const deleteMouvement = async (mouvementId) => {
@@ -724,12 +489,7 @@ const deleteMouvement = async (mouvementId) => {
   try {
     await axios.delete(`http://127.0.0.1:8000/api/mouvements/${mouvementId}`);
     showSuccess('Mouvement supprimé avec succès');
-    
-    // Retirer de la liste de session
-    const index = mouvements.value.findIndex(m => m.Id_Mouvement_ecriture === mouvementId);
-    if (index !== -1) {
-      mouvements.value.splice(index, 1);
-    }
+    await fetchMouvements();
   } catch (error) {
     handleError(error, 'Erreur lors de la suppression du mouvement');
   } finally {
@@ -740,7 +500,7 @@ const deleteMouvement = async (mouvementId) => {
 // Ajouter une nouvelle ligne vide
 const addNewLigne = (mouvementId) => {
   const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
-  if (!mouvement || mouvement.valide) return; // MODIFIÉ : bloquer si validé
+  if (!mouvement) return;
 
   const nouvelleLigne = {
     Id_Ligne_ecriture: null,
@@ -757,8 +517,7 @@ const addNewLigne = (mouvementId) => {
     showSuggestions: false,
     suggestions: [],
     selectedSuggestionIndex: -1,
-    sousCompteError: '',
-    statut: 'non_valide' // NOUVEAU : statut par défaut
+    sousCompteError: ''
   };
 
   mouvement.lignes.push(nouvelleLigne);
@@ -770,10 +529,9 @@ const addNewLigne = (mouvementId) => {
 };
 
 // Recherche dynamique de sous-comptes
-let searchTimeout = null;
 const searchSousCompte = (mouvementId, ligneIndex, searchTerm) => {
   const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
-  if (!mouvement || !mouvement.lignes[ligneIndex] || mouvement.valide) return; // MODIFIÉ : bloquer si validé
+  if (!mouvement || !mouvement.lignes[ligneIndex]) return;
 
   const ligne = mouvement.lignes[ligneIndex];
   ligne.sousCompteError = '';
@@ -785,25 +543,20 @@ const searchSousCompte = (mouvementId, ligneIndex, searchTerm) => {
     return;
   }
 
-  if (searchTimeout) clearTimeout(searchTimeout);
-  
-  searchTimeout = setTimeout(() => {
-    const searchLower = searchTerm.toLowerCase();
-    const filtered = sousComptes.value.filter(compte =>
-      compte.Code_sous_compte.toLowerCase().includes(searchLower) ||
-      compte.Libelle.toLowerCase().includes(searchLower)
-    ).slice(0, 10);
+  const filtered = sousComptes.value.filter(compte =>
+    compte.Code_sous_compte.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    compte.Libelle.toLowerCase().includes(searchTerm.toLowerCase())
+  ).slice(0, 10);
 
-    ligne.suggestions = filtered;
-    ligne.showSuggestions = filtered.length > 0;
-    ligne.selectedSuggestionIndex = -1;
-  }, 150);
+  ligne.suggestions = filtered;
+  ligne.showSuggestions = filtered.length > 0;
+  ligne.selectedSuggestionIndex = -1;
 };
 
 // Focus sur sous-compte
 const onSousCompteFocus = (mouvementId, ligneIndex) => {
   const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
-  if (!mouvement || !mouvement.lignes[ligneIndex] || mouvement.valide) return; // MODIFIÉ
+  if (!mouvement || !mouvement.lignes[ligneIndex]) return;
 
   const ligne = mouvement.lignes[ligneIndex];
   if (ligne.sousCompteSearch && ligne.sousCompteSearch.length >= 2) {
@@ -851,7 +604,7 @@ const closeSuggestions = (mouvementId, ligneIndex) => {
 // Sélectionner un sous-compte
 const selectSousCompte = (mouvementId, ligneIndex, sousCompte) => {
   const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
-  if (!mouvement || !mouvement.lignes[ligneIndex] || mouvement.valide) return; // MODIFIÉ
+  if (!mouvement || !mouvement.lignes[ligneIndex]) return;
 
   const ligne = mouvement.lignes[ligneIndex];
   ligne.Id_Sous_compte = sousCompte.Id_Sous_compte;
@@ -871,7 +624,7 @@ const selectSousCompte = (mouvementId, ligneIndex, sousCompte) => {
 const validateSousCompte = (mouvementId, ligneIndex) => {
   setTimeout(() => {
     const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
-    if (!mouvement || !mouvement.lignes[ligneIndex] || mouvement.valide) return; // MODIFIÉ
+    if (!mouvement || !mouvement.lignes[ligneIndex]) return;
 
     const ligne = mouvement.lignes[ligneIndex];
     ligne.showSuggestions = false;
@@ -904,7 +657,7 @@ const validateSousCompte = (mouvementId, ligneIndex) => {
 // Gérer les changements de montant
 const onMontantChange = (mouvementId, ligneIndex, type) => {
   const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
-  if (!mouvement || !mouvement.lignes[ligneIndex] || mouvement.valide) return; // MODIFIÉ
+  if (!mouvement || !mouvement.lignes[ligneIndex]) return;
 
   const ligne = mouvement.lignes[ligneIndex];
   
@@ -918,14 +671,10 @@ const onMontantChange = (mouvementId, ligneIndex, type) => {
   }
 };
 
-// Queue pour les mises à jour
-const updateQueue = ref(new Map());
-let updateTimeout = null;
-
 // Mettre à jour ou créer une ligne
 const updateLigne = async (mouvementId, ligneIndex) => {
   const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
-  if (!mouvement || !mouvement.lignes[ligneIndex] || mouvement.valide) return; // MODIFIÉ : bloquer si validé
+  if (!mouvement || !mouvement.lignes[ligneIndex]) return;
 
   const ligne = mouvement.lignes[ligneIndex];
   
@@ -933,49 +682,36 @@ const updateLigne = async (mouvementId, ligneIndex) => {
     return;
   }
 
-  const ligneData = {
-    Libelle: ligne.Libelle || '',
-    Debit: parseFloat(ligne.Debit) || 0,
-    Credit: parseFloat(ligne.Credit) || 0,
-    Reference: ligne.Reference || '',
-    Quantite: parseInt(ligne.Quantite) || 1,
-    Id_Mode_paiement: ligne.Id_Mode_paiement || null,
-    Id_Sous_compte: ligne.Id_Sous_compte,
-    Id_Mouvement_ecriture: mouvementId,
-    Id_Journal: mouvement.Id_Journal,
-    statut: 'non_valide' // NOUVEAU
-  };
+  try {
+    const ligneData = {
+      Libelle: ligne.Libelle || '',
+      Debit: parseFloat(ligne.Debit) || 0,
+      Credit: parseFloat(ligne.Credit) || 0,
+      Reference: ligne.Reference || '',
+      Quantite: parseInt(ligne.Quantite) || 1,
+      Id_Mode_paiement: ligne.Id_Mode_paiement || null,
+      Id_Sous_compte: ligne.Id_Sous_compte,
+      Id_Mouvement_ecriture: mouvementId,
+      Id_Journal: mouvement.Id_Journal
+    };
 
-  const key = `${mouvementId}-${ligneIndex}`;
-  updateQueue.value.set(key, { ligne, ligneData, mouvementId, ligneIndex });
-
-  if (updateTimeout) clearTimeout(updateTimeout);
-  
-  updateTimeout = setTimeout(async () => {
-    const updates = Array.from(updateQueue.value.values());
-    updateQueue.value.clear();
-
-    for (const { ligne, ligneData } of updates) {
-      try {
-        if (ligne.Id_Ligne_ecriture) {
-          const res = await axios.put(`http://127.0.0.1:8000/api/lignes/${ligne.Id_Ligne_ecriture}`, ligneData);
-          Object.assign(ligne, res.data);
-        } else {
-          const res = await axios.post("http://127.0.0.1:8000/api/lignes", ligneData);
-          ligne.Id_Ligne_ecriture = res.data.Id_Ligne_ecriture || res.data.id;
-          Object.assign(ligne, res.data);
-        }
-      } catch (error) {
-        handleError(error, 'Erreur lors de la sauvegarde de la ligne');
-      }
+    if (ligne.Id_Ligne_ecriture) {
+      const res = await axios.put(`http://127.0.0.1:8000/api/lignes/${ligne.Id_Ligne_ecriture}`, ligneData);
+      Object.assign(ligne, res.data);
+    } else {
+      const res = await axios.post("http://127.0.0.1:8000/api/lignes", ligneData);
+      ligne.Id_Ligne_ecriture = res.data.Id_Ligne_ecriture || res.data.id;
+      Object.assign(ligne, res.data);
     }
-  }, 500);
+  } catch (error) {
+    handleError(error, 'Erreur lors de la sauvegarde de la ligne');
+  }
 };
 
 // Supprimer une ligne
 const deleteLigne = async (mouvementId, ligneIndex) => {
   const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
-  if (!mouvement || !mouvement.lignes[ligneIndex] || mouvement.valide) return; // MODIFIÉ : bloquer si validé
+  if (!mouvement || !mouvement.lignes[ligneIndex]) return;
 
   const ligne = mouvement.lignes[ligneIndex];
 
@@ -1016,14 +752,19 @@ const isEquilibre = (mouvement) => {
 
 // Calculer les totaux généraux
 const getTotalGeneralDebit = () => {
-  return mouvementsFiltres.value.reduce((total, m) => total + getTotalDebit(m), 0);
+  return mouvements.value.reduce((total, m) => total + getTotalDebit(m), 0);
 };
 
 const getTotalGeneralCredit = () => {
-  return mouvementsFiltres.value.reduce((total, m) => total + getTotalCredit(m), 0);
+  return mouvements.value.reduce((total, m) => total + getTotalCredit(m), 0);
 };
 
-// NOUVEAU : Valider un mouvement et toutes ses lignes
+// Vérifier si un mouvement est validé (toutes les lignes ont statut 'valide')
+const isMouvementValide = (mouvement) => {
+  return mouvement.lignes.length > 0 && mouvement.lignes.every(ligne => ligne.statut === 'valide');
+};
+
+// Valider un mouvement
 const validerMouvement = async (mouvementId) => {
   if (isValidating.value) return;
   
@@ -1033,42 +774,23 @@ const validerMouvement = async (mouvementId) => {
     return;
   }
 
-  if (mouvement.lignes.length === 0) {
-    errorMessage.value = 'Le mouvement doit contenir au moins une ligne';
+  if (isMouvementValide(mouvement)) {
+    errorMessage.value = 'Le mouvement est déjà validé';
     return;
   }
 
-  if (!confirm('Valider ce mouvement ? Cette action empêchera toute modification ultérieure.')) {
+  if (!confirm('Valider ce mouvement ? Cette action sera définitive.')) {
     return;
   }
 
   isValidating.value = true;
 
   try {
-    // Valider le mouvement
-    await axios.put(`http://127.0.0.1:8000/api/mouvements/${mouvementId}`, { 
-      valide: true,
-      date_validation: new Date().toISOString(),
-      valide_par: token // ou l'ID utilisateur si disponible
-    });
+    // Valider le mouvement et toutes ses lignes via le nouvel endpoint
+    await axios.post(`http://127.0.0.1:8000/api/mouvements/${mouvementId}/valider`);
 
-    // Valider toutes les lignes
-    const validationPromises = mouvement.lignes.map(ligne => {
-      if (ligne.Id_Ligne_ecriture) {
-        return axios.post(`http://127.0.0.1:8000/api/lignes/${ligne.Id_Ligne_ecriture}/valider`);
-      }
-    });
-
-    await Promise.all(validationPromises.filter(Boolean));
-
-    // Mettre à jour localement
-    mouvement.valide = true;
-    mouvement.date_validation = new Date().toISOString();
-    mouvement.lignes.forEach(ligne => {
-      ligne.statut = 'valide';
-    });
-
-    showSuccess('Mouvement validé avec succès - Aucune modification ne sera plus possible');
+    showSuccess('Mouvement validé avec succès');
+    await fetchMouvements(); // Recharge les mouvements, en excluant les validés
   } catch (error) {
     handleError(error, 'Erreur lors de la validation du mouvement');
   } finally {
@@ -1107,6 +829,21 @@ const formatMontant = (montant) => {
   }).format(montant);
 };
 
+// Initialisation
+onMounted(async () => {
+  isLoading.value = true;
+  try {
+    await fetchOptions();
+    await fetchMouvements();
+  } catch (error) {
+    handleError(error, 'Erreur lors de l\'initialisation');
+  } finally {
+    isLoading.value = false;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  mouvementForm.value.Date_mouvement = today;
+});
+
 // Raccourcis clavier globaux
 onMounted(() => {
   const handleKeydown = (event) => {
@@ -1120,38 +857,13 @@ onMounted(() => {
     }
   };
   document.addEventListener('keydown', handleKeydown);
-  
   return () => {
     document.removeEventListener('keydown', handleKeydown);
-    if (searchTimeout) clearTimeout(searchTimeout);
-    if (updateTimeout) clearTimeout(updateTimeout);
   };
 });
 </script>
 
 <style scoped>
-/* Statistiques */
-.stat-card {
-  background: white;
-  padding: var(--spacing-lg);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--gray-200);
-  box-shadow: var(--shadow-sm);
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: var(--gray-600);
-  margin-bottom: var(--spacing-xs);
-}
-
-.stat-value {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--gray-900);
-}
-
-/* Animations */
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -1162,7 +874,6 @@ onMounted(() => {
   animation: spin 1s linear infinite;
 }
 
-/* Focus states */
 input:focus,
 select:focus {
   outline: none;
@@ -1170,7 +881,6 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Hover states */
 .hover\:bg-gray-50:hover {
   background-color: #f9fafb;
 }
@@ -1191,7 +901,6 @@ select:focus {
   background-color: #b91c1c;
 }
 
-/* Transitions */
 button {
   transition: all 0.2s ease-in-out;
 }
@@ -1200,7 +909,6 @@ input, select {
   transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
-/* Disabled states */
 .disabled\:opacity-50:disabled {
   opacity: 0.5;
 }
@@ -1209,7 +917,6 @@ input, select {
   cursor: not-allowed;
 }
 
-/* Scrollbar */
 .overflow-x-auto {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 #f1f5f9;
@@ -1232,17 +939,8 @@ input, select {
   z-index: 20;
 }
 
-.z-30 {
-  z-index: 30;
-}
-
-/* Print styles */
 @media print {
   .no-print {
-    display: none !important;
-  }
-  
-  .filters-section {
     display: none !important;
   }
   
@@ -1256,7 +954,6 @@ input, select {
   }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .grid-cols-2 {
     grid-template-columns: 1fr;
@@ -1274,17 +971,7 @@ input, select {
   th, td {
     padding: 0.25rem !important;
   }
-  
-  .stat-card {
-    padding: var(--spacing-md);
-  }
-  
-  .stat-value {
-    font-size: 1.25rem;
-  }
 }
-
-/* Layout */
 .dashboard-container {
   display: flex;
   min-height: 100vh;
@@ -1299,10 +986,12 @@ input, select {
   min-height: calc(100vh - 80px);
 }
 
+/* Responsive design */
 @media (max-width: 768px) {
   .main-content {
     margin-left: 0;
     padding: 16px;
   }
 }
+
 </style>

@@ -56,15 +56,15 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="ecriture in ecritures" :key="ecriture.Id_Ligne_ecriture">
-                  <td class="p-4 text-base">{{ ecriture.mouvement ? new Date(ecriture.mouvement.Date_mouvement).toLocaleDateString('fr-FR') : '-' }}</td>
-                  <td class="p-4 text-base">{{ ecriture.mouvement ? ecriture.mouvement.Numero_piece : '-' }}</td>
-                  <td class="p-4 text-base">{{ ecriture.sous_compte ? `${ecriture.sous_compte.Code_sous_compte}` : '-' }}</td>
-                  <td class="p-4 text-base">{{ ecriture.Libelle || '-' }}</td>
-                  <td class="p-4 text-base">{{ ecriture.Reference || '-' }}</td>
-                  <td class="p-4 text-base">{{ ecriture.mode_paiement ? ecriture.mode_paiement.Libelle : '-' }}</td>
-                  <td class="p-4 text-base">{{ ecriture.Debit ? Number(ecriture.Debit).toFixed(2) : '-' }}</td>
-                  <td class="p-4 text-base">{{ ecriture.Credit ? Number(ecriture.Credit).toFixed(2) : '-' }}</td>
+                <tr v-for="ecriture in ecritures" :key="ecriture.Id_Ligne_ecriture" >
+                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.mouvement ? new Date(ecriture.mouvement.Date_mouvement).toLocaleDateString('fr-FR') : '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:10px;">{{ ecriture.mouvement ? ecriture.mouvement.Numero_piece : '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.sous_compte ? `${ecriture.sous_compte.Code_sous_compte}` : '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Libelle || '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Reference || '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.mode_paiement ? ecriture.mode_paiement.Libelle : '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Debit ? Number(ecriture.Debit).toFixed(2) : '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Credit ? Number(ecriture.Credit).toFixed(2) : '-' }}</td>
                 </tr>
                 <tr v-if="ecritures.length">
                   <td colspan="6" class="p-4 text-base font-bold text-right">Totaux :</td>
