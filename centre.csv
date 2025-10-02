@@ -1,3 +1,3 @@
-nom,description,axe,code_type
-Fournitures,Centre analytique pour le cout des fournitures,Nature,cOUT
-Fournitures,Centre analytique pour les profits en fournitures,Nature,pROFIT
+nom;description;axe;code_type
+Fournitures;Centre analytique pour le cout des fournitures;Nature;cOUT
+Fournitures;Centre analytique pour les profits en fournitures;Nature;pROFIT
