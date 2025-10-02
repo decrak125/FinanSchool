@@ -1,9 +1,11 @@
 <?php
 
 namespace App\Http\Controllers\ParametresAnalytique;
+
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ParametresAnalytique\AxeAnalytique;
+
 
 class AxeAnalytiqueController extends Controller
 {
@@ -42,4 +44,39 @@ class AxeAnalytiqueController extends Controller
 
         return response()->json(['message' => 'AxeAnalytique supprimé']);
     }
+
+    public function import(Request $request)
+    {
+        // Validation simple
+        $request->validate([
+            'file' => 'required|mimes:csv,txt'
+        ]);
+
+        $file = $request->file('file');
+        $path = $file->getRealPath();
+
+        if (($handle = fopen($path, "r")) !== false) {
+            $header = fgetcsv($handle, 1000, ","); // lire la première ligne (header)
+
+            while (($row = fgetcsv($handle, 1000, ",")) !== false) {
+                $data = [];
+                foreach ($header as $i => $key) {
+                    $data[$key] = $row[$i] ?? null;
+                }
+
+                AxeAnalytique::create([
+                    'axe' => $data['axe'] ?? $row[0],
+                    'description' => $data['description'] ?? $row[1],
+                ]);
+            }
+            fclose($handle);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Import CSV réussi !'
+        ]);
+    }
+
+
 }

@@ -35,6 +35,18 @@
           </button>
         </div>
       </form>
+      <!-- Formulaire import CSV -->
+    <form @submit.prevent="importCSV" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
+      <div>
+        <label class="block font-semibold">Importer un CSV</label>
+        <input type="file" ref="fileInput" class="w-full" />
+      </div>
+      <div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
+          Importer
+        </button>
+      </div>
+    </form>
   
       <!-- Tableau des centres -->
       <table class="w-full border-collapse border">
@@ -75,6 +87,7 @@
   const form = ref({ nom: "", description: "", id_axe: "", id_type: "" });
   const isEditing = ref(false);
   const editingId = ref(null);
+  const fileInput = ref(null);
   
   const token = localStorage.getItem("token"); // Récupérer le token
 
@@ -141,7 +154,22 @@ if (!token) {
   // Fonctions pour afficher noms axe et type
   const getAxeName = (id) => axes.value.find(a => a.id_axe === id)?.axe || "";
   const getTypeName = (id) => types.value.find(t => t.id_type === id)?.code || "";
-  
+
+  const importCSV = async () => {
+  if (!fileInput.value.files.length) return alert("Choisir un fichier CSV");
+
+  const formData = new FormData();
+  formData.append("file", fileInput.value.files[0]);
+
+  await axios.post("http://127.0.0.1:8000/api/import/centres", formData, {
+    headers: { "Content-Type": "multipart/form-data" }
+  });
+
+  fileInput.value.value = null;
+  fetchCentres();
+};
+
+
   onMounted(() => {
     fetchCentres();
     fetchAxes();
