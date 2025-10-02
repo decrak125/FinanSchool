@@ -59,9 +59,9 @@ class AxeAnalytiqueController extends Controller
     $path = $file->getRealPath();
 
     if (($handle = fopen($path, "r")) !== false) {
-        $header = fgetcsv($handle, 1000, ","); // lire la première ligne (header)
+        $header = fgetcsv($handle, 1000, ";"); // lire la première ligne (header)
 
-        while (($row = fgetcsv($handle, 1000, ",")) !== false) {
+        while (($row = fgetcsv($handle, 1000, ";")) !== false) {
             $data = [];
             foreach ($header as $i => $key) {
                 $data[$key] = $row[$i] ?? null;

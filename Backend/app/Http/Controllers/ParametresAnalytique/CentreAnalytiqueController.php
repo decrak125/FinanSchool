@@ -62,9 +62,9 @@ class CentreAnalytiqueController extends Controller
         $path = $file->getRealPath();
 
         if (($handle = fopen($path, "r")) !== false) {
-            $header = fgetcsv($handle, 1000, ",");
+            $header = fgetcsv($handle, 1000, ";");
 
-            while (($row = fgetcsv($handle, 1000, ",")) !== false) {
+            while (($row = fgetcsv($handle, 1000, ";")) !== false) {
                 $data = [];
                 foreach ($header as $i => $key) {
                     $data[$key] = $row[$i] ?? null;
