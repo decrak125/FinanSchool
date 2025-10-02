@@ -46,6 +46,9 @@
           Importer
         </button>
       </div>
+      <p v-if="importMessage" :class="importSuccess ? 'text-green-600' : 'text-red-600'">
+        {{ importMessage }}
+      </p>
     </form>
   
       <!-- Tableau des centres -->
@@ -78,6 +81,7 @@
   </template>
   
   <script setup>
+  
   import { ref, onMounted } from "vue";
   import axios from "axios";
   
@@ -88,6 +92,8 @@
   const isEditing = ref(false);
   const editingId = ref(null);
   const fileInput = ref(null);
+  const importMessage = ref("");
+  const importSuccess = ref(false);
   
   const token = localStorage.getItem("token"); // Récupérer le token
 
@@ -161,12 +167,18 @@ if (!token) {
   const formData = new FormData();
   formData.append("file", fileInput.value.files[0]);
 
-  await axios.post("http://127.0.0.1:8000/api/import/centres", formData, {
+  try {
+    const res=await axios.post("http://127.0.0.1:8000/api/import/centres", formData, {
     headers: { "Content-Type": "multipart/form-data" }
   });
-
+  importMessage.value = res.data.message;
+  importSuccess.value = true;
   fileInput.value.value = null;
   fetchCentres();
+  } catch (error) {
+    importMessage.value = error.response?.data?.message || "Erreur lors de l'import.";
+    importSuccess.value = false;
+  }
 };
 
 

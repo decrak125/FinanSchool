@@ -3,12 +3,21 @@ import { onMounted } from "vue";
 import { useAffectations } from "@/composables/useAffectations";
 
 const {
-  affectations, centres, comptes,
-  form, isEditing,
-  fetchData, save, edit, remove, resetForm,
-  searchTerm, suggestions, showSuggestions,
-  searchCompte, selectCompte
+    affectations, centres, comptes,
+    form, isEditing, fileInput, message, importSuccess,
+    importCSV,
+    fetchData, save, edit, remove, resetForm,
+    searchTerm, suggestions, showSuggestions,
+    searchCompte, selectCompte
 } = useAffectations();
+
+// const token = localStorage.getItem("token"); 
+
+// if (!token) {
+//   window.location.href = "/";
+// } else {
+//   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+// }
 
 onMounted(fetchData);
 </script>
@@ -65,6 +74,23 @@ onMounted(fetchData);
         </button>
       </div>
     </form>
+
+    <form @submit.prevent="importCSV" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
+      <div>
+        <label class="block font-semibold">Importer un CSV</label>
+        <input type="file" ref="fileInput" class="w-full" />
+      </div>
+      <div>
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
+          Importer
+        </button>
+      </div>
+    </form>
+    <!-- Message de feedback -->
+<div v-if="message.text" :class="['p-3 mb-4 rounded', messageClass]">
+  {{ message.text }}
+</div>
+
 
     <!-- Tableau -->
     <table class="w-full border-collapse border">

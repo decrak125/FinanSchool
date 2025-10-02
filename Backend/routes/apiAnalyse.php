@@ -17,6 +17,8 @@ use App\Http\Controllers\Analyse\CoutEtProfitController;
     // Importation
     Route::post('/import/axes', [AxeAnalytiqueController::class, 'import']);
     Route::post('/import/centres', [CentreAnalytiqueController::class, 'import']);
+    Route::post('/import/affectations', [AffectationAnalytiqueController::class, 'import']);
+
     // Analyse cout et profit
     Route::get('cout-et-profit', [CoutEtProfitController::class, 'AnalyseCoutEtProfit']);
     Route::get('detail-affectation', [CoutEtProfitController::class, 'AnalyseParAffectation']);

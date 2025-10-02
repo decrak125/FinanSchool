@@ -49,58 +49,79 @@ class CentreAnalytiqueController extends Controller
 
     // Import CSV
     public function import(Request $request)
-    {
-        $request->validate([
-            'file' => 'required|mimes:csv,txt'
-        ]);
+{
+    $request->validate([
+        'file' => 'required|mimes:csv,txt'
+    ]);
 
+    $imported = 0;
+    $skipped = 0;
+
+    try {
         $file = $request->file('file');
         $path = $file->getRealPath();
 
-        try {
-            if (($handle = fopen($path, "r")) !== false) {
-                $header = fgetcsv($handle, 1000, ",");
+        if (($handle = fopen($path, "r")) !== false) {
+            $header = fgetcsv($handle, 1000, ",");
 
-                while (($row = fgetcsv($handle, 1000, ",")) !== false) {
-                    $data = [];
-                    foreach ($header as $i => $key) {
-                        $data[$key] = $row[$i] ?? null;
-                    }
-
-                    // Axe : comparaison insensible à la casse
-                    $axe = AxeAnalytique::whereRaw('LOWER(axe) = ?', [strtolower($data['axe'] ?? $row[2])])->first();
-                    $id_axe = $axe ? $axe->id_axe : null;
-
-                    // Type : comparaison insensible à la casse
-                    $type = TypeCentre::whereRaw('LOWER(code) = ?', [strtolower($data['code_type'] ?? $row[3])])->first();
-                    $id_type = $type ? $type->id_type : null;
-
-                    if (!$id_axe || !$id_type) {
-                        comsole.log("Erreur: Axe ou type introuvable pour la ligne " . implode(",", $row));
-                        throw new \Exception("Erreur: Axe ou type introuvable pour la ligne " . implode(",", $row));
-                    }
-
-                    CentreAnalytique::create([
-                        'nom' => $data['nom'] ?? $row[0],
-                        'description' => $data['description'] ?? $row[1],
-                        'id_axe' => $id_axe,
-                        'id_type' => $id_type,
-                    ]);
+            while (($row = fgetcsv($handle, 1000, ",")) !== false) {
+                $data = [];
+                foreach ($header as $i => $key) {
+                    $data[$key] = $row[$i] ?? null;
                 }
-                fclose($handle);
 
+                // Axe insensible à la casse
+                $axe = AxeAnalytique::whereRaw('LOWER(axe) = ?', [strtolower($data['axe'] ?? $row[2])])->first();
+                $id_axe = $axe ? $axe->id_axe : null;
+
+                // Type insensible à la casse
+                $type = TypeCentre::whereRaw('LOWER(code) = ?', [strtolower($data['code_type'] ?? $row[3])])->first();
+                $id_type = $type ? $type->id_type : null;
+
+                if (!$id_axe || !$id_type) {
+                    $skipped++;
+                    continue; // ignore si axe ou type introuvable
+                }
+
+                // Vérifier si le centre existe déjà
+                $exists = CentreAnalytique::where('nom', $data['nom'] ?? $row[0])
+                    ->where('description', $data['description'] ?? $row[1])
+                    ->where('id_axe', $id_axe)
+                    ->where('id_type', $id_type)
+                    ->first();
+
+                if ($exists) {
+                    $skipped++; // doublon, on ignore
+                    continue;
+                }
+
+                // Créer le centre
+                CentreAnalytique::create([
+                    'nom' => $data['nom'] ?? $row[0],
+                    'description' => $data['description'] ?? $row[1],
+                    'id_axe' => $id_axe,
+                    'id_type' => $id_type,
+                ]);
+
+                $imported++;
             }
-            return response()->json([
-                'success' => true,
-                'message' => 'Import CSV réussi !'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
+
+            fclose($handle);
         }
 
+        return response()->json([
+            'success' => true,
+            'imported' => $imported,
+            'skipped' => $skipped,
+            'message' => "Import terminé : $imported importés, $skipped ignorés."
+        ]);
 
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
     }
+}
+
 }

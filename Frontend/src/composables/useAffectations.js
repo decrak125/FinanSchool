@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import axios from "axios";
 
 const API_URL = "http://127.0.0.1:8000/api";
@@ -84,9 +84,50 @@ export function useAffectations() {
     showSuggestions.value = false;
   };
 
+// ----------------------------------
+
+const fileInput = ref(null);
+
+const message = ref({ text: "", type: "" }); // type = 'success' ou 'error'
+const importSuccess = ref(false);
+
+// Classe CSS dynamique pour le message
+const messageClass = computed(() => {
+  return message.value.type === "success"
+    ? "bg-green-100 text-green-800 border border-green-300"
+    : "bg-red-100 text-red-800 border border-red-300";
+});
+
+// Import CSV
+const importCSV = async () => {
+  if (!fileInput.value.files.length) return alert("Choisir un fichier CSV");
+
+  const formData = new FormData();
+  formData.append("file", fileInput.value.files[0]);
+
+  try {
+    const res = await axios.post("http://127.0.0.1:8000/api/import/affectations", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
+
+    message.value = { text: res.data.message, type: "success" };
+    importSuccess.value = true;
+    fileInput.value.value = null;
+    fetchData();
+  } catch (error) {
+    message.value = {
+      text: error.response?.data?.message || "Erreur lors de l'import.",
+      type: "error"
+    };
+    importSuccess.value = false;
+  }
+};
+
+
   return {
     affectations, centres, comptes,
-    form, isEditing,
+    form, isEditing, fileInput, message, importSuccess,
+    importCSV,
     fetchData, save, edit, remove, resetForm,
     searchTerm, suggestions, showSuggestions,
     searchCompte, selectCompte
