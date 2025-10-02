@@ -112,6 +112,30 @@
             </div>
           </transition>
         </div>
+
+        <div class="nav-item has-children" :class="{ 
+          active: isItemActive(getNavigationItem('grand-livre')),
+          'children-open': getNavigationItem('grand-livre').isOpen 
+        }">
+          <div class="nav-main" @click="toggleSubMenu(getNavigationItem('grand-livre'))">
+            <i class="bi bi-book"></i>
+            <span>Liste des Grand Livres</span>
+            <i class="chevron" :class="getNavigationItem('grand-livre').isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
+          </div>
+          
+          <transition name="submenu">
+            <div v-show="getNavigationItem('grand-livre').isOpen" class="submenu">
+              <div 
+                class="submenu-item"
+                :class="{ active: currentRoute === '/liste-grand-livre' }"
+                @click="navigateTo({ route: '/liste-grand-livre', name: 'Tous les grand livres' })"
+              >
+                <i class="bi bi-list-check"></i>
+                <span>Grand livre</span>
+              </div>
+            </div>
+          </transition>
+        </div>
       </div>
 
       <!-- Section Structure -->
@@ -359,6 +383,15 @@ export default {
             { name: 'Toutes les écritures', route: '/ecriture', icon: 'bi bi-list-check' },
             { name: 'Saisie écriture', route: '/ecriture', icon: 'bi bi-pencil' },
             { name: 'Validation', route: '/validation-ecritures', icon: 'bi bi-check-circle' }
+          ],
+          isOpen: false
+        },
+        'grand-livre': {
+          name : 'Grand Livres',
+          route : '/grand-livre',
+          icon : 'bi bi-journal-text',
+          children: [
+            {name: 'Tous les grand livres', route: '/liste-grand-livre', icon: 'bi bi-list-ul' }
           ],
           isOpen: false
         },

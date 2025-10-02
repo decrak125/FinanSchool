@@ -136,6 +136,15 @@ const openEditModal = (compte) => {
   showModal.value = true
 }
 
+const viewGrandlivre = (compte) => {
+  try {
+    console.log("Navigating to /grand-livres/" + compte.Code_compte);
+    router.push(`/grand-livres/${compte.Code_compte}`);
+  } catch (error) {
+    console.error("Erreur lors de la navigation:", error);
+  }
+};
+
 const updateCode = () => {
   const rubrique = rubriques.value.find(r => r.Id_Rubrique === form.value.Id_Rubrique)
   if (rubrique && form.value.suffixe) {
@@ -205,7 +214,7 @@ onMounted(() => {
     <div class="main-content p-4">
       <div class="card card-form">
         <div class="card-header">
-          <h1 class="card-title text-2xl">Gestion des Comptes Comptables</h1>
+          <h1 class="card-title text-2xl">Liste des Grand Livres</h1>
         </div>
         <div class="card-body">
           <div class="d-flex flex-column md:flex-row gap-3 mb-4">
@@ -224,15 +233,6 @@ onMounted(() => {
                 <option value="">Toutes les rubriques</option>
                 <option v-for="rubrique in rubriques" :key="rubrique.id" :value="rubrique.Id_Rubrique">
                   {{ rubrique.Code_rubrique }}
-                </option>
-              </select>
-            </div>
-            <div class="form-group w-full">
-              <label for="compte" class="form-label">Compte</label>
-              <select v-model="filters.compte_id" class="form-select w-full">
-                <option value="">Tous les comptes</option>
-                <option v-for="compte in comptes" :key="compte.id" :value="compte.Id_Compte">
-                  {{ compte.Code_compte }}
                 </option>
               </select>
             </div>
@@ -269,12 +269,10 @@ onMounted(() => {
                   <td>{{ compte.rubrique?.classe?.Code }}</td>
                   <td>{{ compte.rubrique?.Libelle }}</td>
                   <td class="d-flex gap-2">
-                    <button @click="openEditModal(compte)" class="btn btn-primary text-base">
-                      Modifier
+                    <button  @click="viewGrandlivre(compte)" class="btn btn-primary text-base">
+                      Consulter
                     </button>
-                    <button @click="deleteCompte(compte.Id_Compte)" class="btn btn-error text-base" style="height: 40px; margin-top: 10px;">
-                      Supprimer
-                    </button>
+                    
                   </td>
                 </tr>
               </tbody>

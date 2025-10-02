@@ -179,3 +179,53 @@ ORDER BY c."Code_compte" ASC,
          sc."Code_sous_compte" ASC,
          me."Date_mouvement",
          le."Id_Ligne_ecriture";
+
+
+CREATE OR REPLACE VIEW vue_grand_livre AS
+WITH sous_compte_totals AS (
+    SELECT
+        sc."Id_Sous_compte",
+        SUM(le."Debit") AS total_debit_sous_compte,
+        SUM(le."Credit") AS total_credit_sous_compte,
+        SUM(le."Debit") - SUM(le."Credit") AS solde_final_sous_compte
+    FROM "ligne_ecritures" le
+    JOIN "sous_comptes" sc ON le."Id_Sous_compte" = sc."Id_Sous_compte"
+    GROUP BY sc."Id_Sous_compte"
+),
+compte_totals AS (
+    SELECT
+        c."Id_Compte",
+        SUM(le."Debit") AS total_debit_compte,
+        SUM(le."Credit") AS total_credit_compte,
+        SUM(le."Debit") - SUM(le."Credit") AS solde_final_compte
+    FROM "ligne_ecritures" le
+    JOIN "sous_comptes" sc ON le."Id_Sous_compte" = sc."Id_Sous_compte"
+    JOIN "comptes" c ON sc."Id_Compte" = c."Id_Compte"
+    GROUP BY c."Id_Compte"
+)
+SELECT
+    c."Code_compte"        AS code_compte,
+    c."Libelle"            AS libelle_compte,
+    sc."Code_sous_compte"  AS code_sous_compte,
+    sc."Libelle"           AS libelle_sous_compte,
+    me."Date_mouvement"    AS date_mouvement,
+    me."Numero_piece"      AS numero_piece,
+    le."Libelle"           AS libelle_ecriture,
+    le."Debit",
+    le."Credit",
+    SUM(le."Debit" - le."Credit") OVER (
+        PARTITION BY sc."Id_Sous_compte"
+        ORDER BY me."Date_mouvement", le."Id_Ligne_ecriture"
+    ) AS solde_progressif,
+    sct.solde_final_sous_compte,
+    ct.solde_final_compte
+FROM "ligne_ecritures" le
+JOIN "sous_comptes" sc ON le."Id_Sous_compte" = sc."Id_Sous_compte"
+JOIN "comptes" c ON sc."Id_Compte" = c."Id_Compte"
+JOIN "mouvement_ecritures" me ON le."Id_Mouvement_ecriture" = me."Id_Mouvement_ecriture"
+JOIN sous_compte_totals sct ON sc."Id_Sous_compte" = sct."Id_Sous_compte"
+JOIN compte_totals ct ON c."Id_Compte" = ct."Id_Compte"
+ORDER BY c."Code_compte" ASC,
+         sc."Code_sous_compte" ASC,
+         me."Date_mouvement",
+         le."Id_Ligne_ecriture";

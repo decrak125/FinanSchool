@@ -17,6 +17,7 @@ use App\Http\Controllers\Saisie\JournalController;
 use App\Http\Controllers\Saisie\MouvementEcritureController;
 use App\Http\Controllers\Saisie\LigneEcritureController;
 use App\Http\Controllers\Saisie\DeviseController;
+use App\Http\Controllers\Saisie\GrandLivreController;
 use App\Http\Controllers\ParametresAnalytique\AxeAnalytiqueController;
 use App\Http\Controllers\ParametresAnalytique\TypeCentreController;
 use App\Http\Controllers\ParametresAnalytique\CentreAnalytiqueController;
@@ -66,4 +67,13 @@ Route::middleware('api')->group(function () {
     Route::apiResource('lignes', LigneEcritureController::class);
     Route::post('lignes/{id}/valider', [LigneEcritureController::class, 'valider']);
     Route::apiResource('devises', DeviseController::class);
+
+
+    Route::get('/grand-livre', [GrandLivreController::class, 'index']);
+    Route::get('/grand-livre/compte/{codeCompte}', [GrandLivreController::class, 'getByCompte']);
+    Route::get('/grand-livre/{codeCompte}/{codeSousCompte?}', [GrandLivreController::class, 'show']);
+
+    // Nouvelles routes pour les écritures d'un seul compte
+    Route::get('/compte/{codeCompte}/ecritures', [GrandLivreController::class, 'getEcrituresCompte']);
+    Route::get('/compte/{codeCompte}/ecritures-simple', [GrandLivreController::class, 'getEcrituresCompteSimple']);
 });

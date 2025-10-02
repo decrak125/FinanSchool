@@ -233,7 +233,7 @@ const exportToExcel = () => {
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, `Journal_${journalId.value}`);
-  XLSX.write(wb, `ecritures_journal_${journalId.value}_${new Date().toISOString().split('T')[0]}.xlsx`);
+  XLSX.writeFile(wb, `ecritures_journal_${journalId.value}_${new Date().toISOString().split('T')[0]}.xlsx`);
 };
 
 const goBack = () => {

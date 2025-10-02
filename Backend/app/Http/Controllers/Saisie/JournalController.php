@@ -57,7 +57,7 @@ class JournalController extends Controller
     public function ecritures($id, Request $request)
     {
         $journal = Journal::with(['lignes' => function ($query) {
-            $query->where('statut', 'brouillon');
+            $query->where('statut', 'valide');
         }, 'lignes.sousCompte', 'lignes.modePaiement', 'lignes.mouvement'])->findOrFail($id);
         return response()->json($journal->lignes);
     }

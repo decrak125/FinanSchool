@@ -20,6 +20,8 @@ import CentreAnalytique from "@/components/pages/configAnalytique/CentreAnalytiq
 import AffectationAnalytique from "@/components/pages/configAnalytique/AffectationAnalytique.vue";
 import CoutsEtProfits from "@/components/pages/analyses/CoutsEtProfits.vue";
 import EcritureJournal from "@/components/pages/configuration/EcritureJournal.vue";
+import ListeGrandLivre from "@/components/pages/saisie/ListeGrandLivre.vue";
+import GrandLivre from "@/components/pages/saisie/GrandLivre.vue";
 
 const routes = [
   {
@@ -127,6 +129,17 @@ const routes = [
     path:"/ecritures-journal/:id",
     name: EcritureJournal,
     component: EcritureJournal,
+    props: true,
+  },
+  {
+    path:"/liste-grand-livre",
+    name: "ListeGrandLivre",
+    component: ListeGrandLivre
+  },
+  {
+    path:"/grand-livres/:codeCompte",
+    name: "GrandLivre",
+    component: GrandLivre,
     props: true,
   }
 
