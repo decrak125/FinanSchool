@@ -54,7 +54,7 @@ export default {
 
         // Redirection après 1.5s
         setTimeout(() => {
-          this.$router.push('/dashboard');
+          this.$router.push('/home');
         }, 500);
 
       } catch (err) {

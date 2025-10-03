@@ -35,7 +35,7 @@ const openGmail = () => {
 }
 </script>
 <template>
-    <Page>
+    <Page :type="'dark'">
     <Popup v-if="showOpenMail">
       <Icon :color="'primary'" :icon="'bi bi-envelope'" />
       <Texte :type="'bold-dark'" texte="Consultez votre email" />

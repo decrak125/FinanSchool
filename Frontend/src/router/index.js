@@ -22,6 +22,7 @@ import CoutsEtProfits from "@/components/pages/analyses/CoutsEtProfits.vue";
 import EcritureJournal from "@/components/pages/configuration/EcritureJournal.vue";
 import ListeGrandLivre from "@/components/pages/saisie/ListeGrandLivre.vue";
 import GrandLivre from "@/components/pages/saisie/GrandLivre.vue";
+import ModuleChoice from "@/views/ModuleChoice.vue";
 
 const routes = [
   {
@@ -35,7 +36,12 @@ const routes = [
     component: Produits
   },
     
-    
+  {
+    path: "/home",
+    name: "Home",
+    component: ModuleChoice
+  },
+
   {
     path: "/dashboard",
     name: "Dashboard",

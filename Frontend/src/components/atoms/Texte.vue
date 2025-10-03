@@ -76,6 +76,10 @@ defineProps({
 .text-title-dark{
     @include title-xl($stara, $dark);
 }
+.text-xl-dark{
+    @include title($stara, $dark);
+}
+
 
 
 

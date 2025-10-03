@@ -20,7 +20,7 @@
 
 @mixin text-gm($font, $color) {
     font-family: $font;
-    font-weight: 700;
+    // font-weight: 700;
     font-size: $size-gm;
     color: $color;
     margin: 0px;
@@ -35,7 +35,15 @@
     line-height: normal;
     margin:0px;
 }
-
+@mixin title($font, $color) {
+    color: $color;
+    font-family: $font;
+    font-size: $size-xl;
+    font-style: normal;
+    font-weight: 700;
+    line-height: normal;
+    margin:0px;
+}
 @mixin title-xl($font, $color) {
     color: $color;
     font-family: $font;

@@ -40,7 +40,7 @@ export default {
 
         // Redirection après 1.5s
         // setTimeout(() => {
-          this.$router.push('/dashboard');
+          this.$router.push('/home');
         // }, 500);
 
       } catch (err) {
@@ -88,7 +88,7 @@ export default {
 
 
 <template>
-    <Page>
+    <Page :type="'dark'">
         <div class="main">
             <div class="gauche">
                 <div class="welcome">

@@ -120,7 +120,7 @@ const login = async () => {
 };
 </script>
 <template>
-    <Page>
+    <Page :type="'dark'">
         <div class="main">
             <Popup v-if="registered">
                 <Icon :color="'vert'" :icon="'bi bi-check2'" />
