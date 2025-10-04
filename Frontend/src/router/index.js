@@ -22,6 +22,7 @@ import CoutsEtProfits from "@/components/pages/analyses/CoutsEtProfits.vue";
 import EcritureJournal from "@/components/pages/configuration/EcritureJournal.vue";
 import ListeGrandLivre from "@/components/pages/saisie/ListeGrandLivre.vue";
 import GrandLivre from "@/components/pages/saisie/GrandLivre.vue";
+import Balance from "@/components/pages/general/Balance.vue";
 import ModuleChoice from "@/views/ModuleChoice.vue";
 import AnalyseRoutes from "./routesAnalyse.js";
 
@@ -149,6 +150,11 @@ const routes = [
     name: "GrandLivre",
     component: GrandLivre,
     props: true,
+  },
+  {
+    path:"/balance",
+    name: "Balance",
+    component: Balance
   }
 
 

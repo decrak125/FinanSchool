@@ -76,10 +76,18 @@ export default {
 </script>
 
 <style scoped>
+@font-face {
+  font-family: 'Stara';
+  src: url('../../public/fonts/Stara-Bold.woff') format('truetype'); /* Adjust the file name and extension if needed */
+  font-weight: normal;
+  font-style: normal;
+}
+
 .dashboard-container {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+  font-family: 'Stara', sans-serif; /* Apply Stara font to the container */
 }
 
 .main-content {
@@ -88,6 +96,7 @@ export default {
   flex: 1;
   background: #f8fafc; /* Light background for contrast */
   min-height: calc(100vh - 80px); /* Adjust based on footer height */
+  font-family: 'Stara', sans-serif; /* Ensure Stara font is applied */
 }
 
 .dashboard {
@@ -103,6 +112,7 @@ button {
   border-radius: 5px;
   cursor: pointer;
   margin-right: 10px;
+  font-family: 'Stara', sans-serif; /* Apply Stara font to buttons */
 }
 
 button:hover {

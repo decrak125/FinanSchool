@@ -212,10 +212,24 @@ onMounted(() => {
 </script>
 
 <style scoped>
+@font-face {
+  font-family: 'Stara';
+  src: url('../../../../public/fonts/Stara-Black.woff') format('truetype'); /* Adjust the file name and extension if needed */
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Stara';
+  src: url('/fonts/Stara-Bold.woff') format('woff'); /* Include bold variant if needed */
+  font-weight: bold;
+  font-style: normal;
+}
 .dashboard-container {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+  font-family: 'Stara', sans-serif;
 }
 
 .main-content {
@@ -224,6 +238,7 @@ onMounted(() => {
   flex: 1;
   background: #f8fafc;
   min-height: calc(100vh - 80px);
+  font-family: 'Stara', sans-serif;
 }
 
 @media (max-width: 768px) {

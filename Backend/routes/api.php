@@ -18,10 +18,7 @@ use App\Http\Controllers\Saisie\MouvementEcritureController;
 use App\Http\Controllers\Saisie\LigneEcritureController;
 use App\Http\Controllers\Saisie\DeviseController;
 use App\Http\Controllers\Saisie\GrandLivreController;
-use App\Http\Controllers\ParametresAnalytique\AxeAnalytiqueController;
-use App\Http\Controllers\ParametresAnalytique\TypeCentreController;
-use App\Http\Controllers\ParametresAnalytique\CentreAnalytiqueController;
-use App\Http\Controllers\ParametresAnalytique\AffectationAnalytiqueController;
+use App\Http\Controllers\general\BalanceController;
 
 Route::middleware('api')->group(function () {
     Route::post('/example', function (Request $request) {
@@ -76,4 +73,7 @@ Route::middleware('api')->group(function () {
     // Nouvelles routes pour les écritures d'un seul compte
     Route::get('/compte/{codeCompte}/ecritures', [GrandLivreController::class, 'getEcrituresCompte']);
     Route::get('/compte/{codeCompte}/ecritures-simple', [GrandLivreController::class, 'getEcrituresCompteSimple']);
+
+    Route::get('/balance-generale', [BalanceController::class, 'index']);
+    Route::get('/balance-generale/{codeSousCompte}', [BalanceController::class, 'show']);
 });

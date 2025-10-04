@@ -7,7 +7,7 @@
       <div class="card card-form">
         <div class="p-6">
           <div class="card-header">
-            <h1 class="card-title text-3xl">Écritures du Journal {{ journalId }}</h1>
+            <h1 class="card-title text-3xl">Écritures du Journal {{ journal }}</h1>
           </div>
           <br>
 
@@ -56,20 +56,20 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="ecriture in ecritures" :key="ecriture.Id_Ligne_ecriture" >
+                <tr v-for="ecriture in ecritures" :key="ecriture.Id_Ligne_ecriture">
                   <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.mouvement ? new Date(ecriture.mouvement.Date_mouvement).toLocaleDateString('fr-FR') : '-' }}</td>
-                  <td class="p-4 text-base" style="font-size:10px;">{{ ecriture.mouvement ? ecriture.mouvement.Numero_piece : '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:10px; width: 110px;">{{ ecriture.mouvement ? ecriture.mouvement.Numero_piece : '-' }}</td>
                   <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.sous_compte ? `${ecriture.sous_compte.Code_sous_compte}` : '-' }}</td>
                   <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Libelle || '-' }}</td>
                   <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Reference || '-' }}</td>
                   <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.mode_paiement ? ecriture.mode_paiement.Libelle : '-' }}</td>
-                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Debit ? Number(ecriture.Debit).toFixed(2) : '-' }}</td>
-                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Credit ? Number(ecriture.Credit).toFixed(2) : '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Debit ? formatNumber(ecriture.Debit) : '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Credit ? formatNumber(ecriture.Credit) : '-' }}</td>
                 </tr>
                 <tr v-if="ecritures.length">
                   <td colspan="6" class="p-4 text-base font-bold text-right">Totaux :</td>
-                  <td class="p-4 text-base font-bold">{{ totalDebit.toFixed(2) }}</td>
-                  <td class="p-4 text-base font-bold">{{ totalCredit.toFixed(2) }}</td>
+                  <td class="p-4 text-base font-bold">{{ formatNumber(totalDebit) }}</td>
+                  <td class="p-4 text-base font-bold">{{ formatNumber(totalCredit) }}</td>
                 </tr>
                 <tr v-if="!ecritures.length">
                   <td colspan="8" class="p-4 text-center text-base">Aucune écriture trouvée</td>
@@ -99,6 +99,7 @@ import AppFooter from "../../molecules/Footer.vue";
 const route = useRoute();
 const router = useRouter();
 const journalId = ref(route.params.id);
+const journal = ref (route.params.journal || route.params.journalLibelle); // Récupérer le libellé du journal si disponible
 const ecritures = ref([]);
 const dateFilter = ref({
   date_debut: "",
@@ -116,6 +117,10 @@ if (!token) {
 } else {
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
+
+const formatNumber = (number) => {
+  return Number(number).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
 
 const fetchEcritures = async () => {
   try {
@@ -176,10 +181,10 @@ const exportToPDF = () => {
       ecriture.Libelle || '-',
       ecriture.Reference || '-',
       ecriture.mode_paiement ? ecriture.mode_paiement.Libelle : '-',
-      ecriture.Debit ? Number(ecriture.Debit).toFixed(2) : '-',
-      ecriture.Credit ? Number(ecriture.Credit).toFixed(2) : '-',
+      ecriture.Debit ? formatNumber(ecriture.Debit) : '-',
+      ecriture.Credit ? formatNumber(ecriture.Credit) : '-',
     ]),
-    foot: [['', '', '', '', '', 'Totaux :', totalDebit.value.toFixed(2), totalCredit.value.toFixed(2)]],
+    foot: [['', '', '', '', '', 'Totaux :', formatNumber(totalDebit.value), formatNumber(totalCredit.value)]],
     styles: {
       fontSize: 10,
       cellPadding: 3,
@@ -223,12 +228,12 @@ const exportToExcel = () => {
     'Libellé': ecriture.Libelle || '-',
     'Référence': ecriture.Reference || '-',
     'Mode Paiement': ecriture.mode_paiement ? ecriture.mode_paiement.Libelle : '-',
-    'Débit': ecriture.Debit ? Number(ecriture.Debit).toFixed(2) : '-',
-    'Crédit': ecriture.Credit ? Number(ecriture.Credit).toFixed(2) : '-',
+    'Débit': ecriture.Debit ? formatNumber(ecriture.Debit) : '-',
+    'Crédit': ecriture.Credit ? formatNumber(ecriture.Credit) : '-',
   }));
   data.push({
     'Date Mouvement': '', 'N° Pièce': '', 'Compte': '', 'Libellé': '', 'Référence': '', 'Mode Paiement': 'Totaux :',
-    'Débit': totalDebit.value.toFixed(2), 'Crédit': totalCredit.value.toFixed(2)
+    'Débit': formatNumber(totalDebit.value), 'Crédit': formatNumber(totalCredit.value)
   });
   const ws = XLSX.utils.json_to_sheet(data);
   const wb = XLSX.utils.book_new();
@@ -265,6 +270,16 @@ onMounted(() => {
   padding: 16px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-title,
+.form-label,
+.form-input,
+.form-select,
+.btn,
+.table th,
+.table td {
+  font-family: var(--font-family); /* Use global Stara font from style.css */
 }
 
 @media (max-width: 768px) {

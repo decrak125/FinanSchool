@@ -257,32 +257,24 @@
 
         <!-- Trésorerie -->
         <div class="nav-item has-children" :class="{ 
-          active: isItemActive(getNavigationItem('tresorerie')),
-          'children-open': getNavigationItem('tresorerie').isOpen 
+          active: isItemActive(getNavigationItem('balance')),
+          'children-open': getNavigationItem('balance').isOpen 
         }">
-          <div class="nav-main" @click="toggleSubMenu(getNavigationItem('tresorerie'))">
-            <i class="bi bi-wallet2"></i>
-            <span>Trésorerie</span>
-            <i class="chevron" :class="getNavigationItem('tresorerie').isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
+          <div class="nav-main" @click="toggleSubMenu(getNavigationItem('balance'))">
+            <i class="bi bi-table"></i>
+            <span>Balance</span>
+            <i class="chevron" :class="getNavigationItem('balance').isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
           </div>
           
           <transition name="submenu">
-            <div v-show="getNavigationItem('tresorerie').isOpen" class="submenu">
+            <div v-show="getNavigationItem('balance').isOpen" class="submenu">
               <div 
                 class="submenu-item"
-                :class="{ active: currentRoute === '/tableau-flux' }"
-                @click="navigateTo({ route: '/tableau-flux', name: 'Tableau de flux' })"
+                :class="{ active: currentRoute === '/balance' }"
+                @click="navigateTo({ route: '/balance', name: 'Balance' })"
               >
                 <i class="bi bi-arrow-left-right"></i>
-                <span>Tableau de flux</span>
-              </div>
-              <div 
-                class="submenu-item"
-                :class="{ active: currentRoute === '/previsions-tresorerie' }"
-                @click="navigateTo({ route: '/previsions-tresorerie', name: 'Prévisions' })"
-              >
-                <i class="bi bi-graph-up-arrow"></i>
-                <span>Prévisions</span>
+                <span>Balance géneral</span>
               </div>
             </div>
           </transition>
@@ -407,13 +399,12 @@ export default {
           ],
           isOpen: false
         },
-        tresorerie: {
-          name: 'Trésorerie',
-          route: '/tresorerie',
+        'balance': {
+          name: 'Balance',
+          route: '/balance',
           icon: 'bi bi-wallet2',
           children: [
-            { name: 'Tableau de flux', route: '/tableau-flux', icon: 'bi bi-arrow-left-right' },
-            { name: 'Prévisions', route: '/previsions-tresorerie', icon: 'bi bi-graph-up-arrow' }
+            { name: 'Balance', route: '/balance', icon: 'bi bi-arrow-left-right' }
           ],
           isOpen: false
         },
