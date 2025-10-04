@@ -23,6 +23,7 @@ import EcritureJournal from "@/components/pages/configuration/EcritureJournal.vu
 import ListeGrandLivre from "@/components/pages/saisie/ListeGrandLivre.vue";
 import GrandLivre from "@/components/pages/saisie/GrandLivre.vue";
 import ModuleChoice from "@/views/ModuleChoice.vue";
+import AnalyseRoutes from "./routesAnalyse.js";
 
 const routes = [
   {
@@ -30,6 +31,7 @@ const routes = [
     name: "Login",
     component: Login
   },
+  ...AnalyseRoutes,
   {
     path: "/produits",
     name: "Produits",
