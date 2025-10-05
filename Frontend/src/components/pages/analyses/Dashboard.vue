@@ -1,9 +1,11 @@
 <script setup>
-import sidebarMenu from '@/components/atoms/sidebar-menu.vue';
+import PageAnalyse from '@/components/template/Page-analyse.vue';
 </script>
 <template>
-        <sidebarMenu :icon="'bi bi-house-fill'" :texte="'Accueil'" :redirection="'/home'" :dropdown="true" />
-        <p>hi</p>
+<PageAnalyse>
+    
+</PageAnalyse>
 </template>
 <style lang="scss" scoped>
+
 </style>
