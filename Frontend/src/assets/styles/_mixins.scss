@@ -96,7 +96,20 @@
     display: flex;
     flex-shrink: 0;
 }
-
+@mixin table(){
+    th{
+        border-radius: $radius-pm;
+        background: fixed;
+        color: $primary;
+        font-weight: 200;
+        font-size: 16px;
+        text-align: left;
+      }
+      background: fixed;
+      font-family: $stara;
+      border-radius: $radius-pm;
+      color: $dark;
+}
 @mixin input($color, $text-color, $border-radius:20px, $font){
     border: 1px solid $color;
     border-style: none;

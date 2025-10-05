@@ -98,37 +98,49 @@ const messageClass = computed(() => {
     : "bg-red-100 text-red-800 border border-red-300";
 });
 
-// Import CSV
-const importCSV = async () => {
-  if (!fileInput.value.files.length) return alert("Choisir un fichier CSV");
+// Gestion import CSV/Excel pour les affectations
+const file = ref(null);
+
+const onFileChange = (e) => {
+  file.value = e.target.files[0];
+};
+
+const uploadFile = async () => {
+  if (!file.value) {
+    message.value = { text: "Veuillez sélectionner un fichier.", type: "error" };
+    importSuccess.value = false;
+    return;
+  }
 
   const formData = new FormData();
-  formData.append("file", fileInput.value.files[0]);
+  formData.append("file", file.value);
 
   try {
-    const res = await axios.post("http://127.0.0.1:8000/api/import/affectations", formData, {
-      headers: { "Content-Type": "multipart/form-data" }
+    const res = await axios.post(`${API_URL}/import/affectations`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
 
     message.value = { text: res.data.message, type: "success" };
     importSuccess.value = true;
-    fileInput.value.value = null;
-    fetchData();
+    file.value = null;
+    fetchData(); // rafraîchir les données après import
   } catch (error) {
     message.value = {
       text: error.response?.data?.message || "Erreur lors de l'import.",
-      type: "error"
+      type: "error",
     };
     importSuccess.value = false;
   }
 };
 
 
+
   return {
-    affectations, centres, comptes,
+    affectations, centres, comptes, file,
     form, isEditing, fileInput, message, importSuccess,
-    importCSV,
-    fetchData, save, edit, remove, resetForm,
+    fetchData, save, edit, remove, resetForm, onFileChange, uploadFile,
     searchTerm, suggestions, showSuggestions,
     searchCompte, selectCompte
   };

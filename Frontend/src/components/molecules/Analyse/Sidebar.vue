@@ -64,7 +64,7 @@ const menuConfig = [
   },
   {
     id: 'saisieAnalytique',
-    icon: 'bi bi-graph-up',
+    icon: 'bi bi-sliders',
     texte: 'Saisie analytique',
     redirection: '#',
     type: 'dropdown',
@@ -297,7 +297,7 @@ aside {
   display: flex;
   flex-direction: column;
   padding: 32px 24px;
-  gap: 10px;
+  gap: 24px;
   align-items: center;
   width: 100%;
 }
@@ -317,7 +317,7 @@ aside {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   // padding: 0 12px;
   width: 100%;
 }

@@ -145,7 +145,7 @@ class AffectationAnalytiqueController extends Controller
         'success'  => true,
         'imported' => $imported,
         'skipped'  => $skipped,
-        'message'  => "Import terminé : $imported affectations créées, $skipped ignorées."
+        'message'  => "Import terminé : $imported créés, $skipped ignorés."
     ]);
 }
 

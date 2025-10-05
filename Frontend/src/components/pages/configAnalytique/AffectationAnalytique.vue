@@ -1,15 +1,36 @@
 <script setup>
-import { onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useAffectations } from "@/composables/useAffectations";
+import PageAnalyse from "@/components/template/Page-analyse.vue";
+import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
+import Bouton from "@/components/atoms/Bouton.vue";
+import Input from "@/components/atoms/Input.vue";
+import Textarea from "@/components/atoms/Textarea.vue";
+import Texte from "@/components/atoms/Texte.vue";
+import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
+import FileInput from "@/components/atoms/File-input.vue";
 
+const openForm = ref(false);
+const openImport = ref(false);
+const displayNumber = ref(0);
 const {
-    affectations, centres, comptes,
+    affectations, centres, comptes, file,
     form, isEditing, fileInput, message, importSuccess,
-    importCSV,
-    fetchData, save, edit, remove, resetForm,
+    fetchData, save, edit, remove, resetForm, onFileChange, uploadFile,
     searchTerm, suggestions, showSuggestions,
     searchCompte, selectCompte
 } = useAffectations();
+onMounted(() => {
+  const interval = setInterval(() => {
+    displayNumber.value = Math.floor(Math.random() * (affectations.value.length + 10));
+  }, 150);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    displayNumber.value = affectations.value.length;
+  }, 1500);
+});
+
 
 // const token = localStorage.getItem("token"); 
 
@@ -23,98 +44,156 @@ onMounted(fetchData);
 </script>
 
 <template>
-  <div class="p-6">
-    <h1 class="text-2xl font-bold mb-4">Gestion des Affectations Analytiques</h1>
-
-    <!-- Formulaire -->
-    <form @submit.prevent="save" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
-      <div class="relative">
-        <label class="block font-semibold">Compte</label>
-        <input
-          type="text"
-          v-model="searchTerm"
-          @input="searchCompte"
-          placeholder="Tapez le code ou libellé du compte"
-          class="w-full border rounded px-2 py-1"
-          required
-        />
-        <ul v-if="showSuggestions" class="absolute z-10 bg-white border w-full max-h-40 overflow-y-auto">
-          <li
-            v-for="compte in suggestions"
-            :key="compte.Id_Compte"
-            @click="selectCompte(compte)"
-            class="px-2 py-1 hover:bg-gray-200 cursor-pointer"
-          >
-            {{ compte.Code_compte }} - {{ compte.Libelle }}
-          </li>
-        </ul>
+  <PageAnalyse>
+    <transition name="fade">
+      <PopUp v-if="openForm">
+        <form @submit.prevent="saveAxe" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
+          <Texte :texte="'Créer une axe analytique'" :type="'dark'" />
+          <Input v-model="form.axe" label="Nom de l'Axe" type="text" required />
+          <Textarea v-model="form.description" label="Description" required />
+          <div class="btn-form">
+            <Bouton v-if="!isEditing" type="input" :texte="'Créer'" redirection="" />
+            <Bouton v-if="isEditing" type="input" :texte="'Modifier'" redirection="" />
+            <Bouton type="cancel" :texte="'Annuler'" @click="cancelEdit, openForm = false" />
+          </div>
+        </form>
+      </PopUp>
+    </transition>
+    <transition name="fade">
+      <PopUp v-if="openImport">
+        <FileInput :reference="'file'" :file-name="file" :methode="onFileChange" />
+        <div class="btn-form">
+          <Bouton @click="uploadFile" type="input" :texte="'Importer'" redirection="" />
+          <Bouton type="cancel" :texte="'Annuler'" @click="cancelEdit, openImport = false" />
+          <div v-if="message.text" :class="'text-green'">
+          {{ message.text }}
+        </div>
+        </div>
+      </PopUp>
+    </transition>
+    <div class="main">
+      <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Affectation Analytique'" />
+      <div class="informations">
+        <p class="Count-content">{{ displayNumber }} affectations analytique faite(s).</p>
+        <div class="btn">
+          <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
+          <Bouton type="primary" texte="Ajouter un Axe" redirection="" @click="openForm = !openForm" />
+        </div>
       </div>
-
-      <div>
-        <label class="block font-semibold">Centre Analytique</label>
-        <select v-model="form.id_centre" class="w-full border rounded px-2 py-1" required>
-          <option value="" disabled>-- Sélectionner un centre --</option>
-          <option v-for="centre in centres" :key="centre.id_centre" :value="centre.id_centre">
-            {{ centre.nom }}
-          </option>
-        </select>
+      <div class="filters">
       </div>
+      <!-- Tableau des axes -->
+      <transition name="fade">
+        <table class="table" id="axesTable">
+          <thead>
+            <tr class="">
+              <th class="col">#</th>
+          <th class="col">Compte</th>
+          <th class="col">Centre</th>
+          <th class="col">Description</th>
+          <th class="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
 
-      <div>
-        <label class="block font-semibold">Description</label>
-        <input v-model="form.description" type="text" class="w-full border rounded px-2 py-1" />
-      </div>
-
-      <div>
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
-          {{ isEditing ? "Mettre à jour" : "Ajouter" }}
-        </button>
-        <button v-if="isEditing" type="button" @click="resetForm" class="ml-2 bg-gray-500 text-white px-4 py-2 rounded">
-          Annuler
-        </button>
-      </div>
-    </form>
-
-    <form @submit.prevent="importCSV" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
-      <div>
-        <label class="block font-semibold">Importer un CSV</label>
-        <input type="file" ref="fileInput" class="w-full" />
-      </div>
-      <div>
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">
-          Importer
-        </button>
-      </div>
-    </form>
-    <!-- Message de feedback -->
-<div v-if="message.text" :class="['p-3 mb-4 rounded', messageClass]">
-  {{ message.text }}
-</div>
-
-
-    <!-- Tableau -->
-    <table class="w-full border-collapse border">
-      <thead>
-        <tr class="bg-gray-200">
-          <th class="border px-3 py-2">#</th>
-          <th class="border px-3 py-2">Compte</th>
-          <th class="border px-3 py-2">Centre</th>
-          <th class="border px-3 py-2">Description</th>
-          <th class="border px-3 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="aff in affectations" :key="aff.id_affectation">
-          <td class="border px-3 py-2">{{ aff.id_affectation }}</td>
-          <td class="border px-3 py-2">{{ aff.sous_compte?.Code_sous_compte }} - {{ aff.sous_compte?.Libelle }}</td>
-          <td class="border px-3 py-2">{{ aff.centre?.nom }}</td>
-          <td class="border px-3 py-2">{{ aff.description }}</td>
-          <td class="border px-3 py-2 text-center">
+            <tr v-for="aff in affectations" :key="aff.id_affectation">
+          <td class="col">{{ aff.id_affectation }}</td>
+          <td class="col">{{ aff.sous_compte?.Code_sous_compte }} - {{ aff.sous_compte?.Libelle }}</td>
+          <td class="col">{{ aff.centre?.nom }}</td>
+          <td class="col">{{ aff.description }}</td>
+          <td class="col">
             <button @click="edit(aff)" class="bg-yellow-500 text-white px-2 py-1 rounded">✏️</button>
             <button @click="remove(aff.id_affectation)" class="ml-2 bg-red-600 text-white px-2 py-1 rounded">🗑️</button>
           </td>
         </tr>
-      </tbody>
-    </table>
-  </div>
+          </tbody>
+        </table>
+      </transition>
+
+    </div>
+  </PageAnalyse>
 </template>
+<style lang="scss" scoped>
+.main {
+  @include position-contenus(flex, center, center);
+  padding: 32px;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 0 0;
+  align-self: stretch;
+  animation: appear 0.6s ease-out forwards;
+
+}
+
+#axesTable {
+  @include table();
+}
+
+.informations {
+  @include position-contenus(flex, space-between, center);
+  padding: 10px 0;
+  align-self: stretch;
+  border-bottom: 1px solid #C5C5C5;
+}
+
+.btn {
+  @include position-contenus(flex, flex-end, center);
+  gap: 10px;
+}
+
+.btn-form {
+  @include position-contenus(flex, center, center);
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+}
+
+.Count-content {
+  background-color: transparent;
+  color: #4A4A4A;
+  font-family: Stara;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  margin: 0;
+}
+
+.file {
+  display: flex;
+  height: 189px;
+  padding: 10px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  align-self: stretch;
+  border-radius: $radius-pm;
+  border: 1px dashed #515151;
+}
+
+.text-green {
+  @include text-xs($stara, $vert)
+}
+
+.text-red {
+  @include text-xs($stara, $rouge)
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+  transform: scale(1);
+}
+</style>

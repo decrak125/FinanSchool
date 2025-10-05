@@ -29,7 +29,7 @@
     @include position-contenus(flex, center, center);
     width: 100%;
     height: 100vh;
-    box-shadow: 0px 4px 75px 393px rgba(0, 0, 0, 0.75) inset;
+    box-shadow: 0px 4px 75px 1000px rgba(0, 0, 0, 0.75) inset;
     backdrop-filter: blur(2px);
     z-index: 9998;
 
