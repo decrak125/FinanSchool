@@ -96,15 +96,23 @@
     display: flex;
     flex-shrink: 0;
 }
-@mixin table(){
+@mixin table($headColor: transparent){
     th{
-        border-radius: $radius-pm;
-        background: fixed;
+        // border-radius: $radius-pm;
+        background: fixed $headColor;
         color: $primary;
         font-weight: 200;
         font-size: 16px;
         text-align: left;
       }
+        td{
+            animation: appear 0.6s ease-out forwards;
+          }
+          tr{
+            opacity: 0;
+            transform: translateY(-1px);
+            animation: slideInDown 0.5s ease-out forwards;
+          }
       background: fixed;
       font-family: $stara;
       border-radius: $radius-pm;
@@ -152,6 +160,18 @@
     
 }
 
+  @keyframes slideInDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  
 @keyframes appear {
     from {
         opacity: 0;

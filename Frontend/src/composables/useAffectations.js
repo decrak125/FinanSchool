@@ -1,4 +1,4 @@
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 
 const API_URL = "http://127.0.0.1:8000/api";
@@ -16,7 +16,6 @@ export function useAffectations() {
   const searchTerm = ref("");
   const suggestions = ref([]);
   const showSuggestions = ref(false);
-
   // Fetch initial data
   const fetchData = async () => {
     const [resAffect, resCentres, resComptes] = await Promise.all([

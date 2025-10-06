@@ -33,6 +33,14 @@ defineProps({
   .button-input:hover {
     @include bouton($secondary, $light, $radius-pm, $stara, 270px);
   }
+  .button-transparent {
+    cursor: pointer;
+      @include bouton(transparent, $light, $radius-pm, $stara, 270px);
+      transition: all 0.5s ease-in-out;
+      .bar{
+        background-color: rgb(37, 38, 73);
+      }
+  }
 
 /* From Uiverse.io by aryamitra06 */ 
 .loader {

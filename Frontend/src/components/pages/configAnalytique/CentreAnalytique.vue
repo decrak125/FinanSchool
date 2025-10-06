@@ -9,6 +9,10 @@ import Textarea from "@/components/atoms/Textarea.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import FileInput from "@/components/atoms/File-input.vue";
+import Pagination from "@/components/molecules/Pagination.vue";
+import { usePagination } from "@/composables/usePagination";
+import Select from '@/components/atoms/Select.vue';
+
 
 const openForm = ref(false);
 const openImport = ref(false);
@@ -37,6 +41,19 @@ const {
   uploadFile
 } = useCentres();
 
+const {
+  currentPage,
+  itemsPerPage,
+  totalPages,
+  startIndex,
+  endIndex,
+  donneesPagination,
+  previousPage,
+  nextPage,
+  goToPage,
+  resetPagination
+} = usePagination(centres)
+
 const displayNumber = ref(0);
 
 onMounted(() => {
@@ -56,23 +73,27 @@ onMounted(() => {
     <transition name="fade">
       <PopUp v-if="openForm">
         <form @submit.prevent="saveCentre" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
-          <Texte :texte="'Créer une centre analytique'" :type="'dark'" />
-          <Input v-model="form.nom" label="Nom du centre" type="text" required />
-          <Textarea v-model="form.description" label="Description" required />
-          <div>
-          <label class="block font-semibold">Axe</label>
-          <select v-model="form.id_axe" class="w-full border rounded px-2 py-1" required>
-            <option value="" disabled>Choisir un axe</option>
-            <option v-for="axe in axes" :key="axe.id_axe" :value="axe.id_axe">{{ axe.axe }}</option>
-          </select>
-        </div>
-        <div>
-          <label class="block font-semibold">Type</label>
-          <select v-model="form.id_type" class="w-full border rounded px-2 py-1" required>
-            <option value="" disabled>Choisir un type</option>
-            <option v-for="type in types" :key="type.id_type" :value="type.id_type">{{ type.code }}</option>
-          </select>
-        </div>
+          <Texte :texte="'Créer un centre analytique'" :type="'dark'" />
+          <div class="popupContent">
+            <div class="gauche">
+            <Input v-model="form.nom" label="Nom du centre" type="text" required />
+            <Textarea v-model="form.description" label="Description" required />
+          </div>
+          <div class="droite">
+            <div>
+              <Select v-model="form.id_axe" :label="'Axe analytique'">
+                <option value="" disabled>Choisir un axe</option>
+                <option v-for="axe in axes" :key="axe.id_axe" :value="axe.id_axe">{{ axe.axe }}</option>
+              </Select>
+            </div>
+            <div>
+              <Select v-model="form.id_type" :label="'Type de centre'">
+                <option value="" disabled>Choisir un type</option>
+                <option v-for="type in types" :key="type.id_type" :value="type.id_type">{{ type.code }}</option>
+              </Select>
+            </div>
+          </div>
+          </div>
           <div class="btn-form">
             <Bouton v-if="!isEditing" type="input" :texte="'Créer'" redirection="" />
             <Bouton v-if="isEditing" type="input" :texte="'Modifier'" redirection="" />
@@ -99,40 +120,44 @@ onMounted(() => {
         <p class="Count-content">{{ displayNumber }} centres analytique disponibles.</p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
-          <Bouton type="primary" texte="Ajouter un Axe" redirection="" @click="openForm = !openForm" />
+          <Bouton type="primary" texte="Ajouter un centre" redirection="" @click="openForm = !openForm" />
         </div>
       </div>
       <div class="filters">
       </div>
       <!-- Tableau des axes -->
       <transition name="fade">
-        <table class="table" id="axesTable">
+        <div class="content">
+          <table class="table" id="axesTable">
           <thead>
-          <tr class="">
-            <th class="col">#</th>
-            <th class="col">Nom</th>
-            <th class="col">Description</th>
-            <th class="col">Axe</th>
-            <th class="col">Type</th>
-            <th class="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="centre in centres" :key="centre.id_centre">
-            <td class="col">{{ centre.id_centre }}</td>
-            <td class="col">{{ centre.nom }}</td>
-            <td class="col">{{ centre.description }}</td>
-            <td class="col">{{ getAxeName(centre.id_axe) }}</td>
-            <td class="col">{{ getTypeName(centre.id_type) }}</td>
-            <td class="col text-center">
-              <button @click="editCentre(centre)" class="bg-yellow-500 text-white px-2 py-1 rounded">✏️</button>
-              <button @click="deleteCentre(centre.id_centre)" class="ml-2 bg-red-600 text-white px-2 py-1 rounded">🗑️</button>
-            </td>
-          </tr>
-        </tbody>
+            <tr class="">
+              <th class="col">#</th>
+              <th class="col">Nom</th>
+              <th class="col">Description</th>
+              <th class="col">Axe</th>
+              <th class="col">Type</th>
+              <th class="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="centre in donneesPagination" :key="centre.id_centre">
+              <td class="col">{{ centre.id_centre }}</td>
+              <td class="col">{{ centre.nom }}</td>
+              <td class="col">{{ centre.description }}</td>
+              <td class="col">{{ getAxeName(centre.id_axe) }}</td>
+              <td class="col">{{ getTypeName(centre.id_type) }}</td>
+              <td class="col text-center">
+                <button @click="editCentre(centre)" class="bg-yellow-500 text-white px-2 py-1 rounded">✏️</button>
+                <button @click="deleteCentre(centre.id_centre)"
+                  class="ml-2 bg-red-600 text-white px-2 py-1 rounded">🗑️</button>
+              </td>
+            </tr>
+          </tbody>
         </table>
+        </div>
       </transition>
-
+      <Pagination :donnees="centres" :current-page="currentPage" :items-per-page="itemsPerPage"
+        :total-pages="totalPages" :go-to-page="goToPage" :previous-page="previousPage" :next-page="nextPage" />
     </div>
   </PageAnalyse>
 </template>
@@ -166,7 +191,7 @@ onMounted(() => {
 
 .btn-form {
   @include position-contenus(flex, center, center);
-  flex-direction: column;
+  // flex-direction: column;
   gap: 10px;
   padding-top: 10px;
 }
@@ -213,13 +238,43 @@ onMounted(() => {
   opacity: 0;
   transform: scale(0.9);
 }
+.content {
+  overflow-y: auto;
+  /* Scroll vertical */
+  // background-color: #fff;
+  width: 100%;
+  max-height: 53vh;
+  /* Ajuste selon tes besoins */
+  border-radius: $radius-pm;
+}
+
+/* Personnalisation de la scrollbar */
+.content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: #ffffff;
+  border-radius: 10px;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: $light;
+  border-radius: 10px;
+
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
 
 .fade-enter-to,
 .fade-leave-from {
   opacity: 1;
   transform: scale(1);
 }
+.popupContent{
+  @include position-contenus(flex,center, flex-start);
+  gap: 10px;
+}
 </style>
-
- 
-  

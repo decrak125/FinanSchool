@@ -9,6 +9,8 @@ import Textarea from "@/components/atoms/Textarea.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import FileInput from "@/components/atoms/File-input.vue";
+import Pagination from "@/components/molecules/Pagination.vue";
+import { usePagination } from "@/composables/usePagination";
 
 const openForm = ref(false);
 const openImport = ref(false);
@@ -27,7 +29,18 @@ const { axes,
   onFileChange,
   uploadFile } = useAxes();
 onMounted(fetchAxes);
-
+const {
+  currentPage,
+  itemsPerPage,
+  totalPages,
+  startIndex,
+  endIndex,
+  donneesPagination,
+  previousPage,
+  nextPage,
+  goToPage,
+  resetPagination
+} = usePagination(axes)
 const displayNumber = ref(0);
 
 onMounted(() => {
@@ -83,7 +96,8 @@ onMounted(() => {
       </div>
       <!-- Tableau des axes -->
       <transition name="fade">
-        <table class="table" id="axesTable">
+        <div class="content">
+          <table class="table" id="axesTable">
           <thead>
             <tr class="">
               <th class="col">#</th>
@@ -94,7 +108,7 @@ onMounted(() => {
           </thead>
           <tbody>
 
-            <tr v-for="axe in axes" :key="axe.id_axe">
+            <tr v-for="axe in donneesPagination" :key="axe.id_axe">
               <td class="col">{{ axe.id_axe }}</td>
               <td class="col">{{ axe.axe }}</td>
               <td class="col">{{ axe.description }}</td>
@@ -106,8 +120,16 @@ onMounted(() => {
             </tr>
           </tbody>
         </table>
+        </div>
       </transition>
-
+      <Pagination 
+      :donnees="centres" 
+      :current-page="currentPage" 
+      :items-per-page="itemsPerPage"
+      :total-pages="totalPages"
+      :go-to-page="goToPage"
+      :previous-page="previousPage"
+      :next-page="nextPage" />
     </div>
   </PageAnalyse>
 </template>
@@ -193,5 +215,39 @@ onMounted(() => {
 .fade-leave-from {
   opacity: 1;
   transform: scale(1);
+}
+.content {
+  overflow-y: auto;
+  /* Scroll vertical */
+  // background-color: #fff;
+  width: 100%;
+  max-height: 53vh;
+  /* Ajuste selon tes besoins */
+  border-radius: $radius-pm;
+}
+
+/* Personnalisation de la scrollbar */
+.content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: #ffffff;
+  border-radius: 10px;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: $light;
+  border-radius: 10px;
+
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.popupContent{
+  @include position-contenus(flex,center, flex-start);
+  gap: 10px;
 }
 </style>
