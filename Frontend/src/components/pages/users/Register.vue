@@ -210,7 +210,7 @@ const login = async () => {
 <style lang="scss" scoped>
 
 .digit{
-  @include digit($dark, $dark, $radius-pm, $stara);
+  @include digit($dark, $dark, $radius-pm, $stara-medium);
     width: 24px;
     .input::placeholder{
         color: $dark;

@@ -32,33 +32,50 @@ class AffectationAnalytiqueController extends Controller
     // }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'Id_Compte' => 'required|exists:comptes,Id_Compte',
-            'id_centre' => 'required|exists:centreanalytique,id_centre',
-            'description' => 'nullable|string|max:255',
-        ]);
+{
+    $request->validate([
+        'Id_Compte' => 'required|exists:comptes,Id_Compte',
+        'id_centre' => 'required|exists:centreanalytique,id_centre',
+        'description' => 'nullable|string|max:255',
+    ]);
 
-        // Récupérer tous les sous-comptes liés au compte choisi
-        $sousComptes = \App\Models\PlanCompte\SousCompte::where('Id_Compte', $request->Id_Compte)->get();
+    // Récupérer tous les sous-comptes liés au compte choisi
+    $sousComptes = \App\Models\PlanCompte\SousCompte::where('Id_Compte', $request->Id_Compte)->get();
 
-        $affectations = [];
+    $affectations = [];
+    $doublons = [];
 
-        foreach ($sousComptes as $sous) {
-            $affectations[] = \App\Models\ParametresAnalytique\AffectationAnalytique::create([
-                'Id_Sous_compte' => $sous->Id_Sous_compte,
-                'id_centre' => $request->id_centre,
-                'description' => $sous->Libelle . ' - ' . $request->description,
-            ]);
+    foreach ($sousComptes as $sous) {
+        // Vérifier si une affectation existe déjà pour ce sous-compte et ce centre
+        $existeDeja = \App\Models\ParametresAnalytique\AffectationAnalytique::where('Id_Sous_compte', $sous->Id_Sous_compte)
+            ->where('id_centre', $request->id_centre)
+            ->exists();
+
+        if ($existeDeja) {
+            $doublons[] = $sous->Libelle;
+            continue; // Passer au sous-compte suivant
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => count($affectations) . ' affectations créées avec succès',
-            'data' => $affectations
-        ], 201);
+        $affectations[] = \App\Models\ParametresAnalytique\AffectationAnalytique::create([
+            'Id_Sous_compte' => $sous->Id_Sous_compte,
+            'id_centre' => $request->id_centre,
+            'description' => $sous->Libelle . ' - ' . $request->description,
+        ]);
     }
 
+    $message = count($affectations) . ' affectations créées avec succès';
+    
+    if (count($doublons) > 0) {
+        $message .= '. ' . count($doublons) . ' doublons ignorés: ' . implode(', ', $doublons);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => $message,
+        'data' => $affectations,
+        'doublons_ignores' => $doublons
+    ], 201);
+}
 
 
 

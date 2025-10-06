@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useCentres } from '@/composables/useCentres';
 import PageAnalyse from "@/components/template/Page-analyse.vue";
 import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
@@ -12,7 +12,10 @@ import FileInput from "@/components/atoms/File-input.vue";
 import Pagination from "@/components/molecules/Pagination.vue";
 import { usePagination } from "@/composables/usePagination";
 import Select from '@/components/atoms/Select.vue';
-
+import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
+import FilterSelect from '@/components/atoms/Filter-select.vue';
+import searchbar from '@/components/atoms/searchbar.vue';
+import Counter from "@/components/atoms/counter.vue";
 
 const openForm = ref(false);
 const openImport = ref(false);
@@ -38,9 +41,16 @@ const {
   resetForm,
   getAxeName,
   getTypeName,
-  uploadFile
+  uploadFile,
+  // Nouvelles fonctions de filtre
+  searchTerm,
+  selectedAxe,
+  selectedType,
+  filteredCentres,
+  resetFilters
 } = useCentres();
 
+// Utilisez filteredCentres pour la pagination au lieu de centres
 const {
   currentPage,
   itemsPerPage,
@@ -52,10 +62,11 @@ const {
   nextPage,
   goToPage,
   resetPagination
-} = usePagination(centres)
+} = usePagination(filteredCentres)
 
 const displayNumber = ref(0);
 
+// Mettez à jour le compteur pour utiliser filteredCentres
 onMounted(() => {
   const interval = setInterval(() => {
     displayNumber.value = Math.floor(Math.random() * (centres.value.length + 10));
@@ -65,6 +76,11 @@ onMounted(() => {
     clearInterval(interval);
     displayNumber.value = centres.value.length;
   }, 1500);
+});
+
+// Computed pour le nombre de résultats filtrés
+const filteredCount = computed(() => {
+  return filteredCentres.value.length;
 });
 </script>
 
@@ -117,15 +133,52 @@ onMounted(() => {
     <div class="main">
       <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Centre Analytique'" />
       <div class="informations">
-        <p class="Count-content">{{ displayNumber }} centres analytique disponibles.</p>
+        <p class="Count-content">
+          <Counter v-if="centres.length>0" :number="centres.length" />
+            <Counter v-if="centres.length == 0" :number="0" /> centres analytique disponibles.</p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
           <Bouton type="primary" texte="Ajouter un centre" redirection="" @click="openForm = !openForm" />
         </div>
       </div>
-      <div class="filters">
+      
+      <!-- Section Filtres -->
+      <div class="filtres">
+            <searchbar
+              v-model="searchTerm"
+              type="text"
+              placeholder="Nom du centre..."
+            />
+          <!-- Filtre par axe -->
+            <FilterSelect
+              v-model="selectedAxe"
+            >
+              <option value="">Axes</option>
+              <option 
+                v-for="axe in axes" 
+                :key="axe.id_axe" 
+                :value="axe.id_axe"
+              >
+                {{ axe.axe }}
+              </option>
+            </FilterSelect>
+
+          <!-- Filtre par type -->
+            <FilterSelect
+              v-model="selectedType"
+            >
+              <option value="">Types</option>
+              <option 
+                v-for="type in types" 
+                :key="type.id_type" 
+                :value="type.id_type"
+              >
+                {{ type.code }}
+              </option>
+            </FilterSelect>
+            <!-- <i @click="resetFilters" class="bi bi-x-circle-fill"></i> -->
       </div>
-      <!-- Tableau des axes -->
+      <!-- Tableau des axes - utilise donneesPagination qui vient maintenant de filteredCentres -->
       <transition name="fade">
         <div class="content">
           <table class="table" id="axesTable">
@@ -147,24 +200,35 @@ onMounted(() => {
               <td class="col">{{ getAxeName(centre.id_axe) }}</td>
               <td class="col">{{ getTypeName(centre.id_type) }}</td>
               <td class="col text-center">
-                <button @click="editCentre(centre)" class="bg-yellow-500 text-white px-2 py-1 rounded">✏️</button>
-                <button @click="deleteCentre(centre.id_centre)"
-                  class="ml-2 bg-red-600 text-white px-2 py-1 rounded">🗑️</button>
+                  <BoutonIcon @click="editCentre(centre), openForm = true" icon-name="pen" :type="'edit'" />
+                <BoutonIcon @click="deleteCentre(centre.id_centre)" icon-name="trash" :type="'cancel'" />
               </td>
             </tr>
           </tbody>
         </table>
         </div>
       </transition>
-      <Pagination :donnees="centres" :current-page="currentPage" :items-per-page="itemsPerPage"
-        :total-pages="totalPages" :go-to-page="goToPage" :previous-page="previousPage" :next-page="nextPage" />
+
+      <!-- Message si aucun résultat -->
+      <div v-if="filteredCount === 0" class="text-center py-8 text-gray-500">
+        Aucun centre ne correspond aux critères de recherche.
+      </div>
+
+      <Pagination 
+        :donnees="filteredCentres" 
+        :current-page="currentPage" 
+        :items-per-page="itemsPerPage"
+        :total-pages="totalPages" 
+        :go-to-page="goToPage" 
+        :previous-page="previousPage" 
+        :next-page="nextPage" 
+      />
     </div>
   </PageAnalyse>
-</template>
-<style lang="scss" scoped>
+</template><style lang="scss" scoped>
 .main {
   @include position-contenus(flex, center, center);
-  padding: 32px;
+  padding: 0 32px;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;
@@ -197,6 +261,7 @@ onMounted(() => {
 }
 
 .Count-content {
+  display: flex;
   background-color: transparent;
   color: #4A4A4A;
   font-family: Stara;
@@ -221,11 +286,11 @@ onMounted(() => {
 }
 
 .text-green {
-  @include text-xs($stara, $vert)
+  @include text-xs($stara-medium, $vert)
 }
 
 .text-red {
-  @include text-xs($stara, $rouge)
+  @include text-xs($stara-medium, $rouge)
 }
 
 .fade-enter-active,
@@ -276,5 +341,13 @@ onMounted(() => {
 .popupContent{
   @include position-contenus(flex,center, flex-start);
   gap: 10px;
+}
+.filtres{
+  @include position-contenus(flex, flex-start, center);
+  padding: 0 0;
+  align-self: self-start;
+  // background-color: #fff;
+  gap: 10px;
+  width: 100%;
 }
 </style>

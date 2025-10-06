@@ -11,6 +11,9 @@ import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import FileInput from "@/components/atoms/File-input.vue";
 import Pagination from "@/components/molecules/Pagination.vue";
 import { usePagination } from "@/composables/usePagination";
+import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
+import Counter from "@/components/atoms/counter.vue";
+
 
 const openForm = ref(false);
 const openImport = ref(false);
@@ -41,18 +44,7 @@ const {
   goToPage,
   resetPagination
 } = usePagination(axes)
-const displayNumber = ref(0);
 
-onMounted(() => {
-  const interval = setInterval(() => {
-    displayNumber.value = Math.floor(Math.random() * (axes.value.length + 10));
-  }, 150);
-
-  setTimeout(() => {
-    clearInterval(interval);
-    displayNumber.value = axes.value.length;
-  }, 1500);
-});
 </script>
 
 <template>
@@ -86,7 +78,10 @@ onMounted(() => {
     <div class="main">
       <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Axe Analytique'" />
       <div class="informations">
-        <p class="Count-content">{{ displayNumber }} axes analytique disponibles.</p>
+        <p class="Count-content">
+          <Counter v-if="axes.length>0" :number="axes.length" />
+            <Counter v-if="axes.length == 0" :number="0" />
+          axes analytique disponibles.</p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
           <Bouton type="primary" texte="Ajouter un Axe" redirection="" @click="openForm = !openForm" />
@@ -113,9 +108,8 @@ onMounted(() => {
               <td class="col">{{ axe.axe }}</td>
               <td class="col">{{ axe.description }}</td>
               <td class="col text-center">
-                <button @click="editAxe(axe), openForm = true"
-                  class="bg-yellow-500 text-white px-2 py-1 rounded">✏️</button>
-                <button @click="deleteAxe(axe.id_axe)" class="ml-2 bg-red-600 text-white px-2 py-1 rounded">🗑️</button>
+                <BoutonIcon @click="editAxe(axe), openForm = true" icon-name="pen" :type="'edit'" />
+                <BoutonIcon @click="deleteAxe(axe.id_axe)" icon-name="trash" :type="'cancel'" />
               </td>
             </tr>
           </tbody>
@@ -136,7 +130,7 @@ onMounted(() => {
 <style lang="scss" scoped>
 .main {
   @include position-contenus(flex, center, center);
-  padding: 32px;
+  padding: 0 32px;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;
@@ -169,6 +163,7 @@ onMounted(() => {
 }
 
 .Count-content {
+  display: flex;
   background-color: transparent;
   color: #4A4A4A;
   font-family: Stara;
@@ -193,11 +188,11 @@ onMounted(() => {
 }
 
 .text-green {
-  @include text-xs($stara, $vert)
+  @include text-xs($stara-medium, $vert)
 }
 
 .text-red {
-  @include text-xs($stara, $rouge)
+  @include text-xs($stara-medium, $rouge)
 }
 
 .fade-enter-active,

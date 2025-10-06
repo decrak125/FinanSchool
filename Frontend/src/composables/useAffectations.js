@@ -16,6 +16,11 @@ export function useAffectations() {
   const searchTerm = ref("");
   const suggestions = ref([]);
   const showSuggestions = ref(false);
+
+  // ===== Variables pour les filtres =====
+  const filterSearchTerm = ref("");
+  const filterSelectedCentre = ref("");
+
   // Fetch initial data
   const fetchData = async () => {
     const [resAffect, resCentres, resComptes] = await Promise.all([
@@ -26,6 +31,28 @@ export function useAffectations() {
     affectations.value = resAffect.data;
     centres.value = resCentres.data;
     comptes.value = resComptes.data;
+  };
+
+  // Computed property pour les affectations filtrées
+  const filteredAffectations = computed(() => {
+    return affectations.value.filter(affectation => {
+      // Filtre par recherche (Code_sous_compte ou Libelle)
+      const matchesSearch = filterSearchTerm.value === "" || 
+        (affectation.sous_compte?.Code_sous_compte?.toLowerCase().includes(filterSearchTerm.value.toLowerCase()) ||
+         affectation.sous_compte?.Libelle?.toLowerCase().includes(filterSearchTerm.value.toLowerCase()));
+      
+      // Filtre par centre
+      const matchesCentre = filterSelectedCentre.value === "" || 
+        affectation.id_centre?.toString() === filterSelectedCentre.value;
+      
+      return matchesSearch && matchesCentre;
+    });
+  });
+
+  // Réinitialiser les filtres
+  const resetFilters = () => {
+    filterSearchTerm.value = "";
+    filterSelectedCentre.value = "";
   };
 
   const save = async () => {
@@ -83,64 +110,67 @@ export function useAffectations() {
     showSuggestions.value = false;
   };
 
-// ----------------------------------
+  // ----------------------------------
 
-const fileInput = ref(null);
+  const fileInput = ref(null);
 
-const message = ref({ text: "", type: "" }); // type = 'success' ou 'error'
-const importSuccess = ref(false);
+  const message = ref({ text: "", type: "" }); // type = 'success' ou 'error'
+  const importSuccess = ref(false);
 
-// Classe CSS dynamique pour le message
-const messageClass = computed(() => {
-  return message.value.type === "success"
-    ? "bg-green-100 text-green-800 border border-green-300"
-    : "bg-red-100 text-red-800 border border-red-300";
-});
+  // Classe CSS dynamique pour le message
+  const messageClass = computed(() => {
+    return message.value.type === "success"
+      ? "bg-green-100 text-green-800 border border-green-300"
+      : "bg-red-100 text-red-800 border border-red-300";
+  });
 
-// Gestion import CSV/Excel pour les affectations
-const file = ref(null);
+  // Gestion import CSV/Excel pour les affectations
+  const file = ref(null);
 
-const onFileChange = (e) => {
-  file.value = e.target.files[0];
-};
+  const onFileChange = (e) => {
+    file.value = e.target.files[0];
+  };
 
-const uploadFile = async () => {
-  if (!file.value) {
-    message.value = { text: "Veuillez sélectionner un fichier.", type: "error" };
-    importSuccess.value = false;
-    return;
-  }
+  const uploadFile = async () => {
+    if (!file.value) {
+      message.value = { text: "Veuillez sélectionner un fichier.", type: "error" };
+      importSuccess.value = false;
+      return;
+    }
 
-  const formData = new FormData();
-  formData.append("file", file.value);
+    const formData = new FormData();
+    formData.append("file", file.value);
 
-  try {
-    const res = await axios.post(`${API_URL}/import/affectations`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    try {
+      const res = await axios.post(`${API_URL}/import/affectations`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-    message.value = { text: res.data.message, type: "success" };
-    importSuccess.value = true;
-    file.value = null;
-    fetchData(); // rafraîchir les données après import
-  } catch (error) {
-    message.value = {
-      text: error.response?.data?.message || "Erreur lors de l'import.",
-      type: "error",
-    };
-    importSuccess.value = false;
-  }
-};
-
-
+      message.value = { text: res.data.message, type: "success" };
+      importSuccess.value = true;
+      file.value = null;
+      fetchData(); // rafraîchir les données après import
+    } catch (error) {
+      message.value = {
+        text: error.response?.data?.message || "Erreur lors de l'import.",
+        type: "error",
+      };
+      importSuccess.value = false;
+    }
+  };
 
   return {
     affectations, centres, comptes, file,
     form, isEditing, fileInput, message, importSuccess,
     fetchData, save, edit, remove, resetForm, onFileChange, uploadFile,
     searchTerm, suggestions, showSuggestions,
-    searchCompte, selectCompte
+    searchCompte, selectCompte,
+    // Nouvelles variables et fonctions pour les filtres
+    filterSearchTerm,
+    filterSelectedCentre,
+    filteredAffectations,
+    resetFilters
   };
 }

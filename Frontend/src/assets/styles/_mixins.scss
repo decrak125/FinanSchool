@@ -97,26 +97,31 @@
     flex-shrink: 0;
 }
 @mixin table($headColor: transparent){
-    th{
+    opacity: 0;
+    transform: translateY(-1px);
+    animation: slideInDown 0.5s ease-out forwards;
+  th{
         // border-radius: $radius-pm;
         background: fixed $headColor;
         color: $primary;
-        font-weight: 200;
+        font-family: $stara-black;
         font-size: 16px;
-        text-align: left;
+        text-align:start;
+        z-index: 99;
+      }
+      tr td:last-child,
+      tr th:last-child {
+        text-align:center;
       }
         td{
             animation: appear 0.6s ease-out forwards;
           }
-          tr{
-            opacity: 0;
-            transform: translateY(-1px);
-            animation: slideInDown 0.5s ease-out forwards;
-          }
+          
       background: fixed;
-      font-family: $stara;
+      font-family: $stara-medium;
       border-radius: $radius-pm;
       color: $dark;
+      
 }
 @mixin input($color, $text-color, $border-radius:20px, $font){
     border: 1px solid $color;

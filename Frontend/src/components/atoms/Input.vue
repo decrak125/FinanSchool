@@ -61,7 +61,7 @@ const handleInput = (event) => {
 <style lang="scss" scoped>
 
 input{
-    @include input($dark, $dark, $radius-pm, $stara);
+    @include input($dark, $dark, $radius-pm, $stara-medium);
     width: 250px;
     .input::placeholder{
         color: $dark;

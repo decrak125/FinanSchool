@@ -93,12 +93,12 @@ const donneesRef = toRef(props, 'donnees')
 
 .previousnext{
   cursor: pointer;
-  @include bouton($light, $dark, $radius-pm, $stara);
+  @include bouton($light, $dark, $radius-pm, $stara-medium);
   transition: all 0.5s ease-in-out;
 }
 
 .previousnext-dsbl{
-  @include bouton(transparent, $dark, $radius-pm, $stara);
+  @include bouton(transparent, $dark, $radius-pm, $stara-medium);
   transition: all 0.5s ease-in-out;
 }
 </style>

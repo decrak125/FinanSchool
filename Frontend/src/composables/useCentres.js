@@ -1,4 +1,4 @@
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 
 export function useCentres() {
@@ -13,6 +13,11 @@ export function useCentres() {
   const fileInput = ref(null);
   const importMessage = ref("");
   const importSuccess = ref(false);
+
+  // Variables pour les filtres
+  const searchTerm = ref("");
+  const selectedAxe = ref("");
+  const selectedType = ref("");
 
   const token = localStorage.getItem("token"); // Récupérer le token
 
@@ -36,6 +41,32 @@ export function useCentres() {
   const fetchTypes = async () => {
     const res = await axios.get(`${API_URL}/types`);
     types.value = res.data;
+  };
+
+  // Computed property pour les centres filtrés
+  const filteredCentres = computed(() => {
+    return centres.value.filter(centre => {
+      // Filtre par recherche de nom
+      const matchesSearch = searchTerm.value === "" || 
+        centre.nom.toLowerCase().includes(searchTerm.value.toLowerCase());
+      
+      // Filtre par axe
+      const matchesAxe = selectedAxe.value === "" || 
+        centre.id_axe.toString() === selectedAxe.value;
+      
+      // Filtre par type
+      const matchesType = selectedType.value === "" || 
+        centre.id_type.toString() === selectedType.value;
+      
+      return matchesSearch && matchesAxe && matchesType;
+    });
+  });
+
+  // Réinitialiser les filtres
+  const resetFilters = () => {
+    searchTerm.value = "";
+    selectedAxe.value = "";
+    selectedType.value = "";
   };
 
   // Ajouter / Mettre à jour
@@ -78,39 +109,38 @@ export function useCentres() {
   const getAxeName = (id) => axes.value.find((a) => a.id_axe === id)?.axe || "";
   const getTypeName = (id) => types.value.find((t) => t.id_type === id)?.code || "";
 
-// Gestion import CSV/Excel
-const file = ref(null);
+  // Gestion import CSV/Excel
+  const file = ref(null);
 
-const onFileChange = (e) => {
-  file.value = e.target.files[0];
-};
+  const onFileChange = (e) => {
+    file.value = e.target.files[0];
+  };
 
-const uploadFile = async () => {
-  if (!file.value) {
-    importMessage.value = "Veuillez sélectionner un fichier.";
-    importSuccess.value = false;
-    return;
-  }
+  const uploadFile = async () => {
+    if (!file.value) {
+      importMessage.value = "Veuillez sélectionner un fichier.";
+      importSuccess.value = false;
+      return;
+    }
 
-  let formData = new FormData();
-  formData.append("file", file.value);
+    let formData = new FormData();
+    formData.append("file", file.value);
 
-  try {
-    const res = await axios.post(`${API_URL}/import/centres`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-    importMessage.value = res.data.message;
-    importSuccess.value = true;
-    file.value = null;
-    fetchCentres(); // rafraîchir après import
-  } catch (err) {
-    importMessage.value = err.response?.data?.message || "Erreur lors de l'import.";
-    importSuccess.value = false;
-  }
-};
-
+    try {
+      const res = await axios.post(`${API_URL}/import/centres`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      importMessage.value = res.data.message;
+      importSuccess.value = true;
+      file.value = null;
+      fetchCentres(); // rafraîchir après import
+    } catch (err) {
+      importMessage.value = err.response?.data?.message || "Erreur lors de l'import.";
+      importSuccess.value = false;
+    }
+  };
 
   // Charger les données au montage
   onMounted(() => {
@@ -130,6 +160,13 @@ const uploadFile = async () => {
     file,
     importMessage,
     importSuccess,
+    // Nouvelles variables et fonctions pour les filtres
+    searchTerm,
+    selectedAxe,
+    selectedType,
+    filteredCentres,
+    resetFilters,
+    // Fonctions existantes
     fetchCentres,
     fetchAxes,
     onFileChange,

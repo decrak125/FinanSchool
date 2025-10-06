@@ -69,7 +69,7 @@ input{
     font-style: normal;
     font-weight: 400;
     line-height: normal;
-    color: $primary;
+    color: $dark;
     width: 100%;
 }
 .container{

@@ -45,7 +45,7 @@
   }
   .custom-file-label {
     cursor: pointer;
-      @include bouton($primary, $light, $radius-pm, $stara);
+      @include bouton($primary, $light, $radius-pm, $stara-medium);
       transition: all 0.5s ease-in-out;
   }
 

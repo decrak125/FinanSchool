@@ -74,7 +74,7 @@ const handleBlur = () => {
 
 <style lang="scss" scoped>
 textarea{
-  @include input($dark, $dark, $radius-pm, $stara);
+  @include input($dark, $dark, $radius-pm, $stara-medium);
   width: 250px;
   height: 40px;
   transition: all 0.3s ease-in-out;

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useAffectations } from "@/composables/useAffectations";
 import PageAnalyse from "@/components/template/Page-analyse.vue";
 import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
@@ -13,10 +13,13 @@ import BoutonLoading from "@/components/atoms/Bouton-loading.vue";
 import Pagination from "@/components/molecules/Pagination.vue";
 import { usePagination } from "@/composables/usePagination";
 import Select from '@/components/atoms/Select.vue';
+import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
+import FilterSelect from '@/components/atoms/Filter-select.vue';
+import searchbar from '@/components/atoms/searchbar.vue';
+import Counter from "@/components/atoms/counter.vue";
 
 const openForm = ref(false);
 const openImport = ref(false);
-const displayNumber = ref(0);
 const loading = ref(true);
 
 const {
@@ -24,9 +27,15 @@ const {
   form, isEditing, fileInput, message, importSuccess,
   fetchData, save, edit, remove, resetForm, onFileChange, uploadFile,
   searchTerm, suggestions, showSuggestions,
-  searchCompte, selectCompte
+  searchCompte, selectCompte,
+  // Nouvelles fonctions de filtre
+  filterSearchTerm,
+  filterSelectedCentre,
+  filteredAffectations,
+  resetFilters
 } = useAffectations();
 
+// Utilisez filteredAffectations pour la pagination au lieu de affectations
 const {
   currentPage,
   itemsPerPage,
@@ -38,27 +47,12 @@ const {
   nextPage,
   goToPage,
   resetPagination
-} = usePagination(affectations)
+} = usePagination(filteredAffectations)
 
-onMounted(() => {
-  const interval = setInterval(() => {
-    displayNumber.value = Math.floor(Math.random() * (affectations.value.length + 10));
-  }, 150);
-
-  setTimeout(() => {
-    clearInterval(interval);
-    displayNumber.value = affectations.value.length;
-  }, 1500);
+// Computed pour le nombre de résultats filtrés
+const filteredCount = computed(() => {
+  return filteredAffectations.value.length;
 });
-
-
-// const token = localStorage.getItem("token"); 
-
-// if (!token) {
-//   window.location.href = "/";
-// } else {
-//   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-// }
 
 onMounted(
   async () => {
@@ -70,7 +64,11 @@ onMounted(
   }
 );
 
-
+// Fonction pour annuler l'édition
+const cancelEdit = () => {
+  resetForm();
+  openForm.value = false;
+};
 </script>
 
 <template>
@@ -79,7 +77,7 @@ onMounted(
       <PopUp v-if="openForm">
         <form @submit.prevent="save" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
           <Texte :texte="'Nouvelle affectation.'" :type="'dark'" />
-          <Input type="text" v-model="searchTerm" @input="searchCompte" label="Libellé du compte" required />
+          <Input v-if="!isEditing" type="text" v-model="searchTerm" @input="searchCompte" label="Libellé du compte" required />
           <ul v-if="showSuggestions" class="suggestion">
           <li
             v-for="compte in suggestions"
@@ -102,10 +100,9 @@ onMounted(
           <div class="btn-form">
             <Bouton v-if="!isEditing" type="input" :texte="'Créer'" redirection="" />
             <Bouton v-if="isEditing" type="input" :texte="'Modifier'" redirection="" />
-            <Bouton type="cancel" :texte="'Annuler'" @click="cancelEdit, openForm = false" />
+            <Bouton @click="cancelEdit, openForm = false" type="cancel" :texte="'Annuler'" />
           </div>
         </form>
-
       </PopUp>
     </transition>
     <transition name="fade">
@@ -113,8 +110,8 @@ onMounted(
         <FileInput :reference="'file'" :file-name="file" :methode="onFileChange" />
         <div class="btn-form">
           <Bouton @click="uploadFile" type="input" :texte="'Importer'" redirection="" />
-          <Bouton type="cancel" :texte="'Annuler'" @click="cancelEdit, openImport = false" />
-          <div v-if="message.text" :class="'text-green'">
+          <Bouton type="cancel" :texte="'Annuler'" @click="openImport = false" />
+          <div v-if="message.text" :class="message.type === 'success' ? 'text-green' : 'text-red'">
             {{ message.text }}
           </div>
         </div>
@@ -123,15 +120,43 @@ onMounted(
     <div class="main">
       <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Affectation Analytique'" />
       <div class="informations">
-        <p class="Count-content">{{ displayNumber }} affectations analytique faite(s).</p>
+        <p class="Count-content">
+          <Counter v-if="affectations.length>0" :number="affectations.length" />
+          <Counter v-if="affectations.length == 0" :number="0" />
+            affectations analytique faite(s).</p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
           <Bouton type="primary" texte="Ajouter une Affectation" redirection="" @click="openForm = !openForm" />
         </div>
       </div>
-      <div class="filters">
+      
+      <!-- Section Filtres -->
+      <div class="filtres">
+          <!-- Recherche par Code_sous_compte ou Libelle -->
+            <searchbar
+              v-model="filterSearchTerm"
+              type="text"
+              placeholder="Code ou libellé du compte..."
+            />
+
+          <!-- Filtre par centre -->
+            <FilterSelect
+              v-model="filterSelectedCentre"
+              :label="''"
+            >
+              <option value="">Centres</option>
+              <option 
+                v-for="centre in centres" 
+                :key="centre.id_centre" 
+                :value="centre.id_centre"
+              >
+                {{ centre.nom }}
+              </option>
+            </FilterSelect>
       </div>
-      <!-- Tableau des axes -->
+
+
+      <!-- Tableau des affectations - utilise donneesPagination qui vient maintenant de filteredAffectations -->
       <div class="loading" v-if="loading">
         <BoutonLoading :type="'transparent'" />
       </div>
@@ -148,31 +173,41 @@ onMounted(
               </tr>
             </thead>
             <tbody>
-
               <tr v-for="aff in donneesPagination" :key="aff.id_affectation">
                 <td class="col">{{ aff.id_affectation }}</td>
                 <td class="col">{{ aff.sous_compte?.Code_sous_compte }} - {{ aff.sous_compte?.Libelle }}</td>
                 <td class="col">{{ aff.centre?.nom }}</td>
                 <td class="col">{{ aff.description }}</td>
                 <td class="col">
-                  <button @click="edit(aff)" class="bg-yellow-500 text-white px-2 py-1 rounded">✏️</button>
-                  <button @click="remove(aff.id_affectation)"
-                    class="ml-2 bg-red-600 text-white px-2 py-1 rounded">🗑️</button>
+                  <BoutonIcon @click="edit(aff), openForm = true" icon-name="pen" :type="'edit'" />
+                  <BoutonIcon @click="remove(aff.id_affectation)" icon-name="trash" :type="'cancel'" />
                 </td>
               </tr>
             </tbody>
           </table>
+
+          <!-- Message si aucun résultat -->
+          <div v-if="!loading && filteredCount === 0" class="text-center py-8 text-gray-500">
+            Aucune affectation ne correspond aux critères de recherche.
+          </div>
         </div>
       </transition>
-      <Pagination :donnees="affectations" :current-page="currentPage" :items-per-page="itemsPerPage"
-        :total-pages="totalPages" :go-to-page="goToPage" :previous-page="previousPage" :next-page="nextPage" />
+      
+      <Pagination 
+        :donnees="filteredAffectations" 
+        :current-page="currentPage" 
+        :items-per-page="itemsPerPage"
+        :total-pages="totalPages" 
+        :go-to-page="goToPage" 
+        :previous-page="previousPage" 
+        :next-page="nextPage" 
+      />
     </div>
   </PageAnalyse>
-</template>
-<style lang="scss" scoped>
+</template><style lang="scss" scoped>
 .main {
   @include position-contenus(flex, center, center);
-  padding: 32px;
+  padding: 0 32px;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;
@@ -205,6 +240,7 @@ onMounted(
 }
 
 .Count-content {
+  display: flex;
   background-color: transparent;
   color: #4A4A4A;
   font-family: Stara;
@@ -229,11 +265,11 @@ onMounted(
 }
 
 .text-green {
-  @include text-xs($stara, $vert)
+  @include text-xs($stara-medium, $vert)
 }
 
 .text-red {
-  @include text-xs($stara, $rouge)
+  @include text-xs($stara-medium, $rouge)
 }
 
 .fade-enter-active,
@@ -314,7 +350,7 @@ onMounted(
 .sugg-list {
   cursor: pointer;
   border-bottom: 1px solid #C5C5C5;
-  font-family: $stara;
+  font-family: $stara-medium;
   font-size: 12px;
   list-style: none;
   padding-left: 0;
@@ -338,5 +374,13 @@ onMounted(
 
 .suggestion::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+.filtres{
+  @include position-contenus(flex, flex-start, center);
+  padding: 0 0;
+  align-self: self-start;
+  // background-color: #fff;
+  gap: 10px;
+  width: 100%;
 }
 </style>

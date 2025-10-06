@@ -10,74 +10,74 @@ defineProps({
 <style lang="scss" scoped>
 
 .text-thin-dark{
-    @include text-xs($stara, $dark);
+    @include text-xs($stara-medium, $dark);
 }
 .text-thin-error{
-    @include text-xs($stara, $rouge);
+    @include text-xs($stara-medium, $rouge);
 }
 .text-thin-success{
-    @include text-xs($stara, $vert);
+    @include text-xs($stara-medium, $vert);
 }
 .text-thin-primary{
-    @include text-xs($stara, $primary);
+    @include text-xs($stara-medium, $primary);
 }
 .text-thin-light{
-    @include text-xs($stara, $light);
+    @include text-xs($stara-medium, $light);
 }
 
 .text-dark{
-    @include text-pm($stara, $dark);
+    @include text-pm($stara-medium, $dark);
 }
 .text-error{
-    @include text-pm($stara, $rouge);
+    @include text-pm($stara-medium, $rouge);
 }
 .text-success{
-    @include text-pm($stara, $vert);
+    @include text-pm($stara-medium, $vert);
 }
 .text-primary{
-    @include text-pm($stara, $primary);
+    @include text-pm($stara-medium, $primary);
 }
 .text-light{
-    @include text-pm($stara, $light);
+    @include text-pm($stara-medium, $light);
 }
 
 .text-bold-dark{
-    @include text-gm($stara, $dark);
+    @include text-gm($stara-medium, $dark);
 }
 .text-bold-success{
-    @include text-gm($stara, $vert);
+    @include text-gm($stara-medium, $vert);
 }
 .text-bold-primary{
-    @include text-gm($stara, $primary);
+    @include text-gm($stara-medium, $primary);
 }
 .text-bold-light{
-    @include text-gm($stara, $light);
+    @include text-gm($stara-medium, $light);
 }
 
 .text-black-error{
-    @include text-xl($stara, $rouge);
+    @include text-xl($stara-medium, $rouge);
 }
 .text-black-dark{
-    @include text-xl($stara, $dark);
+    @include text-xl($stara-medium, $dark);
 }
 .text-black-success{
-    @include text-xl($stara, $vert);
+    @include text-xl($stara-medium, $vert);
 }
 .text-black-primary{
-    @include text-xl($stara, $primary);
+    @include text-xl($stara-medium, $primary);
 }
 .text-black-light{
-    @include text-xl($stara, $light);
+    @include text-xl($stara-medium, $light);
 }
 
 .text-title-light{
-    @include title-xl($stara, $light);
+    @include title-xl($stara-medium, $light);
 }
 .text-title-dark{
-    @include title-xl($stara, $dark);
+    @include title-xl($stara-medium, $dark);
 }
 .text-xl-dark{
-    @include title($stara, $dark);
+    @include title($stara-medium, $dark);
 }
 
 

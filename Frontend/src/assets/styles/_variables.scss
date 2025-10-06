@@ -1,4 +1,36 @@
 // couleurs
+@font-face {
+    font-family: 'stara-medium';
+    src: url('/fonts/Stara-Medium.woff2') format('woff2'),
+         url('/fonts/Stara-Medium.woff') format('woff');
+    // font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'stara-bold';
+    src: url('/fonts/Stara-Bold.woff2') format('woff2'),
+         url('/fonts/Stara-Bold.woff') format('woff');
+    // font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'stara-black';
+    src: url('/fonts/Stara-Black.woff2') format('woff2'),
+         url('/fonts/Stara-Black.woff') format('woff');
+    // font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'stara-semibold';
+    src: url('/fonts/Stara-SemiBold.woff2') format('woff2'),
+         url('/fonts/Stara-SemiBold.woff') format('woff');
+    // font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+}
 
 $primary:#053170;
 $secondary:#0136D4;
@@ -15,7 +47,11 @@ $radius-gm: 50px;
 
 // font
 
-$stara: 'stara', sans-serif;
+$stara-medium: 'stara-medium', sans-serif;
+$stara-bold: 'stara-bold', sans-serif;
+$stara-black: 'stara-black', sans-serif;
+$stara-semibold: 'stara-semibold', sans-serif;
+
 // $ammonite: 'ammonite';
 
 // size

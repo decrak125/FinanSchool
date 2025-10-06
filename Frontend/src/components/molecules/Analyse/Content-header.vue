@@ -35,7 +35,7 @@ defineProps({
   .menu{
     margin-top: 0;
     color: $dark;
-    font-family: sans-serif;
+    font-family: $stara-medium;
     font-weight: normal;
     font-size: 14px;
     font-style: normal;
@@ -44,7 +44,7 @@ defineProps({
   .sous-menu{
     margin-top: 0;
     color: $primary;
-    font-family: sans-serif;
+    font-family: $stara-medium;
     font-weight: normal;
     font-size: 14px;
     font-style: normal;
