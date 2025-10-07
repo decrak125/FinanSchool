@@ -316,6 +316,7 @@ const exportToExcel = () => {
     return;
   }
 
+  // 1️⃣ Récupération des données
   const data = [];
   Object.entries(groupedComptes.value).forEach(([mainCode, mainAccount]) => {
     mainAccount.subAccounts.forEach(subAccount => {
@@ -328,11 +329,44 @@ const exportToExcel = () => {
     });
   });
 
-  const ws = XLSX.utils.json_to_sheet(data);
+  // 2️⃣ Création d’un tableau pour le titre et les détails
+  const today = new Date().toLocaleDateString('fr-FR');
+  const title = [["💼 BALANCE GÉNÉRALE"]];
+  const details = [
+    [`Date d'export : ${today}`],
+    [""]
+  ];
+
+  // 3️⃣ Convertir le tableau principal en sheet
+  const dataSheet = XLSX.utils.json_to_sheet(data, { origin: -1 });
+
+  // 4️⃣ Fusion des éléments dans un seul tableau
+  const ws = XLSX.utils.aoa_to_sheet([...title, ...details]);
+  XLSX.utils.sheet_add_json(ws, data, { origin: -1, skipHeader: false });
+
+  // 5️⃣ Ajustement de la largeur des colonnes
+  const colWidths = [
+    { wch: 15 }, // Compte
+    { wch: 35 }, // Libellé
+    { wch: 15 }, // Débit
+    { wch: 15 }, // Crédit
+  ];
+  ws['!cols'] = colWidths;
+
+  // 6️⃣ Ajout d’un peu de style (fusion + alignement)
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } } // Fusion du titre sur 4 colonnes
+  ];
+
+  // 7️⃣ Création du classeur et écriture du fichier
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Balance_Generale");
-  XLSX.writeFile(wb, `balance_generale_${new Date().toISOString().split("T")[0]}.xlsx`);
+  XLSX.writeFile(
+    wb,
+    `balance_generale_${new Date().toISOString().split("T")[0]}.xlsx`
+  );
 };
+
 
 const goBack = () => {
   router.push("/journal");

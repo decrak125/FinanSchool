@@ -243,6 +243,16 @@ const exportToPDF = () => {
 }
 
 const exportToExcel = () => {
+  if (!filteredGrandLivres.value || filteredGrandLivres.value.length === 0) {
+    alert("Aucune donnée à exporter !");
+    return;
+  }
+
+  // Récupération du libellé depuis les données si non défini
+  const firstEntry = filteredGrandLivres.value[0] || {};
+  const libelleCompte = firstEntry.libelle_compte || '—';
+
+  // 1️⃣ Données principales
   const data = filteredGrandLivres.value.map((gl) => ({
     'Date Mouvement': formatDate(gl.date_mouvement),
     'Numéro Pièce': gl.numero_piece,
@@ -250,8 +260,9 @@ const exportToExcel = () => {
     'Débit': parseFloat(gl.Debit) || 0,
     'Crédit': parseFloat(gl.Credit) || 0,
     'Solde Progressif': calculateSoldeProgressif(gl, filteredGrandLivres.value)
-  }))
+  }));
 
+  // 2️⃣ Ligne Totaux
   data.push({
     'Date Mouvement': '',
     'Numéro Pièce': '',
@@ -259,13 +270,45 @@ const exportToExcel = () => {
     'Débit': summary.value.total_debit,
     'Crédit': summary.value.total_credit,
     'Solde Progressif': summary.value.solde
-  })
+  });
 
-  const ws = XLSX.utils.json_to_sheet(data)
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, `Compte_${currentCompte.value}`)
-  XLSX.writeFile(wb, `grand_livre_${currentCompte.value}_${new Date().toISOString().split('T')[0]}.xlsx`)
-}
+  // 3️⃣ Feuille Excel
+  const ws = XLSX.utils.aoa_to_sheet([]);
+
+  // ✅ Titre et détails
+  const titre = [`GRAND LIVRE DU COMPTE ${currentCompte.value}`];
+  const details = [
+    [`Compte : ${currentCompte.value}`],
+    [`Libellé : ${libelleCompte}`],
+    [`Date d’export : ${new Date().toLocaleDateString('fr-FR')}`],
+    [''] // ligne vide
+  ];
+
+  // Ajout du titre et des détails dans la feuille
+  XLSX.utils.sheet_add_aoa(ws, [titre], { origin: 'A1' });
+  XLSX.utils.sheet_add_aoa(ws, details, { origin: 'A3' });
+
+  // ✅ Données comptables à partir de la ligne 8
+  XLSX.utils.sheet_add_json(ws, data, { origin: 'A8', skipHeader: false });
+
+  // ✅ Ajustement automatique des colonnes
+  const colWidths = Object.keys(data[0]).map((key) => ({
+    wch: Math.max(key.length + 5, 15)
+  }));
+  ws['!cols'] = colWidths;
+
+  // ✅ Création du classeur
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, `Compte_${currentCompte.value}`);
+
+  // ✅ Téléchargement
+  const fileName = `Grand_Livre_${currentCompte.value}_${new Date()
+    .toISOString()
+    .split('T')[0]}.xlsx`;
+
+  XLSX.writeFile(wb, fileName);
+};
+
 
 const debounceSearch = debounce((val) => {
   filters.value.search = val

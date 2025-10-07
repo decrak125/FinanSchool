@@ -221,6 +221,12 @@ const exportToPDF = () => {
 };
 
 const exportToExcel = () => {
+  if (!ecritures.value || ecritures.value.length === 0) {
+    alert("Aucune écriture à exporter !");
+    return;
+  }
+
+  // 1️⃣ Données principales
   const data = ecritures.value.map(ecriture => ({
     'Date Mouvement': ecriture.mouvement ? new Date(ecriture.mouvement.Date_mouvement).toLocaleDateString('fr-FR') : '-',
     'N° Pièce': ecriture.mouvement ? ecriture.mouvement.Numero_piece : '-',
@@ -228,17 +234,55 @@ const exportToExcel = () => {
     'Libellé': ecriture.Libelle || '-',
     'Référence': ecriture.Reference || '-',
     'Mode Paiement': ecriture.mode_paiement ? ecriture.mode_paiement.Libelle : '-',
-    'Débit': ecriture.Debit ? formatNumber(ecriture.Debit) : '-',
-    'Crédit': ecriture.Credit ? formatNumber(ecriture.Credit) : '-',
+    'Débit': ecriture.Debit ? parseFloat(ecriture.Debit) : 0,
+    'Crédit': ecriture.Credit ? parseFloat(ecriture.Credit) : 0,
   }));
+
+  // 2️⃣ Ligne de totaux
   data.push({
-    'Date Mouvement': '', 'N° Pièce': '', 'Compte': '', 'Libellé': '', 'Référence': '', 'Mode Paiement': 'Totaux :',
-    'Débit': formatNumber(totalDebit.value), 'Crédit': formatNumber(totalCredit.value)
+    'Date Mouvement': '',
+    'N° Pièce': '',
+    'Compte': '',
+    'Libellé': '',
+    'Référence': '',
+    'Mode Paiement': 'TOTAUX',
+    'Débit': totalDebit.value,
+    'Crédit': totalCredit.value
   });
-  const ws = XLSX.utils.json_to_sheet(data);
+
+  // 3️⃣ Feuille Excel
+  const ws = XLSX.utils.aoa_to_sheet([]);
+
+  // ✅ Titre et détails
+  const titre = [`JOURNAL DES ÉCRITURES N° ${journalId.value}`];
+  const details = [
+    [`Journal ID : ${journalId.value}`],
+    [`Date d’export : ${new Date().toLocaleDateString('fr-FR')}`],
+    [''] // ligne vide
+  ];
+
+  // Ajout du titre et des détails
+  XLSX.utils.sheet_add_aoa(ws, [titre], { origin: 'A1' });
+  XLSX.utils.sheet_add_aoa(ws, details, { origin: 'A3' });
+
+  // ✅ Données à partir de la ligne 7
+  XLSX.utils.sheet_add_json(ws, data, { origin: 'A7', skipHeader: false });
+
+  // ✅ Ajustement automatique des colonnes
+  const colWidths = Object.keys(data[0]).map((key) => ({
+    wch: Math.max(key.length + 5, 15)
+  }));
+  ws['!cols'] = colWidths;
+
+  // 4️⃣ Création du classeur et téléchargement
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, `Journal_${journalId.value}`);
-  XLSX.writeFile(wb, `ecritures_journal_${journalId.value}_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+  const fileName = `Journal_${journalId.value}_${new Date()
+    .toISOString()
+    .split('T')[0]}.xlsx`;
+
+  XLSX.writeFile(wb, fileName);
 };
 
 const goBack = () => {
