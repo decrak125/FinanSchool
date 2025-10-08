@@ -87,7 +87,7 @@ const donneesRef = toRef(props, 'donnees')
 <style lang="scss" scoped>
 .pagination{
   @include position-contenus(flex, center, center);
-  padding: 10px;
+  // padding: 10px;
   gap: 5px;
 }
 

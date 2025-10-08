@@ -24,6 +24,9 @@ defineProps({
 .text-thin-light{
     @include text-xs($stara-medium, $light);
 }
+.text-thin-warning{
+    @include text-xs($stara-medium, $jaune);
+}
 
 .text-dark{
     @include text-pm($stara-medium, $dark);

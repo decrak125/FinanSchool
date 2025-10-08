@@ -176,6 +176,12 @@ const filteredCount = computed(() => {
                 {{ type.code }}
               </option>
             </FilterSelect>
+            <BoutonIcon 
+              v-if="searchTerm || selectedAxe || selectedType"
+              @click="resetFilters" 
+              type="cancel" 
+              :icon-name="'x-lg'"
+            />
             <!-- <i @click="resetFilters" class="bi bi-x-circle-fill"></i> -->
       </div>
       <!-- Tableau des axes - utilise donneesPagination qui vient maintenant de filteredCentres -->
@@ -200,8 +206,11 @@ const filteredCount = computed(() => {
               <td class="col">{{ getAxeName(centre.id_axe) }}</td>
               <td class="col">{{ getTypeName(centre.id_type) }}</td>
               <td class="col text-center">
+                <div class="action-content">
                   <BoutonIcon @click="editCentre(centre), openForm = true" icon-name="pen" :type="'edit'" />
-                <BoutonIcon @click="deleteCentre(centre.id_centre)" icon-name="trash" :type="'cancel'" />
+                  <BoutonIcon @click="deleteCentre(centre.id_centre)" icon-name="trash" :type="'cancel'" />
+                </div>
+                
               </td>
             </tr>
           </tbody>
@@ -349,5 +358,10 @@ const filteredCount = computed(() => {
   // background-color: #fff;
   gap: 10px;
   width: 100%;
+}
+.action-content{
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 </style>

@@ -1,1 +1,2 @@
 composer require maatwebsite/excel
+npm install apexcharts vue3-apexcharts

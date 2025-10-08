@@ -17,32 +17,74 @@ import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 import FilterSelect from '@/components/atoms/Filter-select.vue';
 import searchbar from '@/components/atoms/searchbar.vue';
 import Counter from "@/components/atoms/counter.vue";
+import selectTable from "@/components/atoms/select-table.vue";
+import InputTable from "@/components/atoms/Input-table.vue";
+import TextareaTable from "@/components/atoms/Textarea-table.vue";
+import SelectTable from "@/components/atoms/select-table.vue";
 
 const openForm = ref(false);
 const openImport = ref(false);
 const loading = ref(true);
 
 const {
-    affectations, centres, comptes, file, showVentilationForm,
+  affectations, centres, comptes, file, showVentilationForm,
     showDetails, totalTauxClass, isFormValid, hasDuplicateCentres,
     selectedGroup,
-    editingVentilation,
-    form, isEditing, message,
+    editingVentilation, cancelTableModifications, saveTableModifications, removeVentilationFromTable,
+    form, isEditing, message, addVentilationToTable,
     fetchData, save, remove, resetForm, onFileChange, uploadFile,
     searchTerm, suggestions, showSuggestions,
     searchCompte, selectCompte,
     filterSearchTerm,
     filterSelectedCentre,
     filteredAffectations,
-    editVentilation,adjustTauxIfNeeded,
+    editVentilation,
     saveVentilation,
-    removeVentilation,
+    removeVentilation, adjustTauxIfNeeded,
     showVentilationDetails,
+    updateMultipleVentilations,
     editGroup, removeBySousCompte,
+    switchToEditMode, switchToViewMode,detailsMode,
     affectationsGrouped
 } = useAffectations();
 
-// Pagination avec les données groupées
+// Computed pour les données groupées ET filtrées (uniquement pour l'affichage du tableau)
+const filteredAffectationsGrouped = computed(() => {
+  if (filteredAffectations && filteredAffectations.value) {
+    const grouped = {};
+    
+    filteredAffectations.value.forEach(aff => {
+      const key = aff.Id_Sous_compte;
+      if (!grouped[key]) {
+        grouped[key] = {
+          Id_Sous_compte: aff.Id_Sous_compte,
+          Id_Compte: aff.sous_compte?.Id_Compte,
+          Code_sous_compte: aff.sous_compte?.Code_sous_compte,
+          Libelle: aff.sous_compte?.Libelle,
+          ventilations: []
+        };
+      }
+      grouped[key].ventilations.push({
+        id_affectation: aff.id_affectation,
+        id_centre: aff.id_centre,
+        centre_nom: aff.centre?.nom,
+        taux: aff.taux,
+        description: aff.description
+      });
+    });
+    
+    return Object.values(grouped);
+  }
+  
+  return affectationsGrouped.value || [];
+});
+
+// Computed pour TOUTES les données groupées (sans filtre)
+const allAffectationsGrouped = computed(() => {
+  return affectationsGrouped.value || [];
+});
+
+// Pagination avec les données groupées filtrées
 const {
   currentPage,
   itemsPerPage,
@@ -51,8 +93,7 @@ const {
   previousPage,
   nextPage,
   goToPage
-} = usePagination(affectationsGrouped)
-
+} = usePagination(filteredAffectationsGrouped)
 
 // Computed pour le total des taux dans le formulaire
 const totalTauxForm = computed(() => {
@@ -75,11 +116,10 @@ const cancelEdit = () => {
   openForm.value = false;
 };
 
-// Ajouter une ventilation - CORRIGÉE
+// S'assurer que addVentilation fonctionne avec le nouveau design
 const addVentilation = () => {
   if (!form.value.ventilations) form.value.ventilations = [];
   
-  // Calculer le total actuel
   const totalTaux = form.value.ventilations.reduce((sum, v) => {
     return sum + Number(Number(v.taux || 0).toFixed(2));
   }, 0);
@@ -91,7 +131,6 @@ const addVentilation = () => {
     return;
   }
 
-  // Ajouter la nouvelle ventilation avec le taux restant
   form.value.ventilations.push({
     id_centre: null,
     taux: Number(remainingTaux.toFixed(2)),
@@ -108,77 +147,93 @@ const handleSave = async () => {
 };
 
 const openFormPopup = () => {
-  if (!isEditing.value) {
-    resetForm();
-  }
+  resetForm();
   openForm.value = true;
+};
+
+// Réinitialiser les filtres
+const resetFilters = () => {
+  filterSearchTerm.value = '';
+  filterSelectedCentre.value = '';
+};
+
+// Fonction pour afficher les détails avec TOUTES les ventilations
+const showAllVentilations = (group) => {
+  // Trouver le groupe complet dans toutes les données (sans filtre)
+  const completeGroup = allAffectationsGrouped.value.find(
+    g => g.Id_Sous_compte === group.Id_Sous_compte
+  );
+  
+  if (completeGroup) {
+    showVentilationDetails(completeGroup);
+  } else {
+    // Fallback: utiliser le groupe filtré si pas trouvé
+    showVentilationDetails(group);
+  }
 };
 </script>
 
 <template>
   <PageAnalyse>
-    <!-- Popup principal pour créer/modifier les affectations -->
     <transition name="fade">
-      <PopUp v-if="openForm">
-        <form @submit.prevent="handleSave" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
-          <Texte 
-            :texte="isEditing ? 'Modifier les ventilations' : 'Nouvelle affectation'" 
-            :type="'dark'" 
-          />
+  <PopUp v-if="openForm">
+    <div class="creation-popup">
+      <!-- En-tête -->
+      <div class="popuphead">
+        <Texte 
+          :texte="isEditing ? 'Modifier les ventilations de ' + searchTerm : 'Nouvelle affectation'" 
+          :type="'dark'" 
+        />
+      </div>
 
-          <!-- Sélection du compte (seulement en création) -->
-          <div v-if="!isEditing">
-            <Input 
-              type="text" 
-              v-model="searchTerm" 
-              @input="searchCompte" 
-              label="Libellé du compte" 
-              required 
-            />
+      <!-- Recherche de compte (uniquement en création) -->
+      <div v-if="!isEditing" class="compte-search mb-4">
+        <Input 
+          type="text" 
+          v-model="searchTerm" 
+          @input="searchCompte" 
+          label="Libellé du compte" 
+          required 
+        />
 
-            <!-- Suggestions -->
-            <ul v-if="showSuggestions" class="suggestion">
-              <li 
-                v-for="compte in suggestions" 
-                :key="compte.Id_Compte" 
-                @click="selectCompte(compte)" 
-                class="sugg-list"
-              >
-                {{ compte.Code_compte }} - {{ compte.Libelle }}
-              </li>
-            </ul>
-          </div>
+        <ul v-if="showSuggestions" class="suggestion">
+          <li 
+            v-for="compte in suggestions" 
+            :key="compte.Id_Compte" 
+            @click="selectCompte(compte)" 
+            class="sugg-list"
+          >
+            {{ compte.Code_compte }} - {{ compte.Libelle }}
+          </li>
+        </ul>
+      </div>
 
-          <!-- Affichage du compte en mode édition -->
-          <div v-else class="selected-compte">
-            <p class="text-sm font-semibold text-gray-700">Compte sélectionné :</p>
-            <p class="text-lg">{{ searchTerm }}</p>
-          </div>
+      <!-- Affichage du compte sélectionné -->
+      <div v-if="form.Id_Compte && !isEditing" class="selected-compte mb-4">
+       <Texte
+        :texte="searchTerm"
+        :type="'dark'"
+       />
+      </div>
 
-          <!-- Liste des ventilations -->
-          <div class="ventilations-list space-y-4">
-            <div 
-              v-for="(vent, index) in form.ventilations" 
-              :key="index" 
-              class="ventilation-item bg-white p-4 rounded border border-gray-200"
-            >
-              <div class="ventilation-header flex items-center justify-between mb-3">
-                <h3 class="font-semibold text-gray-800">Ventilation {{ index + 1 }}</h3>
-                <button 
-                  type="button" 
-                  @click="removeVentilation(index)" 
-                  class="text-red-500 hover:text-red-700 font-bold text-lg"
-                  :disabled="form.ventilations.length <= 1"
-                  :class="{ 'opacity-50 cursor-not-allowed': form.ventilations.length <= 1 }"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div class="ventilations">
-                <Select 
+      <!-- Tableau des ventilations -->
+      <div class="ventilation-table">
+        <table class="table" id="axesTable" v-if="form.Id_Compte && !isEditing">
+          <thead>
+            <tr>
+              <th class="col">Centre</th>
+              <th class="col">Description</th>
+              <th class="col">Taux</th>
+              <th class="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(vent, index) in form.ventilations" :key="index">
+              <td class="col">
+                <SelectTable 
                   v-model="vent.id_centre" 
-                  :label="'Centre Analytique'"
+                  :label="''"
+                  class="compact-select"
                   required
                 >
                   <option value="" disabled>Sélectionner un centre</option>
@@ -189,108 +244,108 @@ const openFormPopup = () => {
                   >
                     {{ centre.nom }}
                   </option>
-                </Select>
-
-                <Input 
+                </SelectTable>
+              </td>
+              <td class="col">
+                <TextareaTable 
+                  v-model="vent.description" 
+                  :label="''"
+                  placeholder="Description..."
+                  class="compact-input"
+                />
+              </td>
+              <td class="col">
+                <InputTable 
                   type="number" 
                   v-model.number="vent.taux" 
-                  label="Taux (%)" 
+                  :label="''"
                   min="0" 
                   max="100" 
                   step="0.01"
                   required 
-                  class="w-full"
-                  @blur="adjustTauxIfNeeded"
+                  class="compact-input taux-input"
                 />
-                <Textarea 
-                  v-model="vent.description" 
-                  label="Description" 
-                  class="mt-3" 
-                  placeholder="Description de la ventilation..."
+                <span class="percent-symbol">%</span>
+              </td>
+              <td class="col">
+                <BoutonIcon 
+                  @click="removeVentilation(index)" 
+                  icon-name="trash" 
+                  :type="'cancel'" 
+                  title="Supprimer cette ventilation"
+                  :disabled="form.ventilations.length <= 1"
                 />
-              </div>
-            </div>
-          </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot id="footable">
+            <tr>
+              <td class="col">
+              <button 
+                type="button" 
+                @click="addVentilation"
+                class="add-ventilation-btn"
+                :disabled="totalTauxForm >= 100 || !form.Id_Compte"
+                :class="{ 
+                  'opacity-50 cursor-not-allowed': totalTauxForm >= 100 || !form.Id_Compte 
+                }"
+              >
+                + Ajouter un centre
+              </button>
+            </td>
+            <td></td>
+            <td class="col total-cell">
+              <span class="total-label">Total:</span>
+              <span class="total-value" :class="totalTauxClass">
+                {{ totalTauxForm.toFixed(2) }}%
+              </span>
+            </td>
+            <td></td>
+            </tr>
+          </tfoot>
+        </table>
 
-          <!-- Bouton pour ajouter une ventilation -->
-          <div class="flex justify-between items-center">
-            <div class="total-taux">
-              <p class="text-sm font-semibold" :class="totalTauxClass">
-                Total des taux : {{ totalTauxForm.toFixed(2) }}%
-              </p>
-            </div>
-            <button 
-              type="button" 
-              @click="addVentilation"
-              class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition flex items-center gap-2"
-              :disabled="totalTauxForm >= 100"
-              :class="{ 'opacity-50 cursor-not-allowed': totalTauxForm >= 100 }"
-            >
-              <span>+</span>
-              <span>Ajouter un centre</span>
-            </button>
-          </div>
+        <!-- Messages d'information -->
+        <div v-if="totalTauxForm !== 100 && form.Id_Compte" class="taux-warning mt-3">
+          <Texte
+            :texte="'Le total des taux doit être exactement 100%'"
+            :type="'thin-warning'"
+          />
+        </div>
 
-          <!-- Messages d'information -->
-          <div v-if="totalTauxForm !== 100" class="taux-warning">
-            <p class="text-amber-600 text-sm">
-              ⚠️ Le total des taux doit être exactement 100% (actuellement : {{ totalTauxForm.toFixed(2) }}%)
-            </p>
-          </div>
+        <div v-if="hasDuplicateCentres" class="duplicate-warning mt-3">
+          <Texte
+            :texte="'Vous ne pouvez pas avoir plusieurs ventilations pour le même centre'"
+            :type="'thin-error'"
+          />
+        </div>
 
-          <div v-if="hasDuplicateCentres" class="duplicate-warning">
-            <p class="text-red-600 text-sm">
-              ❌ Vous ne pouvez pas avoir plusieurs ventilations pour le même centre
-            </p>
-          </div>
+        <div v-if="!form.Id_Compte && !isEditing" class="compte-warning mt-3">
+          <Texte
+            :texte="`Veuillez d'abord sélectionner un compte`"
+            :type="'thin-warning'"
+          />
 
-          <!-- Boutons d'action -->
-          <div class="btn-form">
-            <Bouton 
-              type="submit"
-              :texte="isEditing ? 'Mettre à jour' : 'Créer'" 
-              redirection=""
-              :disabled="!isFormValid"
-            />
-            <Bouton 
-              @click="cancelEdit" 
-              type="cancel" 
-              :texte="'Annuler'" 
-            />
-          </div>
-        </form>
-      </PopUp>
-    </transition>
+        </div>
+      </div>
 
-    <!-- Popup pour éditer une ventilation individuelle -->
-    <transition name="fade">
-      <PopUp v-if="showVentilationForm">
-        <form @submit.prevent="saveVentilation">
-          <Texte :texte="'Modifier la ventilation'" :type="'dark'" />
-
-          <!-- Centre Analytique -->
-          <Select v-model="editingVentilation.id_centre" :label="'Centre Analytique'" required>
-            <option value="" disabled>Sélectionner un centre</option>
-            <option v-for="centre in centres" :key="centre.id_centre" :value="centre.id_centre">
-              {{ centre.nom }}
-            </option>
-          </Select>
-
-          <!-- Taux -->
-          <Input type="number" v-model="editingVentilation.taux" label="Taux (%)" min="0" max="100" required />
-
-          <!-- Description -->
-          <Textarea v-model="editingVentilation.description" label="Description" />
-
-          <!-- Boutons -->
-          <div class="btn-form">
-            <Bouton type="submit" :texte="'Modifier'" redirection="" />
-            <Bouton @click="showVentilationForm = false; editingVentilation = null; showDetails=true" type="cancel" :texte="'Annuler'" />
-          </div>
-        </form>
-      </PopUp>
-    </transition>
-
+      <!-- Boutons d'action -->
+      <div class="btn-form mt-4">
+        <Bouton 
+          @click="handleSave" 
+          type="input" 
+          :texte="isEditing ? 'Valider' : 'Créer'" 
+          :disabled="!isFormValid"
+        />
+        <Bouton 
+          @click="cancelEdit" 
+          type="cancel" 
+          :texte="'Annuler'" 
+        />
+      </div>
+    </div>
+  </PopUp>
+</transition>
     <!-- Popup pour l'import -->
     <transition name="fade">
       <PopUp v-if="openImport">
@@ -304,13 +359,199 @@ const openFormPopup = () => {
         </div>
       </PopUp>
     </transition>
+    <transition name="fade">
+  <PopUp v-if="showDetails">
+    <div class="details-popup">
+      <!-- En-tête avec bouton d'édition -->
+      <div class="popuphead">
+        <Texte
+          :texte="(detailsMode === 'edit' ? 'Édition des ventilations: ' : 'Détails des ventilations: ') + selectedGroup?.Code_sous_compte + ' - ' + selectedGroup?.Libelle"
+          :type="'dark'" />
+        
+        <!-- Bouton Modifier/Annuler selon le mode -->
+        <div v-if="detailsMode === 'view'">
+          <BoutonIcon 
+            @click="switchToEditMode()" 
+            icon-name="pen" 
+            :type="'edit'" 
+            title="Modifier les ventilations"
+          />
+        </div>
+        <div v-else>
+          
+          <BoutonIcon 
+            @click="cancelTableModifications()" 
+            icon-name="x-lg" 
+            :type="'cancel'" 
+            title="Annuler les modifications"
+          />
+        </div>
+      </div>
+
+      <!-- Contenu selon le mode -->
+      <div class="ventilation-details">
+        <table class="table" id="axesTable">
+          <thead>
+            <tr>
+              <th class="col">Centre</th>
+              <th class="col">Description</th>
+              <th class="col">Taux</th>
+              <th class="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- MODE VISUALISATION -->
+            <template v-if="detailsMode === 'view'">
+              <!-- Afficher TOUTES les ventilations du sous-compte -->
+              <tr v-for="vent in selectedGroup?.ventilations || []" :key="vent.id_affectation">
+                <td class="col">{{ vent.centre_nom }}</td>
+                <td class="col">{{ vent.description }}</td>
+                <td class="col">{{ Number(vent.taux || 0).toFixed(2) }}%</td>
+                <td class="col">
+                  <BoutonIcon 
+                    @click="remove(vent.id_affectation); showDetails=false" 
+                    icon-name="trash" 
+                    :type="'cancel'" 
+                  />
+                </td>
+              </tr>
+            </template>
+
+            <!-- MODE ÉDITION -->
+            <template v-else>
+              <!-- Éditer TOUTES les ventilations du sous-compte -->
+              <tr v-for="(vent, index) in form.ventilations" :key="index">
+                <td class="col">
+                  <selectTable 
+                    v-model="vent.id_centre" 
+                    :label="''"
+                    class="compact-select"
+                  >
+                    <option value="" disabled>Sélectionner un centre</option>
+                    <option 
+                      v-for="centre in centres" 
+                      :key="centre.id_centre" 
+                      :value="centre.id_centre"
+                    >
+                      {{ centre.nom }}
+                    </option>
+                  </selectTable>
+                </td>
+                <td class="col">
+                  <TextareaTable 
+                    v-model="vent.description" 
+                    :label="''"
+                    placeholder="Description..."
+                    class="compact-input"
+                  />
+                </td>
+                <td class="col">
+                  <InputTable 
+                    type="number" 
+                    v-model.number="vent.taux" 
+                    :label="''"
+                    min="0" 
+                    max="100" 
+                    step="0.01"
+                    class="compact-input taux-input"
+                  />
+                  <span class="percent-symbol">%</span>
+                </td>
+                <td class="col">
+                  <BoutonIcon 
+                    @click="removeVentilationFromTable(index)" 
+                    icon-name="trash" 
+                    :type="'cancel'" 
+                    title="Supprimer cette ventilation"
+                    :disabled="form.ventilations.length <= 1"
+                  />
+                </td>
+              </tr>
+            </template>
+          </tbody>
+          <tfoot id="footable">
+            <!-- MODE VISUALISATION -->
+            <template v-if="detailsMode === 'view'">
+              <td class="col">Total</td>
+              <td></td>
+              <td class="col">{{selectedGroup?.ventilations?.reduce((sum, v) => sum + Number(v.taux || 0), 0).toFixed(2)}}%</td>
+              <td></td>
+            </template>
+
+            <!-- MODE ÉDITION -->
+            <template v-else>
+              <td class="col">
+                Total
+              </td>
+              <td></td>
+              <td class="col">
+                <span class="total-value" :class="totalTauxClass">
+                  {{ totalTauxForm.toFixed(2) }}%
+                </span>
+              </td>
+              <td class="col">
+                 
+              </td>
+            </template>
+          </tfoot>
+        </table>
+
+        <!-- Messages d'information (uniquement en mode édition) -->
+        <!-- <div v-if="detailsMode === 'edit'">
+          <div v-if="totalTauxForm !== 100" class="taux-warning mt-3">
+            <p class="text-amber-600 text-sm">
+              ⚠️ Le total des taux doit être exactement 100% (actuellement : {{ totalTauxForm.toFixed(2) }}%)
+            </p>
+          </div>
+
+          <div v-if="hasDuplicateCentres" class="duplicate-warning mt-3">
+            <p class="text-red-600 text-sm">
+              ❌ Vous ne pouvez pas avoir plusieurs ventilations pour le même centre
+            </p>
+          </div>
+        </div> -->
+      </div>
+
+      <!-- Boutons selon le mode -->
+      <div class="btn-form mt-4">
+        <!-- MODE VISUALISATION -->
+        <template v-if="detailsMode === 'view'">
+          <Bouton @click="showDetails = false" type="cancel" :texte="'Fermer'" />
+        </template>
+
+        <!-- MODE ÉDITION -->
+        <template v-else>
+          <div class="action-content">
+            <BoutonIcon
+                    :icon-name="'plus-lg'"
+                    :type="totalTauxForm >= 100 ? 'primary-disabled' : 'primary' "
+                     @click="addVentilationToTable"
+                     :disabled="totalTauxForm >= 100"
+                  />
+            <Bouton 
+            @click="saveTableModifications" 
+            type="input" 
+            :texte="'Valider'" 
+            :disabled="!isFormValid"
+          />
+          <!-- <Bouton 
+            @click="cancelTableModifications" 
+            type="cancel" 
+            :texte="'Annuler'" 
+          /> -->
+        </div>
+        </template>
+      </div>
+    </div>
+  </PopUp>
+</transition>
 
     <div class="main">
       <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Affectation Analytique'" />
       <div class="informations">
         <p class="Count-content">
-          <Counter v-if="affectationsGrouped.length > 0" :number="affectationsGrouped.length" />
-          <Counter v-if="affectationsGrouped.length == 0" :number="0" />
+          <Counter v-if="filteredAffectationsGrouped.length > 0" :number="filteredAffectationsGrouped.length" />
+          <Counter v-if="filteredAffectationsGrouped.length == 0" :number="0" />
           affectations analytique faite(s).
         </p>
         <div class="btn">
@@ -322,13 +563,21 @@ const openFormPopup = () => {
       <!-- Section Filtres -->
       <div class="filtres">
         <searchbar v-model="filterSearchTerm" type="text" placeholder="Code ou libellé du compte..." />
-
+        
         <FilterSelect v-model="filterSelectedCentre" :label="''">
-          <option value="">Centres</option>
+          <option value="">Tous les centres</option>
           <option v-for="centre in centres" :key="centre.id_centre" :value="centre.id_centre">
             {{ centre.nom }}
           </option>
         </FilterSelect>
+        
+        <BoutonIcon 
+        v-if="filterSearchTerm || filterSelectedCentre"
+          @click="resetFilters" 
+          type="cancel" 
+          :icon-name="'x-lg'"
+          class="reset-filter-btn"
+        />
       </div>
 
       <!-- Tableau des affectations -->
@@ -354,11 +603,18 @@ const openFormPopup = () => {
                 <td class="col">{{ group.ventilations.length }}</td>
                 <td class="col">{{group.ventilations.reduce((sum, v) => sum + Number(v.taux || 0), 0).toFixed(2)}}%</td>
                 <td class="col">
-                  <BoutonIcon @click="showVentilationDetails(group)" icon-name="eye" :type="'edit'" />
-                  <BoutonIcon @click="editGroup(group); openForm = true" icon-name="pen" :type="'edit'" />
+                  <div class="action-content">
+                    <!-- Utiliser showAllVentilations au lieu de showVentilationDetails -->
+                    <BoutonIcon @click="showAllVentilations(group)" icon-name="eye" :type="'edit'" />
                   <BoutonIcon
                     @click="removeBySousCompte(group.Id_Sous_compte), showDetails=false" icon-name="trash" :type="'cancel'"
                   />
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="donneesPagination.length === 0 && !loading">
+                <td colspan="5" class="col text-center">
+                  Aucune affectation trouvée
                 </td>
               </tr>
             </tbody>
@@ -367,55 +623,19 @@ const openFormPopup = () => {
       </transition>
 
       <!-- Popup pour voir les détails des ventilations -->
-      <transition name="fade">
-        <PopUp v-if="showDetails">
-          <div class="details-popup">
-            <Texte
-              :texte="'Détails des ventilations: ' + selectedGroup?.Code_sous_compte + ' - ' + selectedGroup?.Libelle"
-              :type="'dark'" />
-            <div class="ventilation-details">
-              <table class="table" id="axesTable">
-                <thead>
-                  <tr>
-                    <th class="col">Centre</th>
-                    <th class="col">Description</th>
-                    <th class="col">Taux</th>
-                    <th class="col">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="vent in selectedGroup?.ventilations || []" :key="vent.id_affectation">
-                    <td class="col">{{ vent.centre_nom }}</td>
-                    <td class="col">{{ vent.description }}</td>
-                    <td class="col">{{ Number(vent.taux || 0).toFixed(2) }}%</td>
-                    <td class="col">
-                      <BoutonIcon @click="editVentilation(vent), showDetails=false" icon-name="pen" :type="'edit'" class="mr-2" />
-                      <BoutonIcon @click="remove(vent.id_affectation), showDetails=false" icon-name="trash" :type="'cancel'" />
-                    </td>
-                  </tr>
-                </tbody>
-                <tfoot id="footable">
-                  <td class="col">Total</td>
-                  <td></td>
-                  <td class="col">{{selectedGroup?.ventilations?.reduce((sum, v) => sum + Number(v.taux || 0), 0).toFixed(2)}}%</td>
-                  <td></td>
-                </tfoot>
-              </table>
-            </div>
 
-            <div class="btn-form">
-              <Bouton @click="showDetails = false" type="cancel" :texte="'Fermer'" />
-            </div>
-          </div>
-        </PopUp>
-      </transition>
-
-      <Pagination :donnees="filteredAffectations" :current-page="currentPage" :items-per-page="itemsPerPage"
-        :total-pages="totalPages" :go-to-page="goToPage" :previous-page="previousPage" :next-page="nextPage" />
+      <Pagination 
+        :donnees="filteredAffectationsGrouped" 
+        :current-page="currentPage" 
+        :items-per-page="itemsPerPage"
+        :total-pages="totalPages" 
+        :go-to-page="goToPage" 
+        :previous-page="previousPage" 
+        :next-page="nextPage" 
+      />
     </div>
   </PageAnalyse>
 </template>
-
 <!-- Le CSS reste identique -->
 <style lang="scss" scoped>
 .main {
@@ -537,7 +757,7 @@ const openFormPopup = () => {
 }
 
 .suggestion {
-  @include position-contenus(flex, center, flex-start);
+  @include position-contenus(flex, flex-start, flex-start);
   flex-direction: column;
   width: 250px;
   gap: 10px;
@@ -548,6 +768,8 @@ const openFormPopup = () => {
   padding: 12px;
   max-height: 250px;
   border: 1px #4A4A4A solid;
+  overflow-y: auto;
+  z-index: 1000;
 }
 
 .sugg-list {
@@ -557,6 +779,12 @@ const openFormPopup = () => {
   font-size: 12px;
   list-style: none;
   padding-left: 0;
+  width: 100%;
+  padding: 8px 4px;
+}
+
+.sugg-list:hover {
+  background-color: #e5e5e5;
 }
 
 .suggestion::-webkit-scrollbar {
@@ -582,16 +810,51 @@ const openFormPopup = () => {
   padding: 0 0;
   align-self: self-start;
   gap: 10px;
-  width: 100%;
+  // width: 100%;
+}
+
+.reset-filter-btn {
+  margin-left: auto;
 }
 
 .ventilations {
   display: flex;
+  background-color: #fff;
+  padding: 0%;
+  margin: 0%;
 }
 
 #footable {
   font-family: $stara-bold;
   font-size: 16px;
   background-color: #f3f3f3;
+}
+
+.popuphead{
+  @include position-contenus();
+  justify-content: space-between;
+}
+
+.action-content{
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.ventilation-item{
+  background-color: $light;
+  padding: 0px;
+  gap: 0px;
+  margin: 0px;
+}
+
+.ventilation-nb{
+  background-color: #5a4949;
+  margin: 0;
+  padding: 0;
+}
+
+.text-center {
+  text-align: center;
 }
 </style>

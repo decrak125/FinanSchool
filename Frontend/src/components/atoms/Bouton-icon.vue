@@ -12,29 +12,39 @@ defineProps({
 
   .button-primary {
     cursor: pointer;
-      @include bouton($primary, $light, $radius-pm, $stara-medium);
+      @include bouton-icon($primary, $light, $radius-pm, $stara-medium);
+      transition: all 0.5s ease-in-out;
+  }
+  .button-primary-disabled {
+    cursor: pointer;
+      @include bouton-icon(#838383, $light, $radius-pm, $stara-medium);
       transition: all 0.5s ease-in-out;
   }
   .button-primary:hover {
-    @include bouton($secondary, $light, $radius-pm, $stara-medium);
+    @include bouton-icon($secondary, $light, $radius-pm, $stara-medium);
   }
 
   .button-edit {
     cursor: pointer;
-      @include bouton(transparent, $jaune, $radius-pm, $stara-medium);
+      @include bouton-icon(transparent, $jaune, $radius-pm, $stara-medium);
       transition: all 0.5s ease-in-out;
   }
   .button-edit:hover {
-    @include bouton($jaune, $light, $radius-pm, $stara-medium);
+    @include bouton-icon($jaune, $light, $radius-pm, $stara-medium);
   }
 
   .button-cancel {
     cursor: pointer;
-      @include bouton(transparent, $rouge, $radius-pm, $stara-medium);
+      @include bouton-icon(transparent, $rouge, $radius-pm, $stara-medium);
       transition: all 0.5s ease-in-out;
   }
   .button-cancel:hover {
-    @include bouton($rouge, $light, $radius-pm, $stara-medium);
+    @include bouton-icon($rouge, $light, $radius-pm, $stara-medium);
+  }
+  .button-disabled {
+    cursor: pointer;
+      @include bouton-icon(transparent, #838383, $radius-pm, $stara-medium);
+      transition: all 0.5s ease-in-out;
   }
   </style>
   

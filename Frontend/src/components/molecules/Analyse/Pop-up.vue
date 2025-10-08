@@ -14,12 +14,13 @@
     // top: 0;
     // left: 0;
     @include position-contenus(flex, center, center);
-    margin-top: 11%;
+    margin-top: 0%;
     width: 82%;
-    height: 65%;
+    height: 85%;
     // box-shadow: 0px 4px 75px 1000px rgba(0, 0, 0, 0.75) inset;
     backdrop-filter: blur(5px);
     z-index: 9999;
+    border-radius: $radius-pm;
     }
 
     .popup-content {

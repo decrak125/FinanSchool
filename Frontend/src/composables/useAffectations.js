@@ -28,6 +28,7 @@ export function useAffectations() {
   // Variables pour les détails
   const showDetails = ref(false);
   const selectedGroup = ref(null);
+  const detailsMode = ref('view'); // 'view' ou 'edit'
 
   // Variables pour l'import
   const file = ref(null);
@@ -108,14 +109,14 @@ export function useAffectations() {
         }
         
         // Pour la création, envoyer chaque ventilation individuellement
-        for (const vent of form.value.ventilations) {
-          await axios.post(`${API_URL}/affectations`, {
-            Id_Compte: form.value.Id_Compte,
-            id_centre: vent.id_centre,
-            taux: vent.taux,
-            description: vent.description
-          });
-        }
+        await axios.post(`${API_URL}/affectations`, {
+        Id_Compte: form.value.Id_Compte,
+        ventilations: form.value.ventilations.map(vent => ({
+          id_centre: vent.id_centre,
+          taux: vent.taux,
+          description: vent.description || ''
+        }))
+      });
       }
       
       resetForm();
@@ -182,6 +183,7 @@ export function useAffectations() {
   // Affichage des détails d'un groupe
   const showVentilationDetails = (group) => {
     selectedGroup.value = group;
+    detailsMode.value = 'view'; // ← Toujours commencer en mode visualisation
     showDetails.value = true;
   };
 
@@ -403,19 +405,110 @@ const adjustTauxIfNeeded = () => {
     form.value.ventilations[lastIndex].taux = Number((100 - autresTaux).toFixed(2));
   }
 };
+// Fonctions pour gérer l'édition dans le tableau
+const addVentilationToTable = () => {
+  if (!form.value.ventilations) form.value.ventilations = [];
+  
+  const totalTaux = form.value.ventilations.reduce((sum, v) => {
+    return sum + Number(Number(v.taux || 0).toFixed(2));
+  }, 0);
+  
+  const remainingTaux = Number((100 - totalTaux).toFixed(2));
+  
+  if (remainingTaux <= 0) {
+    alert("Le total des taux atteint déjà 100% !");
+    return;
+  }
+
+  form.value.ventilations.push({
+    id_centre: null,
+    taux: Number(remainingTaux.toFixed(2)),
+    description: ""
+  });
+};
+
+const removeVentilationFromTable = (index) => {
+  if (form.value.ventilations.length <= 1) {
+    alert("Vous devez avoir au moins une ventilation !");
+    return;
+  }
+
+  const ventilationToRemove = form.value.ventilations[index];
+  
+  if (ventilationToRemove.id_affectation) {
+    if (!confirm("Supprimer cette ventilation de la liste ? Elle sera supprimée de la base de données lors de la sauvegarde.")) {
+      return;
+    }
+  }
+
+  form.value.ventilations.splice(index, 1);
+  
+  // Redistribution automatique
+  const totalActuel = form.value.ventilations.reduce((sum, v) => sum + Number(v.taux || 0), 0);
+  const tauxRestant = 100 - totalActuel;
+  
+  if (tauxRestant > 0 && form.value.ventilations.length > 0) {
+    const derniereIndex = form.value.ventilations.length - 1;
+    form.value.ventilations[derniereIndex].taux = Number(
+      (Number(form.value.ventilations[derniereIndex].taux || 0) + tauxRestant).toFixed(2)
+    );
+  }
+};
+
+const saveTableModifications = async () => {
+  const success = await save();
+  if (success) {
+    switchToViewMode();
+    // Ne pas fermer le popup, juste revenir en mode visualisation
+  }
+};
+
+const cancelTableModifications = () => {
+  switchToViewMode();
+};
+
+// Computed pour le total dans le tableau
+const totalTauxForm = computed(() => {
+  return form.value.ventilations?.reduce((sum, vent) => {
+    return sum + Number(vent.taux || 0);
+  }, 0) || 0;
+});
+const switchToEditMode = () => {
+  if (selectedGroup.value) {
+    editGroup(selectedGroup.value);
+    detailsMode.value = 'edit';
+  }
+};
+
+const switchToViewMode = () => {
+  detailsMode.value = 'view';
+  // Réinitialiser le formulaire si nécessaire
+  if (selectedGroup.value) {
+    // Recharger les données originales si annulation
+    fetchData().then(() => {
+      // Remettre à jour selectedGroup avec les données fraîches
+      const updatedGroup = affectationsGrouped.value.find(
+        group => group.Id_Sous_compte === selectedGroup.value.Id_Sous_compte
+      );
+      if (updatedGroup) {
+        selectedGroup.value = updatedGroup;
+      }
+    });
+  }
+};
 
   return {
-    affectations, centres, comptes, file, showVentilationForm,
+    affectations, centres, comptes, file, showVentilationForm, switchToEditMode, switchToViewMode,
     showDetails, totalTauxClass, isFormValid, hasDuplicateCentres,
     selectedGroup,
-    editingVentilation,
-    form, isEditing, message,
+    editingVentilation, cancelTableModifications, saveTableModifications, removeVentilationFromTable,
+    form, isEditing, message, addVentilationToTable,
     fetchData, save, remove, resetForm, onFileChange, uploadFile,
     searchTerm, suggestions, showSuggestions,
     searchCompte, selectCompte,
     filterSearchTerm,
     filterSelectedCentre,
-    filteredAffectations,
+    filteredAffectations, detailsMode,
     editVentilation,
     saveVentilation,
     removeVentilation, adjustTauxIfNeeded,

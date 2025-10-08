@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class CoutEtProfitController extends Controller
 {
-    // Fonction pour récupérer les montants par centre analytique
+    // Fonction pour récupérer les montants par centre analytique avec taux de ventilation
     public function AnalyseCoutEtProfit(Request $request)
     {
         // Dates paramétrables via l'URL ou valeur par défaut
@@ -20,20 +20,22 @@ class CoutEtProfitController extends Controller
             ->select(
                 'ca.id_centre',
                 'ca.nom as centre',
-                DB::raw('SUM(le."Debit" - le."Credit") as montant'),
-                DB::raw('ROUND(SUM(le."Debit" - le."Credit") * 100.0 / NULLIF(SUM(SUM(le."Debit" - le."Credit")) OVER (), 0), 2) as pourcentage')
+                DB::raw('SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) as montant_ventile'),
+                DB::raw('SUM(le."Debit" - le."Credit") as montant_brut'),
+                DB::raw('ROUND(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) * 100.0 / NULLIF(SUM(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) OVER (), 0), 2) as pourcentage_ventile'),
+                DB::raw('ROUND(SUM(le."Debit" - le."Credit") * 100.0 / NULLIF(SUM(SUM(le."Debit" - le."Credit")) OVER (), 0), 2) as pourcentage_brut')
             )
             ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
             ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
             ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')
             ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd]);
 
-            // Filtrer par centre si fourni
-            if ($idCentre) {
-                $query->where('ca.id_centre', $idCentre);
-            }
+        // Filtrer par centre si fourni
+        if ($idCentre) {
+            $query->where('ca.id_centre', $idCentre);
+        }
 
-            $results = $query
+        $results = $query
             ->groupBy('ca.id_centre', 'ca.nom')
             ->get();
 
@@ -49,9 +51,13 @@ class CoutEtProfitController extends Controller
 
         $query = DB::table('ligne_ecritures as le')
             ->select(
-                'aa.description as centre',
-                DB::raw('SUM(le."Debit" - le."Credit") as montant'),
-                DB::raw('ROUND(SUM(le."Debit" - le."Credit") * 100.0 / NULLIF(SUM(SUM(le."Debit" - le."Credit")) OVER (), 0), 2) as pourcentage')
+                'aa.description as affectation_description',
+                'ca.nom as centre_nom',
+                'aa.taux as taux_ventilation',
+                DB::raw('SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) as montant_ventile'),
+                DB::raw('SUM(le."Debit" - le."Credit") as montant_brut'),
+                DB::raw('ROUND(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) * 100.0 / NULLIF(SUM(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) OVER (), 0), 2) as pourcentage_ventile'),
+                DB::raw('ROUND(SUM(le."Debit" - le."Credit") * 100.0 / NULLIF(SUM(SUM(le."Debit" - le."Credit")) OVER (), 0), 2) as pourcentage_brut')
             )
             ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
             ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
@@ -64,8 +70,68 @@ class CoutEtProfitController extends Controller
         }
 
         $results = $query
-            ->groupBy('aa.description')
-            ->orderByDesc('montant')
+            ->groupBy('aa.description', 'ca.nom', 'aa.taux')
+            ->orderByDesc('montant_ventile')
+            ->get();
+
+        return response()->json($results);
+    }
+
+    // Nouvelle fonction pour analyse détaillée par sous-compte avec ventilation
+    public function AnalyseParSousCompteAvecVentilation(Request $request)
+    {
+        $dateStart = $request->input('date_start', '2025-01-01');
+        $dateEnd   = $request->input('date_end', '2025-12-31');
+        $idCentre  = $request->input('id_centre');
+
+        $query = DB::table('ligne_ecritures as le')
+            ->select(
+                'sc.Code_sous_compte',
+                'sc.Libelle as libelle_sous_compte',
+                'ca.nom as centre_nom',
+                'aa.taux as taux_ventilation',
+                'aa.description as description_ventilation',
+                DB::raw('SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) as montant_ventile'),
+                DB::raw('SUM(le."Debit" - le."Credit") as montant_total_sous_compte'),
+                DB::raw('ROUND((SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) / SUM(le."Debit" - le."Credit")) * 100, 2) as pourcentage_effectif')
+            )
+            ->join('sous_compte as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
+            ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
+            ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
+            ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')
+            ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd]);
+
+        if ($idCentre) {
+            $query->where('ca.id_centre', $idCentre);
+        }
+
+        $results = $query
+            ->groupBy('sc.Code_sous_compte', 'sc.Libelle', 'ca.nom', 'aa.taux', 'aa.description')
+            ->orderBy('sc.Code_sous_compte')
+            ->orderByDesc('montant_ventile')
+            ->get();
+
+        return response()->json($results);
+    }
+
+    // Fonction pour vérifier la cohérence des ventilations
+    public function VerificationVentilations(Request $request)
+    {
+        $dateStart = $request->input('date_start', '2025-01-01');
+        $dateEnd   = $request->input('date_end', '2025-12-31');
+
+        $results = DB::table('sous_compte as sc')
+            ->select(
+                'sc.Code_sous_compte',
+                'sc.Libelle',
+                DB::raw('COALESCE(SUM(aa.taux), 0) as total_taux_ventilation'),
+                DB::raw('COUNT(aa.id_affectation) as nombre_ventilations'),
+                DB::raw('CASE WHEN COALESCE(SUM(aa.taux), 0) = 100 THEN true ELSE false END as ventilation_complete')
+            )
+            ->leftJoin('affectationanalytique as aa', 'sc.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
+            ->groupBy('sc.Code_sous_compte', 'sc.Libelle')
+            ->havingRaw('COUNT(aa.id_affectation) > 0') // Uniquement les sous-comptes avec ventilations
+            ->orderBy('sc.Code_sous_compte')
             ->get();
 
         return response()->json($results);

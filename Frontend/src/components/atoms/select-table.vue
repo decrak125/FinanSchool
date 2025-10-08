@@ -10,9 +10,6 @@ import Texte from './Texte.vue';
 
 <template>
   <div class="select-container">
-    <div class="label">
-      <Texte :type="'dark'" :texte="label"/>
-    </div>
       <select :value="modelValue" @change="$emit('update:modelValue', $event.target.value)" class="select">
         <slot/>
       </select>
@@ -21,14 +18,16 @@ import Texte from './Texte.vue';
   
   <style lang="scss" scoped>
 .select{
-    @include input($dark, $dark, $radius-pm, $stara-medium);
-    width: 250px;
-    // appearance: none;
-    padding-right: 15px;
+    font-family: $stara-medium;
+    color: $dark;
+    border: none !important;
+    outline: none !important;
+    background-color: transparent;
 }
 option{
-    @include input($dark, $dark, $radius-pm, $stara-medium);
+    font-family: $stara-medium;
+    color: $dark;
+    
 }
-
-  </style>
+</style>
   

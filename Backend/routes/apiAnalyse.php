@@ -22,7 +22,24 @@ use App\Http\Controllers\Analyse\CoutEtProfitController;
     Route::post('/import/affectations', [AffectationAnalytiqueController::class, 'import']);
 
     // Analyse cout et profit
-    Route::get('cout-et-profit', [CoutEtProfitController::class, 'AnalyseCoutEtProfit']);
-    Route::get('detail-affectation', [CoutEtProfitController::class, 'AnalyseParAffectation']);
+    Route::prefix('analyse')->group(function () {
+    
+        // Route pour l'analyse des coûts et profits par centre avec ventilation
+        Route::get('/cout-profit', [CoutEtProfitController::class, 'AnalyseCoutEtProfit'])
+             ->name('analyse.cout-profit');
+    
+        // Route pour l'analyse par affectation avec ventilation
+        Route::get('/affectation', [CoutEtProfitController::class, 'AnalyseParAffectation'])
+             ->name('analyse.affectation');
+    
+        // Route pour l'analyse détaillée par sous-compte avec ventilation
+        Route::get('/sous-compte-ventilation', [CoutEtProfitController::class, 'AnalyseParSousCompteAvecVentilation'])
+             ->name('analyse.sous-compte-ventilation');
+    
+        // Route pour la vérification des ventilations
+        Route::get('/verification-ventilations', [CoutEtProfitController::class, 'VerificationVentilations'])
+             ->name('analyse.verification-ventilations');
+    
+    });
 
 
