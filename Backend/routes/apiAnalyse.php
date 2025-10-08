@@ -8,6 +8,8 @@ use App\Http\Controllers\ParametresAnalytique\CentreAnalytiqueController;
 use App\Http\Controllers\ParametresAnalytique\AffectationAnalytiqueController;
 use App\Http\Controllers\Analyse\CoutEtProfitController;
 
+    Route::put('/affectations/multiple', [AffectationAnalytiqueController::class, 'updateMultiple']);
+    Route::delete('/affectations/sous-compte/{id_sous_compte}', [AffectationAnalytiqueController::class, 'destroyBySousCompte']);
     // crud parametres analytiques
     Route::apiResource('axes', AxeAnalytiqueController::class);
     Route::apiResource('types', TypeCentreController::class);

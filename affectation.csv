@@ -1,2 +1,3 @@
-compte;centre;description
-633;cantine;Regroupe les couts de la cantine
+compte;centre;description;taux
+633;cantine;Regroupe les couts de la cantine;40
+633;fournitures;couts fournitures;60

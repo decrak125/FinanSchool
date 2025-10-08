@@ -35,7 +35,7 @@ class AffectationAnalytiqueController extends Controller
             'ventilations.*.taux' => 'required|numeric|min:0|max:100',
             'ventilations.*.description' => 'nullable|string|max:255',
         ]);
-    
+
         // Vérifier que le total des taux = 100%
         $totalTaux = collect($request->ventilations)->sum('taux');
         if (abs($totalTaux - 100) > 0.01) {
@@ -44,31 +44,31 @@ class AffectationAnalytiqueController extends Controller
                 'message' => "Le total des taux doit être égal à 100% (actuellement: $totalTaux%)"
             ], 422);
         }
-    
+
         $sousComptes = SousCompte::where('Id_Compte', $request->Id_Compte)->get();
-        
+
         if ($sousComptes->isEmpty()) {
             return response()->json([
                 'success' => false,
                 'message' => "Aucun sous-compte trouvé pour ce compte"
             ], 422);
         }
-    
+
         $affectations = [];
         $doublons = [];
-    
+
         foreach ($sousComptes as $sous) {
             foreach ($request->ventilations as $ventilation) {
                 $existeDeja = AffectationAnalytique::where('Id_Sous_compte', $sous->Id_Sous_compte)
                     ->where('id_centre', $ventilation['id_centre'])
                     ->exists();
-    
+
                 if ($existeDeja) {
                     $centreNom = CentreAnalytique::find($ventilation['id_centre'])->nom ?? $ventilation['id_centre'];
                     $doublons[] = $sous->Libelle . ' - Centre ' . $centreNom;
                     continue;
                 }
-    
+
                 // Ajouter un log pour déboguer
                 \Log::info('Données reçues:', $request->all());
                 \Log::info('Ventilation données:', $ventilation);
@@ -81,7 +81,7 @@ class AffectationAnalytiqueController extends Controller
                 ]);
             }
         }
-    
+
         $message = count($affectations) . ' affectations créées avec succès';
         if (count($doublons) > 0) {
             $message .= '. ' . count($doublons) . ' doublons ignorés: ' . implode(', ', array_slice($doublons, 0, 5));
@@ -89,7 +89,7 @@ class AffectationAnalytiqueController extends Controller
                 $message .= '...';
             }
         }
-    
+
         return response()->json([
             'success' => true,
             'message' => $message,
@@ -97,26 +97,120 @@ class AffectationAnalytiqueController extends Controller
             'doublons_ignores' => $doublons
         ], 201);
     }
-    /**
+/**
+ * 🔹 Met à jour plusieurs ventilations en même temps pour un SOUS-COMPTE spécifique
+ */
+public function updateMultiple(Request $request)
+{
+    $request->validate([
+        'Id_Sous_compte' => 'required|exists:sous_comptes,Id_Sous_compte', // ← CHANGEMENT ICI
+        'ventilations' => 'required|array|min:1',
+        'ventilations.*.id_affectation' => 'nullable|exists:affectationanalytique,id_affectation',
+        'ventilations.*.id_centre' => 'required|exists:centreanalytique,id_centre',
+        'ventilations.*.taux' => 'required|numeric|min:0|max:100',
+        'ventilations.*.description' => 'nullable|string|max:255',
+    ]);
+
+    // Vérifier que le total des taux = 100%
+    $totalTaux = collect($request->ventilations)->sum('taux');
+    if (abs($totalTaux - 100) > 0.01) {
+        return response()->json([
+            'success' => false,
+            'message' => "Le total des taux doit être égal à 100% (actuellement: $totalTaux%)"
+        ], 422);
+    }
+
+    DB::beginTransaction();
+    try {
+        $results = [
+            'updated' => 0,
+            'created' => 0,
+            'deleted' => 0
+        ];
+
+        // Récupérer les affectations existantes pour ce SOUS-COMPTE spécifique
+        $existingAffectations = AffectationAnalytique::where('Id_Sous_compte', $request->Id_Sous_compte)
+            ->get();
+
+        // Séparer les ventilations à mettre à jour et à créer
+        $ventilationsToUpdate = collect($request->ventilations)->filter(fn($v) => !empty($v['id_affectation']));
+        $ventilationsToCreate = collect($request->ventilations)->filter(fn($v) => empty($v['id_affectation']));
+
+        // 1. Mettre à jour les existantes
+        foreach ($ventilationsToUpdate as $ventilation) {
+            $affectation = $existingAffectations->firstWhere('id_affectation', $ventilation['id_affectation']);
+            if ($affectation) {
+                $affectation->update([
+                    'id_centre' => $ventilation['id_centre'],
+                    'taux' => $ventilation['taux'],
+                    'description' => $ventilation['description'] ?? $affectation->description,
+                ]);
+                $results['updated']++;
+            }
+        }
+
+        // 2. Créer les nouvelles pour le SOUS-COMPTE spécifique
+        foreach ($ventilationsToCreate as $ventilation) {
+            // Vérifier si ça n'existe pas déjà
+            $exists = $existingAffectations
+                ->where('id_centre', $ventilation['id_centre'])
+                ->first();
+
+            if (!$exists) {
+                AffectationAnalytique::create([
+                    'Id_Sous_compte' => $request->Id_Sous_compte, // ← Utiliser le sous-compte spécifique
+                    'id_centre' => $ventilation['id_centre'],
+                    'taux' => $ventilation['taux'],
+                    'description' => $ventilation['description'] ?? 'Ventilation',
+                ]);
+                $results['created']++;
+            }
+        }
+
+        // 3. Supprimer celles qui ne sont plus dans la liste
+        $ventilationIdsToKeep = $ventilationsToUpdate->pluck('id_affectation')->filter();
+        $affectationsToDelete = $existingAffectations->whereNotIn('id_affectation', $ventilationIdsToKeep);
+
+        foreach ($affectationsToDelete as $affectation) {
+            $affectation->delete();
+            $results['deleted']++;
+        }
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => "Mise à jour réussie : {$results['updated']} modifiées, {$results['created']} créées, {$results['deleted']} supprimées",
+            'data' => $results
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'success' => false,
+            'message' => 'Erreur lors de la mise à jour: ' . $e->getMessage()
+        ], 500);
+    }
+}    /**
      * 🔹 Mise à jour d’une affectation : vérifie que le total des taux d’un même sous-compte = 100%
      */
     public function update(Request $request, $id)
     {
         $affectation = AffectationAnalytique::findOrFail($id);
-    
+
         $request->validate([
             'id_centre' => 'required|exists:centreanalytique,id_centre',
             'taux' => 'required|numeric|min:0|max:100',
             'description' => 'nullable|string|max:255',
         ]);
-    
+
         // Mise à jour simple sans vérification de total
         $affectation->update([
             'id_centre' => $request->id_centre,
             'taux' => $request->taux,
             'description' => $request->description ?? $affectation->description,
         ]);
-    
+
         return response()->json([
             'success' => true,
             'message' => 'Ventilation mise à jour avec succès.',
@@ -125,14 +219,91 @@ class AffectationAnalytiqueController extends Controller
     }
 
     /**
-     * 🔹 Suppression d’une affectation
-     */
+ * 🔹 Supprime toutes les affectations d'un sous-compte
+ */
+public function destroyBySousCompte($id_sous_compte)
+{
+    // Vérifier que le sous-compte existe
+    $sousCompte = SousCompte::find($id_sous_compte);
+    if (!$sousCompte) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Sous-compte non trouvé'
+        ], 404);
+    }
+
+    // Compter le nombre d'affectations à supprimer
+    $count = AffectationAnalytique::where('Id_Sous_compte', $id_sous_compte)->count();
+
+    if ($count === 0) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Aucune affectation trouvée pour ce sous-compte'
+        ], 404);
+    }
+
+    // Supprimer toutes les affectations du sous-compte
+    AffectationAnalytique::where('Id_Sous_compte', $id_sous_compte)->delete();
+
+    return response()->json([
+        'success' => true,
+        'message' => "$count affectation(s) supprimée(s) avec succès pour le sous-compte",
+        'count' => $count
+    ]);
+}
+    /**
+ * 🔹 Suppression avec rééquilibrage intelligent
+    */
     public function destroy($id)
     {
         $affectation = AffectationAnalytique::findOrFail($id);
+
+        $sousCompteId = $affectation->Id_Sous_compte;
+        $tauxSupprime = $affectation->taux;
+
         $affectation->delete();
 
-        return response()->json(['message' => 'Affectation supprimée avec succès.']);
+        $affectationsRestantes = AffectationAnalytique::where('Id_Sous_compte', $sousCompteId)->get();
+
+        if ($affectationsRestantes->isEmpty()) {
+            return response()->json([
+                'message' => 'Affectation supprimée avec succès. Aucune ventilation restante.',
+                'rebalanced' => false
+            ]);
+        }
+
+        // Cas 1: Une seule ventilation restante → lui donner 100%
+        if ($affectationsRestantes->count() === 1) {
+            $affectationsRestantes->first()->update(['taux' => 100]);
+            return response()->json([
+                'message' => 'Affectation supprimée avec succès. La ventilation restante a été ajustée à 100%.',
+                'rebalanced' => true
+            ]);
+        }
+
+        // Cas 2: Plusieurs ventilations → répartir équitablement
+        $tauxParAffectation = $tauxSupprime / $affectationsRestantes->count();
+
+        foreach ($affectationsRestantes as $affectationRestante) {
+            $nouveauTaux = round($affectationRestante->taux + $tauxParAffectation, 2);
+            $affectationRestante->update(['taux' => $nouveauTaux]);
+        }
+
+        // Ajustement final pour exactement 100%
+        $totalFinal = AffectationAnalytique::where('Id_Sous_compte', $sousCompteId)->sum('taux');
+        $difference = round(100 - $totalFinal, 2);
+
+        if (abs($difference) > 0.01) {
+            $derniereAffectation = $affectationsRestantes->last();
+            $derniereAffectation->update([
+                'taux' => round($derniereAffectation->taux + $difference, 2)
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Affectation supprimée avec succès. Les taux ont été rééquilibrés automatiquement.',
+            'rebalanced' => true
+        ]);
     }
 
     /**

@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->dropUnique(['Id_Sous_compte']);
 
             // Ajouter la colonne taux avec une valeur par défaut de 100
-            $table->decimal('taux', 5, 2)->comment('Pourcentage du coût affecté (0-100)');
+            $table->decimal('taux', 5, 2)->default(100)->comment('Pourcentage du coût affecté (0-100)');
         });
     }
 

@@ -14,7 +14,8 @@ const token = localStorage.getItem("token");
 
 </script>
 <template >
-    <div class="container" v-if="token">
+    <div class="all">
+      <div class="container" v-if="token">
         <sidebar />
         <div class="main">
             <Header />
@@ -29,6 +30,7 @@ const token = localStorage.getItem("token");
                 <span class="bar"></span>
                 <span class="bar"></span>
             </div>
+    </div>
     </div>
 </template>
 <style lang="scss" scoped>
