@@ -202,7 +202,10 @@ function handleMenuClick(menu) {
 function handleSubmenuClick(submenu) {
   activeMenu.value = submenu.id;
 }
-
+const logout = () => {
+  localStorage.removeItem("token");
+  router.push("/");
+}
 // Initialiser
 onMounted(() => {
   setActiveFromRoute();
@@ -276,6 +279,13 @@ onMounted(() => {
         :redirection="menu.redirection"
         :class="{ active: isMenuActive(menu) }"
         @click="handleMenuClick(menu)"
+      />
+      <!-- LOG OUT -->
+      <SidebarMenu
+        :texte="'Déconnexion'"
+        :icon="'bi bi-door-closed-fill'"
+        :redirection="'/'"
+        @click="logout"
       />
     </div>
   </aside>

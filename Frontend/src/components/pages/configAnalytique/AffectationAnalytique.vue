@@ -23,19 +23,30 @@ const openImport = ref(false);
 const loading = ref(true);
 
 const {
-  affectations, centres, comptes, file,
-  form, isEditing, fileInput, message, importSuccess,
-  fetchData, save, edit, remove, resetForm, onFileChange, uploadFile,
-  searchTerm, suggestions, showSuggestions,
-  searchCompte, selectCompte,
-  // Nouvelles fonctions de filtre
-  filterSearchTerm,
-  filterSelectedCentre,
-  filteredAffectations,
-  resetFilters
+  affectations, centres, comptes, file, showVentilationForm,
+    showDetails, totalTauxClass,isFormValid,hasDuplicateCentres,
+    selectedGroup,
+    editingVentilation,
+    form, isEditing, fileInput, message, importSuccess,
+    fetchData, save, edit, remove, resetForm, onFileChange, uploadFile,
+    searchTerm, suggestions, showSuggestions,
+    searchCompte, selectCompte,
+    // Nouvelles variables et fonctions pour les filtres
+    filterSearchTerm,
+    filterSelectedCentre,
+    filteredAffectations,
+    resetFilters,
+    editVentilation,
+    saveVentilation,
+    removeVentilation,
+    showVentilationDetails,
+    updateMultipleVentilations,
+    editGroup,
+    affectationsGrouped
 } = useAffectations();
 
-// Utilisez filteredAffectations pour la pagination au lieu de affectations
+
+// Modifiez usePagination pour utiliser les données groupées
 const {
   currentPage,
   itemsPerPage,
@@ -47,7 +58,7 @@ const {
   nextPage,
   goToPage,
   resetPagination
-} = usePagination(filteredAffectations)
+} = usePagination(affectationsGrouped) // ← Utilisez affectationsGrouped au lieu de filteredAffectations
 
 // Computed pour le nombre de résultats filtrés
 const filteredCount = computed(() => {
@@ -69,38 +80,202 @@ const cancelEdit = () => {
   resetForm();
   openForm.value = false;
 };
+
+const addVentilation = () => {
+  if (!form.value.ventilations) form.value.ventilations = [];
+  
+  // Arrondir le calcul du total
+  const totalTaux = form.value.ventilations.reduce((sum, v) => {
+    return sum + Number(Number(v.taux || 0).toFixed(2));
+  }, 0);
+  
+  const remainingTaux = Number((100 - totalTaux).toFixed(2));
+  
+  if (remainingTaux <= 0) {
+    alert("Le total des taux atteint déjà 100% !");
+    return;
+  }
+
+  form.value.ventilations.push({
+    id_centre: null,
+    taux: Number(remainingTaux.toFixed(2)), // Arrondir
+    description: ""
+  });
+};
+
 </script>
 
 <template>
   <PageAnalyse>
     <transition name="fade">
       <PopUp v-if="openForm">
-        <form @submit.prevent="save" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
-          <Texte :texte="'Nouvelle affectation.'" :type="'dark'" />
-          <Input v-if="!isEditing" type="text" v-model="searchTerm" @input="searchCompte" label="Libellé du compte" required />
-          <ul v-if="showSuggestions" class="suggestion">
-          <li
-            v-for="compte in suggestions"
-            :key="compte.Id_Compte"
-            @click="selectCompte(compte)"
-            class="sugg-list"
+  <form @submit.prevent="save" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
+    <!-- Titre dynamique -->
+    <Texte 
+      :texte="isEditing ? 'Modifier les ventilations' : 'Nouvelle affectation'" 
+      :type="'dark'" 
+    />
+
+    <!-- 🔹 Sélection du compte (seulement en création) -->
+    <div v-if="!isEditing">
+      <Input 
+        type="text" 
+        v-model="searchTerm" 
+        @input="searchCompte" 
+        label="Libellé du compte" 
+        required 
+      />
+
+      <!-- 🔹 Suggestions -->
+      <ul v-if="showSuggestions" class="suggestion">
+        <li 
+          v-for="compte in suggestions" 
+          :key="compte.Id_Compte" 
+          @click="selectCompte(compte)" 
+          class="sugg-list"
+        >
+          {{ compte.Code_compte }} - {{ compte.Libelle }}
+        </li>
+      </ul>
+    </div>
+
+    <!-- 🔹 Affichage du compte en mode édition -->
+    <div v-else class="selected-compte">
+      <p class="text-sm font-semibold text-gray-700">Compte sélectionné :</p>
+      <p class="text-lg">{{ searchTerm }}</p>
+    </div>
+
+    <!-- 🔹 Liste des ventilations dynamiques -->
+    <div class="ventilations-list space-y-4">
+      <div 
+        v-for="(vent, index) in form.ventilations" 
+        :key="index" 
+        class="ventilation-item bg-white p-4 rounded border border-gray-200"
+      >
+        <div class="ventilation-header flex items-center justify-between mb-3">
+          <h3 class="font-semibold text-gray-800">Ventilation {{ index + 1 }}</h3>
+          <button 
+            type="button" 
+            @click="removeVentilation(index)" 
+            class="text-red-500 hover:text-red-700 font-bold text-lg"
+            :disabled="form.ventilations.length <= 1"
+            :class="{ 'opacity-50 cursor-not-allowed': form.ventilations.length <= 1 }"
           >
-            {{ compte.Code_compte }} - {{ compte.Libelle }}
-          </li>
-          </ul>
-          <div>
-            <Select v-model="form.id_centre" :label="'Centre Analytique'">
-              <option value="" disabled>Sélectionner un centre</option>
-              <option v-for="centre in centres" :key="centre.id_centre" :value="centre.id_centre">
-                {{ centre.nom }}
-              </option>
-            </Select>
-          </div>
-          <Textarea v-model="form.description" label="Description" required />
+            ✕
+          </button>
+        </div>
+
+        <div class="ventilations">
+          <Select 
+            v-model="vent.id_centre" 
+            :label="'Centre Analytique'"
+            required
+          >
+            <option value="" disabled>Sélectionner un centre</option>
+            <option 
+              v-for="centre in centres" 
+              :key="centre.id_centre" 
+              :value="centre.id_centre"
+            >
+              {{ centre.nom }}
+            </option>
+          </Select>
+
+          <Input 
+            type="number" 
+            v-model.number="vent.taux" 
+            label="Taux (%)" 
+            min="0" 
+            max="100" 
+            step="0.01"
+            required 
+            class="w-full"
+          />
+          <Textarea 
+          v-model="vent.description" 
+          label="Description" 
+          class="mt-3" 
+          placeholder="Description de la ventilation..."
+        />
+        </div>
+
+        
+      </div>
+    </div>
+
+    <!-- 🔹 Bouton pour ajouter une ventilation -->
+    <div class="flex justify-between items-center">
+      <div class="total-taux">
+        <p class="text-sm font-semibold" :class="totalTauxClass">
+          Total des taux : {{ totalTaux }}%
+        </p>
+      </div>
+      <button 
+        type="button" 
+        @click="addVentilation"
+        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition flex items-center gap-2"
+        :disabled="totalTaux >= 100"
+        :class="{ 'opacity-50 cursor-not-allowed': totalTaux >= 100 }"
+      >
+        <span>+</span>
+        <span>Ajouter un centre</span>
+      </button>
+    </div>
+
+    <!-- 🔹 Messages d'information -->
+    <div v-if="totalTaux !== 100" class="taux-warning">
+      <p class="text-amber-600 text-sm">
+        ⚠️ Le total des taux doit être exactement 100% (actuellement : {{ totalTaux }}%)
+      </p>
+    </div>
+
+    <div v-if="hasDuplicateCentres" class="duplicate-warning">
+      <p class="text-red-600 text-sm">
+        ❌ Vous ne pouvez pas avoir plusieurs ventilations pour le même centre
+      </p>
+    </div>
+
+    <!-- 🔹 Boutons d'action -->
+    <div class="btn-form">
+      <Bouton 
+        type="input" 
+        :texte="isEditing ? 'Mettre à jour' : 'Créer'" 
+        redirection=""
+        :disabled="!isFormValid"
+      />
+      <Bouton 
+        @click="cancelEdit" 
+        type="cancel" 
+        :texte="'Annuler'" 
+      />
+    </div>
+  </form>
+</PopUp>
+    </transition>
+    <!-- Popup pour éditer une ventilation individuelle -->
+    <transition name="fade">
+      <PopUp v-if="showVentilationForm">
+        <form @submit.prevent="saveVentilation">
+          <Texte :texte="'Modifier la ventilation'" :type="'dark'" />
+
+          <!-- Centre Analytique -->
+          <Select v-model="editingVentilation.id_centre" :label="'Centre Analytique'" required>
+            <option value="" disabled>Sélectionner un centre</option>
+            <option v-for="centre in centres" :key="centre.id_centre" :value="centre.id_centre">
+              {{ centre.nom }}
+            </option>
+          </Select>
+
+          <!-- Taux -->
+          <Input type="number" v-model="editingVentilation.taux" label="Taux (%)" min="0" max="100" required />
+
+          <!-- Description -->
+          <Textarea v-model="editingVentilation.description" label="Description" />
+
+          <!-- Boutons -->
           <div class="btn-form">
-            <Bouton v-if="!isEditing" type="input" :texte="'Créer'" redirection="" />
-            <Bouton v-if="isEditing" type="input" :texte="'Modifier'" redirection="" />
-            <Bouton @click="cancelEdit, openForm = false" type="cancel" :texte="'Annuler'" />
+            <Bouton @click="showDetails=true;" type="input" :texte="'Modifier'" redirection="" />
+            <Bouton @click="showVentilationForm = false; editingVentilation = null; showDetails=true" type="cancel" :texte="'Annuler'" />
           </div>
         </form>
       </PopUp>
@@ -121,38 +296,28 @@ const cancelEdit = () => {
       <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Affectation Analytique'" />
       <div class="informations">
         <p class="Count-content">
-          <Counter v-if="affectations.length>0" :number="affectations.length" />
-          <Counter v-if="affectations.length == 0" :number="0" />
-            affectations analytique faite(s).</p>
+          <Counter v-if="affectationsGrouped.length > 0" :number="affectationsGrouped.length" />
+          <Counter v-if="affectationsGrouped.length == 0" :number="0" />
+          affectations analytique faite(s).
+        </p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
           <Bouton type="primary" texte="Ajouter une Affectation" redirection="" @click="openForm = !openForm" />
         </div>
       </div>
-      
+
       <!-- Section Filtres -->
       <div class="filtres">
-          <!-- Recherche par Code_sous_compte ou Libelle -->
-            <searchbar
-              v-model="filterSearchTerm"
-              type="text"
-              placeholder="Code ou libellé du compte..."
-            />
+        <!-- Recherche par Code_sous_compte ou Libelle -->
+        <searchbar v-model="filterSearchTerm" type="text" placeholder="Code ou libellé du compte..." />
 
-          <!-- Filtre par centre -->
-            <FilterSelect
-              v-model="filterSelectedCentre"
-              :label="''"
-            >
-              <option value="">Centres</option>
-              <option 
-                v-for="centre in centres" 
-                :key="centre.id_centre" 
-                :value="centre.id_centre"
-              >
-                {{ centre.nom }}
-              </option>
-            </FilterSelect>
+        <!-- Filtre par centre -->
+        <FilterSelect v-model="filterSelectedCentre" :label="''">
+          <option value="">Centres</option>
+          <option v-for="centre in centres" :key="centre.id_centre" :value="centre.id_centre">
+            {{ centre.nom }}
+          </option>
+        </FilterSelect>
       </div>
 
 
@@ -161,50 +326,86 @@ const cancelEdit = () => {
         <BoutonLoading :type="'transparent'" />
       </div>
       <transition name="fade">
+        <!-- Tableau des affectations groupées par sous-compte -->
         <div class="content">
           <table class="table" id="axesTable" v-if="!loading">
             <thead>
-              <tr class="">
-                <th class="col">#</th>
-                <th class="col">Compte</th>
-                <th class="col">Centre</th>
-                <th class="col">Description</th>
+              <tr>
+                <th class="col">Code</th>
+                <th class="col">Libellé</th>
+                <th class="col">Nombre de ventilations</th>
+                <th class="col">Total taux</th>
                 <th class="col">Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="aff in donneesPagination" :key="aff.id_affectation">
-                <td class="col">{{ aff.id_affectation }}</td>
-                <td class="col">{{ aff.sous_compte?.Code_sous_compte }} - {{ aff.sous_compte?.Libelle }}</td>
-                <td class="col">{{ aff.centre?.nom }}</td>
-                <td class="col">{{ aff.description }}</td>
+              <tr v-for="group in donneesPagination" :key="group.Id_Sous_compte">
+                <td class="col">{{ group.Code_sous_compte }}</td>
+                <td class="col">{{ group.Libelle }}</td>
+                <td class="col">{{ group.ventilations.length }}</td>
+                <td class="col">{{group.ventilations.reduce((sum, v) => sum + Number(v.taux || 0), 0)}}%</td>
                 <td class="col">
-                  <BoutonIcon @click="edit(aff), openForm = true" icon-name="pen" :type="'edit'" />
-                  <BoutonIcon @click="remove(aff.id_affectation)" icon-name="trash" :type="'cancel'" />
+                  <BoutonIcon @click="showVentilationDetails(group)" icon-name="eye" :type="'edit'" />
+                  <BoutonIcon @click="editGroup(group), openForm = !openForm" icon-name="pen" :type="'edit'" />
                 </td>
               </tr>
             </tbody>
           </table>
-
-          <!-- Message si aucun résultat -->
-          <div v-if="!loading && filteredCount === 0" class="text-center py-8 text-gray-500">
-            Aucune affectation ne correspond aux critères de recherche.
-          </div>
         </div>
       </transition>
-      
-      <Pagination 
-        :donnees="filteredAffectations" 
-        :current-page="currentPage" 
-        :items-per-page="itemsPerPage"
-        :total-pages="totalPages" 
-        :go-to-page="goToPage" 
-        :previous-page="previousPage" 
-        :next-page="nextPage" 
-      />
+      <!-- Popup pour voir les détails des ventilations -->
+      <transition name="fade">
+        <PopUp v-if="showDetails">
+          <div class="details-popup">
+            <Texte
+              :texte="'Détails des ventilations: ' + selectedGroup?.Code_sous_compte + ' - ' + selectedGroup?.Libelle"
+              :type="'dark'" />
+
+            <div class="ventilation-details">
+
+              <table class="table" id="axesTable">
+                <thead>
+                  <tr>
+                    <th class="col">Centre</th>
+                    <th class="col">Description</th>
+                    <th class="col">Taux</th>
+                    <th class="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="vent in selectedGroup?.ventilations || []" :key="vent.id_affectation">
+                    <td class="col">{{ vent.centre_nom }}</td>
+                    <td class="col">{{ vent.description }}</td>
+                    <td class="col">{{ Number(vent.taux || 0) }}%</td>
+                    <td class="col">
+                      <BoutonIcon @click="editVentilation(vent), showDetails=false" icon-name="pen" :type="'edit'" class="mr-2" />
+                      <BoutonIcon @click="remove(vent.id_affectation), showDetails=false" icon-name="trash" :type="'cancel'" />
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot id="footable">
+                  <td class="col">Total</td>
+                  <td></td>
+                  <td class="col">{{selectedGroup?.ventilations?.reduce((sum, v) => sum + Number(v.taux || 0), 0)
+                  }}%</td>
+                  <td></td>
+                </tfoot>
+              </table>
+            </div>
+
+            <div class="btn-form">
+              <Bouton @click="showDetails = false" type="cancel" :texte="'Fermer'" />
+            </div>
+          </div>
+        </PopUp>
+      </transition>
+
+      <Pagination :donnees="filteredAffectations" :current-page="currentPage" :items-per-page="itemsPerPage"
+        :total-pages="totalPages" :go-to-page="goToPage" :previous-page="previousPage" :next-page="nextPage" />
     </div>
   </PageAnalyse>
-</template><style lang="scss" scoped>
+</template>
+<style lang="scss" scoped>
 .main {
   @include position-contenus(flex, center, center);
   padding: 0 32px;
@@ -330,6 +531,7 @@ const cancelEdit = () => {
   @include position-contenus(flex, center, flex-start);
   gap: 10px;
 }
+
 .suggestion {
   @include position-contenus(flex, center, flex-start);
   flex-direction: column;
@@ -347,6 +549,7 @@ const cancelEdit = () => {
   max-height: 250px;
   border: 1px #4A4A4A solid;
 }
+
 .sugg-list {
   cursor: pointer;
   border-bottom: 1px solid #C5C5C5;
@@ -375,12 +578,23 @@ const cancelEdit = () => {
 .suggestion::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
-.filtres{
+
+.filtres {
   @include position-contenus(flex, flex-start, center);
   padding: 0 0;
   align-self: self-start;
   // background-color: #fff;
   gap: 10px;
   width: 100%;
+}
+
+.ventilations {
+  display: flex;
+}
+
+#footable {
+  font-family: $stara-bold;
+  font-size: 16px;
+  background-color: #f3f3f3;
 }
 </style>

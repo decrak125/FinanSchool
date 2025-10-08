@@ -19,6 +19,7 @@ class AffectationAnalytique extends Model
         'Id_Sous_compte',
         'id_centre',
         'description',
+        'taux', // ← Doit être présent
     ];
 
     public function centre()

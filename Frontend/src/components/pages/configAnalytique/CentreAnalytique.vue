@@ -210,9 +210,9 @@ const filteredCount = computed(() => {
       </transition>
 
       <!-- Message si aucun résultat -->
-      <div v-if="filteredCount === 0" class="text-center py-8 text-gray-500">
+      <!-- <div v-if="filteredCount === 0" class="text-center py-8 text-gray-500">
         Aucun centre ne correspond aux critères de recherche.
-      </div>
+      </div> -->
 
       <Pagination 
         :donnees="filteredCentres" 
