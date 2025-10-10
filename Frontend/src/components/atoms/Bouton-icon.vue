@@ -41,6 +41,17 @@ defineProps({
   .button-cancel:hover {
     @include bouton-icon($rouge, $light, $radius-pm, $stara-medium);
   }
+
+  .button-cancel-stroke {
+    cursor: pointer;
+      @include bouton-icon(transparent, $rouge, $radius-pm, $stara-medium);
+      border: 1px solid $rouge;
+      font-size: large;
+      transition: all 0.5s ease-in-out;
+  }
+  .button-cancel-stroke:hover {
+    @include bouton-icon($rouge, $light, $radius-pm, $stara-medium);
+  }
   .button-disabled {
     cursor: pointer;
       @include bouton-icon(transparent, #838383, $radius-pm, $stara-medium);

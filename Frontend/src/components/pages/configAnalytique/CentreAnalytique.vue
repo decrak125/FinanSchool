@@ -270,6 +270,7 @@ const filteredCount = computed(() => {
 }
 
 .Count-content {
+  gap: 5px; 
   display: flex;
   background-color: transparent;
   color: #4A4A4A;

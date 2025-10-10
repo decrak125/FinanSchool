@@ -550,7 +550,7 @@ const showAllVentilations = (group) => {
       <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Affectation Analytique'" />
       <div class="informations">
         <p class="Count-content">
-          <Counter v-if="filteredAffectationsGrouped.length > 0" :number="filteredAffectationsGrouped.length" />
+          <Counter v-if="filteredAffectationsGrouped.length > 0" :number="filteredAffectationsGrouped.length" :format="'number'" />
           <Counter v-if="filteredAffectationsGrouped.length == 0" :number="0" />
           affectations analytique faite(s).
         </p>
@@ -681,6 +681,7 @@ const showAllVentilations = (group) => {
   font-weight: 600;
   line-height: normal;
   margin: 0;
+  gap: 5px;
 }
 
 .file {

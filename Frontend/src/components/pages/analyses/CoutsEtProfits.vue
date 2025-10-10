@@ -1,141 +1,92 @@
 <script setup>
-import { ref, onMounted, computed, watch } from "vue";
-import { useCoutEtProfit } from "@/composables/useCoutEtProfit";
+import { ref, onMounted, computed } from "vue";
+import { useCout } from "@/composables/useCout";
 import PageAnalyse from '@/components/template/Page-analyse.vue';
+import DonutChart from "@/components/atoms/Chart/DonutChart.vue";
+import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
+import Card from "@/components/atoms/Chart/Card.vue";
+import Texte from "@/components/atoms/Texte.vue";
+import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 
 const {
   centresList, filters, centres, affectations, sousComptesVentiles, verificationVentilations,
   fetchCentresList, fetchCentres, fetchAffectations, fetchSousComptesVentiles, fetchVerificationVentilations,
-  formatMontant, formatPourcentage, calculerMontantVentile, statsGlobales, ventilationsIncompletes
-} = useCoutEtProfit();
-
+  formatMontant, formatPourcentage, statsGlobales, type,
+  // 🔥 NOUVEAUX FILTRES
+  centresFiltres,
+  affectationsFiltrees,
+  resetFilters
+} = useCout();
 const selectedCentre = ref('');
-const activeTab = ref('centres'); // 'centres', 'affectations', 'sous-comptes', 'verification'
+const activeTab = ref('centres');
+const showGlobalView = ref(true);
+// 🔥 MODIFICATION : Utiliser les données filtrées pour les charts
+const centresChartData = computed(() => ({
+  data: centresFiltres.value.map(c => parseFloat(c.montant_ventile) || 0),
+  labels: centresFiltres.value.map(c => c.centre),
+  title: 'Coûts ventilés par centres'
+}));
 
-// Données pour les camemberts - ADAPTÉ AVEC VENTILATION
-const chartOptionsCentres = ref({
-  chart: {
-    type: 'pie',
-    width: '100%',
-    height: 350
-  },
-  labels: [],
-  legend: {
-    position: 'bottom'
-  },
-  responsive: [{
-    breakpoint: 480,
-    options: {
-      chart: {
-        width: 300
-      },
-      legend: {
-        position: 'bottom'
-      }
-    }
-  }],
-  title: {
-    text: 'Répartition des coûts ventilés par centre',
-    align: 'center',
-    style: {
-      fontSize: '16px',
-      fontWeight: 'bold'
-    }
-  }
+const affectationsChartData = computed(() => ({
+  data: affectationsFiltrees.value.map(a => parseFloat(a.montant_ventile) || 0),
+  labels: affectationsFiltrees.value.map(a => a.libelle_sous_compte || a.affectation_description || a.centre),
+  title: selectedCentre.value ? `Détails ventilés - ${selectedCentre.value}` : 'Détails des affectations ventilées'
+}));
+
+const sousComptesChartData = computed(() => ({
+  data: sousComptesVentiles.value.map(sc => parseFloat(sc.montant_ventile) || 0),
+  labels: sousComptesVentiles.value.map(sc => sc.libelle_sous_compte),
+  title: selectedCentre.value ? `Sous-comptes - ${selectedCentre.value}` : 'Sous-comptes ventilés'
+}));
+
+const selectedCentreData = computed(() => {
+  if (!selectedCentre.value) return null;
+  return centres.value.find(c => c.centre === selectedCentre.value);
 });
 
-const seriesCentres = ref([]);
+const selectedCentreStats = computed(() => {
+  if (!selectedCentreData.value) return null;
 
-const chartOptionsAffectations = ref({
-  chart: {
-    type: 'pie',
-    width: '100%',
-    height: 350
-  },
-  labels: [],
-  legend: {
-    position: 'bottom'
-  },
-  responsive: [{
-    breakpoint: 480,
-    options: {
-      chart: {
-        width: 300
-      },
-      legend: {
-        position: 'bottom'
-      }
-    }
-  }],
-  title: {
-    text: 'Détails des affectations ventilées',
-    align: 'center',
-    style: {
-      fontSize: '16px',
-      fontWeight: 'bold'
-    }
-  }
+  return {
+    montantVentile: selectedCentreData.value.montant_ventile,
+    montantBrut: selectedCentreData.value.montant_brut,
+    pourcentageVentile: selectedCentreData.value.pourcentage_ventile,
+    pourcentageBrut: selectedCentreData.value.pourcentage_brut
+  };
 });
-
-const seriesAffectations = ref([]);
-
-// Mettre à jour le camembert des centres avec données ventilées
-const updateCentresChart = () => {
-  if (centres.value && centres.value.length > 0) {
-    console.log('Mise à jour chart centres ventilés:', centres.value);
-    chartOptionsCentres.value.labels = centres.value.map(c => c.centre);
-    seriesCentres.value = centres.value.map(c => parseFloat(c.montant_ventile) || 0);
-  } else {
-    console.log('Aucune donnée centres');
-    chartOptionsCentres.value.labels = ['Aucune donnée'];
-    seriesCentres.value = [1];
-  }
-};
-
-// Mettre à jour le camembert des affectations avec données ventilées
-const updateAffectationsChart = (centre) => {
-  selectedCentre.value = centre.centre;
-  if (affectations.value && affectations.value.length > 0) {
-    console.log('Mise à jour chart affectations ventilées:', affectations.value);
-    chartOptionsAffectations.value.labels = affectations.value.map(a => a.affectation_description || a.centre);
-    seriesAffectations.value = affectations.value.map(a => parseFloat(a.montant_ventile) || 0);
-    chartOptionsAffectations.value.title.text = `Détails ventilés - ${centre.centre}`;
-  } else {
-    console.log('Aucune donnée affectations');
-    chartOptionsAffectations.value.labels = ['Aucune donnée'];
-    seriesAffectations.value = [1];
-  }
-};
 
 // Wrapper pour fetchAffectations
 const handleFetchAffectations = async (centre) => {
   await fetchAffectations(centre);
   await fetchSousComptesVentiles(centre);
-  updateAffectationsChart(centre);
+  selectedCentre.value = centre.centre;
+  showGlobalView.value = false;
   activeTab.value = 'affectations';
+  // 🔥 Réinitialiser le filtre de recherche des affectations
+  filters.searchAffectation = "";
 };
 
-// Charger toutes les données
+// Retour à la vue globale
+const handleBackToGlobal = () => {
+  selectedCentre.value = '';
+  showGlobalView.value = true;
+  activeTab.value = 'centres';
+  // 🔥 Réinitialiser les filtres de recherche
+  filters.searchCentre = "";
+  filters.searchAffectation = "";
+};
+
+// 🔥 FONCTION POUR RÉINITIALISER TOUT
+const handleReset = async () => {
+  resetFilters();
+  // Pas besoin d'appeler loadAllData car le watch se déclenche automatiquement
+};
+
+// Charger toutes les données au montage
 const loadAllData = async () => {
   await fetchCentres();
   await fetchVerificationVentilations();
-  updateCentresChart();
 };
-
-// Watch pour mettre à jour automatiquement le graphique centres
-watch(centres, () => {
-  updateCentresChart();
-}, { deep: true });
-
-// Watch pour mettre à jour automatiquement le graphique affectations
-watch(affectations, () => {
-  if (selectedCentre.value) {
-    const centre = centres.value.find(c => c.centre === selectedCentre.value);
-    if (centre) {
-      updateAffectationsChart(centre);
-    }
-  }
-}, { deep: true });
 
 onMounted(async () => {
   await loadAllData();
@@ -145,291 +96,351 @@ onMounted(async () => {
 <template>
   <PageAnalyse>
     <div class="main">
-      <div class="p-6 w-full">
-        <!-- Filtres -->
-        <div class="flex gap-4 mb-6 flex-wrap">
-          <div>
-            <label class="block mb-1">Date début :</label>
-            <input type="date" v-model="filters.dateStart" class="border rounded p-1" />
-          </div>
-          <div>
-            <label class="block mb-1">Date fin :</label>
-            <input type="date" v-model="filters.dateEnd" class="border rounded p-1" />
-          </div>
-          <div>
-            <label class="block mb-1">Centre :</label>
-            <select v-model="filters.idCentre" class="border rounded p-1">
-              <option value="">Tous</option>
-              <option v-for="centre in centresList" :key="centre.id_centre" :value="centre.id_centre">
-                {{ centre.nom }}
-              </option>
-            </select>
-          </div>
-          <div class="self-end">
-            <button @click="loadAllData()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-              Rechercher
-            </button>
-          </div>
+      <!-- Bouton retour vers la vue globale -->
+      <div v-if="!showGlobalView" class="info-lalina">
+        <div class="back-button">
+          <BoutonIcon @click="handleBackToGlobal" icon-name="arrow-left" :type="'cancel-stroke'"
+            :texte="'Retour à la vue globale'" />
         </div>
-
-        <!-- Statistiques globales -->
-        <div v-if="statsGlobales" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <div class="text-blue-600 font-bold text-lg">{{ formatMontant(statsGlobales.totalMontantVentile) }}</div>
-            <div class="text-sm text-blue-800">Total ventilé</div>
-          </div>
-          <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div class="text-gray-600 font-bold text-lg">{{ formatMontant(statsGlobales.totalMontantBrut) }}</div>
-            <div class="text-sm text-gray-800">Total brut</div>
-          </div>
-          <div class="bg-amber-50 p-4 rounded-lg border border-amber-200">
-            <div class="text-amber-600 font-bold text-lg">{{ formatMontant(statsGlobales.difference) }}</div>
-            <div class="text-sm text-amber-800">Différence</div>
-          </div>
-          <div class="bg-green-50 p-4 rounded-lg border border-green-200">
-            <div class="text-green-600 font-bold text-lg">{{ statsGlobales.nombreCentres }}</div>
-            <div class="text-sm text-green-800">Centres actifs</div>
-          </div>
+        <ContentHeader v-if="!showGlobalView && affectations.length > 0" :menu="selectedCentre"
+          :sousmenu="'Répartition des couts'" />
+      </div>
+      <ContentHeader v-else :menu="'Analyse des couts'" :sousmenu="'Répartition des couts'" />
+      
+      <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
+      <div class="flex gap-4 mb-6 flex-wrap items-end">
+        <div>
+          <label class="block mb-1">Date début :</label>
+          <input type="date" v-model="filters.dateStart" class="border rounded p-1" />
         </div>
-
-        <!-- Navigation par onglets -->
-        <div class="mb-6 border-b">
-          <nav class="flex space-x-8">
-            <button
-              @click="activeTab = 'centres'"
-              :class="[
-                'py-2 px-1 border-b-2 font-medium text-sm',
-                activeTab === 'centres'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              ]"
-            >
-              Vue par Centres
-            </button>
-            <button
-              @click="activeTab = 'affectations'"
-              :class="[
-                'py-2 px-1 border-b-2 font-medium text-sm',
-                activeTab === 'affectations'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              ]"
-              :disabled="!selectedCentre"
-            >
-              Détails Affectations
-            </button>
-            <button
-              @click="activeTab = 'sous-comptes'"
-              :class="[
-                'py-2 px-1 border-b-2 font-medium text-sm',
-                activeTab === 'sous-comptes'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              ]"
-              :disabled="!selectedCentre"
-            >
-              Sous-comptes Ventilés
-            </button>
-            <button
-              @click="activeTab = 'verification'"
-              :class="[
-                'py-2 px-1 border-b-2 font-medium text-sm',
-                activeTab === 'verification'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              ]"
-            >
-              Vérification
-              <span v-if="ventilationsIncompletes.length > 0" class="ml-1 bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
-                {{ ventilationsIncompletes.length }}
-              </span>
-            </button>
-          </nav>
+        <div>
+          <label class="block mb-1">Date fin :</label>
+          <input type="date" v-model="filters.dateEnd" class="border rounded p-1" />
         </div>
+        <div>
+          <label class="block mb-1">Centre :</label>
+          <select v-model="filters.idCentre" class="border rounded p-1">
+            <option value="">Tous</option>
+            <option v-for="centre in centresList" :key="centre.id_centre" :value="centre.id_centre">
+              {{ centre.nom }}
+            </option>
+          </select>
+        </div>
+        <!-- 🔥 BOUTON RÉINITIALISER SEULEMENT -->
+        <div>
+          <button @click="handleReset" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+            Réinitialiser
+          </button>
+        </div>
+      </div>
 
-        <!-- Section Graphiques -->
-        <div v-if="activeTab === 'centres'" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <!-- Camembert des centres ventilés -->
-          <div class="bg-white p-4 rounded-lg shadow border">
-            <apexchart
-              type="pie"
-              height="350"
-              :options="chartOptionsCentres"
-              :series="seriesCentres"
-            ></apexchart>
-          </div>
-
-          <!-- Camembert des affectations -->
-          <div class="bg-white p-4 rounded-lg shadow border" v-if="affectations.length > 0">
-            <apexchart
-              type="pie"
-              height="350"
-              :options="chartOptionsAffectations"
-              :series="seriesAffectations"
-            ></apexchart>
-          </div>
-          
-          <!-- Placeholder quand pas d'affectations -->
-          <div class="bg-white p-4 rounded-lg shadow border border-gray-200 flex items-center justify-center" v-else>
-            <div class="text-center text-gray-500">
-              <p class="text-lg">👆</p>
-              <p>Cliquez sur un centre pour voir le détail</p>
+      <!-- 🔥 FILTRES EN TEMPS RÉEL -->
+      <div class="filtres-section">
+        <!-- Filtre pour les centres (vue globale) -->
+        <div v-if="showGlobalView" class="filtre-centre mb-4">
+          <div class="relative">
+            <input 
+              type="text" 
+              v-model="filters.searchCentre" 
+              placeholder="Rechercher un centre, montant..."
+              class="w-80 border rounded p-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <i class="bi bi-search"></i>
             </div>
           </div>
+          <div v-if="filters.searchCentre" class="text-sm text-gray-600 mt-1">
+            {{ centresFiltres.length }} centre(s) trouvé(s)
+          </div>
         </div>
 
-        <!-- Tableau global des centres (Onglet Centres) -->
-        <div v-if="activeTab === 'centres'" class="mb-8">
-          <h2 class="text-xl font-bold mb-3">Coûts ventilés par centre</h2>
-          <table class="w-full border">
-            <thead class="bg-gray-200">
-              <tr>
-                <th class="border p-2">Centre</th>
-                <th class="border p-2">Montant Ventilé</th>
-                <th class="border p-2">Montant Brut</th>
-                <th class="border p-2">% Ventilé</th>
-                <th class="border p-2">% Brut</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="centre in centres"
-                :key="centre.id_centre"
-                class="cursor-pointer hover:bg-gray-100"
-                @click="handleFetchAffectations(centre)"
-              >
-                <td class="border p-2">{{ centre.centre }}</td>
-                <td class="border p-2">{{ formatMontant(centre.montant_ventile) }}</td>
-                <td class="border p-2">{{ formatMontant(centre.montant_brut) }}</td>
-                <td class="border p-2" :class="formatPourcentage(centre.pourcentage_ventile).classe">
-                  {{ formatPourcentage(centre.pourcentage_ventile).valeur }}
-                </td>
-                <td class="border p-2">{{ centre.pourcentage_brut }}%</td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Filtre pour les affectations (vue détaillée) -->
+        <div v-if="!showGlobalView" class="filtre-affectation mb-4">
+          <div class="relative">
+            <input 
+              type="text" 
+              v-model="filters.searchAffectation" 
+              placeholder="Rechercher une affectation, sous-compte, montant..."
+              class="w-80 border rounded p-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <i class="bi bi-search"></i>
+            </div>
+          </div>
+          <div v-if="filters.searchAffectation" class="text-sm text-gray-600 mt-1">
+            {{ affectationsFiltrees.length }} affectation(s) trouvée(s)
+          </div>
         </div>
+      </div>
 
-        <!-- Détails des affectations (Onglet Affectations) -->
-        <div v-if="activeTab === 'affectations' && affectations.length > 0" class="mt-8">
-          <h2 class="text-xl font-bold mb-3">
-            Détails ventilés du centre : {{ selectedCentre }}
-          </h2>
-          <table class="w-full border">
-            <thead class="bg-gray-200">
-              <tr>
-                <th class="border p-2">Description</th>
-                <th class="border p-2">Centre</th>
-                <th class="border p-2">Taux Ventilation</th>
-                <th class="border p-2">Montant Ventilé</th>
-                <th class="border p-2">Montant Brut</th>
-                <th class="border p-2">% Ventilé</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="a in affectations" :key="a.affectation_description">
-                <td class="border p-2">{{ a.affectation_description || 'N/A' }}</td>
-                <td class="border p-2">{{ a.centre_nom }}</td>
-                <td class="border p-2">{{ a.taux_ventilation }}%</td>
-                <td class="border p-2">{{ formatMontant(a.montant_ventile) }}</td>
-                <td class="border p-2">{{ formatMontant(a.montant_brut) }}</td>
-                <td class="border p-2" :class="formatPourcentage(a.pourcentage_ventile).classe">
-                  {{ formatPourcentage(a.pourcentage_ventile).valeur }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <!-- Le reste du template reste identique -->
+      <!-- ... -->
+     <!-- Statistiques globales -->
+      <div class="content">
+        <div class="gauche">
+          <div class="graphic">
+            <div class="cartes" v-if="statsGlobales != null">
+              <div class="hauteur">
+                <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantVentile"
+                  :texte="'Total des couts ventilés.'" :icon="'bi bi-currency-dollar'" :icon-color="'orange'"
+                  :format="'money'" />
+                <Card v-else :chiffre="selectedCentreStats?.montantVentile" :texte="`Coût ventilé - ${selectedCentre}`"
+                  :icon="'bi bi-currency-dollar'" :icon-color="'orange'" :format="'money'" />
 
-        <!-- Sous-comptes ventilés (Onglet Sous-comptes) -->
-        <div v-if="activeTab === 'sous-comptes' && sousComptesVentiles.length > 0" class="mt-8">
-          <h2 class="text-xl font-bold mb-3">
-            Sous-comptes ventilés du centre : {{ selectedCentre }}
-          </h2>
-          <table class="w-full border">
-            <thead class="bg-gray-200">
-              <tr>
-                <th class="border p-2">Code</th>
-                <th class="border p-2">Libellé</th>
-                <th class="border p-2">Taux Ventilation</th>
-                <th class="border p-2">Montant Ventilé</th>
-                <th class="border p-2">Montant Total</th>
-                <th class="border p-2">% Effectif</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="sc in sousComptesVentiles" :key="sc.Code_sous_compte">
-                <td class="border p-2">{{ sc.Code_sous_compte }}</td>
-                <td class="border p-2">{{ sc.libelle_sous_compte }}</td>
-                <td class="border p-2">{{ sc.taux_ventilation }}%</td>
-                <td class="border p-2">{{ formatMontant(sc.montant_ventile) }}</td>
-                <td class="border p-2">{{ formatMontant(sc.montant_total_sous_compte) }}</td>
-                <td class="border p-2" :class="formatPourcentage(sc.pourcentage_effectif).classe">
-                  {{ formatPourcentage(sc.pourcentage_effectif).valeur }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantBrut" :texte="'Total brut.'"
+                  :icon="'bi bi-cash'" :icon-color="'green'" :format="'money'" />
+                <Card v-else :chiffre="selectedCentreStats?.montantBrut" :texte="`Coût brut - ${selectedCentre}`"
+                  :icon="'bi bi-cash'" :icon-color="'green'" :format="'money'" />
+              </div>
+              <div class="hauteur">
+                <Card v-if="showGlobalView" :chiffre="statsGlobales.difference" :texte="'Différence.'"
+                  :icon="'bi bi-calculator-fill'" :icon-color="'grey'" :format="'money'" />
+                <Card v-else :chiffre="selectedCentreStats?.pourcentageVentile" :texte="`% Ventilé - ${selectedCentre}`"
+                  :icon="'bi bi-percent'" :icon-color="'blue'" :format="'percentage'" />
 
-        <!-- Vérification des ventilations (Onglet Vérification) -->
-        <div v-if="activeTab === 'verification'" class="mt-8">
-          <h2 class="text-xl font-bold mb-3">Vérification des ventilations</h2>
-          
-          <div v-if="ventilationsIncompletes.length > 0" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <h3 class="text-lg font-semibold text-red-800 mb-2">
-              ⚠️ {{ ventilationsIncompletes.length }} ventilation(s) incomplète(s)
-            </h3>
-            <p class="text-red-700">
-              Certains sous-comptes n'ont pas une ventilation totale de 100%
-            </p>
+                <Card v-if="showGlobalView" :chiffre="statsGlobales.nombreCentres" :texte="'Centres des couts actifs.'"
+                  :icon="'bi bi-activity'" :icon-color="'green'" />
+                <Card v-else :chiffre="selectedCentreStats?.pourcentageBrut" :texte="`% Brut - ${selectedCentre}`"
+                  :icon="'bi bi-percent'" :icon-color="'purple'" :format="'percentage'" />
+              </div>
+            </div>
+
+            <!-- Section Graphiques -->
+            <div class="donuts">
+              <!-- Vue Globale : Donut de tous les centres -->
+              <div v-if="showGlobalView" class="chart-container">
+                <DonutChart :data="centresChartData.data" :labels="centresChartData.labels"
+                  :title="centresChartData.title" chart-id="chartCentres" :formatter="formatMontant"
+                  :separate-legend="true" :legend-height="'500px'" :height="350" />
+              </div>
+
+              <!-- Vue Détail Centre : Donut des affectations du centre sélectionné -->
+              <div v-if="!showGlobalView && affectationsFiltrees.length > 0" class="chart-container">
+                <DonutChart :data="affectationsChartData.data" :labels="affectationsChartData.labels"
+                  :title="affectationsChartData.title" chart-id="chartAffectations" :formatter="formatMontant"
+                  :separate-legend="true" :legend-height="'500px'" :height="350" />
+              </div>
+
+              <!-- Vue Détail Centre : Donut des sous-comptes du centre sélectionné -->
+              <div v-if="!showGlobalView && sousComptesVentiles.length > 0" class="chart-container">
+                <DonutChart :data="sousComptesChartData.data" :labels="sousComptesChartData.labels"
+                  :title="sousComptesChartData.title" chart-id="chartSousComptes" :formatter="formatMontant"
+                  :separate-legend="true" :legend-height="'500px'" :height="350" type="pie" />
+              </div>
+            </div>
           </div>
 
-          <table class="w-full border">
-            <thead class="bg-gray-200">
-              <tr>
-                <th class="border p-2">Code Sous-compte</th>
-                <th class="border p-2">Libellé</th>
-                <th class="border p-2">Total Taux</th>
-                <th class="border p-2">Nombre Ventilations</th>
-                <th class="border p-2">Statut</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr 
-                v-for="v in verificationVentilations" 
-                :key="v.Code_sous_compte"
-                :class="v.ventilation_complete ? 'bg-green-50' : 'bg-red-50'"
-              >
-                <td class="border p-2">{{ v.Code_sous_compte }}</td>
-                <td class="border p-2">{{ v.Libelle }}</td>
-                <td class="border p-2">{{ v.total_taux_ventilation }}%</td>
-                <td class="border p-2">{{ v.nombre_ventilations }}</td>
-                <td class="border p-2">
-                  <span 
-                    :class="v.ventilation_complete ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-                    class="px-2 py-1 rounded-full text-xs font-medium"
-                  >
-                    {{ v.ventilation_complete ? '✓ Complète' : '✗ Incomplète' }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <!-- Tableau global des centres (visible seulement en vue globale) -->
+          <div v-if="showGlobalView" class="mb-8">
+            <Texte :type="'bold-dark'" :texte="'Coûts ventilés par centre'" />
+            <table class="table" id="axesTable">
+              <thead class="">
+                <tr>
+                  <th class="col">Centre</th>
+                  <th class="col">Montant Ventilé</th>
+                  <th class="col">Montant Brut</th>
+                  <th class="col">% Ventilé</th>
+                  <th class="col">% Brut</th>
+                  <th class="col">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- 🔥 MODIFICATION : Utiliser centresFiltres au lieu de centres -->
+                <tr v-for="centre in centresFiltres" :key="centre.id_centre" class="cursor-pointer hover:bg-gray-100">
+                  <td class="col">{{ centre.centre }}</td>
+                  <td class="col">{{ formatMontant(centre.montant_ventile) }}</td>
+                  <td class="col">{{ formatMontant(centre.montant_brut) }}</td>
+                  <td class="col" :class="formatPourcentage(centre.pourcentage_ventile).classe">
+                    {{ formatPourcentage(centre.pourcentage_ventile).valeur }}
+                  </td>
+                  <td class="col">{{ centre.pourcentage_brut }}%</td>
+                  <td class="col">
+                    <BoutonIcon @click="handleFetchAffectations(centre)" icon-name="eye" :type="'edit'" />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Détails des affectations (visible seulement en vue détaillée) -->
+          <div v-if="!showGlobalView && affectationsFiltrees.length > 0" class="mt-8">
+            <Texte :type="'bold-dark'" :texte="`Détails ventilés du centre : ${selectedCentre}`" />
+            <table class="table" id="axesTable">
+              <thead class="">
+                <tr>
+                  <th class="col">Description</th>
+                  <th class="col">Centre</th>
+                  <th class="col">Taux Ventilation</th>
+                  <th class="col">Montant Ventilé</th>
+                  <th class="col">Montant Brut</th>
+                  <th class="col">% Ventilé</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- 🔥 MODIFICATION : Utiliser affectationsFiltrees au lieu de affectations -->
+                <tr v-for="a in affectationsFiltrees" :key="a.affectation_description">
+                  <td class="col">{{ a.libelle_sous_compte || 'N/A' }}</td>
+                  <td class="col">{{ a.centre_nom }}</td>
+                  <td class="col">{{ a.taux_ventilation }}%</td>
+                  <td class="col">{{ formatMontant(a.montant_ventile) }}</td>
+                  <td class="col">{{ formatMontant(a.montant_brut) }}</td>
+                  <td class="col" :class="formatPourcentage(a.pourcentage_ventile).classe">
+                    {{ formatPourcentage(a.pourcentage_ventile).valeur }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Sous-comptes ventilés (visible seulement en vue détaillée) -->
+          <div v-if="!showGlobalView && sousComptesVentiles.length > 0" class="mt-8">
+            <Texte :type="'bold-dark'" :texte="`Sous-comptes ventilés du centre : ${selectedCentre}`" />
+            <table class="table" id="axesTable">
+              <thead class="">
+                <tr>
+                  <th class="col">Code</th>
+                  <th class="col">Libellé</th>
+                  <th class="col">Taux Ventilation</th>
+                  <th class="col">Montant Ventilé</th>
+                  <th class="col">Montant Total</th>
+                  <th class="col">% Effectif</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="sc in sousComptesVentiles" :key="sc.Code_sous_compte">
+                  <td class="col">{{ sc.Code_sous_compte }}</td>
+                  <td class="col">{{ sc.libelle_sous_compte }}</td>
+                  <td class="col">{{ sc.taux_ventilation }}%</td>
+                  <td class="col">{{ formatMontant(sc.montant_ventile) }}</td>
+                  <td class="col">{{ formatMontant(sc.montant_total_sous_compte) }}</td>
+                  <td class="col" :class="formatPourcentage(sc.pourcentage_effectif).classe">
+                    {{ formatPourcentage(sc.pourcentage_effectif).valeur }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   </PageAnalyse>
 </template>
 
-<style scoped>
-table {
-  border-collapse: collapse;
-}
-</style>
 
 <style lang="scss" scoped>
+.content {
+  @include position-contenus(flex, flex-start, flex-start);
+  overflow-y: auto;
+  width: 100%;
+  max-height: 75vh;
+  ;
+  border-radius: $radius-pm;
+  align-self: stretch;
+}
+
+.content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.content::-webkit-scrollbar-track {
+  background: $light;
+  border-radius: 10px;
+}
+
+.content::-webkit-scrollbar-thumb {
+  background: $gris;
+  border-radius: 10px;
+}
+
+.content::-webkit-scrollbar-thumb:hover {
+  background: $light;
+}
+
+.graphic {
+  @include position-contenus(flex, flex-start, flex-start);
+  padding: 10px 0;
+  align-self: stretch;
+  gap: 32px;
+}
+
+.cartes {
+  @include position-contenus(grid, center, center);
+  padding: 0;
+  gap: 32px;
+}
+
+.hauteur {
+  @include position-contenus(flex, center, center);
+  padding: 0;
+  gap: 32px;
+}
+
+.gauche {
+  @include position-contenus(grid, center, center);
+  gap: 10px;
+}
+
+#axesTable {
+  @include table(#f5f5f5);
+}
+
+.chart-container {
+  width: fit-content;
+  height: fit-content;
+}
+
+.chart-container :deep(.apexcharts-pie-series) path {
+  transition: all 0.3s ease;
+  transform-origin: center;
+}
+
+.chart-container :deep(.apexcharts-pie-series):hover path {
+  transform: scale(1.02);
+  filter: brightness(1.3);
+}
+
+.chart-container :deep(.apexcharts-donut-series) path,
+.chart-container :deep(.apexcharts-pie-series) path {
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
 .main {
+  @include position-contenus(flex, center, center);
+  padding: 0 32px;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 0 0;
+  align-self: stretch;
+  animation: appear 0.6s ease-out forwards;
+}
+
+.informations {
+  @include position-contenus(flex, center, center);
+  padding: 10px 0;
+  align-self: stretch;
+  border-bottom: 1px solid #C5C5C5;
+  gap: 10px;
+}
+
+.filtres {
   @include position-contenus(flex, flex-start, center);
+  padding: 0 0;
+  align-self: self-start;
+  gap: 10px;
+}
+
+.donuts {
+  @include position-contenus(flex, flex-start, flex-start);
+  gap: 32px;
+}
+
+.back-button {
+  margin-top: 20px;
+}
+
+.info-lalina {
+  align-self: baseline;
+  @include position-contenus(flex, center, center);
+  gap: 16px;
 }
 </style>

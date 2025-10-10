@@ -171,6 +171,7 @@ const {
   font-style: normal;
   font-weight: 600;
   line-height: normal;
+  gap: 5px;
   margin: 0;
 }
 

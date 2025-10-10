@@ -29,7 +29,7 @@ use App\Http\Controllers\Analyse\CoutEtProfitController;
              ->name('analyse.cout-profit');
     
         // Route pour l'analyse par affectation avec ventilation
-        Route::get('/affectation', [CoutEtProfitController::class, 'AnalyseParAffectation'])
+        Route::get('/affectation', [CoutEtProfitController::class, 'AnalyseParAffectationFiltree'])
              ->name('analyse.affectation');
     
         // Route pour l'analyse détaillée par sous-compte avec ventilation

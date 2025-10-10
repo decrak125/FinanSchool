@@ -4,68 +4,70 @@ import Header from '@/components/molecules/Analyse/Header.vue';
 
 
 const token = localStorage.getItem("token");
-    
-    if (!token) {
-      window.location.href = "/";
-  }
-  // else {
-  //     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  // }
+
+if (!token) {
+  window.location.href = "/";
+}
+// else {
+//     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+// }
 
 </script>
-<template >
-    <div class="all">
-      <div class="container" v-if="token">
-        <sidebar />
-        <div class="main">
-            <Header />
-            <div class="content">
-                <slot />
-            </div>
+<template>
+  <div class="all">
+    <div class="container" v-if="token">
+      <sidebar />
+      <div class="main">
+        <Header />
+        <div class="content">
+          <slot />
         </div>
+      </div>
     </div>
     <div class="redirection" v-else>
-            <div class="loader">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </div>
+      <div class="loader">
+        <span class="bar"></span>
+        <span class="bar"></span>
+        <span class="bar"></span>
+      </div>
     </div>
-    </div>
+  </div>
 </template>
 <style lang="scss" scoped>
 .container {
-    @include position-contenus(flex, flex-start, center);
+  @include position-contenus(flex, flex-start, center);
+  width: 100%;
+  height: 100%;;
 }
 
 .main {
-    // background-color: #e6e6e6;
-    display: flex;
-    padding: 32px 24px 24px 0;
-    flex-direction: column;
-    align-items: center;
-    gap: 24px;
-    flex: 1 0 0;
-    align-self: stretch;
+  // background-color: #e6e6e6;
+  display: flex;
+  padding: 32px 24px 24px 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  flex: 1 0 0;
+  align-self: stretch;
 }
 
 
 .content {
-    background-color: #f5f5f5;
-    @include position-contenus(block, center, center);
-    flex: 1 0 0;
-    align-self: stretch;
-    border-radius: $radius-pm;
-    
+  background-color: $light;
+  @include position-contenus(block, center, center);
+  flex: 1 0 0;
+  align-self: stretch;
+  border-radius: $radius-pm;
+
 }
 
-/* From Uiverse.io by aryamitra06 */ 
+/* From Uiverse.io by aryamitra06 */
 .loader {
-    width: 100vh;
-    height: 100vh;
-    display: flex;
-    @include position-contenus(flex, center, center);
-    @include position-container();
+  width: 100vh;
+  height: 100vh;
+  display: flex;
+  @include position-contenus(flex, center, center);
+  @include position-container();
 
 }
 
