@@ -159,11 +159,9 @@ export function useCout(type) {
   // 🔥 CORRECTION : statsGlobales UTILISE centresFiltres
   const statsGlobales = computed(() => {
     if (!centresFiltres.value.length) return null;
-
     const totalMontantVentile = centresFiltres.value.reduce((sum, centre) => 
       sum + Number(centre.montant_ventile || 0), 0
     );
-    
     const totalMontantBrut = centresFiltres.value.reduce((sum, centre) => 
       sum + Number(centre.montant_brut || 0), 0
     );

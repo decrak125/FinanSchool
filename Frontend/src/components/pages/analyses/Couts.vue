@@ -114,12 +114,12 @@ onMounted(async () => {
 
       <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
       <div class="filtres">
-        <label class="block mb-1">Date début :</label>
+        <Texte :type="'thin-dark'" :texte="'Du'"/>
         <div>
 
           <FilterInput type="date" v-model="filters.dateStart" />
         </div>
-        <label class="block mb-1">Date fin :</label>
+        <Texte :type="'thin-dark'" :texte="'au'"/>
         <div>
           <FilterInput type="date" v-model="filters.dateEnd" />
           <!-- <input type="date" v-model="filters.dateEnd" class="border rounded p-1" /> -->

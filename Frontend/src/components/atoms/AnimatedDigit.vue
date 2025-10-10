@@ -103,7 +103,7 @@
   .digit-number {
     display: block;
     height: 1em;
-    line-height: 1.45;
+    line-height: 1.4;
     text-align: center;
     font-size: inherit;
     font-weight: 600;
