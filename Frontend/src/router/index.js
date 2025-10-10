@@ -18,7 +18,7 @@ import TypeCentre from "@/components/pages/configAnalytique/TypeCentre.vue";
 import AxeAnalytique from "@/components/pages/configAnalytique/AxeAnalytique.vue";
 import CentreAnalytique from "@/components/pages/configAnalytique/CentreAnalytique.vue";
 import AffectationAnalytique from "@/components/pages/configAnalytique/AffectationAnalytique.vue";
-import CoutsEtProfits from "@/components/pages/analyses/CoutsEtProfits.vue";
+import CoutsEtProfits from "@/components/pages/analyses/Couts.vue";
 import EcritureJournal from "@/components/pages/configuration/EcritureJournal.vue";
 import ListeGrandLivre from "@/components/pages/saisie/ListeGrandLivre.vue";
 import GrandLivre from "@/components/pages/saisie/GrandLivre.vue";

@@ -3,16 +3,14 @@ import axios from "axios";
 
 const API_URL = "http://127.0.0.1:8000/api";
 
-export function useCout() {
+export function useCout(type) {
   const currentYear = new Date().getFullYear();
 
-  // 🔥 TOUS LES FILTRES DANS UN SEUL OBJET
   const filters = ref({
     dateStart: `${currentYear}-01-01`,
     dateEnd: `${currentYear}-12-31`,
     idCentre: "",
-    idType: 1,
-    // 🔥 FILTRES EN TEMPS RÉEL
+    idType: type,
     searchCentre: "",
     searchAffectation: ""
   });
@@ -39,7 +37,7 @@ export function useCout() {
           date_start: filters.value.dateStart,
           date_end: filters.value.dateEnd,
           id_centre: filters.value.idCentre || null,
-          id_type: filters.value.idType,
+          id_type: type,
         },
       });
       centres.value = response.data;
@@ -131,9 +129,10 @@ export function useCout() {
     );
   });
 
-  // 🔥 FONCTION POUR RÉINITIALISER TOUS LES FILTRES
-  const resetFilters = () => {
-    filters.value = {
+  // 🔥 CORRECTION : FONCTION COMPLÈTE POUR RÉINITIALISER
+  const resetFilters = async () => {
+    // Sauvegarder les valeurs par défaut
+    const defaultFilters = {
       dateStart: `${currentYear}-01-01`,
       dateEnd: `${currentYear}-12-31`,
       idCentre: "",
@@ -141,17 +140,31 @@ export function useCout() {
       searchCentre: "",
       searchAffectation: ""
     };
+    
+    // Réinitialiser les filtres
+    filters.value = { ...defaultFilters };
+    
+    // 🔥 FORCER LE RECHARGEMENT DES DONNÉES
+    await fetchCentres();
+    await fetchVerificationVentilations();
+    
+    // Réinitialiser aussi les données de détail si on est en vue détaillée
+    if (selectedCentre.value) {
+      selectedCentre.value = null;
+      affectations.value = [];
+      sousComptesVentiles.value = [];
+    }
   };
 
-  // Computed pour les statistiques globales
+  // 🔥 CORRECTION : statsGlobales UTILISE centresFiltres
   const statsGlobales = computed(() => {
-    if (!centres.value.length) return null;
+    if (!centresFiltres.value.length) return null;
 
-    const totalMontantVentile = centres.value.reduce((sum, centre) => 
+    const totalMontantVentile = centresFiltres.value.reduce((sum, centre) => 
       sum + Number(centre.montant_ventile || 0), 0
     );
     
-    const totalMontantBrut = centres.value.reduce((sum, centre) => 
+    const totalMontantBrut = centresFiltres.value.reduce((sum, centre) => 
       sum + Number(centre.montant_brut || 0), 0
     );
 
@@ -159,7 +172,7 @@ export function useCout() {
       totalMontantVentile,
       totalMontantBrut,
       difference: totalMontantBrut - totalMontantVentile,
-      nombreCentres: centres.value.length,
+      nombreCentres: centresFiltres.value.length,
       nombreAffectations: affectations.value.length,
     };
   });

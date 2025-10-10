@@ -22,10 +22,11 @@ class CoutEtProfitController extends Controller
                 'ca.id_type',
                 'ca.id_centre',
                 'ca.nom as centre',
-                DB::raw('SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) as montant_ventile'),
-                DB::raw('SUM(le."Debit" - le."Credit") as montant_brut'),
-                DB::raw('ROUND(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) * 100.0 / NULLIF(SUM(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) OVER (), 0), 2) as pourcentage_ventile'),
-                DB::raw('ROUND(SUM(le."Debit" - le."Credit") * 100.0 / NULLIF(SUM(SUM(le."Debit" - le."Credit")) OVER (), 0), 2) as pourcentage_brut')
+                // 🔥 CORRECTION : ABS() POUR AVOIR DES MONTANTS POSITIFS
+                DB::raw('ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) as montant_ventile'),
+                DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_brut'),
+                DB::raw('ROUND(ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) * 100.0 / NULLIF(SUM(ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)))) OVER (), 0), 2) as pourcentage_ventile'),
+                DB::raw('ROUND(ABS(SUM(le."Debit" - le."Credit")) * 100.0 / NULLIF(SUM(ABS(SUM(le."Debit" - le."Credit"))) OVER (), 0), 2) as pourcentage_brut')
             )
             ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
             ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
@@ -65,10 +66,11 @@ class CoutEtProfitController extends Controller
                 'aa.taux as taux_ventilation',
                 'sc.Id_Sous_compte as id_sous_compte', // ← AJOUTÉ
                 'sc.Libelle as libelle_sous_compte',   // ← AJOUTÉ
-                DB::raw('SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) as montant_ventile'),
-                DB::raw('SUM(le."Debit" - le."Credit") as montant_brut'),
-                DB::raw('ROUND(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) * 100.0 / NULLIF(SUM(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) OVER (), 0), 2) as pourcentage_ventile'),
-                DB::raw('ROUND(SUM(le."Debit" - le."Credit") * 100.0 / NULLIF(SUM(SUM(le."Debit" - le."Credit")) OVER (), 0), 2) as pourcentage_brut')
+                // 🔥 CORRECTION : ABS() POUR AVOIR DES MONTANTS POSITIFS
+                DB::raw('ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) as montant_ventile'),
+                DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_brut'),
+                DB::raw('ROUND(ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) * 100.0 / NULLIF(SUM(ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)))) OVER (), 0), 2) as pourcentage_ventile'),
+                DB::raw('ROUND(ABS(SUM(le."Debit" - le."Credit")) * 100.0 / NULLIF(SUM(ABS(SUM(le."Debit" - le."Credit"))) OVER (), 0), 2) as pourcentage_brut')
             )
             ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
             ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
@@ -117,11 +119,12 @@ class CoutEtProfitController extends Controller
                 'ca.nom as centre_nom',
                 'aa.taux as taux_ventilation',
                 'aa.description as description_ventilation',
-                DB::raw('SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) as montant_ventile'),
-                DB::raw('SUM(le."Debit" - le."Credit") as montant_total_sous_compte'),
-                DB::raw('ROUND((SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)) / SUM(le."Debit" - le."Credit")) * 100, 2) as pourcentage_effectif')
+                // 🔥 CORRECTION : ABS() POUR AVOIR DES MONTANTS POSITIFS
+                DB::raw('ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) as montant_ventile'),
+                DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_total_sous_compte'),
+                DB::raw('ROUND((ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) / ABS(SUM(le."Debit" - le."Credit"))) * 100, 2) as pourcentage_effectif')
             )
-            ->join('sous_compte as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
+            ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
             ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
             ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
             ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')

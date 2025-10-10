@@ -7,19 +7,23 @@ import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Card from "@/components/atoms/Chart/Card.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
+import searchbar from "@/components/atoms/searchbar.vue";
+import FilterInput from "@/components/atoms/Filter-input.vue";
 
 const {
   centresList, filters, centres, affectations, sousComptesVentiles, verificationVentilations,
   fetchCentresList, fetchCentres, fetchAffectations, fetchSousComptesVentiles, fetchVerificationVentilations,
-  formatMontant, formatPourcentage, statsGlobales, type,
+  formatMontant, formatPourcentage, statsGlobales,
   // 🔥 NOUVEAUX FILTRES
   centresFiltres,
   affectationsFiltrees,
   resetFilters
-} = useCout();
+} = useCout(1);
+
 const selectedCentre = ref('');
 const activeTab = ref('centres');
 const showGlobalView = ref(true);
+
 // 🔥 MODIFICATION : Utiliser les données filtrées pour les charts
 const centresChartData = computed(() => ({
   data: centresFiltres.value.map(c => parseFloat(c.montant_ventile) || 0),
@@ -76,10 +80,12 @@ const handleBackToGlobal = () => {
   filters.searchAffectation = "";
 };
 
-// 🔥 FONCTION POUR RÉINITIALISER TOUT
+// 🔥 CORRECTION : FONCTION POUR RÉINITIALISER TOUT
 const handleReset = async () => {
-  resetFilters();
-  // Pas besoin d'appeler loadAllData car le watch se déclenche automatiquement
+  await resetFilters();
+  // S'assurer qu'on revient à la vue globale
+  showGlobalView.value = true;
+  selectedCentre.value = '';
 };
 
 // Charger toutes les données au montage
@@ -92,7 +98,6 @@ onMounted(async () => {
   await loadAllData();
 });
 </script>
-
 <template>
   <PageAnalyse>
     <div class="main">
@@ -106,76 +111,49 @@ onMounted(async () => {
           :sousmenu="'Répartition des couts'" />
       </div>
       <ContentHeader v-else :menu="'Analyse des couts'" :sousmenu="'Répartition des couts'" />
-      
-      <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
-      <div class="flex gap-4 mb-6 flex-wrap items-end">
-        <div>
-          <label class="block mb-1">Date début :</label>
-          <input type="date" v-model="filters.dateStart" class="border rounded p-1" />
-        </div>
-        <div>
-          <label class="block mb-1">Date fin :</label>
-          <input type="date" v-model="filters.dateEnd" class="border rounded p-1" />
-        </div>
-        <div>
-          <label class="block mb-1">Centre :</label>
-          <select v-model="filters.idCentre" class="border rounded p-1">
-            <option value="">Tous</option>
-            <option v-for="centre in centresList" :key="centre.id_centre" :value="centre.id_centre">
-              {{ centre.nom }}
-            </option>
-          </select>
-        </div>
-        <!-- 🔥 BOUTON RÉINITIALISER SEULEMENT -->
-        <div>
-          <button @click="handleReset" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-            Réinitialiser
-          </button>
-        </div>
-      </div>
 
-      <!-- 🔥 FILTRES EN TEMPS RÉEL -->
-      <div class="filtres-section">
-        <!-- Filtre pour les centres (vue globale) -->
+      <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
+      <div class="filtres">
+        <label class="block mb-1">Date début :</label>
+        <div>
+
+          <FilterInput type="date" v-model="filters.dateStart" />
+        </div>
+        <label class="block mb-1">Date fin :</label>
+        <div>
+          <FilterInput type="date" v-model="filters.dateEnd" />
+          <!-- <input type="date" v-model="filters.dateEnd" class="border rounded p-1" /> -->
+        </div>
         <div v-if="showGlobalView" class="filtre-centre mb-4">
           <div class="relative">
-            <input 
-              type="text" 
-              v-model="filters.searchCentre" 
-              placeholder="Rechercher un centre, montant..."
-              class="w-80 border rounded p-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <i class="bi bi-search"></i>
-            </div>
+            <searchbar v-model="filters.searchCentre" type="text" placeholder="Rechercher un centre, montant..." />
           </div>
-          <div v-if="filters.searchCentre" class="text-sm text-gray-600 mt-1">
+          <!-- <div v-if="filters.searchCentre" class="text-sm text-gray-600 mt-1">
             {{ centresFiltres.length }} centre(s) trouvé(s)
-          </div>
+          </div> -->
         </div>
 
         <!-- Filtre pour les affectations (vue détaillée) -->
         <div v-if="!showGlobalView" class="filtre-affectation mb-4">
           <div class="relative">
-            <input 
-              type="text" 
-              v-model="filters.searchAffectation" 
-              placeholder="Rechercher une affectation, sous-compte, montant..."
-              class="w-80 border rounded p-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <searchbar v-model="filters.searchAffectation" type="text"
+              placeholder="Rechercher une affectation, montant..." />
             <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              <i class="bi bi-search"></i>
             </div>
           </div>
-          <div v-if="filters.searchAffectation" class="text-sm text-gray-600 mt-1">
+          <!-- <div v-if="filters.searchAffectation" class="text-sm text-gray-600 mt-1">
             {{ affectationsFiltrees.length }} affectation(s) trouvée(s)
-          </div>
+          </div> -->
+        </div>
+        <div>
+          <BoutonIcon v-if="filters" @click="handleReset" type="cancel" :icon-name="'x-lg'" class="reset-filter-btn" />
         </div>
       </div>
 
+
       <!-- Le reste du template reste identique -->
       <!-- ... -->
-     <!-- Statistiques globales -->
+      <!-- Statistiques globales -->
       <div class="content">
         <div class="gauche">
           <div class="graphic">
@@ -222,11 +200,11 @@ onMounted(async () => {
               </div>
 
               <!-- Vue Détail Centre : Donut des sous-comptes du centre sélectionné -->
-              <div v-if="!showGlobalView && sousComptesVentiles.length > 0" class="chart-container">
+              <!-- <div v-if="!showGlobalView && sousComptesVentiles.length > 0" class="chart-container">
                 <DonutChart :data="sousComptesChartData.data" :labels="sousComptesChartData.labels"
                   :title="sousComptesChartData.title" chart-id="chartSousComptes" :formatter="formatMontant"
                   :separate-legend="true" :legend-height="'500px'" :height="350" type="pie" />
-              </div>
+              </div> -->
             </div>
           </div>
 
@@ -292,34 +270,6 @@ onMounted(async () => {
             </table>
           </div>
 
-          <!-- Sous-comptes ventilés (visible seulement en vue détaillée) -->
-          <div v-if="!showGlobalView && sousComptesVentiles.length > 0" class="mt-8">
-            <Texte :type="'bold-dark'" :texte="`Sous-comptes ventilés du centre : ${selectedCentre}`" />
-            <table class="table" id="axesTable">
-              <thead class="">
-                <tr>
-                  <th class="col">Code</th>
-                  <th class="col">Libellé</th>
-                  <th class="col">Taux Ventilation</th>
-                  <th class="col">Montant Ventilé</th>
-                  <th class="col">Montant Total</th>
-                  <th class="col">% Effectif</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="sc in sousComptesVentiles" :key="sc.Code_sous_compte">
-                  <td class="col">{{ sc.Code_sous_compte }}</td>
-                  <td class="col">{{ sc.libelle_sous_compte }}</td>
-                  <td class="col">{{ sc.taux_ventilation }}%</td>
-                  <td class="col">{{ formatMontant(sc.montant_ventile) }}</td>
-                  <td class="col">{{ formatMontant(sc.montant_total_sous_compte) }}</td>
-                  <td class="col" :class="formatPourcentage(sc.pourcentage_effectif).classe">
-                    {{ formatPourcentage(sc.pourcentage_effectif).valeur }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
     </div>
@@ -442,5 +392,12 @@ onMounted(async () => {
   align-self: baseline;
   @include position-contenus(flex, center, center);
   gap: 16px;
+}
+
+.filtres {
+  @include position-contenus(flex, flex-start, center);
+  padding: 0 0;
+  align-self: self-start;
+  gap: 10px;
 }
 </style>

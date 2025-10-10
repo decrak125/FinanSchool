@@ -24,16 +24,16 @@ const menuConfig = [
       {
         id: 'repartition_charges',
         texte: 'Répartition des charges',
-        redirection: '/couts-et-profits'
+        redirection: '/couts'
       },
       {
         id: 'repartition_profits',
         texte: 'Répartition des profits',
-        redirection: '#'
+        redirection: '/profits'
       },
       {
-        id: 'ventilation',
-        texte: 'Ventilation',
+        id: 'comparatif',
+        texte: 'Comparatif',
         redirection: '#'
       }
     ]
