@@ -328,6 +328,7 @@ const legendItems = computed(() => {
 
 // Style pour la version séparée
 .chart-with-separate-legend {
+    min-width: none;
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
     @include position-contenus(flex, flex-start, flex-start);
 

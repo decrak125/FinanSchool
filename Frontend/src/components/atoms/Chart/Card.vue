@@ -32,7 +32,8 @@ i{
   flex-shrink: 0;
 }
 .Count-content {
-    width: 300px;
+    max-width: 300px;
+    min-width: 250px;
     height: max-content;
     align-items: center;
     justify-content: center;

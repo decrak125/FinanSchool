@@ -11,7 +11,7 @@ class CentreAnalytiqueController extends Controller
 {
     public function index()
     {
-        return CentreAnalytique::all();
+        return CentreAnalytique::with('type')->get();
     }
 
     public function show($id)

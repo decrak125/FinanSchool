@@ -282,8 +282,7 @@ onMounted(async () => {
   @include position-contenus(flex, flex-start, flex-start);
   overflow-y: auto;
   width: 100%;
-  max-height: 75vh;
-  ;
+  max-height: 60vh;
   border-radius: $radius-pm;
   align-self: stretch;
 }

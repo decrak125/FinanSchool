@@ -242,7 +242,7 @@ const showAllVentilations = (group) => {
                     :key="centre.id_centre" 
                     :value="centre.id_centre"
                   >
-                    {{ centre.nom }}
+                  {{ centre.type.code }} - {{ centre.nom }}
                   </option>
                 </SelectTable>
               </td>
