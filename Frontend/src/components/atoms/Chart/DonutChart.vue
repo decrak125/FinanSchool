@@ -121,11 +121,37 @@ const chartOptions = computed(() => {
             background: '#1F2937'
         },
         responsive: [{
+            breakpoint: 768,
+            options: {
+                chart: {
+                    height: 350,
+                    width: '100%'
+                },
+                dataLabels: {
+                    style: {
+                        fontSize: '12px'
+                    }
+                }
+            }
+        }, {
             breakpoint: 480,
             options: {
                 chart: {
-                    width: 300,
-                    height: 300
+                    height: 300,
+                    width: '100%'
+                },
+                dataLabels: {
+                    style: {
+                        fontSize: '10px'
+                    },
+                    offset: 5
+                },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '50%'
+                        }
+                    }
                 }
             }
         }],
@@ -282,21 +308,37 @@ const legendItems = computed(() => {
 
 <style lang="scss" scoped>
 .voir {
-    // background-color: #fff;
     @include position-contenus(flex, center, center);
     gap: 0.5rem;
     cursor: pointer;
-
+    
     p {
         @include text-pm($stara-medium, $primary);
+        
+        @media (max-width: 768px) {
+            font-size: 14px;
+        }
+        
+        @media (max-width: 480px) {
+            font-size: 12px;
+        }
     }
 
     i {
         color: $primary;
+        font-size: 18px;
+        
+        @media (max-width: 480px) {
+            font-size: 16px;
+        }
     }
 
-    transition: transform 0.3s ease,
-    filter 0.3s ease-in-out;
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    
+    @media (max-width: 768px) {
+        padding: 12px 0;
+        justify-content: flex-start;
+    }
 }
 
 .voir:hover {
@@ -307,6 +349,10 @@ const legendItems = computed(() => {
 .donut-chart-wrapper:hover {
     transform: scale(1.02);
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    
+    @media (max-width: 768px) {
+        transform: none; // Désactiver le scale sur mobile pour éviter les problèmes de layout
+    }
 }
 
 .donut-chart-wrapper {
@@ -315,7 +361,10 @@ const legendItems = computed(() => {
     border-radius: $radius-pm;
     animation: appear 0.6s ease-out forwards;
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
-
+    
+    @media (max-width: 768px) {
+        border-radius: $radius-sm;
+    }
 }
 
 .donut-chart-container {
@@ -331,27 +380,56 @@ const legendItems = computed(() => {
     min-width: none;
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
     @include position-contenus(flex, flex-start, flex-start);
+    
+    @media (max-width: 1024px) {
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 16px;
+    }
 
     .chart-container {
         flex: 1;
         min-width: 0;
+        
+        @media (max-width: 768px) {
+            width: 100%;
+        }
 
         .graphic-wrapper {
             padding: 1rem;
             border-radius: 8px;
+            
+            @media (max-width: 768px) {
+                padding: 0.5rem;
+            }
         }
     }
 
     .legend-container {
         width: auto;
         height: auto;
-        // background-color: #fff;
+        
+        @media (max-width: 768px) {
+            width: 100%;
+        }
+        
         .legend-wrapper {
-            //   background: white;
             padding: 1.5rem;
             border-radius: 8px;
             max-height: v-bind('legendHeight + "px"');
             overflow-y: auto;
+            
+            @media (max-width: 1024px) {
+                padding: 1rem;
+            }
+            
+            @media (max-width: 768px) {
+                padding: 0.75rem;
+                max-height: 250px;
+            }
 
             .legend-title {
                 font-family: 'stara';
@@ -361,12 +439,16 @@ const legendItems = computed(() => {
                 color: #373d3f;
                 border-bottom: 1px solid #e5e7eb;
                 padding-bottom: 0.5rem;
+                
+                @media (max-width: 768px) {
+                    font-size: 14px;
+                    margin-bottom: 0.75rem;
+                }
             }
 
             .legend-items {
                 display: flex;
                 flex-direction: column;
-                // gap: 0.75rem;
             }
 
             .legend-item {
@@ -376,6 +458,11 @@ const legendItems = computed(() => {
                 padding: 0.5rem;
                 border-radius: 6px;
                 transition: background-color 0.2s ease;
+                
+                @media (max-width: 480px) {
+                    gap: 0.5rem;
+                    padding: 0.375rem;
+                }
 
                 &:hover {
                     background-color: #f8f9fa;
@@ -386,6 +473,11 @@ const legendItems = computed(() => {
                     height: 16px;
                     border-radius: $radius-pm;
                     flex-shrink: 0;
+                    
+                    @media (max-width: 480px) {
+                        width: 12px;
+                        height: 12px;
+                    }
                 }
 
                 .legend-content {
@@ -401,19 +493,32 @@ const legendItems = computed(() => {
                         white-space: nowrap;
                         overflow: hidden;
                         text-overflow: ellipsis;
+                        
+                        @media (max-width: 480px) {
+                            font-size: 11px;
+                        }
                     }
-
 
                     .legend-values {
                         display: flex;
                         align-items: center;
                         gap: 0.5rem;
+                        
+                        @media (max-width: 480px) {
+                            gap: 0.25rem;
+                            flex-direction: column;
+                            align-items: flex-start;
+                        }
 
                         .legend-value {
                             font-family: 'arial';
                             font-size: 11px;
                             font-weight: 600;
                             color: #6b7280;
+                            
+                            @media (max-width: 480px) {
+                                font-size: 10px;
+                            }
                         }
 
                         .legend-percentage {
@@ -421,6 +526,10 @@ const legendItems = computed(() => {
                             font-size: 11px;
                             font-weight: 500;
                             color: #9ca3af;
+                            
+                            @media (max-width: 480px) {
+                                font-size: 10px;
+                            }
                         }
                     }
                 }
@@ -446,14 +555,60 @@ const legendItems = computed(() => {
     transform: scale(1);
 }
 
-// Responsive
-@media (max-width: 768px) {
+// Responsive amélioré
+@media (max-width: 1024px) {
     .chart-with-separate-legend {
-        flex-direction: column;
-
         .legend-container {
-            flex: 0 0 auto;
-            width: 100%;
+            .legend-wrapper {
+                max-height: 180px;
+            }
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .donut-chart-wrapper {
+        margin: 0 auto;
+    }
+    
+    .chart-with-separate-legend {
+        .chart-container {
+            .graphic-wrapper {
+                :deep(.apexcharts-canvas) {
+                    margin: 0 auto;
+                }
+            }
+        }
+        
+        .legend-container {
+            margin-top: 0;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .donut-chart-wrapper {
+        padding: 8px;
+    }
+    
+    .voir {
+        flex-direction: column;
+        gap: 0.25rem;
+        text-align: center;
+    }
+}
+
+// Pour les très petits écrans
+@media (max-width: 360px) {
+    .chart-with-separate-legend {
+        .legend-container {
+            .legend-wrapper {
+                padding: 0.5rem;
+                
+                .legend-item {
+                    padding: 0.25rem;
+                }
+            }
         }
     }
 }

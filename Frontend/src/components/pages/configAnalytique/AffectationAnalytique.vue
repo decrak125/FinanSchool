@@ -27,25 +27,26 @@ const openImport = ref(false);
 const loading = ref(true);
 
 const {
-  affectations, centres, comptes, file, showVentilationForm,
-    showDetails, totalTauxClass, isFormValid, hasDuplicateCentres,
-    selectedGroup,
-    editingVentilation, cancelTableModifications, saveTableModifications, removeVentilationFromTable,
-    form, isEditing, message, addVentilationToTable,
-    fetchData, save, remove, resetForm, onFileChange, uploadFile,
-    searchTerm, suggestions, showSuggestions,
-    searchCompte, selectCompte,
-    filterSearchTerm,
-    filterSelectedCentre,
-    filteredAffectations,
-    editVentilation,
-    saveVentilation,
-    removeVentilation, adjustTauxIfNeeded,
-    showVentilationDetails,
-    updateMultipleVentilations,
-    editGroup, removeBySousCompte,
-    switchToEditMode, switchToViewMode,detailsMode,
-    affectationsGrouped
+  affectations, centres, comptes, types, file, showVentilationForm, // ← AJOUT types
+  showDetails, totalTauxClass, isFormValid, hasDuplicateCentres,
+  selectedGroup,
+  editingVentilation, cancelTableModifications, saveTableModifications, removeVentilationFromTable,
+  form, isEditing, message, addVentilationToTable,
+  fetchData, save, remove, resetForm, onFileChange, uploadFile,
+  searchTerm, suggestions, showSuggestions,
+  searchCompte, selectCompte,
+  filterSearchTerm,
+  filterSelectedCentre,
+  filteredAffectations,
+  editVentilation,
+  saveVentilation,
+  removeVentilation, adjustTauxIfNeeded,
+  showVentilationDetails,
+  updateMultipleVentilations,
+  editGroup, removeBySousCompte,
+  switchToEditMode, switchToViewMode,detailsMode,
+  affectationsGrouped,
+  getTypeName // ← NOUVEAU : Fonction pour obtenir le nom du type
 } = useAffectations();
 
 // Computed pour les données groupées ET filtrées (uniquement pour l'affichage du tableau)
@@ -67,7 +68,9 @@ const filteredAffectationsGrouped = computed(() => {
       grouped[key].ventilations.push({
         id_affectation: aff.id_affectation,
         id_centre: aff.id_centre,
+        id_type: aff.id_type, // ← AJOUT id_type
         centre_nom: aff.centre?.nom,
+        type_nom: getTypeName(aff.id_type), // ← AJOUT type_nom
         taux: aff.taux,
         description: aff.description
       });
@@ -133,6 +136,7 @@ const addVentilation = () => {
 
   form.value.ventilations.push({
     id_centre: null,
+    id_type: null, // ← AJOUT id_type
     taux: Number(remainingTaux.toFixed(2)),
     description: ""
   });
@@ -222,6 +226,7 @@ const showAllVentilations = (group) => {
           <thead>
             <tr>
               <th class="col">Centre</th>
+              <th class="col">Type</th> <!-- ← NOUVELLE COLONNE -->
               <th class="col">Description</th>
               <th class="col">Taux</th>
               <th class="col">Actions</th>
@@ -242,7 +247,24 @@ const showAllVentilations = (group) => {
                     :key="centre.id_centre" 
                     :value="centre.id_centre"
                   >
-                  {{ centre.type.code }} - {{ centre.nom }}
+                    {{ centre.nom }}
+                  </option>
+                </SelectTable>
+              </td>
+              <td class="col"> <!-- ← NOUVELLE COLONNE -->
+                <SelectTable 
+                  v-model="vent.id_type" 
+                  :label="''"
+                  class="compact-select"
+                  required
+                >
+                  <option value="" disabled>Sélectionner un type</option>
+                  <option 
+                    v-for="type in types" 
+                    :key="type.id_type" 
+                    :value="type.id_type"
+                  >
+                    {{ type.code }} - {{ type.libelle }}
                   </option>
                 </SelectTable>
               </td>
@@ -293,6 +315,7 @@ const showAllVentilations = (group) => {
                 + Ajouter un centre
               </button>
             </td>
+            <td></td>
             <td></td>
             <td class="col total-cell">
               <span class="total-label">Total:</span>
@@ -394,6 +417,7 @@ const showAllVentilations = (group) => {
           <thead>
             <tr>
               <th class="col">Centre</th>
+              <th class="col">Type</th> <!-- ← NOUVELLE COLONNE -->
               <th class="col">Description</th>
               <th class="col">Taux</th>
               <th class="col">Actions</th>
@@ -405,6 +429,7 @@ const showAllVentilations = (group) => {
               <!-- Afficher TOUTES les ventilations du sous-compte -->
               <tr v-for="vent in selectedGroup?.ventilations || []" :key="vent.id_affectation">
                 <td class="col">{{ vent.centre_nom }}</td>
+                <td class="col">{{ vent.type_nom }}</td> <!-- ← AJOUT colonne type -->
                 <td class="col">{{ vent.description }}</td>
                 <td class="col">{{ Number(vent.taux || 0).toFixed(2) }}%</td>
                 <td class="col">
@@ -434,6 +459,22 @@ const showAllVentilations = (group) => {
                       :value="centre.id_centre"
                     >
                       {{ centre.nom }}
+                    </option>
+                  </selectTable>
+                </td>
+                <td class="col"> <!-- ← NOUVELLE COLONNE -->
+                  <selectTable 
+                    v-model="vent.id_type" 
+                    :label="''"
+                    class="compact-select"
+                  >
+                    <option value="" disabled>Sélectionner un type</option>
+                    <option 
+                      v-for="type in types" 
+                      :key="type.id_type" 
+                      :value="type.id_type"
+                    >
+                      {{ type.code }} - {{ type.libelle }}
                     </option>
                   </selectTable>
                 </td>
@@ -474,6 +515,7 @@ const showAllVentilations = (group) => {
             <template v-if="detailsMode === 'view'">
               <td class="col">Total</td>
               <td></td>
+              <td></td>
               <td class="col">{{selectedGroup?.ventilations?.reduce((sum, v) => sum + Number(v.taux || 0), 0).toFixed(2)}}%</td>
               <td></td>
             </template>
@@ -483,6 +525,7 @@ const showAllVentilations = (group) => {
               <td class="col">
                 Total
               </td>
+              <td></td>
               <td></td>
               <td class="col">
                 <span class="total-value" :class="totalTauxClass">
@@ -556,7 +599,7 @@ const showAllVentilations = (group) => {
         </p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
-          <Bouton type="primary" texte="Ajouter une Affectation" redirection="" @click="openFormPopup" />
+          <Bouton type="primary" texte="Ajouter" redirection="" @click="openFormPopup" />
         </div>
       </div>
 
@@ -636,6 +679,7 @@ const showAllVentilations = (group) => {
     </div>
   </PageAnalyse>
 </template>
+
 <!-- Le CSS reste identique -->
 <style lang="scss" scoped>
 .main {

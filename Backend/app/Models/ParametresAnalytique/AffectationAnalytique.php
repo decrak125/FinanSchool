@@ -20,8 +20,14 @@ class AffectationAnalytique extends Model
         'id_centre',
         'description',
         'taux', // ← Doit être présent
+        'id_type',
+
     ];
 
+    public function type()
+    {
+        return $this->belongsTo(TypeCentre::class, 'id_type');
+    }
     public function centre()
     {
         return $this->belongsTo(CentreAnalytique::class, 'id_centre');

@@ -2,23 +2,20 @@
 import sidebar from '@/components/molecules/Analyse/Sidebar.vue';
 import Header from '@/components/molecules/Analyse/Header.vue';
 
-
 const token = localStorage.getItem("token");
 
 if (!token) {
   window.location.href = "/";
 }
-// else {
-//     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-// }
-
 </script>
+
 <template>
   <div class="all">
     <div class="container" v-if="token">
-      <sidebar />
+      <sidebar class="sidebar-desktop" />
       <div class="main">
         <Header />
+        <!-- <sidebar class="sidebar-mobile" /> -->
         <div class="content">
           <slot />
         </div>
@@ -33,15 +30,19 @@ if (!token) {
     </div>
   </div>
 </template>
+
 <style lang="scss" scoped>
 .container {
   @include position-contenus(flex, flex-start, center);
   width: 100%;
-  height: 100%;;
+  height: 100%;
+  
+  @media (max-width: 1024px) {
+    flex-direction: column;
+  }
 }
 
 .main {
-  // background-color: #e6e6e6;
   display: flex;
   padding: 32px 24px 24px 0;
   flex-direction: column;
@@ -49,8 +50,17 @@ if (!token) {
   gap: 24px;
   flex: 1 0 0;
   align-self: stretch;
+  
+  @media (max-width: 1024px) {
+    padding: 16px;
+    gap: 16px;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 12px;
+    gap: 12px;
+  }
 }
-
 
 .content {
   background-color: $light;
@@ -58,7 +68,25 @@ if (!token) {
   flex: 1 0 0;
   align-self: stretch;
   border-radius: $radius-pm;
+  
+  @media (max-width: 1024px) {
+    border-radius: $radius-pm;
+  }
+}
 
+.sidebar-desktop {
+  @media (max-width: 1024px) {
+    display: none;
+  }
+}
+
+.sidebar-mobile {
+  display: none;
+  width: 100%;
+  
+  @media (max-width: 1024px) {
+    display: block;
+  }
 }
 
 /* From Uiverse.io by aryamitra06 */
@@ -68,7 +96,6 @@ if (!token) {
   display: flex;
   @include position-contenus(flex, center, center);
   @include position-container();
-
 }
 
 .bar {

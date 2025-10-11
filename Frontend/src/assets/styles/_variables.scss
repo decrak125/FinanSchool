@@ -1,33 +1,38 @@
+// Breakpoints responsive
+$mobile: 768px;
+$tablet: 1024px;
+$desktop: 1200px;
+$small-mobile: 480px;
+
 // couleurs
 @font-face {
     font-family: 'stara-medium';
     src: url('/fonts/Stara-Medium.woff2') format('woff2'),
          url('/fonts/Stara-Medium.woff') format('woff');
-    // font-weight: 100;
     font-style: normal;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'stara-bold';
     src: url('/fonts/Stara-Bold.woff2') format('woff2'),
          url('/fonts/Stara-Bold.woff') format('woff');
-    // font-weight: 100;
     font-style: normal;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'stara-black';
     src: url('/fonts/Stara-Black.woff2') format('woff2'),
          url('/fonts/Stara-Black.woff') format('woff');
-    // font-weight: 100;
     font-style: normal;
     font-display: swap;
 }
+
 @font-face {
     font-family: 'stara-semibold';
     src: url('/fonts/Stara-SemiBold.woff2') format('woff2'),
          url('/fonts/Stara-SemiBold.woff') format('woff');
-    // font-weight: 100;
     font-style: normal;
     font-display: swap;
 }
@@ -42,23 +47,26 @@ $vert: #01CC00;
 $jaune: #F89400;
 
 // radius
-
 $radius-pm: 32px;
 $radius-gm: 50px;
+$radius-sm: 16px; // Nouveau radius pour mobile
 
 // font
-
 $stara-medium: 'stara-medium', sans-serif;
 $stara-bold: 'stara-bold', sans-serif;
 $stara-black: 'stara-black', sans-serif;
 $stara-semibold: 'stara-semibold', sans-serif;
 
-// $ammonite: 'ammonite';
-
-// size
-
+// Tailles de base
 $size-pm: 16px;
 $size-xs: 12px;
 $size-gm: 24px;
 $size-xl: 48px;
 $size-xxl: 96px;
+
+// Tailles responsive
+$size-pm-mobile: 14px;
+$size-xs-mobile: 11px;
+$size-gm-mobile: 20px;
+$size-xl-mobile: 32px;
+$size-xxl-mobile: 48px;

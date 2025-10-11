@@ -11,7 +11,7 @@ class CentreAnalytiqueController extends Controller
 {
     public function index()
     {
-        return CentreAnalytique::with('type')->get();
+        return CentreAnalytique::with('axe')->get();
     }
 
     public function show($id)
@@ -25,7 +25,7 @@ class CentreAnalytiqueController extends Controller
             'nom' => 'required|string|max:150',
             'description' => 'required|string|max:100',
             'id_axe' => 'required|integer',
-            'id_type' => 'required|integer',
+            // 'id_type' => 'required|integer',
         ]);
 
         return CentreAnalytique::create($request->all());
@@ -75,10 +75,10 @@ class CentreAnalytiqueController extends Controller
                 $id_axe = $axe ? $axe->id_axe : null;
 
                 // Type insensible à la casse
-                $type = TypeCentre::whereRaw('LOWER(code) = ?', [strtolower($data['code_type'] ?? $row[3])])->first();
-                $id_type = $type ? $type->id_type : null;
+                // $type = TypeCentre::whereRaw('LOWER(code) = ?', [strtolower($data['code_type'] ?? $row[3])])->first();
+                // $id_type = $type ? $type->id_type : null;
 
-                if (!$id_axe || !$id_type) {
+                if (!$id_axe) {
                     $skipped++;
                     continue; // ignore si axe ou type introuvable
                 }
@@ -87,7 +87,7 @@ class CentreAnalytiqueController extends Controller
                 $exists = CentreAnalytique::where('nom', $data['nom'] ?? $row[0])
                     ->where('description', $data['description'] ?? $row[1])
                     ->where('id_axe', $id_axe)
-                    ->where('id_type', $id_type)
+                    // ->where('id_type', $id_type)
                     ->first();
 
                 if ($exists) {
@@ -100,7 +100,7 @@ class CentreAnalytiqueController extends Controller
                     'nom' => $data['nom'] ?? $row[0],
                     'description' => $data['description'] ?? $row[1],
                     'id_axe' => $id_axe,
-                    'id_type' => $id_type,
+                    // 'id_type' => $id_type,
                 ]);
 
                 $imported++;

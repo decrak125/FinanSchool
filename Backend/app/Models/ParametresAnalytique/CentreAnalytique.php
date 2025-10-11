@@ -17,17 +17,11 @@ class CentreAnalytique extends Model
         'nom',
         'description',
         'id_axe',
-        'id_type',
     ];
 
     public function axe()
     {
         return $this->belongsTo(AxeAnalytique::class, 'id_axe');
-    }
-
-    public function type()
-    {
-        return $this->belongsTo(TypeCentre::class, 'id_type');
     }
 
     public function affectations()

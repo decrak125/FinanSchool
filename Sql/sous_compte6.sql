@@ -2,12 +2,6 @@
 -- SOUS COMPTES POUR CLASSE 6 - RAITRA KIDZ
 -- =====================================
 
--- Sous comptes pour 601 Achats de matieres premieres
-INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
-('601001', 'Achats de riz pour la cantine', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601')),
-('601002', 'Achats de legumes pour la cantine', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601')),
-('601003', 'Achats de viande et poisson pour la cantine', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601')),
-('601004', 'Achats de produits laitiers et oeufs', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601'));
 
 -- Sous comptes pour 602 Achats de fournitures scolaires
 INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES

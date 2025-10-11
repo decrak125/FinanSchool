@@ -19,7 +19,7 @@ class CoutEtProfitController extends Controller
 
         $query = DB::table('ligne_ecritures as le')
             ->select(
-                'ca.id_type',
+                'aa.id_type',
                 'ca.id_centre',
                 'ca.nom as centre',
                 // 🔥 CORRECTION : ABS() POUR AVOIR DES MONTANTS POSITIFS
@@ -38,11 +38,11 @@ class CoutEtProfitController extends Controller
             $query->where('ca.id_centre', $idCentre);
         }
         if ($idType) {
-            $query->where('ca.id_type', $idType);
+            $query->where('aa.id_type', $idType);
         }
 
         $results = $query
-            ->groupBy('ca.id_type','ca.id_centre', 'ca.nom')
+            ->groupBy('aa.id_type','ca.id_centre', 'ca.nom')
             ->get();
 
         return response()->json($results);
@@ -60,7 +60,7 @@ class CoutEtProfitController extends Controller
     
         $query = DB::table('ligne_ecritures as le')
             ->select(
-                'ca.id_type',
+                'aa.id_type',
                 'aa.description as affectation_description',
                 'ca.nom as centre_nom',
                 'aa.taux as taux_ventilation',
@@ -89,7 +89,7 @@ class CoutEtProfitController extends Controller
         }
     
         $results = $query
-            ->groupBy('ca.id_type', 'aa.description', 'ca.nom', 'aa.taux', 'sc.Id_Sous_compte', 'sc.Libelle')
+            ->groupBy('aa.id_type', 'aa.description', 'ca.nom', 'aa.taux', 'sc.Id_Sous_compte', 'sc.Libelle')
             ->orderByDesc('montant_ventile')
             ->get();
     
@@ -165,4 +165,174 @@ class CoutEtProfitController extends Controller
 
         return response()->json($results);
     }
+
+    // 🔥 ANALYSE MENSUELLE PAR CENTRE
+// 🔥 ANALYSE MENSUELLE AVEC VUE MATERIALISÉE
+public function donneesMensuellesOptimise(Request $request)
+{
+    $year = $request->input('year', date('Y'));
+    $idCentre = $request->input('id_centre');
+    $idType = $request->input('id_type', 1);
+
+    $query = DB::table('mv_analyse_mensuelle')
+        ->select('*')
+        ->where('annee', $year)
+        ->where('id_type', $idType);
+
+    if ($idCentre) {
+        $query->where('id_centre', $idCentre);
+    }
+
+    $results = $query
+        ->orderBy('mois')
+        ->orderBy('centre')
+        ->get();
+
+    return response()->json($results);
 }
+
+// 🔥 ANALYSE TRIMESTRIELLE OPTIMISÉE AVEC VUE MATERIALISÉE
+public function AnalyseTrimestrielleParCentreOptimise(Request $request)
+{
+    $year = $request->input('year', date('Y'));
+    $idCentre = $request->input('id_centre');
+    $idType = $request->input('id_type', 1);
+
+    $query = DB::table('mv_analyse_trimestrielle')
+        ->select('*')
+        ->where('annee', $year)
+        ->where('id_type', $idType);
+
+    if ($idCentre) {
+        $query->where('id_centre', $idCentre);
+    }
+
+    $results = $query
+        ->orderBy('trimestre')
+        ->orderBy('centre')
+        ->get();
+
+    return response()->json($results);
+}
+
+// 🔥 STATISTIQUES TRIMESTRIELLES OPTIMISÉES
+public function statsTrimestriellesOptimise(Request $request)
+{
+    $year = $request->input('year', date('Y'));
+    $trimestre = $request->input('trimestre');
+
+    $query = DB::table('mv_stats_globales_temporelles')
+        ->select('*')
+        ->where('type_analyse', 'trimestrielle')
+        ->where('annee', $year);
+
+    if ($trimestre) {
+        $query->where('trimestre', $trimestre);
+    }
+
+    $stats = $query->first();
+
+    return response()->json([
+        'totalVentile' => $stats->total_ventile ?? 0,
+        'totalBrut' => $stats->total_brut ?? 0,
+        'nombreCentres' => $stats->nombre_centres ?? 0,
+        'nombrePeriodes' => $stats->nombre_periodes ?? 0
+    ]);
+}
+
+// 🔥 DONNÉES TRIMESTRIELLES POUR GRAPHIQUE
+public function donneesTrimestriellesGraphique(Request $request)
+{
+    $year = $request->input('year', date('Y'));
+    $idType = $request->input('id_type', 1);
+
+    $results = DB::table('mv_analyse_trimestrielle')
+        ->select(
+            'trimestre',
+            'nom_trimestre',
+            'centre',
+            'montant_ventile',
+            'montant_brut'
+        )
+        ->where('annee', $year)
+        ->where('id_type', $idType)
+        ->orderBy('trimestre')
+        ->orderBy('centre')
+        ->get();
+
+    // Formatage pour les graphiques
+    $centres = $results->pluck('centre')->unique()->values();
+    $trimestres = ['T1', 'T2', 'T3', 'T4'];
+    
+    $datasets = [];
+    foreach ($centres as $centre) {
+        $data = [];
+        foreach ($trimestres as $trim) {
+            $trimNum = (int)str_replace('T', '', $trim);
+            $montant = $results
+                ->where('centre', $centre)
+                ->where('trimestre', $trimNum)
+                ->first();
+            $data[] = $montant ? $montant->montant_ventile : 0;
+        }
+        
+        $datasets[] = [
+            'label' => $centre,
+            'data' => $data,
+            'backgroundColor' => sprintf('#%06X', mt_rand(0, 0xFFFFFF))
+        ];
+    }
+
+    return response()->json([
+        'labels' => $trimestres,
+        'datasets' => $datasets
+    ]);
+}
+
+// 🔥 COMPARAISON ANNUELLE AVEC VUE MATERIALISÉE
+public function donneesComparaisonAnnuelleOptimise(Request $request)
+{
+    $annee1 = $request->input('annee1', date('Y') - 1);
+    $annee2 = $request->input('annee2', date('Y'));
+    $idCentre = $request->input('id_centre');
+    $idType = $request->input('id_type', 1);
+
+    $query = DB::table('mv_comparaison_annuelle')
+        ->select('*')
+        ->whereIn('annee', [$annee1, $annee2])
+        ->where('id_type', $idType);
+
+    if ($idCentre) {
+        $query->where('id_centre', $idCentre);
+    }
+
+    $results = $query
+        ->orderBy('annee')
+        ->orderBy('centre')
+        ->get();
+
+    return response()->json($results);
+}
+
+
+// 🔥 ÉVOLUTION 12 MOIS AVEC VUE MATERIALISÉE
+public function donneesEvolution12MoisOptimise(Request $request)
+{
+    $idCentre = $request->input('id_centre');
+    $idType = $request->input('id_type', 1);
+
+    $query = DB::table('mv_evolution_12_mois')
+        ->select('*')
+        ->where('id_type', $idType);
+
+    if ($idCentre) {
+        $query->where('id_centre', $idCentre);
+    }
+
+    $results = $query
+        ->orderBy('mois')
+        ->orderBy('centre')
+        ->get();
+
+    return response()->json($results);
+}}

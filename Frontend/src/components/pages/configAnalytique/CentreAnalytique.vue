@@ -23,7 +23,7 @@ const {
   API_URL,
   centres,
   axes,
-  types,
+  // types,
   form,
   isEditing,
   editingId,
@@ -32,7 +32,7 @@ const {
   importSuccess,
   fetchCentres,
   fetchAxes,
-  fetchTypes,
+  // fetchTypes,
   saveCentre,
   onFileChange,
   editCentre,
@@ -40,12 +40,12 @@ const {
   deleteCentre,
   resetForm,
   getAxeName,
-  getTypeName,
+  // getTypeName,
   uploadFile,
   // Nouvelles fonctions de filtre
   searchTerm,
   selectedAxe,
-  selectedType,
+  // selectedType,
   filteredCentres,
   resetFilters
 } = useCentres();
@@ -102,12 +102,12 @@ const filteredCount = computed(() => {
                 <option v-for="axe in axes" :key="axe.id_axe" :value="axe.id_axe">{{ axe.axe }}</option>
               </Select>
             </div>
-            <div>
+            <!-- <div>
               <Select v-model="form.id_type" :label="'Type de centre'">
                 <option value="" disabled>Choisir un type</option>
                 <option v-for="type in types" :key="type.id_type" :value="type.id_type">{{ type.code }}</option>
               </Select>
-            </div>
+            </div> -->
           </div>
           </div>
           <div class="btn-form">
@@ -138,7 +138,7 @@ const filteredCount = computed(() => {
             <Counter v-if="centres.length == 0" :number="0" /> centres analytique disponibles.</p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
-          <Bouton type="primary" texte="Ajouter un centre" redirection="" @click="openForm = !openForm" />
+          <Bouton type="primary" texte="Ajouter" redirection="" @click="openForm = !openForm" />
         </div>
       </div>
       
@@ -164,7 +164,7 @@ const filteredCount = computed(() => {
             </FilterSelect>
 
           <!-- Filtre par type -->
-            <FilterSelect
+            <!-- <FilterSelect
               v-model="selectedType"
             >
               <option value="">Types</option>
@@ -175,9 +175,9 @@ const filteredCount = computed(() => {
               >
                 {{ type.code }}
               </option>
-            </FilterSelect>
+            </FilterSelect> -->
             <BoutonIcon 
-              v-if="searchTerm || selectedAxe || selectedType"
+              v-if="searchTerm || selectedAxe"
               @click="resetFilters" 
               type="cancel" 
               :icon-name="'x-lg'"
@@ -194,7 +194,7 @@ const filteredCount = computed(() => {
               <th class="col">Nom</th>
               <th class="col">Description</th>
               <th class="col">Axe</th>
-              <th class="col">Type</th>
+              <!-- <th class="col">Type</th> -->
               <th class="col">Actions</th>
             </tr>
           </thead>
@@ -204,7 +204,7 @@ const filteredCount = computed(() => {
               <td class="col">{{ centre.nom }}</td>
               <td class="col">{{ centre.description }}</td>
               <td class="col">{{ getAxeName(centre.id_axe) }}</td>
-              <td class="col">{{ getTypeName(centre.id_type) }}</td>
+              <!-- <td class="col">{{ getTypeName(centre.id_type) }}</td> -->
               <td class="col text-center">
                 <div class="action-content">
                   <BoutonIcon @click="editCentre(centre), openForm = true" icon-name="pen" :type="'edit'" />

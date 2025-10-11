@@ -22,4 +22,9 @@ class TypeCentre extends Model
     {
         return $this->hasMany(CentreAnalytique::class, 'id_type');
     }
+    
+    public function affectations()
+    {
+        return $this->hasMany(AffectationAnalytique::class, 'id_centre');
+    }
 }

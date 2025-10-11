@@ -278,18 +278,30 @@ onMounted(async () => {
 
 
 <style lang="scss" scoped>
+// Variables de breakpoints
+$mobile: 768px;
+$tablet: 1024px;
+$desktop: 1200px;
+
 .content {
   @include position-contenus(flex, flex-start, flex-start);
   overflow-y: auto;
   width: 100%;
   max-height: 60vh;
-  ;
   border-radius: $radius-pm;
   align-self: stretch;
+
+  @media (max-width: $mobile) {
+    max-height: 50vh;
+  }
 }
 
 .content::-webkit-scrollbar {
   width: 10px;
+
+  @media (max-width: $mobile) {
+    width: 6px;
+  }
 }
 
 .content::-webkit-scrollbar-track {
@@ -311,32 +323,84 @@ onMounted(async () => {
   padding: 10px 0;
   align-self: stretch;
   gap: 32px;
+  
+  @media (max-width: $tablet) {
+    gap: 24px;
+    flex-direction: column;
+  }
+  
+  @media (max-width: $mobile) {
+    gap: 16px;
+    padding: 5px 0;
+  }
 }
 
 .cartes {
   @include position-contenus(grid, center, center);
   padding: 0;
   gap: 32px;
+  
+  @media (max-width: $tablet) {
+    gap: 24px;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: $mobile) {
+    gap: 16px;
+    grid-template-columns: 1fr;
+  }
 }
 
 .hauteur {
   @include position-contenus(flex, center, center);
   padding: 0;
   gap: 32px;
+  
+  @media (max-width: $tablet) {
+    gap: 24px;
+    flex-direction: column;
+  }
+  
+  @media (max-width: $mobile) {
+    gap: 16px;
+  }
 }
 
 .gauche {
   @include position-contenus(grid, center, center);
   gap: 10px;
+  
+  @media (max-width: $tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: $mobile) {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }
 
 #axesTable {
   @include table(#f5f5f5);
+  
+  @media (max-width: $mobile) {
+    font-size: 0.875rem;
+  }
 }
 
 .chart-container {
   width: fit-content;
   height: fit-content;
+  
+  @media (max-width: $tablet) {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  @media (max-width: $mobile) {
+    max-width: 300px;
+  }
 }
 
 .chart-container :deep(.apexcharts-pie-series) path {
@@ -362,6 +426,15 @@ onMounted(async () => {
   flex: 1 0 0;
   align-self: stretch;
   animation: appear 0.6s ease-out forwards;
+  
+  @media (max-width: $tablet) {
+    padding: 0 24px;
+  }
+  
+  @media (max-width: $mobile) {
+    padding: 0 16px;
+    gap: 8px;
+  }
 }
 
 .informations {
@@ -370,6 +443,12 @@ onMounted(async () => {
   align-self: stretch;
   border-bottom: 1px solid #C5C5C5;
   gap: 10px;
+  
+  @media (max-width: $mobile) {
+    flex-direction: column;
+    padding: 8px 0;
+    gap: 8px;
+  }
 }
 
 .filtres {
@@ -377,27 +456,60 @@ onMounted(async () => {
   padding: 0 0;
   align-self: self-start;
   gap: 10px;
+  
+  @media (max-width: $tablet) {
+    flex-wrap: wrap;
+    align-self: stretch;
+  }
+  
+  @media (max-width: $mobile) {
+    gap: 8px;
+    justify-content: center;
+  }
 }
 
 .donuts {
   @include position-contenus(flex, flex-start, flex-start);
   gap: 32px;
+  
+  @media (max-width: $tablet) {
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  @media (max-width: $mobile) {
+    gap: 16px;
+    flex-direction: column;
+    align-items: center;
+  }
 }
 
 .back-button {
   margin-top: 20px;
+  
+  @media (max-width: $mobile) {
+    margin-top: 16px;
+    width: 100%;
+    text-align: center;
+  }
 }
 
 .info-lalina {
   align-self: baseline;
   @include position-contenus(flex, center, center);
   gap: 16px;
+  
+  @media (max-width: $tablet) {
+    align-self: center;
+  }
+  
+  @media (max-width: $mobile) {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
 }
 
-.filtres {
-  @include position-contenus(flex, flex-start, center);
-  padding: 0 0;
-  align-self: self-start;
-  gap: 10px;
-}
+// Duplicate .filtres class removed since it's already defined above
 </style>

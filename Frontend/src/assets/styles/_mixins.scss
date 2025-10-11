@@ -4,26 +4,33 @@
 
 @mixin text-xs($font, $color) {
     font-family: $font;
-    // font-weight:200 ;
     font-size: $size-xs;
     color: $color;
-    // margin: 0px;
+    
+    @media (max-width: $mobile) {
+        font-size: $size-xs-mobile;
+    }
 }
 
 @mixin text-pm($font, $color) {
     font-family: $font;
-    // font-weight:200 ;
     font-size: $size-pm;
     color: $color;
-    // margin: 0px;
+    
+    @media (max-width: $mobile) {
+        font-size: $size-pm-mobile;
+    }
 }
 
 @mixin text-gm($font, $color) {
     font-family: $font;
-    // font-weight: 700;
     font-size: $size-gm;
     color: $color;
     margin: 0px;
+    
+    @media (max-width: $mobile) {
+        font-size: $size-gm-mobile;
+    }
 }
 
 @mixin text-xl($font, $color) {
@@ -33,8 +40,13 @@
     font-style: normal;
     font-weight: 900;
     line-height: normal;
-    margin:0px;
+    margin: 0px;
+    
+    @media (max-width: $mobile) {
+        font-size: $size-gm-mobile;
+    }
 }
+
 @mixin title($font, $color) {
     color: $color;
     font-family: $font;
@@ -42,8 +54,21 @@
     font-style: normal;
     font-weight: 700;
     line-height: normal;
-    margin:0px;
+    margin: 0px;
+    
+    @media (max-width: $tablet) {
+        font-size: 40px;
+    }
+    
+    @media (max-width: $mobile) {
+        font-size: $size-xl-mobile;
+    }
+    
+    @media (max-width: $small-mobile) {
+        font-size: 28px;
+    }
 }
+
 @mixin title-xl($font, $color) {
     color: $color;
     font-family: $font;
@@ -51,7 +76,19 @@
     font-style: normal;
     font-weight: 700;
     line-height: normal;
-    margin:0px;
+    margin: 0px;
+    
+    @media (max-width: $tablet) {
+        font-size: 72px;
+    }
+    
+    @media (max-width: $mobile) {
+        font-size: $size-xxl-mobile;
+    }
+    
+    @media (max-width: $small-mobile) {
+        font-size: 36px;
+    }
 }
 
 // positions
@@ -84,21 +121,44 @@
     justify-content: center;
     align-items: center;
     flex-shrink: 0;
+    
+    @media (max-width: $tablet) {
+        padding: 10px 20px;
+        font-size: 15px;
+    }
+    
+    @media (max-width: $mobile) {
+        width: 100%;
+        max-width: 300px;
+        padding: 12px 16px;
+        font-size: 14px;
+        border-radius: $radius-sm;
+    }
+    
+    @media (max-width: $small-mobile) {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
 }
 
 @mixin bouton-icon($color, $text-color, $border-radius:24px, $font, $width:auto){
-  width: $width;
-  background-color: $color;
-  border-style: none;
-  color: $text-color;
-  text-decoration: none;
-  border-radius: $border-radius;
-  // padding: 8px;
-  width: 38px;
-  height: 38px;
-  justify-content: center;
-  align-items: center;
-  flex-shrink: 0;
+    width: $width;
+    background-color: $color;
+    border-style: none;
+    color: $text-color;
+    text-decoration: none;
+    border-radius: $border-radius;
+    width: 38px;
+    height: 38px;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    
+    @media (max-width: $mobile) {
+        width: 44px;
+        height: 44px;
+        border-radius: $radius-sm;
+    }
 }
 
 @mixin iconCircle($color){
@@ -110,34 +170,62 @@
     align-items: center;
     display: flex;
     flex-shrink: 0;
+    
+    @media (max-width: $mobile) {
+        width: 56px;
+        height: 56px;
+    }
+    
+    @media (max-width: $small-mobile) {
+        width: 48px;
+        height: 48px;
+    }
 }
+
 @mixin table($headColor: transparent){
     opacity: 0;
     transform: translateY(-1px);
     animation: slideInDown 0.5s ease-out forwards;
-  th{
-        // border-radius: $radius-pm;
+    
+    th{
         background: fixed $headColor;
         color: $primary;
         font-family: $stara-black;
         font-size: 16px;
         text-align:start;
         z-index: 99;
-      }
-      tr td:last-child,
-      tr th:last-child {
+        
+        @media (max-width: $mobile) {
+            font-size: 14px;
+            padding: 12px 8px;
+        }
+    }
+    
+    tr td:last-child,
+    tr th:last-child {
         text-align:center;
-      }
-        td{
-            animation: appear 0.6s ease-out forwards;
-          }
-          
-      background: fixed;
-      font-family: $stara-medium;
-      border-radius: $radius-pm;
-      color: $dark;
-      
+    }
+    
+    td{
+        animation: appear 0.6s ease-out forwards;
+        
+        @media (max-width: $mobile) {
+            font-size: 13px;
+            padding: 10px 8px;
+        }
+    }
+    
+    background: fixed;
+    font-family: $stara-medium;
+    border-radius: $radius-pm;
+    color: $dark;
+    
+    @media (max-width: $mobile) {
+        border-radius: $radius-sm;
+        font-size: 14px;
+    }
 }
+
 @mixin input($color, $text-color, $border-radius:20px, $font){
     border: 1px solid $color;
     border-style: none;
@@ -152,6 +240,13 @@
     justify-content: center;
     align-items: center;
     flex-shrink: 0;
+    
+    @media (max-width: $mobile) {
+        padding: 12px 14px;
+        font-size: 14px;
+        border-radius: $radius-sm;
+        width: 100%;
+    }
 }
 
 @mixin digit($color, $text-color, $border-radius:20px, $font){
@@ -169,6 +264,29 @@
     align-items: center;
     text-align: center;
     flex-shrink: 0;
+    
+    @media (max-width: $mobile) {
+        padding: 12px;
+        font-size: 14px;
+        border-radius: $radius-sm;
+        width: 100%;
+    }
+}
+
+// Mixin responsive utilitaire
+@mixin responsive($breakpoint) {
+    @if $breakpoint == mobile {
+        @media (max-width: $mobile) { @content; }
+    }
+    @else if $breakpoint == tablet {
+        @media (max-width: $tablet) { @content; }
+    }
+    @else if $breakpoint == desktop {
+        @media (max-width: $desktop) { @content; }
+    }
+    @else if $breakpoint == small-mobile {
+        @media (max-width: $small-mobile) { @content; }
+    }
 }
 
 // animation
@@ -177,26 +295,23 @@
     animation: appear 9.0s ease-in-out;
     animation-timeline: view();
     animation-range: entry 0% cover 50%;
-    
 }
 
-  @keyframes slideInDown {
+@keyframes slideInDown {
     from {
-      opacity: 0;
-      transform: translateY(-20px);
+        opacity: 0;
+        transform: translateY(-20px);
     }
     to {
-      opacity: 1;
-      transform: translateY(0);
+        opacity: 1;
+        transform: translateY(0);
     }
-  }
-  
-  
+}
+
 @keyframes appear {
     from {
         opacity: 0;
     }
-    
     to {
         opacity: 1;
     }
@@ -204,17 +319,17 @@
 
 @keyframes fadeInUp {
     to {
-      opacity: 1;
-      transform: translateY(0);
+        opacity: 1;
+        transform: translateY(0);
     }
-  }
+}
 
-  // Animation : déplace le fond de gauche à droite
+// Animation : déplace le fond de gauche à droite
 @keyframes scroll-bg {
-  from {
-    background-position: 805% 0;
-  }
-  to {
-    background-position: -1000% 0;
-  }
+    from {
+        background-position: 805% 0;
+    }
+    to {
+        background-position: -1000% 0;
+    }
 }

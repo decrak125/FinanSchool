@@ -84,7 +84,7 @@ const {
           axes analytique disponibles.</p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
-          <Bouton type="primary" texte="Ajouter un Axe" redirection="" @click="openForm = !openForm" />
+          <Bouton type="primary" texte="Ajouter" redirection="" @click="openForm = !openForm" />
         </div>
       </div>
       <div class="filters">

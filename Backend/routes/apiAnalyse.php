@@ -39,7 +39,13 @@ use App\Http\Controllers\Analyse\CoutEtProfitController;
         // Route pour la vérification des ventilations
         Route::get('/verification-ventilations', [CoutEtProfitController::class, 'VerificationVentilations'])
              ->name('analyse.verification-ventilations');
-    
+    // Routes pour l'analyse temporelle
+          Route::get('/mensuelle-centre', [CoutEtProfitController::class, 'donneesMensuellesOptimise']);
+          Route::get('/trimestrielle-centre', [CoutEtProfitController::class, 'AnalyseTrimestrielleParCentreOptimise']);
+          Route::get('/trimestrielle-stat', [CoutEtProfitController::class, 'statsTrimestriellesOptimise']);
+          Route::get('/trimestrielle-graphic', [CoutEtProfitController::class, 'donneesTrimestriellesGraphique']);
+          Route::get('/comparaison-annuelle', [CoutEtProfitController::class, 'donneesComparaisonAnnuelleOptimise']);
+          Route::get('/evolution-12-mois', [CoutEtProfitController::class, 'donneesEvolution12MoisOptimise']);
     });
 
 

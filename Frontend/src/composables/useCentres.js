@@ -6,8 +6,8 @@ export function useCentres() {
 
   const centres = ref([]);
   const axes = ref([]);
-  const types = ref([]);
-  const form = ref({ nom: "", description: "", id_axe: "", id_type: "" });
+  // const types = ref([]);
+  const form = ref({ nom: "", description: "", id_axe: ""});
   const isEditing = ref(false);
   const editingId = ref(null);
   const fileInput = ref(null);
@@ -17,7 +17,7 @@ export function useCentres() {
   // Variables pour les filtres
   const searchTerm = ref("");
   const selectedAxe = ref("");
-  const selectedType = ref("");
+  // const selectedType = ref("");
 
   const token = localStorage.getItem("token"); // Récupérer le token
 
@@ -38,10 +38,10 @@ export function useCentres() {
     axes.value = res.data;
   };
 
-  const fetchTypes = async () => {
-    const res = await axios.get(`${API_URL}/types`);
-    types.value = res.data;
-  };
+  // const fetchTypes = async () => {
+  //   const res = await axios.get(`${API_URL}/types`);
+  //   types.value = res.data;
+  // };
 
   // Computed property pour les centres filtrés
   const filteredCentres = computed(() => {
@@ -55,10 +55,10 @@ export function useCentres() {
         centre.id_axe.toString() === selectedAxe.value;
       
       // Filtre par type
-      const matchesType = selectedType.value === "" || 
-        centre.id_type.toString() === selectedType.value;
+      // const matchesType = selectedType.value === "" || 
+      //   centre.id_type.toString() === selectedType.value;
       
-      return matchesSearch && matchesAxe && matchesType;
+      return matchesSearch && matchesAxe;
     });
   });
 
@@ -66,7 +66,7 @@ export function useCentres() {
   const resetFilters = () => {
     searchTerm.value = "";
     selectedAxe.value = "";
-    selectedType.value = "";
+    // selectedType.value = "";
   };
 
   // Ajouter / Mettre à jour
@@ -100,14 +100,14 @@ export function useCentres() {
 
   // Reset formulaire
   const resetForm = () => {
-    form.value = { nom: "", description: "", id_axe: "", id_type: "" };
+    form.value = { nom: "", description: "", id_axe: ""};
     isEditing.value = false;
     editingId.value = null;
   };
 
   // Fonctions pour afficher noms axe et type
   const getAxeName = (id) => axes.value.find((a) => a.id_axe === id)?.axe || "";
-  const getTypeName = (id) => types.value.find((t) => t.id_type === id)?.code || "";
+  // const getTypeName = (id) => types.value.find((t) => t.id_type === id)?.code || "";
 
   // Gestion import CSV/Excel
   const file = ref(null);
@@ -146,14 +146,14 @@ export function useCentres() {
   onMounted(() => {
     fetchCentres();
     fetchAxes();
-    fetchTypes();
+    // fetchTypes();
   });
 
   return {
     API_URL,
     centres,
     axes,
-    types,
+    // types,
     form,
     isEditing,
     editingId,
@@ -163,21 +163,21 @@ export function useCentres() {
     // Nouvelles variables et fonctions pour les filtres
     searchTerm,
     selectedAxe,
-    selectedType,
+    // selectedType,
     filteredCentres,
     resetFilters,
     // Fonctions existantes
     fetchCentres,
     fetchAxes,
     onFileChange,
-    fetchTypes,
+    // fetchTypes,
     saveCentre,
     editCentre,
     cancelEdit,
     deleteCentre,
     resetForm,
     getAxeName,
-    getTypeName,
+    // getTypeName,
     uploadFile,
   };
 }
