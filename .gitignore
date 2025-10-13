@@ -1,2 +1,6 @@
 Backend/.env
 Backend/database/database.sqlite
+Backend/vendor/composer/autoload_classmap.php
+Backend/vendor/composer/autoload_static.php
+Backend/vendor/composer/InstalledVersions.php
+Backend/vendor/composer/platform_check.php

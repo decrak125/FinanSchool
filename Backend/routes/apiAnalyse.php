@@ -45,7 +45,17 @@ use App\Http\Controllers\Analyse\CoutEtProfitController;
           Route::get('/trimestrielle-stat', [CoutEtProfitController::class, 'statsTrimestriellesOptimise']);
           Route::get('/trimestrielle-graphic', [CoutEtProfitController::class, 'donneesTrimestriellesGraphique']);
           Route::get('/comparaison-annuelle', [CoutEtProfitController::class, 'donneesComparaisonAnnuelleOptimise']);
+          // vaovao
           Route::get('/evolution-12-mois', [CoutEtProfitController::class, 'donneesEvolution12MoisOptimise']);
+          Route::get('/evolution-centres', [CoutEtProfitController::class, 'getEvolutionsCentres']);
+          Route::get('/classement-centres', [CoutEtProfitController::class, 'getClassementCentres']);
+          Route::get('/alertes-automatique', [CoutEtProfitController::class, 'getAlertesAutomatiques']);
+
+          Route::get('/cout-profit/comparaison', [CoutEtProfitController::class, 'getComparaisonCoutProfit']);
+          Route::get('/cout-profit/resume-annuel', [CoutEtProfitController::class, 'getResumeAnnuelCoutProfit']);
+          Route::get('/cout-profit/rentabilite-type', [CoutEtProfitController::class, 'getAnalyseRentabiliteParType']);
+          Route::get('/cout-profit/evolution-mensuelle', [CoutEtProfitController::class, 'getEvolutionMensuelleCoutProfit']);
+
     });
 
 

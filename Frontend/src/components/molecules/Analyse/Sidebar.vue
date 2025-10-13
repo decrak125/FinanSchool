@@ -34,7 +34,7 @@ const menuConfig = [
       {
         id: 'comparatif',
         texte: 'Comparatif',
-        redirection: '#'
+        redirection: '/comparatif'
       }
     ]
   },
@@ -45,6 +45,11 @@ const menuConfig = [
     redirection: '#',
     type: 'dropdown',
     children: [
+    {
+        id: 'indicateurs_generaux',
+        texte: 'Indicateurs généraux',
+        redirection: '/indicateur-general'
+      },
       {
         id: 'ratios_liquidite',
         texte: 'Ratios de liquidité',

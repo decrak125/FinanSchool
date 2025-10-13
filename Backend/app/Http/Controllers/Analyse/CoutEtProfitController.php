@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Analyse;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Events\MouvementCreated;
 
 class CoutEtProfitController extends Controller
 {
     // Fonction pour récupérer les montants par centre analytique avec taux de ventilation
     public function AnalyseCoutEtProfit(Request $request)
     {
+        // 🔥 Déclencher l'événement
+        event(new MouvementCreated());
         // Dates paramétrables via l'URL ou valeur par défaut
         $dateStart = $request->input('date_start', '2025-01-01');
         $dateEnd = $request->input('date_end', '2025-12-31');
@@ -50,6 +53,8 @@ class CoutEtProfitController extends Controller
 
     public function AnalyseParAffectationFiltree(Request $request)
     {
+        // 🔥 Déclencher l'événement
+        event(new MouvementCreated());
         // Paramètres depuis l'URL ou valeurs par défaut
         $dateStart = $request->input('date_start', '2025-01-01');
         $dateEnd   = $request->input('date_end', '2025-12-31');
@@ -108,6 +113,8 @@ class CoutEtProfitController extends Controller
     // Nouvelle fonction pour analyse détaillée par sous-compte avec ventilation
     public function AnalyseParSousCompteAvecVentilation(Request $request)
     {
+        // 🔥 Déclencher l'événement
+        event(new MouvementCreated());
         $dateStart = $request->input('date_start', '2025-01-01');
         $dateEnd   = $request->input('date_end', '2025-12-31');
         $idCentre  = $request->input('id_centre');
@@ -146,6 +153,8 @@ class CoutEtProfitController extends Controller
     // Fonction pour vérifier la cohérence des ventilations
     public function VerificationVentilations(Request $request)
     {
+        // 🔥 Déclencher l'événement
+        event(new MouvementCreated());
         $dateStart = $request->input('date_start', '2025-01-01');
         $dateEnd   = $request->input('date_end', '2025-12-31');
 
@@ -170,6 +179,8 @@ class CoutEtProfitController extends Controller
 // 🔥 ANALYSE MENSUELLE AVEC VUE MATERIALISÉE
 public function donneesMensuellesOptimise(Request $request)
 {
+    // 🔥 Déclencher l'événement
+    event(new MouvementCreated());
     $year = $request->input('year', date('Y'));
     $idCentre = $request->input('id_centre');
     $idType = $request->input('id_type', 1);
@@ -194,6 +205,8 @@ public function donneesMensuellesOptimise(Request $request)
 // 🔥 ANALYSE TRIMESTRIELLE OPTIMISÉE AVEC VUE MATERIALISÉE
 public function AnalyseTrimestrielleParCentreOptimise(Request $request)
 {
+    // 🔥 Déclencher l'événement
+    event(new MouvementCreated());
     $year = $request->input('year', date('Y'));
     $idCentre = $request->input('id_centre');
     $idType = $request->input('id_type', 1);
@@ -218,6 +231,8 @@ public function AnalyseTrimestrielleParCentreOptimise(Request $request)
 // 🔥 STATISTIQUES TRIMESTRIELLES OPTIMISÉES
 public function statsTrimestriellesOptimise(Request $request)
 {
+    // 🔥 Déclencher l'événement
+    event(new MouvementCreated());
     $year = $request->input('year', date('Y'));
     $trimestre = $request->input('trimestre');
 
@@ -243,6 +258,8 @@ public function statsTrimestriellesOptimise(Request $request)
 // 🔥 DONNÉES TRIMESTRIELLES POUR GRAPHIQUE
 public function donneesTrimestriellesGraphique(Request $request)
 {
+    // 🔥 Déclencher l'événement
+    event(new MouvementCreated());
     $year = $request->input('year', date('Y'));
     $idType = $request->input('id_type', 1);
 
@@ -292,6 +309,8 @@ public function donneesTrimestriellesGraphique(Request $request)
 // 🔥 COMPARAISON ANNUELLE AVEC VUE MATERIALISÉE
 public function donneesComparaisonAnnuelleOptimise(Request $request)
 {
+    // 🔥 Déclencher l'événement
+    event(new MouvementCreated());
     $annee1 = $request->input('annee1', date('Y') - 1);
     $annee2 = $request->input('annee2', date('Y'));
     $idCentre = $request->input('id_centre');
@@ -314,10 +333,128 @@ public function donneesComparaisonAnnuelleOptimise(Request $request)
     return response()->json($results);
 }
 
+public function getEvolutionsCentres(Request $request)
+{
+    // 🔥 Déclencher l'événement
+    event(new MouvementCreated());
+    $year = $request->input('year', date('Y'));
+    $idType = $request->input('id_type', 1);
+    
+    $currentYear = DB::table('mv_comparaison_annuelle')
+        ->where('annee', $year)
+        ->where('id_type', $idType)
+        ->get()
+        ->keyBy('id_centre');
+        
+    $previousYear = DB::table('mv_comparaison_annuelle')
+        ->where('annee', $year - 1)
+        ->where('id_type', $idType)
+        ->get()
+        ->keyBy('id_centre');
+    
+    $evolutions = [];
+    foreach ($currentYear as $centreId => $current) {
+        $previous = $previousYear[$centreId] ?? null;
+        $evolution = $previous && $previous->montant_ventile > 0 
+            ? round((($current->montant_ventile - $previous->montant_ventile) / $previous->montant_ventile * 100), 2)
+            : null;
+            
+        $evolutions[] = [
+            'centre' => $current->centre,
+            'annee_courante' => $current->annee,
+            'montant_courant' => $current->montant_ventile,
+            'montant_precedent' => $previous->montant_ventile ?? 0,
+            'evolution_pourcentage' => $evolution
+        ];
+    }
+    
+    // Trier par évolution décroissante
+    usort($evolutions, function($a, $b) {
+        return $b['evolution_pourcentage'] <=> $a['evolution_pourcentage'];
+    });
+    
+    return response()->json($evolutions);
+}
+
+public function getClassementCentres(Request $request)
+{
+    // 🔥 Déclencher l'événement
+    event(new MouvementCreated());
+    $year = $request->input('year', date('Y'));
+    $idType = $request->input('id_type', 1);
+    
+    $centres = DB::table('mv_comparaison_annuelle')
+        ->where('annee', $year)
+        ->where('id_type', $idType)
+        ->orderByDesc('montant_ventile')
+        ->get();
+    
+    // Calculer le total pour les pourcentages
+    $total = $centres->sum('montant_ventile');
+    
+    // Ajouter le rang et le pourcentage
+    $classement = $centres->map(function($centre, $index) use ($total) {
+        $centre->rang_global = $index + 1;
+        $centre->part_marche = $total > 0 ? round(($centre->montant_ventile / $total * 100), 2) : 0;
+        return $centre;
+    });
+    
+    return response()->json($classement);
+}
+
+public function getAlertesAutomatiques(Request $request)
+{
+    // 🔥 Déclencher l'événement
+    event(new MouvementCreated());
+    $seuil = $request->input('seuil', -20); // -20% par défaut
+    $year = $request->input('year', date('Y'));
+    $idType = $request->input('id_type', 1);
+    
+    $currentYear = DB::table('mv_comparaison_annuelle')
+        ->where('annee', $year)
+        ->where('id_type', $idType)
+        ->get()
+        ->keyBy('id_centre');
+        
+    $previousYear = DB::table('mv_comparaison_annuelle')
+        ->where('annee', $year - 1)
+        ->where('id_type', $idType)
+        ->get()
+        ->keyBy('id_centre');
+    
+    $alertes = [];
+    foreach ($currentYear as $centreId => $current) {
+        $previous = $previousYear[$centreId] ?? null;
+        
+        if ($previous && $previous->montant_ventile > 0) {
+            $evolution = (($current->montant_ventile - $previous->montant_ventile) / $previous->montant_ventile * 100);
+            
+            if ($evolution < $seuil) {
+                $alertes[] = [
+                    'type_alerte' => 'chute_brutale',
+                    'centre' => $current->centre,
+                    'annee_courante' => $current->annee,
+                    'montant_courant' => $current->montant_ventile,
+                    'montant_precedent' => $previous->montant_ventile,
+                    'evolution' => round($evolution, 2)
+                ];
+            }
+        }
+    }
+    
+    // Trier par évolution (pire en premier)
+    usort($alertes, function($a, $b) {
+        return $a['evolution'] <=> $b['evolution'];
+    });
+    
+    return response()->json($alertes);
+}
 
 // 🔥 ÉVOLUTION 12 MOIS AVEC VUE MATERIALISÉE
 public function donneesEvolution12MoisOptimise(Request $request)
 {
+    // 🔥 Déclencher l'événement
+    event(new MouvementCreated());
     $idCentre = $request->input('id_centre');
     $idType = $request->input('id_type', 1);
 
@@ -335,4 +472,129 @@ public function donneesEvolution12MoisOptimise(Request $request)
         ->get();
 
     return response()->json($results);
-}}
+}
+
+// COUTS VS PROFITS 
+
+// 🔥 COMPARAISON COÛTS VS PROFITS AVEC VUE MATERIALISÉE
+public function getComparaisonCoutProfit(Request $request)
+{// 🔥 Déclencher l'événement
+    event(new MouvementCreated());
+    $annee = $request->input('annee');
+    $mois = $request->input('mois');
+    $idType = $request->input('id_type');
+    $limit = $request->input('limit', 1000);
+    $offset = $request->input('offset', 0);
+
+    $query = DB::table('mv_comparaison_cout_profit')
+        ->select('*');
+
+    // Filtres optionnels
+    if ($annee) {
+        $query->where('annee', $annee);
+    }
+    
+    if ($mois) {
+        $query->where('mois', $mois);
+    }
+    
+    if ($idType) {
+        $query->where('id_type', $idType);
+    }
+
+    $results = $query
+        ->orderBy('annee', 'desc')
+        ->orderBy('mois', 'desc')
+        ->orderBy('id_type')
+        ->limit($limit)
+        ->offset($offset)
+        ->get();
+
+    return response()->json($results);
+}
+
+// 🔥 RÉSUMÉ ANNUEL COÛTS VS PROFITS
+public function getResumeAnnuelCoutProfit(Request $request)
+{// 🔥 Déclencher l'événement
+    event(new MouvementCreated());
+    $annee = $request->input('annee');
+
+    $query = DB::table('mv_comparaison_cout_profit')
+        ->select(
+            'annee',
+            'id_type',
+            DB::raw('SUM(total_couts_ventiles) as total_couts_ventiles_annuels'),
+            DB::raw('SUM(total_profits_ventiles) as total_profits_ventiles_annuels'),
+            DB::raw('SUM(solde_net_ventile) as solde_net_annuel'),
+            DB::raw('AVG(marge_nette_percent) as marge_nette_moyenne'),
+            DB::raw('COUNT(DISTINCT mois) as mois_actifs'),
+            DB::raw('SUM(nombre_sous_comptes) as nombre_sous_comptes_total')
+        );
+
+    if ($annee) {
+        $query->where('annee', $annee);
+    }
+
+    $results = $query
+        ->groupBy('annee', 'id_type')
+        ->orderBy('annee', 'desc')
+        ->orderBy('id_type')
+        ->get();
+
+    return response()->json($results);
+}
+
+// 🔥 ANALYSE RENTABILITÉ PAR TYPE
+public function getAnalyseRentabiliteParType(Request $request)
+{// 🔥 Déclencher l'événement
+    event(new MouvementCreated());
+    $annee = $request->input('annee', date('Y'));
+
+    $results = DB::table('mv_comparaison_cout_profit')
+        ->select(
+            'id_type',
+            DB::raw('SUM(total_couts_ventiles) as total_couts'),
+            DB::raw('SUM(total_profits_ventiles) as total_profits'),
+            DB::raw('SUM(solde_net_ventile) as solde_net'),
+            DB::raw('AVG(marge_nette_percent) as marge_moyenne'),
+            DB::raw('COUNT(DISTINCT mois) as mois_actifs')
+        )
+        ->where('annee', $annee)
+        ->groupBy('id_type')
+        ->orderBy('solde_net', 'desc')
+        ->get();
+
+    return response()->json($results);
+}
+
+// 🔥 ÉVOLUTION MENSUELLE COÛTS VS PROFITS
+public function getEvolutionMensuelleCoutProfit(Request $request)
+{// 🔥 Déclencher l'événement
+    event(new MouvementCreated());
+    $idType = $request->input('id_type');
+    $annee = $request->input('annee', date('Y'));
+
+    $query = DB::table('mv_comparaison_cout_profit')
+        ->select(
+            'mois',
+            'nom_periode',
+            DB::raw('SUM(total_couts_ventiles) as total_couts'),
+            DB::raw('SUM(total_profits_ventiles) as total_profits'),
+            DB::raw('SUM(solde_net_ventile) as solde_net'),
+            DB::raw('AVG(marge_nette_percent) as marge_moyenne')
+        )
+        ->where('annee', $annee);
+
+    if ($idType) {
+        $query->where('id_type', $idType);
+    }
+
+    $results = $query
+        ->groupBy('mois', 'nom_periode')
+        ->orderBy('mois')
+        ->get();
+
+    return response()->json($results);
+}
+
+}
