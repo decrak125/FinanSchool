@@ -7,12 +7,12 @@
       <div class="card card-form">
         <div class="p-6">
           <div class="card-header">
-            <h1 class="card-title text-3xl">Gestion des Journaux</h1>
+            <h1 class="card-title text-3xl" style="font-family: 'Stara' sans-serif;">Gestion des Journaux</h1>
           </div>
 
           <!-- Formulaire stylisé -->
           <form @submit.prevent="saveJournal" class="card-form">
-            <div class="form-group">
+            <div class="form-group" >
               <label class="form-label required">Code</label>
               <input v-model="form.Code" type="text" class="form-input" required />
             </div>
@@ -221,7 +221,7 @@ onMounted(() => {
 
 @font-face {
   font-family: 'Stara';
-  src: url('/fonts/Stara-Bold.woff') format('woff'); /* Include bold variant if needed */
+  src: url('../../../../public/fonts/Stara-Black.woff') format('woff'); /* Include bold variant if needed */
   font-weight: bold;
   font-style: normal;
 }

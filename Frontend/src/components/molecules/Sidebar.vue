@@ -118,7 +118,7 @@
           'children-open': getNavigationItem('grand-livre').isOpen 
         }">
           <div class="nav-main" @click="toggleSubMenu(getNavigationItem('grand-livre'))">
-            <i class="bi bi-book"></i>
+            <i class="bi bi-journals"></i>
             <span>Liste des Grand Livres</span>
             <i class="chevron" :class="getNavigationItem('grand-livre').isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
           </div>
@@ -235,33 +235,16 @@
 
       <!-- Section Reporting -->
       <div class="nav-group">
-        <div class="nav-group-title">Reporting</div>
+        <div class="nav-group-title">Rapport</div>
         
-        <div 
-          class="nav-item"
-          :class="{ active: currentRoute === '/compte-resultat' }"
-          @click="navigateTo({ route: '/compte-resultat', name: 'Compte de résultat' })"
-        >
-          <i class="bi bi-bar-chart-line"></i>
-          <span>Compte de résultat</span>
-        </div>
 
-        <div 
-          class="nav-item"
-          :class="{ active: currentRoute === '/bilan' }"
-          @click="navigateTo({ route: '/bilan', name: 'Bilan' })"
-        >
-          <i class="bi bi-ui-checks-grid"></i>
-          <span>Bilan</span>
-        </div>
-
-        <!-- Trésorerie -->
+         <!-- Balance général -->
         <div class="nav-item has-children" :class="{ 
           active: isItemActive(getNavigationItem('balance')),
           'children-open': getNavigationItem('balance').isOpen 
         }">
           <div class="nav-main" @click="toggleSubMenu(getNavigationItem('balance'))">
-            <i class="bi bi-table"></i>
+            <i class="bi bi-clipboard-data"></i>
             <span>Balance</span>
             <i class="chevron" :class="getNavigationItem('balance').isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
           </div>
@@ -279,39 +262,71 @@
             </div>
           </transition>
         </div>
-
-        <!-- Analytique -->
+        
         <div class="nav-item has-children" :class="{ 
-          active: isItemActive(getNavigationItem('analytique')),
-          'children-open': getNavigationItem('analytique').isOpen 
+          active: isItemActive(getNavigationItem('compte_resultat')),
+          'children-open': getNavigationItem('compte_resultat').isOpen 
         }">
-          <div class="nav-main" @click="toggleSubMenu(getNavigationItem('analytique'))">
-            <i class="bi bi-graph-up"></i>
-            <span>Analytique</span>
-            <i class="chevron" :class="getNavigationItem('analytique').isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
+          <div class="nav-main" @click="toggleSubMenu(getNavigationItem('compte_resultat'))">
+            <i class="bi bi-bar-chart-line"></i>
+            <span>Compte de resultat</span>
+            <i class="chevron" :class="getNavigationItem('compte_resultat').isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
           </div>
           
           <transition name="submenu">
-            <div v-show="getNavigationItem('analytique').isOpen" class="submenu">
+            <div v-show="getNavigationItem('compte_resultat').isOpen" class="submenu">
               <div 
                 class="submenu-item"
-                :class="{ active: currentRoute === '/centres-cout' }"
-                @click="navigateTo({ route: '/centres-cout', name: 'Centres de coût' })"
+                :class="{ active: currentRoute === '/balance' }"
+                @click="navigateTo({ route: '/balance', name: 'Compte de resultat' })"
               >
-                <i class="bi bi-pie-chart"></i>
-                <span>Centres de coût</span>
+                <i class="bi bi-receipt"></i>
+                <span>Par nature</span>
               </div>
               <div 
                 class="submenu-item"
-                :class="{ active: currentRoute === '/repartition-analytique' }"
-                @click="navigateTo({ route: '/repartition-analytique', name: 'Répartition' })"
+                :class="{ active: currentRoute === '/balance' }"
+                @click="navigateTo({ route: '/balance', name: 'Compte de resultat' })"
               >
-                <i class="bi bi-arrow-repeat"></i>
-                <span>Répartition</span>
+                <i class="bi bi-diagram-3"></i>
+                <span>Par fonction</span>
               </div>
             </div>
           </transition>
         </div>
+
+        <!-- Trésorerie -->
+        <div class="nav-item has-children" :class="{ 
+          active: isItemActive(getNavigationItem('bilan')),
+          'children-open': getNavigationItem('bilan').isOpen 
+        }">
+          <div class="nav-main" @click="toggleSubMenu(getNavigationItem('bilan'))">
+            <i class="bi bi-table"></i>
+            <span>Bilan</span>
+            <i class="chevron" :class="getNavigationItem('bilan').isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
+          </div>
+          
+          <transition name="submenu">
+            <div v-show="getNavigationItem('bilan').isOpen" class="submenu">
+              <div 
+                class="submenu-item"
+                :class="{ active: currentRoute === '/balance' }"
+                @click="navigateTo({ route: '/balance', name: 'Bilan' })"
+              >
+                <i class="bi bi-building"></i>
+                <span>Actif</span>
+              </div>
+               <div 
+                class="submenu-item"
+                :class="{ active: currentRoute === '/balance' }"
+                @click="navigateTo({ route: '/balance', name: 'Bilan' })"
+              >
+                <i class="bi bi-bank"></i>
+                <span>Passif</span>
+              </div>
+            </div>
+          </transition>
+        </div>     
       </div>
 
       <!-- Section Utilitaires -->
@@ -408,6 +423,24 @@ export default {
           ],
           isOpen: false
         },
+        'compte_resultat': {
+          name: 'Compte de resultat',
+          route: '/balance',
+          icon: 'bi bi-wallet2',
+          children: [
+            { name: 'Compte de resultat', route: '/balance', icon: 'bi bi-arrow-left-right' }
+          ],
+          isOpen: false
+        },
+        'bilan': {
+          name: 'Bilan',
+          route: '/balance',
+          icon: 'bi bi-wallet2',
+          children: [
+            { name: 'Bilan', route: '/balance', icon: 'bi bi-arrow-left-right' }
+          ],
+          isOpen: false
+        },
         analytique: {
           name: 'Analytique',
           route: '/analytique',
@@ -487,7 +520,8 @@ export default {
   flex-direction: column;
   background: linear-gradient(180deg, #142c6c 0%, #051442 100%);
   color: white;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Stara', sans-serif;
+  font-size: 12px;
   position: fixed;
   left: 0;
   top: 0;
