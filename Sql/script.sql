@@ -248,3 +248,17 @@ JOIN "comptes" c ON sc."Id_Compte" = c."Id_Compte"
 JOIN "mouvement_ecritures" me ON le."Id_Mouvement_ecriture" = me."Id_Mouvement_ecriture"
 GROUP BY c."Code_compte", c."Libelle", sc."Code_sous_compte", sc."Libelle", me."Date_mouvement"
 ORDER BY c."Code_compte", sc."Code_sous_compte";
+
+
+-- Version avec contraintes supplémentaires
+CREATE TABLE Exercice_comptable(
+   Id_Exercice_comptable SERIAL PRIMARY KEY,
+   Date_debut DATE NOT NULL UNIQUE,
+   Date_fin DATE NOT NULL UNIQUE,
+   Statut VARCHAR(50) NOT NULL CHECK (Statut IN ('OUVERT', 'CLOTURE', 'PROVISOIRE')),
+   Annee_fiscale SMALLINT NOT NULL CHECK (Annee_fiscale BETWEEN 2000 AND 2100),
+   CONSTRAINT chk_dates CHECK (Date_fin > Date_debut)
+);
+
+-- Création d'index pour les recherches par année
+CREATE INDEX idx_exercice_annee ON Exercice_comptable(Annee_fiscale);

@@ -54,6 +54,13 @@ Route::middleware('api')->group(function () {
     Route::apiResource('rubriques', RubriqueController::class);
     Route::apiResource('classes', ClasseController::class);
 
+
+    Route::get('/devises', [DeviseController::class, 'index'])->name('devises.index');
+    Route::post('/devises', [DeviseController::class, 'store'])->name('devises.store');
+    Route::get('/devises/{id}', [DeviseController::class, 'show'])->name('devises.show');
+    Route::put('/devises/{id}', [DeviseController::class, 'update'])->name('devises.update');
+    Route::delete('/devises/{id}', [DeviseController::class, 'destroy'])->name('devises.destroy');
+
     // crud saisie
     Route::apiResource('type-journals', TypeJournalController::class);
     Route::apiResource('mode-paiements', ModePaiementController::class);
@@ -65,6 +72,20 @@ Route::middleware('api')->group(function () {
     Route::post('lignes/{id}/valider', [LigneEcritureController::class, 'valider']);
     Route::apiResource('devises', DeviseController::class);
 
+
+    // Routes pour les performances améliorées {Ecritures et Mouvements}
+ Route::get('/mouvements-complets', [LigneEcritureController::class, 'getMouvementsComplets']);
+    Route::get('/search-sous-comptes', [LigneEcritureController::class, 'searchSousComptes']);
+    Route::post('/lignes-batch', [LigneEcritureController::class, 'saveLignesBatch']);
+    Route::post('/mouvements/{id}/valider-complet', [LigneEcritureController::class, 'validerMouvementComplet']);
+    Route::get('/options-formulaires', [LigneEcritureController::class, 'getOptions']);
+    
+    // Routes pour la gestion des mouvements
+    Route::post('/mouvements', [LigneEcritureController::class, 'createMouvement']);
+    Route::delete('/mouvements/{mouvementId}', [LigneEcritureController::class, 'deleteMouvement']);
+    
+    // Routes pour la gestion des lignes d'écriture
+    Route::apiResource('lignes', LigneEcritureController::class);
 
     Route::get('/grand-livre', [GrandLivreController::class, 'index']);
     Route::get('/grand-livre/compte/{codeCompte}', [GrandLivreController::class, 'getByCompte']);

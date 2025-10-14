@@ -51,8 +51,8 @@
                   <th class="text-base p-4">Libellé</th>
                   <th class="text-base p-4">Référence</th>
                   <th class="text-base p-4">Mode Paiement</th>
-                  <th class="text-base p-4">Débit</th>
-                  <th class="text-base p-4">Crédit</th>
+                  <th class="text-base p-4" style="width: 120px;">Débit</th>
+                  <th class="text-base p-4" style="width: 120px;">Crédit</th>
                 </tr>
               </thead>
               <tbody>
@@ -63,13 +63,13 @@
                   <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Libelle || '-' }}</td>
                   <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Reference || '-' }}</td>
                   <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.mode_paiement ? ecriture.mode_paiement.Libelle : '-' }}</td>
-                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Debit ? formatNumber(ecriture.Debit) : '-' }}</td>
-                  <td class="p-4 text-base" style="font-size:12px;">{{ ecriture.Credit ? formatNumber(ecriture.Credit) : '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:12px; text-align: end;">{{ ecriture.Debit ? formatNumber(ecriture.Debit) : '-' }}</td>
+                  <td class="p-4 text-base" style="font-size:12px; text-align: end;">{{ ecriture.Credit ? formatNumber(ecriture.Credit) : '-' }}</td>
                 </tr>
                 <tr v-if="ecritures.length">
                   <td colspan="6" class="p-4 text-base font-bold text-right">Totaux :</td>
-                  <td class="p-4 text-base font-bold">{{ formatNumber(totalDebit) }}</td>
-                  <td class="p-4 text-base font-bold">{{ formatNumber(totalCredit) }}</td>
+                  <td class="p-4 text-base font-bold" style="font-size: 14px; text-align: right;">{{ formatNumber(totalDebit) }}</td>
+                  <td class="p-4 text-base font-bold" style="font-size: 14px; text-align: right;">{{ formatNumber(totalCredit) }}</td>
                 </tr>
                 <tr v-if="!ecritures.length">
                   <td colspan="8" class="p-4 text-center text-base">Aucune écriture trouvée</td>
@@ -99,8 +99,10 @@ import AppFooter from "../../molecules/Footer.vue";
 const route = useRoute();
 const router = useRouter();
 const journalId = ref(route.params.id);
-const journal = ref (route.params.journal || route.params.journalLibelle); // Récupérer le libellé du journal si disponible
+const journal = ref(route.params.journal || route.params.journalLibelle);
 const ecritures = ref([]);
+const devises = ref([]);
+const defaultDevise = ref(null);
 const dateFilter = ref({
   date_debut: "",
   date_fin: "",
@@ -119,7 +121,12 @@ if (!token) {
 }
 
 const formatNumber = (number) => {
-  return Number(number).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (number === null || number === undefined || isNaN(number)) return '-';
+  const num = Number(number);
+  return num.toLocaleString('fr-FR', {
+    minimumFractionDigits: 2, // Always show 2 decimal places
+    maximumFractionDigits: 2, // Limit to 2 decimal places
+  }).replace(/\s/g, ' '); // Ensure space as thousand separator is consistent
 };
 
 const fetchEcritures = async () => {
@@ -135,6 +142,19 @@ const fetchEcritures = async () => {
   } catch (error) {
     console.error("Erreur lors du chargement des écritures:", error);
     ecritures.value = [];
+  }
+};
+
+const fetchDevises = async () => {
+  try {
+    const res = await axios.get(`http://127.0.0.1:8000/api/devises`);
+    devises.value = res.data;
+    if (devises.value.length > 0) {
+      defaultDevise.value = devises.value[0]; // Utiliser la première devise comme devise par défaut
+    }
+    console.log("Devises chargées:", devises.value);
+  } catch (error) {
+    console.error("Erreur lors du chargement des devises:", error);
   }
 };
 
@@ -156,63 +176,111 @@ const resetDateFilter = () => {
 };
 
 const exportToPDF = () => {
-  const doc = new jsPDF();
-  
-  // En-tête
-  doc.setFontSize(18);
-  doc.setTextColor(0, 51, 102); // Bleu foncé
-  doc.text("RAITRA KIDZ - Écritures du Journal", 14, 20);
-  
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+  doc.setFont('helvetica');
   doc.setFontSize(10);
-  doc.setTextColor(0, 0, 0); // Noir
-  doc.text(`Journal ID: ${journalId.value}`, 14, 30);
-  doc.text(`Période: ${dateFilter.value.date_debut || 'N/A'} à ${dateFilter.value.date_fin || 'N/A'}`, 14, 38);
-  doc.text(`Nombre d'écritures: ${ecritures.value.length}`, 14, 46);
-  doc.text(`Exporté le: ${new Date().toLocaleDateString('fr-FR')}`, 14, 54);
+
+  // Company name
+  doc.text('RAITRA KIDZ', 10, 10);
+
+  // Journal title
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Journal ' + (journal.value ? journal.value.toUpperCase() : ''), 80, 10);
+  
+
+  // Tenue de compte
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  const deviseText = `Tenue de compte : ${defaultDevise.value ? defaultDevise.value.Sigle : 'Ar'}`;
+  const deviseWidth = doc.getTextWidth(deviseText);
+  doc.text(deviseText, 200 - deviseWidth, 10);
+
+  // Period (month and year)
+  let period = '';
+  if (dateFilter.value.date_debut) {
+    const d = new Date(dateFilter.value.date_debut);
+    period = d.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+  }
+  const periodWidth = doc.getTextWidth(period);
+  doc.text(period, 200 - periodWidth, 15);
+
+  // Date de tirage and page
+  const now = new Date();
+  const dateTirage = `Date de tirage ${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+  doc.text(dateTirage, 10, 20);
+
+  // Date range
+  doc.text(`du ${dateFilter.value.date_debut || ''} au ${dateFilter.value.date_fin || ''}`, 10, 15);
 
   // Tableau
   autoTable(doc, {
-    startY: 60,
-    head: [['Date Mouvement', 'N° Pièce', 'Compte', 'Libellé', 'Référence', 'Mode Paiement', 'Débit', 'Crédit']],
-    body: ecritures.value.map(ecriture => [
-      ecriture.mouvement ? new Date(ecriture.mouvement.Date_mouvement).toLocaleDateString('fr-FR') : '-',
-      ecriture.mouvement ? ecriture.mouvement.Numero_piece : '-',
-      ecriture.sous_compte ? ecriture.sous_compte.Code_sous_compte : '-',
-      ecriture.Libelle || '-',
-      ecriture.Reference || '-',
-      ecriture.mode_paiement ? ecriture.mode_paiement.Libelle : '-',
-      ecriture.Debit ? formatNumber(ecriture.Debit) : '-',
-      ecriture.Credit ? formatNumber(ecriture.Credit) : '-',
-    ]),
-    foot: [['', '', '', '', '', 'Totaux :', formatNumber(totalDebit.value), formatNumber(totalCredit.value)]],
+    startY: 25,
+    theme: 'grid',
+    head: [['Jour', 'N° pièce', 'N° compte', 'N° reference', 'Libellé écriture', 'Mvts débit', 'Mvts crédit']],
+    body: ecritures.value.map(ecriture => {
+      const dateMouvement = ecriture.mouvement ? ecriture.mouvement.Date_mouvement : null;
+      let jour = '-';
+      if (dateMouvement) {
+        const d = new Date(dateMouvement);
+        const day = d.getDate().toString().padStart(2, '0');
+        const month = (d.getMonth() + 1).toString().padStart(2, '0');
+        const year = d.getFullYear().toString().slice(2);
+        jour = day + month + year;
+      }
+      return [
+        jour,
+        ecriture.mouvement ? ecriture.mouvement.Numero_piece : '-',
+        ecriture.sous_compte ? ecriture.sous_compte.Code_sous_compte : '-',
+        ecriture.Reference || '-',
+        ecriture.Libelle || '-',
+        ecriture.Debit ? formatNumber(ecriture.Debit) : '-',
+        ecriture.Credit ? formatNumber(ecriture.Credit) : '-',
+      ];
+    }),
+    foot: [['', '', '', '', 'Totaux', formatNumber(totalDebit.value), formatNumber(totalCredit.value)]],
     styles: {
-      fontSize: 10,
-      cellPadding: 3,
-      textColor: [0, 0, 0], // Noir pour le texte
+      fontSize: 8,
+      cellPadding: 2,
+      textColor: [0, 0, 0],
+      lineColor: [0, 0, 0],
+      lineWidth: 0.1,
+      fillColor: [255, 255, 255],
     },
     headStyles: {
-      fillColor: [0, 51, 102], // Bleu foncé pour l'en-tête
-      textColor: [255, 255, 255], // Blanc pour le texte de l'en-tête
-      fontStyle: 'bold',
-    },
-    alternateRowStyles: {
-      fillColor: [240, 240, 240], // Gris clair pour les lignes alternées
-    },
-    footStyles: {
-      fillColor: [200, 200, 200], // Gris pour le pied de tableau
+      fillColor: [255, 255, 255],
       textColor: [0, 0, 0],
       fontStyle: 'bold',
+      lineWidth: 0.1,
+      lineColor: [0, 0, 0],
     },
-    margin: { top: 60, bottom: 20 },
+    alternateRowStyles: {
+      fillColor: [255, 255, 255],
+    },
+    footStyles: {
+      fillColor: [255, 255, 255],
+      textColor: [0, 0, 0],
+      fontStyle: 'bold',
+      lineWidth: 0.1,
+      lineColor: [0, 0, 0],
+    },
+    columnStyles: {
+      5: { halign: 'right' },
+      6: { halign: 'right' },
+    },
+    margin: { top: 25, left: 10, right: 10, bottom: 20 },
     didDrawPage: (data) => {
-      // Pied de page
       const pageCount = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(10);
-        doc.setTextColor(100);
-        doc.text(`Page ${i} de ${pageCount}`, 14, doc.internal.pageSize.height - 10);
-        doc.text(`RAITRA KIDZ © ${new Date().getFullYear()}`, doc.internal.pageSize.width - 50, doc.internal.pageSize.height - 10);
+        doc.setTextColor(0, 0, 0);
+        const pageStr = `Page : ${i}`;
+        const pageWidth = doc.getTextWidth(pageStr);
+        doc.text(pageStr, 200 - pageWidth, 20);
+        doc.text(`RAITRA KIDZ © ${new Date().getFullYear()}`, 10, 290);
+        doc.text('Impression provisoire', 150, 290);
       }
     },
   });
@@ -226,7 +294,6 @@ const exportToExcel = () => {
     return;
   }
 
-  // 1️⃣ Données principales
   const data = ecritures.value.map(ecriture => ({
     'Date Mouvement': ecriture.mouvement ? new Date(ecriture.mouvement.Date_mouvement).toLocaleDateString('fr-FR') : '-',
     'N° Pièce': ecriture.mouvement ? ecriture.mouvement.Numero_piece : '-',
@@ -234,11 +301,10 @@ const exportToExcel = () => {
     'Libellé': ecriture.Libelle || '-',
     'Référence': ecriture.Reference || '-',
     'Mode Paiement': ecriture.mode_paiement ? ecriture.mode_paiement.Libelle : '-',
-    'Débit': ecriture.Debit ? parseFloat(ecriture.Debit) : 0,
-    'Crédit': ecriture.Credit ? parseFloat(ecriture.Credit) : 0,
+    'Débit': ecriture.Debit ? formatNumber(ecriture.Debit) : '-',
+    'Crédit': ecriture.Credit ? formatNumber(ecriture.Credit) : '-',
   }));
 
-  // 2️⃣ Ligne de totaux
   data.push({
     'Date Mouvement': '',
     'N° Pièce': '',
@@ -246,35 +312,30 @@ const exportToExcel = () => {
     'Libellé': '',
     'Référence': '',
     'Mode Paiement': 'TOTAUX',
-    'Débit': totalDebit.value,
-    'Crédit': totalCredit.value
+    'Débit': formatNumber(totalDebit.value),
+    'Crédit': formatNumber(totalCredit.value)
   });
 
-  // 3️⃣ Feuille Excel
   const ws = XLSX.utils.aoa_to_sheet([]);
 
-  // ✅ Titre et détails
   const titre = [`JOURNAL DES ÉCRITURES N° ${journalId.value}`];
   const details = [
     [`Journal ID : ${journalId.value}`],
+    [`Unité monétaire : ${defaultDevise.value ? `${defaultDevise.value.Libelle} (${defaultDevise.value.Sigle})` : 'N/A'}`],
     [`Date d’export : ${new Date().toLocaleDateString('fr-FR')}`],
-    [''] // ligne vide
+    [''],
   ];
 
-  // Ajout du titre et des détails
   XLSX.utils.sheet_add_aoa(ws, [titre], { origin: 'A1' });
   XLSX.utils.sheet_add_aoa(ws, details, { origin: 'A3' });
 
-  // ✅ Données à partir de la ligne 7
-  XLSX.utils.sheet_add_json(ws, data, { origin: 'A7', skipHeader: false });
+  XLSX.utils.sheet_add_json(ws, data, { origin: 'A8', skipHeader: false });
 
-  // ✅ Ajustement automatique des colonnes
   const colWidths = Object.keys(data[0]).map((key) => ({
     wch: Math.max(key.length + 5, 15)
   }));
   ws['!cols'] = colWidths;
 
-  // 4️⃣ Création du classeur et téléchargement
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, `Journal_${journalId.value}`);
 
@@ -290,6 +351,7 @@ const goBack = () => {
 };
 
 onMounted(() => {
+  fetchDevises();
   fetchEcritures();
 });
 </script>
