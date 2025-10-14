@@ -262,3 +262,24 @@ CREATE TABLE Exercice_comptable(
 
 -- Création d'index pour les recherches par année
 CREATE INDEX idx_exercice_annee ON Exercice_comptable(Annee_fiscale);
+
+
+
+CREATE TABLE intervalle_comptes_categorie (
+    id SERIAL PRIMARY KEY,
+    compte_debut VARCHAR(10),
+    compte_fin VARCHAR(10),
+    id_categorie_fonctionelle INT,
+    FOREIGN KEY (id_categorie_fonctionelle) REFERENCES categorie_fonctionelles(id_categorie_fonctionelle)
+);
+
+INSERT INTO intervalle_comptes_categorie (compte_debut, compte_fin, id_categorie_fonctionelle)
+VALUES ('700', '710', (SELECT id_categorie_fonctionelle FROM categorie_fonctionelles WHERE code = 'CA'));
+
+INSERT INTO compte_categories (id_sous_compte, id_categorie_fonctionelle, poids, date_debut, actif)
+SELECT sc."Id_Sous_compte", icc."id_categorie_fonctionelle", 1, CURRENT_DATE, true
+FROM sous_comptes sc
+JOIN comptes c ON sc."Id_Compte" = c."Id_Compte"
+JOIN intervalle_comptes_categorie icc 
+  ON c."Code_compte"::bigint >= icc.compte_debut::bigint 
+ AND c."Code_compte"::bigint <= icc.compte_fin::bigint;
