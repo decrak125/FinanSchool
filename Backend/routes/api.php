@@ -19,6 +19,8 @@ use App\Http\Controllers\Saisie\LigneEcritureController;
 use App\Http\Controllers\Saisie\DeviseController;
 use App\Http\Controllers\Saisie\GrandLivreController;
 use App\Http\Controllers\general\BalanceController;
+use App\Http\Controllers\calcul\IntervalleComptesCategorieController;
+use App\Http\Controllers\calcul\ComptesCategorieController;
 
 Route::middleware('api')->group(function () {
     Route::post('/example', function (Request $request) {
@@ -79,11 +81,11 @@ Route::middleware('api')->group(function () {
     Route::post('/lignes-batch', [LigneEcritureController::class, 'saveLignesBatch']);
     Route::post('/mouvements/{id}/valider-complet', [LigneEcritureController::class, 'validerMouvementComplet']);
     Route::get('/options-formulaires', [LigneEcritureController::class, 'getOptions']);
-    
+
     // Routes pour la gestion des mouvements
     Route::post('/mouvements', [LigneEcritureController::class, 'createMouvement']);
     Route::delete('/mouvements/{mouvementId}', [LigneEcritureController::class, 'deleteMouvement']);
-    
+
     // Routes pour la gestion des lignes d'écriture
     Route::apiResource('lignes', LigneEcritureController::class);
 
@@ -97,4 +99,8 @@ Route::middleware('api')->group(function () {
 
     Route::get('/balance-generale', [BalanceController::class, 'index']);
     Route::get('/balance-generale/{codeSousCompte}', [BalanceController::class, 'show']);
+
+    Route::apiResource('/intervalle-comptes-categorie', IntervalleComptesCategorieController::class);
+
+    Route::apiResource('/compte-categories', ComptesCategorieController::class);
 });

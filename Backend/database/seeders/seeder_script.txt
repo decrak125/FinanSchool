@@ -4,3 +4,4 @@ php artisan db:seed --class=DureeSeeder
 php artisan db:seed --class=NatureComptableSeeder
 php artisan db:seed --class=TypeCategoriesSeeder
 php artisan db:seed --class=FonctionEconomiquesSeeder
+php artisan db:seed --class=IntervalleCompteCategoriesSeeder
