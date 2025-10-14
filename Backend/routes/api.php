@@ -103,4 +103,5 @@ Route::middleware('api')->group(function () {
     Route::apiResource('/intervalle-comptes-categorie', IntervalleComptesCategorieController::class);
 
     Route::apiResource('/compte-categories', ComptesCategorieController::class);
+    Route::post('/assigner-toutes-automatiquement', [ComptesCategorieController::class, 'assignerToutesCategoriesAutomatiquement']);
 });
