@@ -285,38 +285,38 @@ $desktop: 1200px;
 
 .content {
   @include position-contenus(flex, flex-start, flex-start);
-  overflow-y: auto;
+  // overflow-y: auto;
   width: 100%;
-  max-height: 60vh;
+  // max-height: 60vh;
   border-radius: $radius-pm;
   align-self: stretch;
 
-  @media (max-width: $mobile) {
-    max-height: 50vh;
-  }
+  // @media (max-width: $mobile) {
+  //   max-height: 50vh;
+  // }
 }
 
-.content::-webkit-scrollbar {
-  width: 10px;
+// .content::-webkit-scrollbar {
+//   width: 10px;
 
-  @media (max-width: $mobile) {
-    width: 6px;
-  }
-}
+//   @media (max-width: $mobile) {
+//     width: 6px;
+//   }
+// }
 
-.content::-webkit-scrollbar-track {
-  background: $light;
-  border-radius: 10px;
-}
+// .content::-webkit-scrollbar-track {
+//   background: $light;
+//   border-radius: 10px;
+// }
 
-.content::-webkit-scrollbar-thumb {
-  background: $gris;
-  border-radius: 10px;
-}
+// .content::-webkit-scrollbar-thumb {
+//   background: $gris;
+//   border-radius: 10px;
+// }
 
-.content::-webkit-scrollbar-thumb:hover {
-  background: $light;
-}
+// .content::-webkit-scrollbar-thumb:hover {
+//   background: $light;
+// }
 
 .graphic {
   @include position-contenus(flex, flex-start, flex-start);

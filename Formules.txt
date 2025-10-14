@@ -1,0 +1,35 @@
+0. Indicateurs Généraux
+| Indicateur              | Formule                                                                            | Interprétation                                           |
+| ----------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| **Total Produits**      | Somme des comptes de classe 7                                                      | Tous les revenus de l’école                              |
+| **Total Charges**       | Somme des comptes de classe 6                                                      | Ensemble des dépenses                                    |
+| **Résultat net**        | Produits – Charges                                                                 | Bénéfice ou perte de l’exercice                          |
+| **Taux de marge brute** | (Produits d’exploitation – Charges d’exploitation) / Produits d’exploitation × 100 | Capacité de l’école à dégager une marge sur son activité |
+| **Nombre d’élèves**     | Donnée administrative                                                              | Sert à calculer les ratios par élève                     |
+
+
+1.1 Indicateurs de rentabilité
+| Indicateur                      | Formule                                                     | Interprétation                                   |
+| ------------------------------- | ----------------------------------------------------------- | ------------------------------------------------ |
+| **Marge brute**                 | (Chiffre d’affaires – Coût des ventes) / Chiffre d’affaires | Mesure la rentabilité opérationnelle de base.    |
+| **Marge d’exploitation (EBIT)** | Résultat d’exploitation / Chiffre d’affaires                | Évalue la performance des activités principales. |
+| **Marge nette**                 | Résultat net / Chiffre d’affaires                           | Montre le bénéfice final par euro de ventes.     |
+| **ROE (Return on Equity)**      | Résultat net / Capitaux propres                             | Rendement des fonds propres.                     |
+| **ROA (Return on Assets)**      | Résultat net / Total actif                                  | Efficacité globale des actifs.                   |
+
+
+
+2. Indicateurs de liquidité
+| Indicateur                             | Formule                                            | Interprétation                                       |
+| -------------------------------------- | -------------------------------------------------- | ---------------------------------------------------- |
+| **Ratio de liquidité générale**        | Actif circulant / Passif à court terme             | > 1 indique une bonne solvabilité à court terme.     |
+| **Trésorerie Nettе**                   | Encaissements - Décaissements                      |                                                      |
+| **Besoin en fonds de roulement (BFR)** | (Stocks + Créances clients) - Dettes fournisseurs  | Permet d’évaluer le besoin financier d’exploitation. |
+
+3. Indicateurs de solvabilité
+| Indicateur                    | Formule                               | Interprétation                                        |
+| ----------------------------- | ------------------------------------- | ----------------------------------------------------- |
+| **Ratio d’endettement**       | Dettes financières / Capitaux propres | Plus il est faible, plus la structure est solide.     |
+| **Autonomie financière**      | Capitaux propres / Total bilan        | > 30% = bonne autonomie financière.                   |
+| **Capacité de remboursement** | Endettement net / CAF (Cash Flow)     | Nombre d’années nécessaires pour rembourser la dette. |
+

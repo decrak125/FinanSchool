@@ -6,14 +6,15 @@ import Counter from '../counter.vue';
         icon: String,
         iconColor: String,
         format: String,
+        negative: Boolean
     })
 </script>
 <template>
     <div class="Count-content">
         <i v-bind:class="icon" v-bind:style="`color:${iconColor};`"></i>
             <p class="texte">{{texte}}</p>
-          <Counter v-if="chiffre = null" :number="0" :format="format" />
-          <Counter v-if="chiffre !=null" :number="chiffre" :format="format" />
+          <Counter v-if="chiffre = null" :number="0" :format="format" :allowNegative="negative" />
+          <Counter v-if="chiffre !=null" :number="chiffre" :format="format" :allowNegative="negative" />
     </div>
 </template>
 <style lang="scss" scoped>

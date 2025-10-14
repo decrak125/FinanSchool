@@ -1,6 +1,7 @@
 <script setup>
 import sidebar from '@/components/molecules/Analyse/Sidebar.vue';
 import Header from '@/components/molecules/Analyse/Header.vue';
+import Footer from '../molecules/Analyse/Footer.vue';
 
 const token = localStorage.getItem("token");
 
@@ -12,14 +13,19 @@ if (!token) {
 <template>
   <div class="all">
     <div class="container" v-if="token">
-      <sidebar class="sidebar-desktop" />
+      <div class="sidebar">
+        <sidebar class="sidebar-desktop" />
+      </div>
       <div class="main">
-        <Header />
-        <!-- <sidebar class="sidebar-mobile" /> -->
+        <div class="header">
+          <Header />
+        </div>
         <div class="content">
           <slot />
         </div>
+      <Footer/>
       </div>
+      
     </div>
     <div class="redirection" v-else>
       <div class="loader">
@@ -33,45 +39,64 @@ if (!token) {
 
 <style lang="scss" scoped>
 .container {
-  @include position-contenus(flex, flex-start, center);
+  display: flex;
   width: 100%;
-  height: 100%;
-  
+  height: 100vh; // toute la hauteur visible de l’écran
+  overflow: hidden;
+
   @media (max-width: 1024px) {
     flex-direction: column;
+    height: auto;
   }
 }
 
 .main {
+  margin-left: 260px; // espace égal à la largeur de la sidebar
   display: flex;
-  padding: 32px 24px 24px 0;
   flex-direction: column;
-  align-items: center;
+  padding: 32px 24px 24px 24px;
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto; // permet de scroller uniquement dans le contenu
+  // background-color: $light;
   gap: 24px;
-  flex: 1 0 0;
-  align-self: stretch;
-  
+
   @media (max-width: 1024px) {
+    margin-left: 0;
+    height: auto;
+    overflow: visible;
     padding: 16px;
     gap: 16px;
   }
-  
-  @media (max-width: 768px) {
-    padding: 12px;
-    gap: 12px;
+}
+.header {
+  position: fixed;
+  top: 0;
+  left: 260px; // démarre après la sidebar
+  right: 0;
+  height: 120px;
+  background-color: #fff; // ou ta couleur de fond du header
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  // border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+  @media (max-width: 1024px) {
+    left: 0;
+    position: relative;
+    height: auto;
+    border-bottom: none;
   }
 }
-
 .content {
+  margin-top: 75px;
+  flex: 1;
+  width: 100%;
   background-color: $light;
+  // border-radius: $radius-pm;
   @include position-contenus(block, center, center);
-  flex: 1 0 0;
-  align-self: stretch;
-  border-radius: $radius-pm;
-  
-  @media (max-width: 1024px) {
-    border-radius: $radius-pm;
-  }
 }
 
 .sidebar-desktop {
@@ -83,12 +108,11 @@ if (!token) {
 .sidebar-mobile {
   display: none;
   width: 100%;
-  
+
   @media (max-width: 1024px) {
     display: block;
   }
 }
-
 /* From Uiverse.io by aryamitra06 */
 .loader {
   width: 100vh;
@@ -125,6 +149,22 @@ if (!token) {
 
   40% {
     transform: scaleY(0.5);
+  }
+}
+.sidebar {
+  position: fixed; // position fixe sur l’écran
+  top: 0;
+  left: 0;
+  width: 260px; // largeur fixe
+  height: 100vh; // pleine hauteur
+  z-index: 1000;
+  // background-color: $light; // à adapter selon ta couleur
+  // border-right: 1px solid rgba(0, 0, 0, 0.1);
+  
+  @media (max-width: 1024px) {
+    position: relative;
+    width: 100%;
+    height: auto;
   }
 }
 </style>

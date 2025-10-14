@@ -24,7 +24,7 @@
     number: {
       type: Number,
       required: true,
-      validator: (value) => value >= 0 && value <= 9
+      validator: (value) => value >= 0 && value <= 9 && Number.isInteger(value)
     },
     duration: {
       type: Number,
@@ -71,14 +71,15 @@
   }
   
   onMounted(() => {
-    startAnimation()
+    // Initial position
+    currentPosition.value = props.number * 10
   })
   
   watch(() => props.number, () => {
     startAnimation()
   })
   </script>
-  
+    
   <style scoped>
   .animated-digit {
     display: inline-block;
