@@ -1,0 +1,6 @@
+php artisan db:seed --class=DeviseSeeder
+php artisan db:seed --class=ErrorSeeder
+php artisan db:seed --class=DureeSeeder
+php artisan db:seed --class=NatureComptableSeeder
+php artisan db:seed --class=TypeCategoriesSeeder
+php artisan db:seed --class=FonctionEconomiquesSeeder
