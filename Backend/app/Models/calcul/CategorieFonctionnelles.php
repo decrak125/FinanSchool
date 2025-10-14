@@ -5,7 +5,7 @@ namespace App\Models\calcul;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class CategorieFonctionelle extends Model
+class CategorieFonctionelles extends Model
 {
     use HasFactory;
 
@@ -69,9 +69,9 @@ class CategorieFonctionelle extends Model
     /**
      * Relation avec le modèle FonctionEconomique
      */
-    public function fonctionEconomique()
+    public function fonctionEconomiques()
     {
-        return $this->belongsTo(FonctionEconomique::class, 'id_fonction_economique', 'id_fonction_economique');
+        return $this->belongsTo(FonctionEconomiques::class, 'id_fonction_economique', 'id_fonction_economique');
     }
 
     /**
@@ -85,8 +85,8 @@ class CategorieFonctionelle extends Model
     /**
      * Relation avec le modèle TypeCategorie
      */
-    public function typeCategorie()
+    public function typeCategories()
     {
-        return $this->belongsTo(TypeCategorie::class, 'id_type_categorie', 'id_type_categorie');
+        return $this->belongsTo(TypeCategories::class, 'id_type_categorie', 'id_type_categorie');
     }
 }

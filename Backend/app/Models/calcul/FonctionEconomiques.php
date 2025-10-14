@@ -5,7 +5,7 @@ namespace App\Models\calcul;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class FonctionEconomique extends Model
+class FonctionEconomiques extends Model
 {
     use HasFactory;
 

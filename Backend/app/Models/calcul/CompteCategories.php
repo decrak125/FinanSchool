@@ -5,9 +5,8 @@ namespace App\Models\calcul;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\PlanCompte\SousCompte;
-use App\Models\calcul\CategorieFonctionelle;
 
-class CompteCategorie extends Model
+class CompteCategories extends Model
 {
     use HasFactory;
 
@@ -73,8 +72,8 @@ class CompteCategorie extends Model
     /**
      * Relation avec le modèle CategorieFonctionelle
      */
-    public function categorieFonctionelle()
+    public function categorieFonctionelles()
     {
-        return $this->belongsTo(CategorieFonctionelle::class, 'id_categorie_fonctionelle', 'id_categorie_fonctionelle');
+        return $this->belongsTo(CategorieFonctionelles::class, 'id_categorie_fonctionelle', 'id_categorie_fonctionelle');
     }
 }

@@ -5,7 +5,7 @@ namespace App\Models\calcul;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class TypeCategorie extends Model
+class TypeCategories extends Model
 {
     use HasFactory;
 
