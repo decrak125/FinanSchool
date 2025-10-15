@@ -21,25 +21,25 @@ class IntervalleCompteCategoriesSeeder extends Seeder
             // Achats consommés : Achats et variations de stocks
             ['compte_debut' => '601', 'compte_fin' => '609', 'code_cat' => 'ACHATCONSOM'],
             // Services extérieurs
-            ['compte_debut' => '611', 'compte_fin' => '629', 'code_cat' => 'SERVEXT'],
+            ['compte_debut' => '611', 'compte_fin' => '619', 'code_cat' => 'SERVEXT'],
             // Charges de personnel
-            ['compte_debut' => '640', 'compte_fin' => '649', 'code_cat' => 'CHPERS'],
-            // Impôts, taxes
-            ['compte_debut' => '630', 'compte_fin' => '639', 'code_cat' => 'IMPTAX'],
+            ['compte_debut' => '620', 'compte_fin' => '629', 'code_cat' => 'CHPERS'],
+            // Impôts, taxes (TSY MISY AO)
+            // ['compte_debut' => '630', 'compte_fin' => '639', 'code_cat' => 'IMPTAX'],
             // Autres produits d'exploitation
             ['compte_debut' => '750', 'compte_fin' => '759', 'code_cat' => 'AUTPRODOP'],
             // Autres charges d'exploitation
             ['compte_debut' => '650', 'compte_fin' => '659', 'code_cat' => 'AUTCHOP'],
             // Dotations aux amortissements/provisions
-            ['compte_debut' => '680', 'compte_fin' => '689', 'code_cat' => 'AMORTPROV'],
+            ['compte_debut' => '640', 'compte_fin' => '649', 'code_cat' => 'AMORTPROV'],
             // Reprises sur provisions 
             ['compte_debut' => '780', 'compte_fin' => '789', 'code_cat' => 'REPRISEPROV'],
             // Produits financiers
             ['compte_debut' => '760', 'compte_fin' => '769', 'code_cat' => 'PRODFIN'],
             // Charges financières
-            ['compte_debut' => '660', 'compte_fin' => '669', 'code_cat' => 'CHARGEFIN'],
-            // Impôts sur les résultats
-            ['compte_debut' => '690', 'compte_fin' => '699', 'code_cat' => 'IMPOT'],
+            ['compte_debut' => '650', 'compte_fin' => '659', 'code_cat' => 'CHARGEFIN'],
+            // Impôts sur les résultats (TSISY)
+            // ['compte_debut' => '690', 'compte_fin' => '699', 'code_cat' => 'IMPOT'],
             // Impôts différés
             // Optionnelle selon structure
             // Produits exceptionnels
