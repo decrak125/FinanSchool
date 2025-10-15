@@ -29,7 +29,7 @@ class IntervalleCompteCategoriesSeeder extends Seeder
             // Autres produits d'exploitation
             ['compte_debut' => '750', 'compte_fin' => '759', 'code_cat' => 'AUTPRODOP'],
             // Autres charges d'exploitation
-            ['compte_debut' => '650', 'compte_fin' => '659', 'code_cat' => 'AUTCHOP'],
+            ['compte_debut' => '630', 'compte_fin' => '639', 'code_cat' => 'AUTCHOP'],
             // Dotations aux amortissements/provisions
             ['compte_debut' => '640', 'compte_fin' => '649', 'code_cat' => 'AMORTPROV'],
             // Reprises sur provisions 
