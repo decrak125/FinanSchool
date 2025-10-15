@@ -19,7 +19,7 @@
           </div>
           <br>
 
-          <!-- Filtre par période et classe de compte -->
+          <!-- Filtres -->
           <div class="filter-container mb-6">
             <h2 class="text-xl mb-4">Filtrer la balance</h2>
             <form @submit.prevent="applyFilters" class="d-flex gap-4 flex-column flex-md-row">
@@ -42,6 +42,13 @@
                   <option value="5">Classe 5 - Finances</option>
                   <option value="6">Classe 6 - Charges</option>
                   <option value="7">Classe 7 - Produits</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Exercice comptable</label>
+                <select v-model="filters.exercice_comptable" class="form-select">
+                  <option value="">Tous</option>
+                  <option v-for="ex in exercices" :key="ex.id" :value="ex.id">{{ ex.nom }}</option>
                 </select>
               </div>
               <div class="d-flex gap-2 align-center">
@@ -84,15 +91,23 @@
                       <i :class="mainAccount.expanded ? 'bi bi-chevron-down' : 'bi bi-chevron-right'" class="me-2"></i>
                       {{ mainCode }} - {{ mainAccount.libelle }}
                     </td>
-                    <td class="p-4 text-base font-bold">{{ formatNumber(Math.abs(mainAccount.total_debit)) }}</td>
-                    <td class="p-4 text-base font-bold">{{ formatNumber(Math.abs(mainAccount.total_credit)) }}</td>
+                    <td class="p-4 text-base font-bold">
+                      {{ formatNumber(Math.abs(mainAccount.total_debit)) }}
+                    </td>
+                    <td class="p-4 text-base font-bold">
+                      {{ formatNumber(Math.abs(mainAccount.total_credit)) }}
+                    </td>
                   </tr>
-                  <!-- Sous-comptes (affichés si expanded) -->
+                  <!-- Sous-comptes -->
                   <template v-if="mainAccount.expanded">
                     <tr v-for="(subAccount, index) in mainAccount.subAccounts" :key="`${mainCode}-${index}`" class="sub-account-row">
                       <td class="p-4 text-base pl-8">{{ subAccount.code_sous_compte }} - {{ subAccount.libelle_sous_compte }}</td>
-                      <td class="p-4 text-base">{{ formatNumber(Math.abs(subAccount.total_debit)) }}</td>
-                      <td class="p-4 text-base">{{ formatNumber(Math.abs(subAccount.total_credit)) }}</td>
+                      <td class="p-4 text-base">
+                        {{ subAccount.solde_final >= 0 ? formatNumber(subAccount.solde_final) : '' }}
+                      </td>
+                      <td class="p-4 text-base">
+                        {{ subAccount.solde_final < 0 ? formatNumber(Math.abs(subAccount.solde_final)) : '' }}
+                      </td>
                     </tr>
                   </template>
                 </template>
@@ -102,8 +117,8 @@
                 <!-- Ligne des totaux -->
                 <tr v-if="Object.keys(groupedComptes).length" class="total-row">
                   <td class="p-4 text-base font-bold">Totaux</td>
-                  <td class="p-4 text-base font-bold">{{ formatNumber(Math.abs(totalDebit)) }}</td>
-                  <td class="p-4 text-base font-bold">{{ formatNumber(Math.abs(totalCredit)) }}</td>
+                  <td class="p-4 text-base font-bold">{{ formatNumber(totalDebit) }}</td>
+                  <td class="p-4 text-base font-bold">{{ formatNumber(totalCredit) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -131,19 +146,21 @@ const router = useRouter();
 const comptes = ref([]);
 const loading = ref(false);
 const expandedAccounts = ref(new Set());
+const exercices = ref([]);
 
+// Filtre
 const filters = ref({
   date_debut: "",
   date_fin: "",
   classe_compte: "",
+  exercice_comptable: "",
 });
 
-// Grouper les comptes par code principal
+// Groupement des comptes (classe ➔ sous-comptes)
 const groupedComptes = computed(() => {
   const grouped = {};
-  
   comptes.value.forEach((compte) => {
-    const mainCode = compte.code_compte.substring(0, 1); // Premier caractère pour la classe
+    const mainCode = compte.code_compte.substring(0, 1); // Classe
     if (!grouped[mainCode]) {
       grouped[mainCode] = {
         libelle: getClasseLibelle(mainCode),
@@ -153,22 +170,22 @@ const groupedComptes = computed(() => {
         subAccounts: []
       };
     }
-    
     grouped[mainCode].subAccounts.push({
       code_sous_compte: compte.code_sous_compte,
       libelle_sous_compte: compte.libelle_sous_compte,
-      total_debit: parseFloat(compte.total_debit) || 0,
-      total_credit: parseFloat(compte.total_credit) || 0,
+      solde_final: parseFloat(compte.solde_final) || 0
     });
-    
-    grouped[mainCode].total_debit += parseFloat(compte.total_debit) || 0;
-    grouped[mainCode].total_credit += parseFloat(compte.total_credit) || 0;
+
+    // Accumulateur pour les totaux, selon signe du solde_final
+    if ((parseFloat(compte.solde_final) || 0) >= 0) {
+      grouped[mainCode].total_debit += parseFloat(compte.solde_final) || 0;
+    } else {
+      grouped[mainCode].total_credit += Math.abs(parseFloat(compte.solde_final)) || 0;
+    }
   });
-  
   return grouped;
 });
 
-// Obtenir le libellé de la classe
 const getClasseLibelle = (classe) => {
   const classes = {
     '1': 'Capitaux',
@@ -182,16 +199,17 @@ const getClasseLibelle = (classe) => {
   return classes[classe] || 'Classe inconnue';
 };
 
-// Calcul des totaux
 const totalDebit = computed(() => {
-  return Object.values(groupedComptes.value).reduce((sum, account) => sum + account.total_debit, 0);
+  return Object.values(groupedComptes.value).reduce(
+    (sum, acc) => sum + (acc.total_debit || 0), 0
+  );
 });
-
 const totalCredit = computed(() => {
-  return Object.values(groupedComptes.value).reduce((sum, account) => sum + account.total_credit, 0);
+  return Object.values(groupedComptes.value).reduce(
+    (sum, acc) => sum + (acc.total_credit || 0), 0
+  );
 });
 
-// Toggle l'expansion d'un compte
 const toggleAccount = (accountCode) => {
   if (expandedAccounts.value.has(accountCode)) {
     expandedAccounts.value.delete(accountCode);
@@ -199,23 +217,18 @@ const toggleAccount = (accountCode) => {
     expandedAccounts.value.add(accountCode);
   }
 };
-
 const handleNavigation = (item) => {
   router.push(item.route);
 };
-
 const token = localStorage.getItem("token");
-
 if (!token) {
   window.location.href = "/";
 } else {
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
-
 const formatNumber = (number) => {
   return Number(number).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
-
 const fetchBalanceGenerale = async () => {
   try {
     loading.value = true;
@@ -223,8 +236,8 @@ const fetchBalanceGenerale = async () => {
       ...(filters.value.date_debut && { date_debut: filters.value.date_debut }),
       ...(filters.value.date_fin && { date_fin: filters.value.date_fin }),
       ...(filters.value.classe_compte && { classe_compte: filters.value.classe_compte }),
+      ...(filters.value.exercice_comptable && { exercice_comptable: filters.value.exercice_comptable }),
     }).toString();
-    
     const res = await axios.get(`http://127.0.0.1:8000/api/balance-generale?${queryParams}`);
     comptes.value = res.data;
   } catch (error) {
@@ -234,60 +247,58 @@ const fetchBalanceGenerale = async () => {
     loading.value = false;
   }
 };
-
-const applyFilters = () => {
-  fetchBalanceGenerale();
+const fetchExercices = async () => {
+  try {
+    const res = await axios.get('http://127.0.0.1:8000/api/exercices');
+    exercices.value = res.data;
+  } catch (e) { exercices.value = []; }
 };
 
+const applyFilters = () => { fetchBalanceGenerale(); };
 const resetFilters = () => {
   filters.value = {
     date_debut: "",
     date_fin: "",
     classe_compte: "",
+    exercice_comptable: "",
   };
   fetchBalanceGenerale();
 };
-
 const exportToPDF = () => {
   if (!Object.keys(groupedComptes.value).length) {
     alert("Aucune donnée à exporter");
     return;
   }
-
   const doc = new jsPDF();
-  
   doc.setFontSize(18);
   doc.setTextColor(0, 51, 102);
   doc.text("RAITRA KIDZ - Balance Générale", 14, 20);
-  
   doc.setFontSize(10);
   doc.setTextColor(0, 0, 0);
   doc.text(`Période: ${filters.value.date_debut || "N/A"} à ${filters.value.date_fin || "N/A"}`, 14, 30);
   doc.text(`Classe de compte: ${filters.value.classe_compte || "Toutes"}`, 14, 38);
+  doc.text(`Exercice comptable: ${filters.value.exercice_comptable || "Tous"}`, 14, 42);
   doc.text(`Exporté le: ${new Date().toLocaleDateString("fr-FR")}`, 14, 46);
-
   const tableData = [];
   Object.entries(groupedComptes.value).forEach(([mainCode, mainAccount]) => {
     tableData.push([
       `${mainCode} - ${mainAccount.libelle}`,
-      formatNumber(Math.abs(mainAccount.total_debit)),
-      formatNumber(Math.abs(mainAccount.total_credit)),
+      formatNumber(mainAccount.total_debit),
+      formatNumber(mainAccount.total_credit),
     ]);
     mainAccount.subAccounts.forEach(subAccount => {
       tableData.push([
         `  ${subAccount.code_sous_compte} - ${subAccount.libelle_sous_compte}`,
-        formatNumber(Math.abs(subAccount.total_debit)),
-        formatNumber(Math.abs(subAccount.total_credit)),
+        subAccount.solde_final >= 0 ? formatNumber(subAccount.solde_final) : "",
+        subAccount.solde_final < 0 ? formatNumber(Math.abs(subAccount.solde_final)) : ""
       ]);
     });
   });
-  
   tableData.push([
     'TOTAUX',
-    formatNumber(Math.abs(totalDebit.value)),
-    formatNumber(Math.abs(totalCredit.value)),
+    formatNumber(totalDebit.value),
+    formatNumber(totalCredit.value),
   ]);
-
   autoTable(doc, {
     startY: 50,
     head: [['Compte', 'Débit', 'Crédit']],
@@ -306,59 +317,40 @@ const exportToPDF = () => {
     },
     margin: { top: 50, bottom: 20 },
   });
-
   doc.save(`Balance_Generale_${new Date().toISOString().split("T")[0]}.pdf`);
 };
-
 const exportToExcel = () => {
   if (!Object.keys(groupedComptes.value).length) {
     alert("Aucune donnée à exporter");
     return;
   }
-
-  // 1️⃣ Récupération des données
   const data = [];
   Object.entries(groupedComptes.value).forEach(([mainCode, mainAccount]) => {
     mainAccount.subAccounts.forEach(subAccount => {
       data.push({
         'Compte': subAccount.code_sous_compte,
         'Libellé': subAccount.libelle_sous_compte,
-        'Débit': formatNumber(Math.abs(subAccount.total_debit)),
-        'Crédit': formatNumber(Math.abs(subAccount.total_credit)),
+        'Débit': subAccount.solde_final >= 0 ? formatNumber(subAccount.solde_final) : "",
+        'Crédit': subAccount.solde_final < 0 ? formatNumber(Math.abs(subAccount.solde_final)) : "",
       });
     });
   });
-
-  // 2️⃣ Création d’un tableau pour le titre et les détails
   const today = new Date().toLocaleDateString('fr-FR');
   const title = [["💼 BALANCE GÉNÉRALE"]];
   const details = [
     [`Date d'export : ${today}`],
     [""]
   ];
-
-  // 3️⃣ Convertir le tableau principal en sheet
   const dataSheet = XLSX.utils.json_to_sheet(data, { origin: -1 });
-
-  // 4️⃣ Fusion des éléments dans un seul tableau
   const ws = XLSX.utils.aoa_to_sheet([...title, ...details]);
   XLSX.utils.sheet_add_json(ws, data, { origin: -1, skipHeader: false });
-
-  // 5️⃣ Ajustement de la largeur des colonnes
   const colWidths = [
-    { wch: 15 }, // Compte
-    { wch: 35 }, // Libellé
-    { wch: 15 }, // Débit
-    { wch: 15 }, // Crédit
+    { wch: 15 }, { wch: 35 }, { wch: 15 }, { wch: 15 },
   ];
   ws['!cols'] = colWidths;
-
-  // 6️⃣ Ajout d’un peu de style (fusion + alignement)
   ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } } // Fusion du titre sur 4 colonnes
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }
   ];
-
-  // 7️⃣ Création du classeur et écriture du fichier
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Balance_Generale");
   XLSX.writeFile(
@@ -366,13 +358,9 @@ const exportToExcel = () => {
     `balance_generale_${new Date().toISOString().split("T")[0]}.xlsx`
   );
 };
-
-
-const goBack = () => {
-  router.push("/journal");
-};
-
+const goBack = () => { router.push("/journal"); };
 onMounted(() => {
+  fetchExercices();
   fetchBalanceGenerale();
 });
 </script>

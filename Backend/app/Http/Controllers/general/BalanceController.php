@@ -11,23 +11,21 @@ class BalanceController extends Controller
 {
     // 🧾 Liste complète de la balance générale
     public function index(Request $request)
-    {
-        $dateDebut = $request->query('date_debut');
-        $dateFin = $request->query('date_fin');
+        {
+            $dateDebut = $request->query('date_debut');
+            $dateFin = $request->query('date_fin');
 
-        // On filtre côté backend si les dates sont fournies
-        if ($dateDebut && $dateFin) {
-            $balance = DB::table('vue_balance_generale')
-                ->join('mouvement_ecritures', 'mouvement_ecritures.Id_Mouvement_ecriture', '=', 'mouvement_ecritures.Id_Mouvement_ecriture')
-                ->whereBetween('mouvement_ecritures.Date_mouvement', [$dateDebut, $dateFin])
-                ->select('vue_balance_generale.*')
-                ->get();
-        } else {
-            $balance = Balance::all();
+            if ($dateDebut && $dateFin) {
+                $balance = DB::table('vue_balance_generale')
+                    ->whereBetween('date_mouvement', [$dateDebut, $dateFin])
+                    ->get();
+            } else {
+                $balance = DB::table('vue_balance_generale')->get();
+            }
+
+            return response()->json($balance);
         }
 
-        return response()->json($balance);
-    }
 
     // 🔍 Afficher un sous-compte précis
     public function show($codeSousCompte)
