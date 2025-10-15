@@ -7,6 +7,8 @@ use App\Http\Controllers\ParametresAnalytique\TypeCentreController;
 use App\Http\Controllers\ParametresAnalytique\CentreAnalytiqueController;
 use App\Http\Controllers\ParametresAnalytique\AffectationAnalytiqueController;
 use App\Http\Controllers\Analyse\CoutEtProfitController;
+use App\Http\Controllers\Analyse\IndicateursGenerauxController;
+use App\Http\Controllers\Analyse\IndicateurRentabiliteController;
 
     Route::put('/affectations/multiple', [AffectationAnalytiqueController::class, 'updateMultiple']);
     Route::delete('/affectations/sous-compte/{id_sous_compte}', [AffectationAnalytiqueController::class, 'destroyBySousCompte']);
@@ -56,6 +58,13 @@ use App\Http\Controllers\Analyse\CoutEtProfitController;
           Route::get('/cout-profit/rentabilite-type', [CoutEtProfitController::class, 'getAnalyseRentabiliteParType']);
           Route::get('/cout-profit/evolution-mensuelle', [CoutEtProfitController::class, 'getEvolutionMensuelleCoutProfit']);
 
+
+
+     // Indicateurs Généraux
+     Route::get('/marge-exploitation', [IndicateursGenerauxController::class, 'calculMargeExploitation']);
+     // Indicateurs Rentabilite
+     Route::get('/marge-brute', [IndicateurRentabiliteController::class, 'calculMargeBrute']);
+     Route::get('/marge-exploitation-ebit', [IndicateurRentabiliteController::class, 'calculMargeExploitationEBIT']);
     });
 
 

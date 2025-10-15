@@ -4,7 +4,7 @@
 | **Total Produits**      | Somme des comptes de classe 7                                                      | Tous les revenus de l’école                              |
 | **Total Charges**       | Somme des comptes de classe 6                                                      | Ensemble des dépenses                                    |
 | **Résultat net**        | Produits – Charges                                                                 | Bénéfice ou perte de l’exercice                          |
-| **Taux de marge brute** | (Produits d’exploitation – Charges d’exploitation) / Produits d’exploitation × 100 | Capacité de l’école à dégager une marge sur son activité |
+| **marge d'exploitation**| (Produits d’exploitation – Charges d’exploitation) / Produits d’exploitation × 100 | Capacité de l’école à dégager une marge sur son activité |
 | **Nombre d’élèves**     | Donnée administrative                                                              | Sert à calculer les ratios par élève                     |
 
 
