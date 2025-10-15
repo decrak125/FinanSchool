@@ -283,3 +283,22 @@ JOIN comptes c ON sc."Id_Compte" = c."Id_Compte"
 JOIN intervalle_comptes_categorie icc 
   ON c."Code_compte"::bigint >= icc.compte_debut::bigint 
  AND c."Code_compte"::bigint <= icc.compte_fin::bigint;
+
+SELECT 
+    cf.code,
+    cf.libelle,
+    SUM(
+        CASE 
+            WHEN le."Debit" > 0 THEN le."Debit" 
+            ELSE le."Credit" 
+        END
+    ) as montant_total
+FROM ligne_ecritures le
+JOIN sous_comptes sc ON le."Id_Sous_compte" = sc."Id_Sous_compte"
+JOIN compte_categories cc ON sc."Id_Sous_compte" = cc."id_sous_compte"
+JOIN categorie_fonctionelles cf ON cc.id_categorie_fonctionelle = cf.id_categorie_fonctionelle
+WHERE cf.code = 'AUTCHOP'
+    AND cc.actif = true
+    AND le.statut = 'valide'
+    AND le.date_validation BETWEEN '2024-01-01' AND '2024-12-31'
+GROUP BY cf.id_categorie_fonctionelle, cf.code, cf.libelle;
