@@ -21,6 +21,7 @@ use App\Http\Controllers\Saisie\GrandLivreController;
 use App\Http\Controllers\general\BalanceController;
 use App\Http\Controllers\calcul\IntervalleComptesCategorieController;
 use App\Http\Controllers\calcul\ComptesCategorieController;
+use App\Http\Controllers\calcul\UtilesController;
 
 Route::middleware('api')->group(function () {
     Route::post('/example', function (Request $request) {
@@ -104,4 +105,5 @@ Route::middleware('api')->group(function () {
 
     Route::apiResource('/compte-categories', ComptesCategorieController::class);
     Route::post('/assigner-toutes-automatiquement', [ComptesCategorieController::class, 'assignerToutesCategoriesAutomatiquement']);
+    Route::get('/somme-categorie', [UtilesController::class, 'getSommeParCategorie']);
 });

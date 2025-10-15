@@ -284,6 +284,8 @@ JOIN intervalle_comptes_categorie icc
   ON c."Code_compte"::bigint >= icc.compte_debut::bigint 
  AND c."Code_compte"::bigint <= icc.compte_fin::bigint;
 
+
+-- fangalana somme ecritures ana categorie ray
 SELECT 
     cf.code,
     cf.libelle,
