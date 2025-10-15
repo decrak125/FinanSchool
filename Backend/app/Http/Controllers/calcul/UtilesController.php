@@ -86,7 +86,7 @@ public function getSommeParCategorie(Request $request)
     $resultat = DB::table('vue_balance_generale as vbg')
         ->whereIn('vbg.code_sous_compte', $codesSousComptes)
         ->whereBetween('vbg.date_mouvement', [$dateDebut, $dateFin])
-        ->selectRaw('SUM(vbg.solde_final) as montant_total')
+        ->selectRaw('ABS(SUM(vbg.solde_final)) as montant_total')
         ->first();
 
     return response()->json([
@@ -157,7 +157,7 @@ public function getSommeParCategorie(Request $request)
         ->whereIn('vbg.code_sous_compte', $codesSousComptes)
         ->whereBetween('vbg.date_mouvement', [$dateDebut, $dateFin])
         ->selectRaw(
-            '? as code, NULL as libelle, SUM(vbg.solde_final) as montant_total',
+            '? as code, NULL as libelle, ABS(SUM(vbg.solde_final)) as montant_total',
             [$codeCategorie]
         )
         ->first();
