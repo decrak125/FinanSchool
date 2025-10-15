@@ -226,9 +226,17 @@ if (!token) {
 } else {
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
+
 const formatNumber = (number) => {
-  return Number(number).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return Number(number).toLocaleString('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: true
+  }); // Affiche bien : 5 000,00
 };
+
+
+
 const fetchBalanceGenerale = async () => {
   try {
     loading.value = true;
@@ -264,61 +272,112 @@ const resetFilters = () => {
   };
   fetchBalanceGenerale();
 };
+
+const societeNom = "RAITRA KIDZ"; // Ou récupéré dynamiquement, selon ton app
+
+const formatNumberSage = (number) => {
+  if (isNaN(number)) return '0,00';
+  let parts = Number(number).toFixed(2).split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return parts.join(',');
+};
+
 const exportToPDF = () => {
   if (!Object.keys(groupedComptes.value).length) {
     alert("Aucune donnée à exporter");
     return;
   }
   const doc = new jsPDF();
-  doc.setFontSize(18);
-  doc.setTextColor(0, 51, 102);
-  doc.text("RAITRA KIDZ - Balance Générale", 14, 20);
+
+  // -- EN-TÊTE SAGE 100 --
+  doc.setFontSize(12);
+  doc.setTextColor(44, 62, 80);
+  doc.setFont("helvetica", "bold");
+  doc.text(societeNom, 14, 14);
+
   doc.setFontSize(10);
-  doc.setTextColor(0, 0, 0);
-  doc.text(`Période: ${filters.value.date_debut || "N/A"} à ${filters.value.date_fin || "N/A"}`, 14, 30);
-  doc.text(`Classe de compte: ${filters.value.classe_compte || "Toutes"}`, 14, 38);
-  doc.text(`Exercice comptable: ${filters.value.exercice_comptable || "Tous"}`, 14, 42);
-  doc.text(`Exporté le: ${new Date().toLocaleDateString("fr-FR")}`, 14, 46);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Date édition : ${new Date().toLocaleDateString("fr-FR")}`, 14, 20);
+
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(51, 122, 183);
+  doc.text("BALANCE GÉNÉRALE", doc.internal.pageSize.getWidth() / 2, 30, {align:"center"});
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(44, 62, 80);
+  // Deux infos en colonnes
+  doc.text(`Période : ${filters.value.date_debut || "N/A"} à ${filters.value.date_fin || "N/A"}`, 14, 38);
+  doc.text(`Exercice : ${filters.value.exercice_comptable || "Tous"}`, 120, 38);
+  doc.text(`Classe de compte : ${filters.value.classe_compte || "Toutes"}`, 14, 44);
+
+  // -- TABLEAU
   const tableData = [];
   Object.entries(groupedComptes.value).forEach(([mainCode, mainAccount]) => {
     tableData.push([
       `${mainCode} - ${mainAccount.libelle}`,
-      formatNumber(mainAccount.total_debit),
-      formatNumber(mainAccount.total_credit),
+      formatNumberSage(mainAccount.total_debit),
+      formatNumberSage(mainAccount.total_credit),
     ]);
     mainAccount.subAccounts.forEach(subAccount => {
       tableData.push([
         `  ${subAccount.code_sous_compte} - ${subAccount.libelle_sous_compte}`,
-        subAccount.solde_final >= 0 ? formatNumber(subAccount.solde_final) : "",
-        subAccount.solde_final < 0 ? formatNumber(Math.abs(subAccount.solde_final)) : ""
+        subAccount.solde_final >= 0 ? formatNumberSage(subAccount.solde_final) : "",
+        subAccount.solde_final < 0 ? formatNumberSage(Math.abs(subAccount.solde_final)) : ""
       ]);
     });
   });
   tableData.push([
     'TOTAUX',
-    formatNumber(totalDebit.value),
-    formatNumber(totalCredit.value),
+    formatNumberSage(totalDebit.value),
+    formatNumberSage(totalCredit.value),
   ]);
+
   autoTable(doc, {
-    startY: 50,
+    startY: 48,
     head: [['Compte', 'Débit', 'Crédit']],
     body: tableData,
+    theme: 'grid',
     styles: {
-      fontSize: 9,
-      cellPadding: 3,
+      fontSize: 10,
+      font: "helvetica",
+      textColor: [44, 62, 80],
+      halign: 'right',
+      cellPadding: 4,
+      lineColor: [180, 180, 180],
+      lineWidth: 0.1,
     },
     headStyles: {
-      fillColor: [0, 51, 102],
+      fillColor: [51, 122, 183],
       textColor: [255, 255, 255],
-      fontStyle: "bold",
+      fontStyle: 'bold',
+      halign: 'center',
+      fontSize: 11,
     },
     alternateRowStyles: {
-      fillColor: [240, 240, 240],
+      fillColor: [245, 245, 245],
     },
-    margin: { top: 50, bottom: 20 },
+    columnStyles: {
+      0: { halign: 'left', fontStyle: 'bold' },
+      1: { halign: 'right' },
+      2: { halign: 'right' }
+    },
+    margin: { top: 48 }
   });
+
+  doc.setFontSize(8);
+  doc.setTextColor(180, 180, 180);
+  doc.text(
+    "Document édité automatiquement - Sage 100 style",
+    14,
+    doc.internal.pageSize.getHeight() - 10
+  );
+
   doc.save(`Balance_Generale_${new Date().toISOString().split("T")[0]}.pdf`);
 };
+
+
 const exportToExcel = () => {
   if (!Object.keys(groupedComptes.value).length) {
     alert("Aucune donnée à exporter");
