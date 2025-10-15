@@ -63,6 +63,21 @@ class UtilesController extends Controller
     }
 
     /**
+     * Calcule le total d'un groupe de catégories fonctionnelles
+     */
+    public static function calculerTotalCategorieGroupe(array $codesCategories, $dateDebut, $dateFin)
+    {
+        $total = 0;
+
+        foreach ($codesCategories as $code) {
+            $montant = self::calculerSommeCategorie($code, $dateDebut, $dateFin);
+            $total += $montant ? $montant->montant_total : 0;
+        }
+
+        return $total;
+    }
+
+    /**
      * Version simplifiée pour usage interne
      */
     public static function calculerSommeCategorie($codeCategorie, $dateDebut, $dateFin)
