@@ -119,23 +119,52 @@ public function getSommeParCategorie(Request $request)
     /**
      * Version simplifiée pour usage interne
      */
+    // public static function calculerSommeCategorie($codeCategorie, $dateDebut, $dateFin)
+    // {
+    //     return DB::table('ligne_ecritures as le')
+    //         ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
+    //         ->join('compte_categories as cc', 'sc.Id_Sous_compte', '=', 'cc.id_sous_compte')
+    //         ->join('categorie_fonctionelles as cf', 'cc.id_categorie_fonctionelle', '=', 'cf.id_categorie_fonctionelle')
+    //         ->where('cf.code', $codeCategorie)
+    //         ->where('cc.actif', true)
+    //         ->where('le.statut', 'valide')
+    //         ->whereBetween('le.date_validation', [$dateDebut, $dateFin])
+    //         ->select(
+    //             'cf.code',
+    //             'cf.libelle',
+    //             DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_total')
+    //         )
+    //         ->groupBy('cf.id_categorie_fonctionelle', 'cf.code', 'cf.libelle')
+    //         ->first();
+    // }
+
     public static function calculerSommeCategorie($codeCategorie, $dateDebut, $dateFin)
-    {
-        return DB::table('ligne_ecritures as le')
-            ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
-            ->join('compte_categories as cc', 'sc.Id_Sous_compte', '=', 'cc.id_sous_compte')
-            ->join('categorie_fonctionelles as cf', 'cc.id_categorie_fonctionelle', '=', 'cf.id_categorie_fonctionelle')
-            ->where('cf.code', $codeCategorie)
-            ->where('cc.actif', true)
-            ->where('le.statut', 'valide')
-            ->whereBetween('le.date_validation', [$dateDebut, $dateFin])
-            ->select(
-                'cf.code',
-                'cf.libelle',
-                DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_total')
-            )
-            ->groupBy('cf.id_categorie_fonctionelle', 'cf.code', 'cf.libelle')
-            ->first();
-    }
+{
+    // 1. Trouver les Id_Sous_compte associés à la catégorie
+    $idsSousComptes = DB::table('compte_categories as cc')
+        ->join('categorie_fonctionelles as cf', 'cc.id_categorie_fonctionelle', '=', 'cf.id_categorie_fonctionelle')
+        ->where('cf.code', $codeCategorie)
+        ->where('cc.actif', true)
+        ->pluck('cc.id_sous_compte');
+
+    // 2. Récupérer les codes des sous-comptes correspondants
+    $codesSousComptes = DB::table('sous_comptes')
+        ->whereIn('Id_Sous_compte', $idsSousComptes)
+        ->pluck('Code_sous_compte');
+
+    // 3. Calculer le montant total en utilisant la vue
+    $resultat = DB::table('vue_balance_generale as vbg')
+        ->whereIn('vbg.code_sous_compte', $codesSousComptes)
+        ->whereBetween('vbg.date_mouvement', [$dateDebut, $dateFin])
+        ->selectRaw(
+            '? as code, NULL as libelle, SUM(vbg.solde_final) as montant_total',
+            [$codeCategorie]
+        )
+        ->first();
+
+    // Structure du retour conforme à l'ancienne fonction
+    return $resultat;
+}
+
 
 }
