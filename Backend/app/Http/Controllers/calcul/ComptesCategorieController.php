@@ -8,6 +8,7 @@ use App\Models\PlanCompte\SousCompte;
 use App\Models\calcul\CategorieFonctionelles;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 class ComptesCategorieController extends Controller
 {
@@ -204,7 +205,7 @@ class ComptesCategorieController extends Controller
 
     try {
         // Vérifier d'abord si l'intervalle existe
-        $intervalleExiste = \DB::table('intervalle_comptes_categorie')
+        $intervalleExiste = DB::table('intervalle_comptes_categorie')
             ->where('id_categorie_fonctionelle', $validated['id_categorie_fonctionelle'])
             ->where('compte_debut', $validated['compte_debut'])
             ->where('compte_fin', $validated['compte_fin'])
@@ -218,7 +219,7 @@ class ComptesCategorieController extends Controller
         }
 
         // Utiliser une requête raw pour l'insertion
-        $resultat = \DB::insert("
+        $resultat = DB::insert("
             INSERT INTO compte_categories (id_sous_compte, id_categorie_fonctionelle, poids, date_debut, actif, created_at, updated_at)
             SELECT
                 sc.\"Id_Sous_compte\",
@@ -254,7 +255,7 @@ class ComptesCategorieController extends Controller
         ]);
 
         // Compter le nombre de lignes insérées
-        $nombreInsere = \DB::select("
+        $nombreInsere = DB::select("
             SELECT COUNT(*) as count
             FROM sous_comptes sc
             JOIN comptes c ON sc.\"Id_Compte\" = c.\"Id_Compte\"
@@ -314,7 +315,7 @@ public function assignerToutesCategoriesAutomatiquement(Request $request)
 
     try {
         // Récupérer tous les intervalles de comptes
-        $intervalles = \DB::table('intervalle_comptes_categorie')->get();
+        $intervalles = DB::table('intervalle_comptes_categorie')->get();
 
         $resultats = [];
         $totalAssignations = 0;
@@ -353,7 +354,7 @@ private function traiterIntervalle($intervalle, $parametres)
 
     if ($forcer) {
         // Supprimer les assignations existantes pour cet intervalle
-        \DB::table('compte_categories')
+        DB::table('compte_categories')
             ->where('id_categorie_fonctionelle', $intervalle->id_categorie_fonctionelle)
             ->delete();
     }
@@ -393,7 +394,7 @@ private function traiterIntervalle($intervalle, $parametres)
             )
     ";
 
-    $resultat = \DB::insert($requeteInsert, [
+    $resultat = DB::insert($requeteInsert, [
         $parametres['poids'] ?? 1,                    // poids avec valeur par défaut
         $parametres['date_debut'] ?? now()->toDateString(), // date_debut avec valeur par défaut
         $parametres['date_fin'] ?? null,              // date_fin (nullable)
@@ -404,7 +405,7 @@ private function traiterIntervalle($intervalle, $parametres)
     ]);
 
     // Compter le nombre réel d'insertions pour cet intervalle
-    $nombreAssignations = \DB::select("
+    $nombreAssignations = DB::select("
         SELECT COUNT(*) as count
         FROM (
             SELECT sc.\"Id_Sous_compte\"
@@ -424,7 +425,7 @@ private function traiterIntervalle($intervalle, $parametres)
     ", [$intervalle->id, $intervalle->id_categorie_fonctionelle])[0]->count;
 
     // Compter le nombre de sous-comptes éligibles pour cet intervalle
-    $nombreEligibles = \DB::select("
+    $nombreEligibles = DB::select("
         SELECT COUNT(DISTINCT sc.\"Id_Sous_compte\") as count
         FROM sous_comptes sc
         JOIN comptes c ON sc.\"Id_Compte\" = c.\"Id_Compte\"
@@ -435,7 +436,7 @@ private function traiterIntervalle($intervalle, $parametres)
     ", [$intervalle->id])[0]->count;
 
     // Compter le nombre d'assignations existantes pour cet intervalle
-    $nombreExistants = \DB::table('compte_categories')
+    $nombreExistants = DB::table('compte_categories')
         ->where('id_categorie_fonctionelle', $intervalle->id_categorie_fonctionelle)
         ->count();
 
@@ -465,14 +466,14 @@ public function assignerToutesCategoriesAvecSuivi(Request $request)
 
     try {
         // Compter le nombre total d'intervalles
-        $totalIntervalles = \DB::table('intervalle_comptes_categorie')->count();
+        $totalIntervalles = DB::table('intervalle_comptes_categorie')->count();
 
         $resultats = [];
         $totalAssignations = 0;
         $intervallesTraites = 0;
 
         // Traiter par lots pour éviter les timeouts
-        \DB::table('intervalle_comptes_categorie')
+        DB::table('intervalle_comptes_categorie')
             ->orderBy('id')
             ->chunk($validated['batch_size'], function ($intervalles) use (&$resultats, &$totalAssignations, &$intervallesTraites, $validated) {
                 foreach ($intervalles as $intervalle) {
@@ -510,10 +511,10 @@ public function verifierEtatAssignations()
         $etat = [];
 
         // Compter le nombre total d'intervalles
-        $totalIntervalles = \DB::table('intervalle_comptes_categorie')->count();
+        $totalIntervalles = DB::table('intervalle_comptes_categorie')->count();
 
         // Compter le nombre total de sous-comptes éligibles
-        $totalSousComptesEligibles = \DB::select("
+        $totalSousComptesEligibles = DB::select("
             SELECT COUNT(DISTINCT sc.\"Id_Sous_compte\") as count
             FROM sous_comptes sc
             JOIN comptes c ON sc.\"Id_Compte\" = c.\"Id_Compte\"
@@ -523,10 +524,10 @@ public function verifierEtatAssignations()
         ")[0]->count;
 
         // Compter le nombre total d'assignations existantes
-        $totalAssignationsExistantes = \DB::table('compte_categories')->count();
+        $totalAssignationsExistantes = DB::table('compte_categories')->count();
 
         // Détails par intervalle
-        $detailsIntervalles = \DB::select("
+        $detailsIntervalles = DB::select("
             SELECT
                 icc.id,
                 icc.compte_debut,

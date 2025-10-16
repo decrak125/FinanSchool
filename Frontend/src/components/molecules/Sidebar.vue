@@ -277,16 +277,16 @@
             <div v-show="getNavigationItem('compte_resultat').isOpen" class="submenu">
               <div 
                 class="submenu-item"
-                :class="{ active: currentRoute === '/balance' }"
-                @click="navigateTo({ route: '/balance', name: 'Compte de resultat' })"
+                :class="{ active: currentRoute === '/compte_resultat' }"
+                @click="navigateTo({ route: '/CR-Nature', name: 'CR-Nature' })"
               >
                 <i class="bi bi-receipt"></i>
                 <span>Par nature</span>
               </div>
               <div 
                 class="submenu-item"
-                :class="{ active: currentRoute === '/balance' }"
-                @click="navigateTo({ route: '/balance', name: 'Compte de resultat' })"
+                :class="{ active: currentRoute === '/compte_resultat' }"
+                @click="navigateTo({ route: '/CR-Fonction', name: 'CR-Fonction' })"
               >
                 <i class="bi bi-diagram-3"></i>
                 <span>Par fonction</span>
@@ -425,10 +425,11 @@ export default {
         },
         'compte_resultat': {
           name: 'Compte de resultat',
-          route: '/balance',
+          route: '/compte_resultat',
           icon: 'bi bi-wallet2',
           children: [
-            { name: 'Compte de resultat', route: '/balance', icon: 'bi bi-arrow-left-right' }
+            { name: 'CR-Nature', route: '/CRNature', icon: 'bi bi-arrow-left-right' },
+            { name: 'CR-Fonction', route: '/CR-Fonction', icon: 'bi bi-arrow-left-right' }
           ],
           isOpen: false
         },

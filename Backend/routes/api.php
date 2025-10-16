@@ -22,6 +22,9 @@ use App\Http\Controllers\general\BalanceController;
 use App\Http\Controllers\calcul\IntervalleComptesCategorieController;
 use App\Http\Controllers\calcul\ComptesCategorieController;
 use App\Http\Controllers\calcul\UtilesController;
+use App\Http\Controllers\general\CompteResultatNatureController;
+use App\Http\Controllers\general\CompteResultatFonctionController;
+use App\Http\Controllers\exercice\ExerciceComptableController;
 
 Route::middleware('api')->group(function () {
     Route::post('/example', function (Request $request) {
@@ -38,6 +41,8 @@ Route::middleware('api')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/mouvements', [LigneEcritureController::class, 'createMouvement']);
+    Route::delete('/mouvements/{mouvementId}', [LigneEcritureController::class, 'deleteMouvement']);
 });
 
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])
@@ -84,8 +89,7 @@ Route::middleware('api')->group(function () {
     Route::get('/options-formulaires', [LigneEcritureController::class, 'getOptions']);
 
     // Routes pour la gestion des mouvements
-    Route::post('/mouvements', [LigneEcritureController::class, 'createMouvement']);
-    Route::delete('/mouvements/{mouvementId}', [LigneEcritureController::class, 'deleteMouvement']);
+    
 
     // Routes pour la gestion des lignes d'écriture
     Route::apiResource('lignes', LigneEcritureController::class);
@@ -106,4 +110,23 @@ Route::middleware('api')->group(function () {
     Route::apiResource('/compte-categories', ComptesCategorieController::class);
     Route::post('/assigner-toutes-automatiquement', [ComptesCategorieController::class, 'assignerToutesCategoriesAutomatiquement']);
     Route::get('/somme-categorie', [UtilesController::class, 'getSommeParCategorie']);
+
+    // routes/api.php
+    Route::get('/compte-resultat/nature', [CompteResultatNatureController::class, 'index']);
+    // routes/api.php
+    Route::get('/compte-resultat/fonction', [CompteResultatFonctionController::class, 'index']);
+
+    
+
+Route::prefix('exercices')->group(function () {
+    Route::get('/', [ExerciceComptableController::class, 'index']);
+    Route::get('/ouvert', [ExerciceComptableController::class, 'getExerciceOuvert']);
+    Route::get('/{id}', [ExerciceComptableController::class, 'show']);
+    Route::get('/{id}/dates', [ExerciceComptableController::class, 'getDates']);
+    Route::post('/{id}/ouvrir', [ExerciceComptableController::class, 'ouvrir']);
+    Route::post('/{id}/cloturer', [ExerciceComptableController::class, 'cloturer']);
+});
+
+
+
 });

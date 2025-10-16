@@ -25,6 +25,8 @@ import GrandLivre from "@/components/pages/saisie/GrandLivre.vue";
 import Balance from "@/components/pages/general/Balance.vue";
 import ModuleChoice from "@/views/ModuleChoice.vue";
 import AnalyseRoutes from "./routesAnalyse.js";
+import CRNature from "@/components/pages/general/CRNature.vue";
+import CRFonction from "@/components/pages/general/CRFonction.vue";
 
 const routes = [
   {
@@ -155,7 +157,19 @@ const routes = [
     path:"/balance",
     name: "Balance",
     component: Balance
+  },
+  {
+    path: "/CR-Nature",
+    name : "CR-Nature",
+    component : CRNature
+  },
+
+  {
+    path: "/CR-Fonction",
+    name : "CR-Fonction",
+    component : CRFonction
   }
+
 
 
 

@@ -197,7 +197,7 @@ const resetDateFilter = () => {
 }
 
 const goBack = () => {
-  router.push('/liste-grand-livres')
+  router.push('/liste-grand-livre')
 }
 
 const exportToPDF = () => {
