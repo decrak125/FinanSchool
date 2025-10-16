@@ -9,6 +9,8 @@ use App\Http\Controllers\ParametresAnalytique\AffectationAnalytiqueController;
 use App\Http\Controllers\Analyse\CoutEtProfitController;
 use App\Http\Controllers\Analyse\IndicateursGenerauxController;
 use App\Http\Controllers\Analyse\IndicateurRentabiliteController;
+use App\Http\Controllers\Analyse\IndicateurLiquiditeController;
+use App\Http\Controllers\Analyse\IndicateurSolvabiliteController;
 
     Route::put('/affectations/multiple', [AffectationAnalytiqueController::class, 'updateMultiple']);
     Route::delete('/affectations/sous-compte/{id_sous_compte}', [AffectationAnalytiqueController::class, 'destroyBySousCompte']);
@@ -65,6 +67,17 @@ use App\Http\Controllers\Analyse\IndicateurRentabiliteController;
      // Indicateurs Rentabilite
      Route::get('/marge-brute', [IndicateurRentabiliteController::class, 'calculMargeBrute']);
      Route::get('/marge-exploitation-ebit', [IndicateurRentabiliteController::class, 'calculMargeExploitationEBIT']);
+     Route::get('/marge-nette', [IndicateurRentabiliteController::class, 'calculMargeNette']);
+     Route::get('/roa', [IndicateurRentabiliteController::class, 'calculROA']);
+     Route::get('/roe', [IndicateurRentabiliteController::class, 'calculROE']);
+     // Indicateurs Liquidité
+     Route::get('/ratio-liquidite-generale', [IndicateurLiquiditeController::class, 'calculRatioLiquiditeGenerale']);
+     Route::get('/tresorerie-nette', [IndicateurLiquiditeController::class, 'calculTresorerieNette']);
+     Route::get('/bfr', [IndicateurLiquiditeController::class, 'calculBFR']);
+     // Indicateurs Solvabilité
+     Route::get('/ratio-endettement', [IndicateurSolvabiliteController::class, 'calculRatioEndettement']);
+     Route::get('/capacite-remboursement', [IndicateurSolvabiliteController::class, 'calculCapaciteRemboursement']);
+     Route::get('/autonomie-financiere', [IndicateurSolvabiliteController::class, 'calculAutonomieFinanciere']);
     });
 
 

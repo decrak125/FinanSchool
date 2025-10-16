@@ -26,7 +26,7 @@
 | **Trésorerie Nettе**                   | Encaissements - Décaissements                      |                                                      |
 | **Besoin en fonds de roulement (BFR)** | (Stocks + Créances clients) - Dettes fournisseurs  | Permet d’évaluer le besoin financier d’exploitation. |
 
-3. Indicateurs de solvabilité
+3. Indicateurs de solvabilité et d'indépendance
 | Indicateur                    | Formule                               | Interprétation                                        |
 | ----------------------------- | ------------------------------------- | ----------------------------------------------------- |
 | **Ratio d’endettement**       | Dettes financières / Capitaux propres | Plus il est faible, plus la structure est solide.     |
