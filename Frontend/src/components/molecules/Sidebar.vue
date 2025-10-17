@@ -606,7 +606,7 @@ export default {
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 500;
   overflow: hidden;
   margin-bottom: 2px;

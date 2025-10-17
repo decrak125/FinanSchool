@@ -1,4 +1,3 @@
-<!-- Dashboard.vue -->
 <template>
   <div class="dashboard-container">
     <!-- Header -->
