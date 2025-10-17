@@ -75,10 +75,16 @@ Route::middleware('api')->group(function () {
     Route::get('journals/{id}/ecritures', [JournalController::class, 'ecritures']);
     Route::apiResource('journals', JournalController::class);
     Route::apiResource('mouvements', MouvementEcritureController::class);
-    Route::post('mouvements/{id}/valider', [MouvementEcritureController::class, 'valider']);
+    // Route::post('mouvements/{id}/valider', [MouvementEcritureController::class, 'valider']);
     Route::apiResource('lignes', LigneEcritureController::class);
     Route::post('lignes/{id}/valider', [LigneEcritureController::class, 'valider']);
     Route::apiResource('devises', DeviseController::class);
+
+    Route::get('/mouvements-complets', [LigneEcritureController::class, 'getMouvementsComplets']);
+    Route::post('/mouvements/{id}/valider', [LigneEcritureController::class, 'validerMouvementComplet']);
+    Route::delete('/mouvements/{id}', [LigneEcritureController::class, 'deleteMouvement']);
+    Route::get('/sous-comptes/search', [LigneEcritureController::class, 'searchSousComptes']);
+ 
 
 
     // Routes pour les performances améliorées {Ecritures et Mouvements}

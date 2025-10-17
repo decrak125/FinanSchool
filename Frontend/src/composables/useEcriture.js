@@ -26,22 +26,18 @@ export function useEcriture() {
     Id_Journal: "",
   });
 
-  const token = localStorage.getItem("token"); // Récupérer le token
+  const token = localStorage.getItem("token");
 
   if (!token) {
-    // Redirection vers login si pas de token
     window.location.href = "/";
   } else {
-    // Configurer Axios pour inclure le token dans toutes les requêtes
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   }
 
-  // Calcul du nombre total de lignes
   const totalLignes = computed(() => {
     return mouvements.value.reduce((total, m) => total + m.lignes.length, 0);
   });
 
-  // Gestion des erreurs
   const handleError = (error, defaultMessage = 'Une erreur est survenue') => {
     console.error('Erreur API:', error);
     if (error.response?.data?.message) {
@@ -63,7 +59,6 @@ export function useEcriture() {
     }, 3000);
   };
 
-  // Charger tous les mouvements avec leurs lignes
   const fetchMouvements = async () => {
     try {
       const res = await axios.get("http://127.0.0.1:8000/api/mouvements");
@@ -80,7 +75,8 @@ export function useEcriture() {
               showSuggestions: false,
               suggestions: [],
               selectedSuggestionIndex: -1,
-              sousCompteError: ''
+              sousCompteError: '',
+              enregistrementEnCours: false // ✅ AJOUTÉ ICI
             }));
         } catch (error) {
           console.error(`Erreur lors du chargement des lignes pour le mouvement ${m.Id_Mouvement_ecriture}:`, error);
@@ -96,7 +92,6 @@ export function useEcriture() {
     }
   };
 
-  // Charger options
   const fetchOptions = async () => {
     try {
       const [journalsRes, sousComptesRes, modesRes] = await Promise.all([
@@ -113,7 +108,6 @@ export function useEcriture() {
     }
   };
 
-  // Créer un mouvement
   const createMouvement = async () => {
     if (isCreatingMouvement.value) return;
     
@@ -133,7 +127,6 @@ export function useEcriture() {
     }
   };
 
-  // Supprimer un mouvement
   const deleteMouvement = async (mouvementId) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce mouvement et toutes ses lignes ?')) {
       return;
@@ -152,7 +145,7 @@ export function useEcriture() {
     }
   };
 
-  // Ajouter une nouvelle ligne vide
+  // ✅ MODIFIÉ : Ajout du flag enregistrementEnCours
   const addNewLigne = (mouvementId) => {
     const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
     if (!mouvement) return;
@@ -172,7 +165,8 @@ export function useEcriture() {
       showSuggestions: false,
       suggestions: [],
       selectedSuggestionIndex: -1,
-      sousCompteError: ''
+      sousCompteError: '',
+      enregistrementEnCours: false // ✅ AJOUTÉ ICI
     };
 
     mouvement.lignes.push(nouvelleLigne);
@@ -183,7 +177,6 @@ export function useEcriture() {
     });
   };
 
-  // Recherche dynamique de sous-comptes
   const searchSousCompte = (mouvementId, ligneIndex, searchTerm) => {
     const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
     if (!mouvement || !mouvement.lignes[ligneIndex]) return;
@@ -208,7 +201,6 @@ export function useEcriture() {
     ligne.selectedSuggestionIndex = -1;
   };
 
-  // Focus sur sous-compte
   const onSousCompteFocus = (mouvementId, ligneIndex) => {
     const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
     if (!mouvement || !mouvement.lignes[ligneIndex]) return;
@@ -219,7 +211,6 @@ export function useEcriture() {
     }
   };
 
-  // Navigation au clavier dans les suggestions
   const navigateSuggestions = (mouvementId, ligneIndex, direction) => {
     const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
     if (!mouvement || !mouvement.lignes[ligneIndex] || !mouvement.lignes[ligneIndex].showSuggestions) return;
@@ -234,7 +225,6 @@ export function useEcriture() {
     }
   };
 
-  // Sélectionner la première suggestion
   const selectFirstSuggestion = (mouvementId, ligneIndex) => {
     const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
     if (!mouvement || !mouvement.lignes[ligneIndex]) return;
@@ -246,7 +236,6 @@ export function useEcriture() {
     }
   };
 
-  // Fermer les suggestions
   const closeSuggestions = (mouvementId, ligneIndex) => {
     const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
     if (!mouvement || !mouvement.lignes[ligneIndex]) return;
@@ -256,7 +245,6 @@ export function useEcriture() {
     ligne.selectedSuggestionIndex = -1;
   };
 
-  // Sélectionner un sous-compte
   const selectSousCompte = (mouvementId, ligneIndex, sousCompte) => {
     const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
     if (!mouvement || !mouvement.lignes[ligneIndex]) return;
@@ -275,7 +263,6 @@ export function useEcriture() {
     updateLigne(mouvementId, ligneIndex);
   };
 
-  // Valider le sous-compte saisi
   const validateSousCompte = (mouvementId, ligneIndex) => {
     setTimeout(() => {
       const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
@@ -309,7 +296,6 @@ export function useEcriture() {
     }, 150);
   };
 
-  // Gérer les changements de montant
   const onMontantChange = (mouvementId, ligneIndex, type) => {
     const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
     if (!mouvement || !mouvement.lignes[ligneIndex]) return;
@@ -326,44 +312,86 @@ export function useEcriture() {
     }
   };
 
-  // Mettre à jour ou créer une ligne
-  const updateLigne = async (mouvementId, ligneIndex) => {
-    const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
-    if (!mouvement || !mouvement.lignes[ligneIndex]) return;
+  // ✅ FONCTION CORRIGÉE AVEC VERROU ANTI-DOUBLON
+const updateLigne = async (mouvementId, ligneIndex) => {
+  const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
+  if (!mouvement || !mouvement.lignes[ligneIndex]) return;
 
-    const ligne = mouvement.lignes[ligneIndex];
-    
-    if (!ligne.Id_Sous_compte || (!ligne.Debit && !ligne.Credit)) {
-      return;
-    }
+  const ligne = mouvement.lignes[ligneIndex];
 
-    try {
-      const ligneData = {
-        Libelle: ligne.Libelle || '',
-        Debit: parseFloat(ligne.Debit) || 0,
-        Credit: parseFloat(ligne.Credit) || 0,
-        Reference: ligne.Reference || '',
-        Quantite: parseInt(ligne.Quantite) || 1,
-        Id_Mode_paiement: ligne.Id_Mode_paiement || null,
-        Id_Sous_compte: ligne.Id_Sous_compte,
-        Id_Mouvement_ecriture: mouvementId,
-        Id_Journal: mouvement.Id_Journal
-      };
+  // ✅ VERROU : Si un enregistrement est déjà en cours, on stoppe
+  if (ligne.enregistrementEnCours) {
+    console.log('⚠️ Enregistrement déjà en cours, requête ignorée');
+    return;
+  }
 
-      if (ligne.Id_Ligne_ecriture) {
-        const res = await axios.put(`http://127.0.0.1:8000/api/lignes/${ligne.Id_Ligne_ecriture}`, ligneData);
-        Object.assign(ligne, res.data);
+  // Vérification des champs obligatoires
+  if (!ligne.Id_Sous_compte || (!ligne.Debit && !ligne.Credit)) {
+    console.log('⚠️ Champs obligatoires manquants');
+    return;
+  }
+
+  // ✅ Active le verrou AVANT toute opération
+  ligne.enregistrementEnCours = true;
+
+  try {
+    const ligneData = {
+      Libelle: ligne.Libelle || '',
+      Debit: parseFloat(ligne.Debit) || 0,
+      Credit: parseFloat(ligne.Credit) || 0,
+      Reference: ligne.Reference || '',
+      Quantite: parseInt(ligne.Quantite) || 1,
+      Id_Mode_paiement: ligne.Id_Mode_paiement || null,
+      Id_Sous_compte: ligne.Id_Sous_compte,
+      Id_Mouvement_ecriture: mouvementId,
+      Id_Journal: mouvement.Id_Journal
+    };
+
+    if (ligne.Id_Ligne_ecriture) {
+      // ✅ MISE À JOUR d'une ligne existante
+      console.log('📝 Mise à jour ligne:', ligne.Id_Ligne_ecriture);
+      const res = await axios.put(
+        `http://127.0.0.1:8000/api/lignes/${ligne.Id_Ligne_ecriture}`, 
+        ligneData
+      );
+      
+      // Met à jour les données de la ligne
+      Object.assign(ligne, res.data.data || res.data);
+      console.log('✅ Ligne mise à jour avec succès');
+      
+    } else {
+      // ✅ CRÉATION d'une nouvelle ligne
+      console.log('➕ Création nouvelle ligne');
+      const res = await axios.post("http://127.0.0.1:8000/api/lignes", ligneData);
+      
+      // ⚠️ CORRECTION : Récupère l'ID depuis différents formats de réponse
+      const newId = res.data.data?.Id_Ligne_ecriture 
+                 || res.data.Id_Ligne_ecriture 
+                 || res.data.data?.id 
+                 || res.data.id;
+      
+      if (newId) {
+        ligne.Id_Ligne_ecriture = newId;
+        console.log('✅ Ligne créée avec ID:', newId);
       } else {
-        const res = await axios.post("http://127.0.0.1:8000/api/lignes", ligneData);
-        ligne.Id_Ligne_ecriture = res.data.Id_Ligne_ecriture || res.data.id;
-        Object.assign(ligne, res.data);
+        console.error('❌ Pas d\'ID retourné par le serveur:', res.data);
       }
-    } catch (error) {
-      handleError(error, 'Erreur lors de la sauvegarde de la ligne');
+      
+      // Met à jour toutes les données de la ligne
+      Object.assign(ligne, res.data.data || res.data);
     }
-  };
+    
+  } catch (error) {
+    console.error('❌ Erreur dans updateLigne:', error);
+    handleError(error, 'Erreur lors de la sauvegarde de la ligne');
+  } finally {
+    // ✅ Libère le verrou après succès ou erreur
+    ligne.enregistrementEnCours = false;
+    console.log('🔓 Verrou libéré');
+  }
+};
 
-  // Supprimer une ligne
+
   const deleteLigne = async (mouvementId, ligneIndex) => {
     const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
     if (!mouvement || !mouvement.lignes[ligneIndex]) return;
@@ -386,7 +414,6 @@ export function useEcriture() {
     }
   };
 
-  // Calculer les totaux par mouvement
   const getTotalDebit = (mouvement) => {
     return mouvement.lignes.reduce((total, ligne) => total + (parseFloat(ligne.Debit) || 0), 0);
   };
@@ -405,7 +432,6 @@ export function useEcriture() {
     return Math.abs(totalDebit - totalCredit) < 0.01 && totalDebit > 0;
   };
 
-  // Calculer les totaux généraux
   const getTotalGeneralDebit = () => {
     return mouvements.value.reduce((total, m) => total + getTotalDebit(m), 0);
   };
@@ -414,12 +440,10 @@ export function useEcriture() {
     return mouvements.value.reduce((total, m) => total + getTotalCredit(m), 0);
   };
 
-  // Vérifier si un mouvement est validé
   const isMouvementValide = (mouvement) => {
     return mouvement.lignes.length > 0 && mouvement.lignes.every(ligne => ligne.statut === 'valide');
   };
 
-  // Valider un mouvement
   const validerMouvement = async (mouvementId) => {
     if (isValidating.value) return;
     
@@ -451,7 +475,6 @@ export function useEcriture() {
     }
   };
 
-  // Utilitaires
   const getJournalLibelle = (journalId) => {
     const journal = journals.value.find(j => j.Id_Journal === journalId);
     return journal ? `${journal.Code} - ${journal.Libelle}` : `Journal #${journalId}`;
@@ -482,7 +505,6 @@ export function useEcriture() {
     }).format(montant);
   };
 
-  // Initialisation
   onMounted(async () => {
     isLoading.value = true;
     try {
@@ -497,7 +519,6 @@ export function useEcriture() {
     mouvementForm.value.Date_mouvement = today;
   });
 
-  // Raccourcis clavier globaux
   onMounted(() => {
     const handleKeydown = (event) => {
       if (event.ctrlKey && event.key === 'n') {
@@ -515,7 +536,6 @@ export function useEcriture() {
     };
   });
 
-  // Navigation handler
   const handleNavigation = (item) => {
     router.push(item.route);
   };

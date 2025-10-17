@@ -29,7 +29,7 @@ class CompteResultatFonctionController extends Controller
         };
 
         // Les montants de chaque poste (codes catégories fonctionnelles par fonction)
-        $ventesActivOrdinaires = $get('VENTES');
+        $ventesActivOrdinaires = $get('CA');
         $coutVentes            = $get('COUTVENTE');
         $autProdOp             = $get('AUTPRODOP');
         $coutsCommerciaux      = $get('CHARGECOMM');
