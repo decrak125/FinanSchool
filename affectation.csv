@@ -5,6 +5,7 @@ compte;centre;taux;description;code_type
 702;Ventes;100;Ventes produits intermédiaires;PROFIT
 704;Ventes;100;Ventes de travaux;PROFIT
 705;Ventes;100;Vente études;PROFIT
+614;Communication;100;Publicité;COUT
 603;Administration;100;Fournitures bureau;COUT
 671;Administration;100;Pénalités et amendes;COUT
 672;Administration;100;Charges exceptionnelles;COUT
