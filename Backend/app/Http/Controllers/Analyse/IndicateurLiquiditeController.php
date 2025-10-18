@@ -83,6 +83,10 @@ public function calculRatioLiquiditeGenerale(Request $request)
  * Calcule la Trésorerie Nette
  * Formule : Encaissements - Décaissements
  */
+/**
+ * Calcule la Trésorerie Nette
+ * Formule : Solde des comptes de trésorerie
+ */
 public function calculTresorerieNette(Request $request)
 {
     $request->validate([
@@ -93,20 +97,8 @@ public function calculTresorerieNette(Request $request)
     $dateDebut = $request->date_debut;
     $dateFin = $request->date_fin;
 
-    // ENCAISSEMENTS (Total des crédits)
-    $encaissements = DB::table('ligne_ecritures')
-        ->where('statut', 'valide')
-        ->whereBetween('date_validation', [$dateDebut, $dateFin])
-        ->sum('Credit');
-
-    // DÉCAISSEMENTS (Total des débits)
-    $decaissements = DB::table('ligne_ecritures')
-        ->where('statut', 'valide')
-        ->whereBetween('date_validation', [$dateDebut, $dateFin])
-        ->sum('Debit');
-
-    // TRÉSORERIE NETTE
-    $tresorerieNette = $encaissements - $decaissements;
+    // SOLDE DES COMPTES DE TRÉSORERIE (Comptes 512 et 519)
+    $tresorerieNette = $this->calculerSoldeTresorerie($dateDebut, $dateFin);
     
     // INTERPRÉTATION
     $interpretation = $tresorerieNette >= 0 
@@ -120,18 +112,52 @@ public function calculTresorerieNette(Request $request)
             'interpretation' => $interpretation
         ],
         'details_calcul' => [
-            'encaissements' => $encaissements,
-            'decaissements' => $decaissements
+            'comptes_tresorerie' => [
+                'banque' => $this->calculerSoldeCategorie('TRESO', $dateDebut, $dateFin),
+                'decouverts' => $this->calculerSoldeCategorie('DECOUV', $dateDebut, $dateFin)
+            ]
         ],
         'periode' => [
             'date_debut' => $dateDebut,
             'date_fin' => $dateFin
         ],
-        'formule' => 'Encaissements - Décaissements',
+        'formule' => 'Solde des comptes de trésorerie (Banque - Découverts)',
         'definition' => 'Solde de trésorerie sur la période'
     ]);
 }
 
+/**
+ * Calcule le solde net des comptes de trésorerie
+ */
+private function calculerSoldeTresorerie($dateDebut, $dateFin)
+{
+    // Solde des comptes banque (positif = avoir, négatif = découvert)
+    $soldeBanque = $this->calculerSoldeCategorie('TRESO', $dateDebut, $dateFin);
+    $soldeDecouverts = $this->calculerSoldeCategorie('DECOUV', $dateDebut, $dateFin);
+
+    return $soldeBanque + $soldeDecouverts;
+}
+
+/**
+ * Calcule le solde d'une catégorie (Débit - Crédit)
+ */
+private function calculerSoldeCategorie($codeCategorie, $dateDebut, $dateFin)
+{
+    $resultat = DB::table('ligne_ecritures as le')
+        ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
+        ->join('compte_categories as cc', 'sc.Id_Sous_compte', '=', 'cc.id_sous_compte')
+        ->join('categorie_fonctionelles as cf', 'cc.id_categorie_fonctionelle', '=', 'cf.id_categorie_fonctionelle')
+        ->where('cf.code', $codeCategorie)
+        ->where('cc.actif', true)
+        ->where('le.statut', 'valide')
+        ->whereBetween('le.date_validation', [$dateDebut, $dateFin])
+        ->select(
+            DB::raw('SUM(le."Debit" - le."Credit") as solde')
+        )
+        ->first();
+
+    return $resultat ? $resultat->solde : 0;
+}
 /**
  * Calcule le Besoin en Fonds de Roulement (BFR)
  * Formule : (Stocks + Créances clients) - Dettes fournisseurs
