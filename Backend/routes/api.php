@@ -25,6 +25,10 @@ use App\Http\Controllers\calcul\UtilesController;
 use App\Http\Controllers\general\CompteResultatNatureController;
 use App\Http\Controllers\general\CompteResultatFonctionController;
 use App\Http\Controllers\exercice\ExerciceComptableController;
+use App\Http\Controllers\general\BilanActifController;
+use App\Http\Controllers\general\BilanPassifController;
+use App\Http\Controllers\general\FluxTresorerieController;
+use App\Http\Controllers\general\VariationsCapitauxController;
 
 Route::middleware('api')->group(function () {
     Route::post('/example', function (Request $request) {
@@ -133,6 +137,12 @@ Route::prefix('exercices')->group(function () {
     Route::post('/{id}/cloturer', [ExerciceComptableController::class, 'cloturer']);
 });
 
+
+
+Route::get('/bilan/actif', [BilanActifController::class, 'index']);
+Route::get('/bilan/passif', [BilanPassifController::class, 'index']);
+Route::get('/flux-tresorerie', [FluxTresorerieController::class, 'index']);
+Route::get('/variations-capitaux', [VariationsCapitauxController::class, 'index']);
 
 
 });

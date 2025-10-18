@@ -310,23 +310,55 @@
             <div v-show="getNavigationItem('bilan').isOpen" class="submenu">
               <div 
                 class="submenu-item"
-                :class="{ active: currentRoute === '/balance' }"
-                @click="navigateTo({ route: '/balance', name: 'Bilan' })"
+                :class="{ active: currentRoute === '/bilan' }"
+                @click="navigateTo({ route: '/BilanActif', name: 'Bilan' })"
               >
                 <i class="bi bi-building"></i>
                 <span>Actif</span>
               </div>
                <div 
                 class="submenu-item"
-                :class="{ active: currentRoute === '/balance' }"
-                @click="navigateTo({ route: '/balance', name: 'Bilan' })"
+                :class="{ active: currentRoute === '/bilan' }"
+                @click="navigateTo({ route: '/BilanPassif', name: 'Bilan' })"
               >
                 <i class="bi bi-bank"></i>
                 <span>Passif</span>
               </div>
             </div>
           </transition>
-        </div>     
+        </div>
+        
+        <div class="nav-item has-children" :class="{ 
+          active: isItemActive(getNavigationItem('tresorerie')),
+          'children-open': getNavigationItem('tresorerie').isOpen 
+        }">
+          <div class="nav-main" @click="toggleSubMenu(getNavigationItem('tresorerie'))">
+            <i class="bi bi-cash-stack"></i>
+            <span>Tresoreries</span>
+            <i class="chevron" :class="getNavigationItem('tresorerie').isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
+          </div>
+          
+          <transition name="submenu">
+            <div v-show="getNavigationItem('tresorerie').isOpen" class="submenu">
+              <div 
+                class="submenu-item"
+                :class="{ active: currentRoute === '/tresorerie' }"
+                @click="navigateTo({ route: '/flux-tresorerie', name: 'FluxTresorerie' })"
+              >
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Flux de tresoreries</span>
+              </div>
+               <div 
+                class="submenu-item"
+                :class="{ active: currentRoute === '/tresorerie' }"
+                @click="navigateTo({ route: '/variation-capitaux', name: 'VariationCapitaux' })"
+              >
+                <i class="bi bi-graph-up-arrow"></i>
+                <span>Variations des Capitaux Propres</span>
+              </div>
+            </div>
+          </transition>
+        </div> 
       </div>
 
       <!-- Section Utilitaires -->
@@ -435,20 +467,21 @@ export default {
         },
         'bilan': {
           name: 'Bilan',
-          route: '/balance',
+          route: '/bilan',
           icon: 'bi bi-wallet2',
           children: [
-            { name: 'Bilan', route: '/balance', icon: 'bi bi-arrow-left-right' }
+            { name: 'BilanActif', route: '/BilanActif', icon: 'bi bi-arrow-left-right' },
+            { name: 'BilanPassif', route: '/BilanPassif', icon: 'bi bi-arrow-left-right' }
           ],
           isOpen: false
         },
-        analytique: {
-          name: 'Analytique',
-          route: '/analytique',
+        'tresorerie': {
+          name: 'Tresorerie',
+          route: '/tresorerie',
           icon: 'bi bi-graph-up',
           children: [
-            { name: 'Centres de coût', route: '/centres-cout', icon: 'bi bi-pie-chart' },
-            { name: 'Répartition', route: '/repartition-analytique', icon: 'bi bi-arrow-repeat' }
+            { name: 'FluxTresorerie', route: '/flux-tresorerie', icon: 'bi bi-pie-chart' },
+            { name: 'VariationCapitaux', route: '/variation-capitaux', icon: 'bi bi-arrow-repeat' }
           ],
           isOpen: false
         },
