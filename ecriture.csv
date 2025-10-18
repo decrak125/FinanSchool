@@ -1,0 +1,150 @@
+"Id_Ligne_ecriture","Libelle","Debit","Credit","Reference","Quantite","Id_Mode_paiement","Id_Mouvement_ecriture","Id_Journal","Id_Sous_compte","statut","date_validation","valide_par"
+"91","BMOI - compte courant","0.00","2500000.00","mouvement appro caisse",1,NULL,"10","4","70","valide","2025-10-16 16:02:40",NULL
+"30","Caisse centrale - Ariary","1050000.00","0.00","Mouvement ecolages",1,NULL,"8","4","73","valide","2025-10-16 12:29:21",NULL
+"11","Frais de scolarite","0.00","150000.00","Ecolage irianja TPS",1,NULL,"8","4","150","valide","2025-10-16 12:29:21",NULL
+"14","Frais de scolarite","0.00","150000.00","EcolageVaniala 4è",1,NULL,"8","4","150","valide","2025-10-16 12:29:21",NULL
+"15","Frais de scolarite","0.00","150000.00","Ecolage Tommy PS",1,NULL,"8","4","150","valide","2025-10-16 12:29:21",NULL
+"17","Frais de scolarite","0.00","150000.00","Ecolage Tohy TPS",1,NULL,"8","4","150","valide","2025-10-16 12:29:21",NULL
+"18","Frais de scolarite","0.00","150000.00","Ecolage Ilaina TPS",1,NULL,"8","4","150","valide","2025-10-16 12:29:21",NULL
+"22","Frais de scolarite","0.00","150000.00","Ecolage Miantsoa TPS",1,NULL,"8","4","150","valide","2025-10-16 12:29:21",NULL
+"24","Frais de scolarite","0.00","150000.00","Ecolage Tsinjo TPS",1,NULL,"8","4","150","valide","2025-10-16 12:29:21",NULL
+"27","Achats de legumes pour la cantine","25000.00","0.00","Achat légumes",1,NULL,"8","4","76","valide","2025-10-16 12:29:21",NULL
+"84","Virement Banque vers Caisse","0.00","2500000.00","Appro caisse via BMOI",1,NULL,"10","4","74","valide","2025-10-16 16:02:40",NULL
+"78","Salaires enseignants primaire","250000.00","0.00","Paiement salaire maitresse B",1,NULL,"10","4","110","valide","2025-10-16 16:02:40",NULL
+"80","Salaires enseignants primaire","250000.00","0.00","Paiement salaire maitresse C",1,NULL,"10","4","110","valide","2025-10-16 16:02:40",NULL
+"89","Virement Banque vers Caisse","2500000.00","0.00","Appro caisse via BMOI",1,NULL,"10","4","74","valide","2025-10-16 16:02:40",NULL
+"93","Salaires agents securite","250000.00","0.00","Paiement salaire gardien",1,NULL,"10","4","107","valide","2025-10-16 16:02:40",NULL
+"96","Salaires personnel administratif","250000.00","0.00","Paiement salaire femme de ménage",1,NULL,"10","4","112","valide","2025-10-16 16:02:40",NULL
+"103","IRSA","56000.00","0.00","IRSA Juillet",1,NULL,"10","4","203","valide","2025-10-16 16:02:40",NULL
+"105","IRSA","0.00","56000.00","IRSA Juillet",1,NULL,"10","4","203","valide","2025-10-16 16:02:40",NULL
+"99","Autres charges sociales","56000.00","0.00","IRSA Juillet",1,NULL,"10","4","116","valide","2025-10-16 16:02:40",NULL
+"45","Pret bancaire","1200000.00","0.00","Echéancier prêt bancaire",1,NULL,"9","4","201","valide","2025-10-16 13:31:15",NULL
+"49","Charges eau et electricite batiments","32500.00","0.00","jirama",1,NULL,"9","4","100","valide","2025-10-16 13:31:15",NULL
+"56","Cahiers et papiers","10000.00","0.00","Achat cahier registre",1,NULL,"9","4","79","valide","2025-10-16 13:31:15",NULL
+"47","Virement Banque vers Caisse","100000.00","0.00","Versement en bnaque BMOI",1,NULL,"9","4","74","valide","2025-10-16 13:31:15",NULL
+"34","Achat viande et poisson cantine","30000.00","0.00","Achat viande",1,NULL,"9","4","119","valide","2025-10-16 13:31:15",NULL
+"36","Achat de gouters","10000.00","0.00","Achat gouters",1,NULL,"9","4","202","valide","2025-10-16 13:31:15",NULL
+"38","Frais de scolarite","0.00","150000.00","Ecolage Mia TPS",1,NULL,"9","4","150","valide","2025-10-16 13:31:15",NULL
+"39","Frais de scolarite","0.00","150000.00","Ecolage Alice TPS aout sept oct",1,NULL,"9","4","150","valide","2025-10-16 13:31:15",NULL
+"40","Frais de scolarite","0.00","150000.00","Ecolage Illan TPS",1,NULL,"9","4","150","valide","2025-10-16 13:31:15",NULL
+"58","Salaires enseignants primaire","250000.00","0.00","Paiement salaire maitresse A",1,NULL,"9","4","110","valide","2025-10-16 13:31:15",NULL
+"57","Frais de scolarite","0.00","1500000.00","Ecolage Didan TPS 10 MOIS",1,NULL,"9","4","150","valide","2025-10-16 13:31:15",NULL
+"118","Salaires enseignants primaire","250000.00","0.00","Paiement salaire maitresse H",1,NULL,"11","4","110","valide","2025-10-16 16:44:23",NULL
+"107","Salaires enseignants primaire","250000.00","0.00","Paiement salaire maitresse D",1,NULL,"11","4","110","valide","2025-10-16 16:44:23",NULL
+"110","Salaires enseignants primaire","250000.00","0.00","Paiement salaire maitresse E",1,NULL,"11","4","110","valide","2025-10-16 16:44:23",NULL
+"114","Salaires enseignants primaire","250000.00","0.00","Paiement salaire maitresse F",1,NULL,"11","4","110","valide","2025-10-16 16:44:23",NULL
+"116","Salaires enseignants primaire","250000.00","0.00","Paiement salaire maitresse G",1,NULL,"11","4","110","valide","2025-10-16 16:44:23",NULL
+"122","Achat legumes cantine","28000.00","0.00","Achat légumes",1,NULL,"11","4","118","valide","2025-10-16 16:44:23",NULL
+"124","Achat viande et poisson cantine","35000.00","0.00","Achat viande",1,NULL,"11","4","119","valide","2025-10-16 16:44:23",NULL
+"128","Achat de gouters","15000.00","0.00","Achat gouter",1,NULL,"11","4","202","valide","2025-10-16 16:44:23",NULL
+"132","Frais de scolarite","0.00","150000.00","Ecolage Didan PS",1,NULL,"11","4","150","valide","2025-10-16 16:44:23",NULL
+"134","Frais de scolarite","0.00","150000.00","Ecolage Noah PS",1,NULL,"11","4","150","valide","2025-10-16 16:44:23",NULL
+"136","Frais de scolarite","0.00","150000.00","Ecolage Tinney TPS",1,NULL,"11","4","150","valide","2025-10-16 16:44:23",NULL
+"138","Frais de scolarite","0.00","150000.00","EcolageNy Toky TPS",1,NULL,"11","4","150","valide","2025-10-16 16:44:23",NULL
+"140","Frais dinscription","0.00","250000.00","Inscription Milanto MS",1,NULL,"11","4","151","valide","2025-10-16 16:44:23",NULL
+"142","Frais dinscription","0.00","250000.00","Inscription Kaliana GS",1,NULL,"11","4","151","valide","2025-10-16 16:44:23",NULL
+"144","Frais de scolarite","0.00","150000.00","Ecolage Ny Aly GS",1,NULL,"11","4","150","valide","2025-10-16 16:44:23",NULL
+"207","Achat legumes cantine","40000.00","0.00","Achat légumes",1,NULL,"13","4","118","valide","2025-10-16 17:35:55",NULL
+"209","Achat viande et poisson cantine","25000.00","0.00","Achat viande",1,NULL,"13","4","119","valide","2025-10-16 17:35:55",NULL
+"211","Achat de gouters","20000.00","0.00","Achat gouter",1,NULL,"13","4","202","valide","2025-10-16 17:35:55",NULL
+"215","Location materiels","0.00","80000.00","Location livre Manoa 4è",1,NULL,"13","4","158","valide","2025-10-16 17:35:55",NULL
+"217","Location salles ou materiels","0.00","80000.00","Location livre Freya 4è",1,NULL,"13","4","158","valide","2025-10-16 17:35:55",NULL
+"191","Frais de scolarite","0.00","150000.00","Ecolage Manoa 4è",1,NULL,"13","4","150","valide","2025-10-16 17:35:55",NULL
+"193","Frais de scolarite","0.00","150000.00","Ecolage Tolotra CE1",1,NULL,"13","4","150","valide","2025-10-16 17:35:55",NULL
+"195","Frais de scolarite","0.00","150000.00","Ecolage Soa CE1",1,NULL,"13","4","150","valide","2025-10-16 17:35:55",NULL
+"197","Frais de scolarite","0.00","150000.00","Ecolage Avosoa CE2",1,NULL,"13","4","150","valide","2025-10-16 17:35:55",NULL
+"199","Frais de scolarite","0.00","150000.00","Ecolage Aro CM2 Septembre au Juin 2026",1,NULL,"13","4","150","valide","2025-10-16 17:35:55",NULL
+"202","Frais de scolarite","0.00","150000.00","Ecolage Hugo CE2",1,NULL,"13","4","150","valide","2025-10-16 17:35:55",NULL
+"148","Achat legumes cantine","18000.00","0.00","Achat légumes",1,NULL,"12","4","118","valide","2025-10-16 17:15:21",NULL
+"150","Achat viande et poisson cantine","45000.00","0.00","Achat viande",1,NULL,"12","4","119","valide","2025-10-16 17:15:21",NULL
+"152","Achat de gouters","30000.00","0.00","Achat gouter",1,NULL,"12","4","202","valide","2025-10-16 17:15:21",NULL
+"156","Frais de scolarite","0.00","150000.00","Ecolage Harena GS",1,NULL,"12","4","150","valide","2025-10-16 17:15:21",NULL
+"158","Frais de scolarite","0.00","150000.00","Ecolage Tia 6è",1,NULL,"12","4","150","valide","2025-10-16 17:15:21",NULL
+"160","Frais de scolarite","0.00","150000.00","Ecolage Freya 4è",1,NULL,"12","4","150","valide","2025-10-16 17:15:21",NULL
+"162","Frais de scolarite","0.00","150000.00","Ecolage Erwan CP",1,NULL,"12","4","150","valide","2025-10-16 17:15:21",NULL
+"164","Frais de scolarite","0.00","150000.00","Ecolageanja  4è",1,NULL,"12","4","150","valide","2025-10-16 17:15:21",NULL
+"168","Achat legumes cantine","15000.00","0.00","Achat légumes",1,NULL,"12","4","118","valide","2025-10-16 17:15:21",NULL
+"170","Achat viande et poisson cantine","25000.00","0.00","Achat viande",1,NULL,"12","4","119","valide","2025-10-16 17:15:21",NULL
+"172","Achat de gouters","10000.00","0.00","Achat gouter",1,NULL,"12","4","202","valide","2025-10-16 17:15:21",NULL
+"176","Frais de scolarite","0.00","150000.00","Ecolage Anjara CP",1,NULL,"12","4","150","valide","2025-10-16 17:15:21",NULL
+"178","Frais de scolarite","0.00","150000.00","Ecolage Anay GS",1,NULL,"12","4","150","valide","2025-10-16 17:15:21",NULL
+"181","Frais de scolarite","0.00","150000.00","Ecolage Ny anay CE1",1,NULL,"12","4","150","valide","2025-10-16 17:15:21",NULL
+"185","Frais de scolarite","0.00","150000.00","Ecolage Hasina CM1",1,NULL,"12","4","150","valide","2025-10-16 17:15:21",NULL
+"187","Frais de scolarite","0.00","150000.00","Ecolage Avo CM2",1,NULL,"12","4","150","valide","2025-10-16 17:15:21",NULL
+"220","Club parascolaire (sport musique art)","0.00","60000.00","Paiement Natation Soa CE1",1,NULL,"14","4","160","valide","2025-10-16 18:05:40",NULL
+"223","Location materiels","0.00","50000.00","Achat livre manuel FRS et MATH Tolotra CE1",1,NULL,"14","4","158","valide","2025-10-16 18:05:40",NULL
+"227","Achat legumes cantine","25000.00","0.00","Achat légumes",1,NULL,"14","4","118","valide","2025-10-16 18:05:40",NULL
+"229","Achat viande et poisson cantine","25000.00","0.00","Achat viande",1,NULL,"14","4","119","valide","2025-10-16 18:05:40",NULL
+"231","Achat de gouters","38000.00","0.00","Achat gouter",1,NULL,"14","4","202","valide","2025-10-16 18:05:40",NULL
+"237","Ventes de uniformes scolaires fabriques","0.00","20000.00","Tshirt Didan PS",1,NULL,"14","4","142","valide","2025-10-16 18:05:40",NULL
+"239","Ventes de uniformes scolaires fabriques","0.00","20000.00","Tshirt Noah PS",1,NULL,"14","4","142","valide","2025-10-16 18:05:40",NULL
+"241","Ventes de uniformes scolaires fabriques","0.00","20000.00","Tshirt Tinney TPS",1,NULL,"14","4","142","valide","2025-10-16 18:05:40",NULL
+"243","Ventes de uniformes scolaires fabriques","0.00","20000.00","Tshirt Ny Toky TPS",1,NULL,"14","4","142","valide","2025-10-16 18:05:40",NULL
+"146","Caisse centrale - Ariary","1250000.00","0.00","Mouvement ecolage & inscription",1,NULL,"11","4","73","valide","2025-10-16 16:44:23",NULL
+"235","Ventes de uniformes scolaires fabriques","0.00","20000.00","Tshirt irianja TPS",1,NULL,"14","4","142","valide","2025-10-16 18:05:40",NULL
+"247","Frais dinscription","0.00","300000.00","Inscription Milanto MS",1,NULL,"14","4","151","valide","2025-10-16 18:05:40",NULL
+"249","Frais dinscription","0.00","300000.00","Inscription Kaliana GS",1,NULL,"14","4","151","valide","2025-10-16 18:05:40",NULL
+"266","Achat legumes cantine","25000.00","0.00","Achat légumes",1,NULL,"15","4","118","valide","2025-10-16 19:02:51",NULL
+"267","Achat viande et poisson cantine","30000.00","0.00","Achat viande",1,NULL,"15","4","119","valide","2025-10-16 19:02:51",NULL
+"253","Frais de scolarite","0.00","150000.00","Ecolage Ny Aly GS",1,NULL,"14","4","150","valide","2025-10-16 18:05:40",NULL
+"258","Frais de scolarite","0.00","150000.00","Ecolage irianja TPS",1,NULL,"15","4","150","valide","2025-10-16 19:02:51",NULL
+"260","Frais de scolarite","0.00","150000.00","Ecolage irianja TPS",1,NULL,"15","4","150","valide","2025-10-16 19:02:51",NULL
+"262","Frais de scolarite","0.00","150000.00","Ecolage irianja TPS",1,NULL,"15","4","150","valide","2025-10-16 19:02:51",NULL
+"269","Achat de gouters","15000.00","0.00","Achat gouter",1,NULL,"15","4","202","valide","2025-10-16 19:02:51",NULL
+"273","Location salles ou materiels","0.00","80000.00","Location livre Tia 6è",1,NULL,"15","4","158","valide","2025-10-16 19:02:51",NULL
+"276","Location salles ou materiels","0.00","80000.00","Location livre Anja 4è",1,NULL,"15","4","158","valide","2025-10-16 19:02:51",NULL
+"278","Club parascolaire (sport musique art)","0.00","60000.00","Paiement Natation Tia 4è",1,NULL,"15","4","160","valide","2025-10-16 19:02:51",NULL
+"280","Vente de fascicules de cours","0.00","50000.00","Achat livre manuel FRS et MATH soa  CE2",1,NULL,"15","4","144","valide","2025-10-16 19:02:51",NULL
+"284","Vente de fascicules de cours","0.00","50000.00","Achat livre manuel FRS et MATH Anjara CP",1,NULL,"15","4","144","valide","2025-10-16 19:02:51",NULL
+"292","photocopie","143000.00","0.00","photocopie",1,NULL,"16","4","204","valide","2025-10-16 19:46:41",NULL
+"287","Location salles ou materiels","0.00","50000.00","Achat livre manuel FRS et MATH Tolotra CE1",1,NULL,"16","4","158","valide","2025-10-16 19:46:40",NULL
+"289","Location salles ou materiels","0.00","50000.00","Achat livre manuel FRS et MATH Hugo  CE2",1,NULL,"16","4","158","valide","2025-10-16 19:46:40",NULL
+"288","Location salles ou materiels","0.00","50000.00","Achat livre manuel FRS et MATH Tolotra   CE1",1,NULL,"16","4","158","valide","2025-10-16 19:46:41",NULL
+"294","Materiel pedagogique divers","239000.00","0.00","Achat enseigne lumineux",1,NULL,"16","4","82","valide","2025-10-16 19:46:41",NULL
+"298","Publicité","520000.00","0.00","Paiement No comment publicité",1,NULL,"16","4","205","valide","2025-10-16 19:46:41",NULL
+"302","Achat legumes cantine","45000.00","0.00","Achat légumes",1,NULL,"16","4","118","valide","2025-10-16 19:46:41",NULL
+"304","Achat viande et poisson cantine","34000.00","0.00","Achat viande",1,NULL,"16","4","119","valide","2025-10-16 19:46:41",NULL
+"306","Achat de gouters","43000.00","0.00","Achat gouter",1,NULL,"16","4","202","valide","2025-10-16 19:46:41",NULL
+"310","Uniformes et tenues scolaires","346000.00","0.00","Confection tablier Maitresse",1,NULL,"16","4","95","valide","2025-10-16 19:46:41",NULL
+"311","Materiel pedagogique divers","432000.00","0.00","Achat fournitures Chandarana",1,NULL,"16","4","82","valide","2025-10-16 19:46:41",NULL
+"313","Tables et chaises scolaires","2500000.00","0.00","Confection tables_bancs",1,NULL,"16","4","86","valide","2025-10-16 19:46:41",NULL
+"315","Peinture","750000.00","0.00","MO peinture 2cole",1,NULL,"16","4","206","valide","2025-10-16 19:46:41",NULL
+"317","Peinture","1000000.00","0.00","Peintures AURLAC",1,NULL,"16","4","206","valide","2025-10-16 19:46:41",NULL
+"320","Achat legumes cantine","45000.00","0.00","Achat légumes",1,NULL,"16","4","118","valide","2025-10-16 19:46:41",NULL
+"322","Achat viande et poisson cantine","25000.00","0.00","Achat viande",1,NULL,"16","4","119","valide","2025-10-16 19:46:41",NULL
+"324","Achat de gouters","20000.00","0.00","Achat gouter",1,NULL,"16","4","202","valide","2025-10-16 19:46:41",NULL
+"32","Caisse centrale - Ariary","0.00","25000.00","Mouvement legumes",1,NULL,"8","4","73","valide","2025-10-16 12:29:21",NULL
+"83","Caisse centrale - Ariary","0.00","500000.00","mouvement salaire",1,NULL,"10","4","73","valide","2025-10-16 16:02:40",NULL
+"87","Caisse centrale - Ariary","2500000.00","0.00","mouvement appro caisse",1,NULL,"10","4","73","valide","2025-10-16 16:02:40",NULL
+"98","Caisse centrale - Ariary","0.00","500000.00","mouvement salaire",1,NULL,"10","4","73","valide","2025-10-16 16:02:40",NULL
+"101","Caisse centrale - Ariary","0.00","56000.00","mouvement IRSA",1,NULL,"10","4","73","valide","2025-10-16 16:02:40",NULL
+"61","Caisse centrale - Ariary","0.00","100000.00","Mouvement virement",1,NULL,"9","4","73","valide","2025-10-16 13:31:15",NULL
+"75","Caisse centrale - Ariary","0.00","10000.00","Achat cahier registre",1,NULL,"9","4","73","valide","2025-10-16 13:31:15",NULL
+"62","Caisse centrale - Ariary","1950000.00","0.00","Mouvement ecolage",1,NULL,"9","4","73","valide","2025-10-16 13:31:15",NULL
+"251","Caisse centrale - Ariary","600000.00","0.00","mouvement inscription",1,NULL,"14","4","73","valide","2025-10-16 18:05:40",NULL
+"255","Caisse centrale - Ariary","150000.00","0.00","mouvement ecolage",1,NULL,"14","4","73","valide","2025-10-16 18:05:40",NULL
+"64","Caisse centrale - Ariary","0.00","1200000.00","virement bancaire",1,NULL,"9","4","73","valide","2025-10-16 13:31:15",NULL
+"66","Caisse centrale - Ariary","0.00","40000.00","denrées alimentaires",1,NULL,"9","4","73","valide","2025-10-16 13:31:15",NULL
+"69","Caisse centrale - Ariary","0.00","32500.00","jirama",1,NULL,"9","4","73","valide","2025-10-16 13:31:15",NULL
+"73","Caisse centrale - Ariary","0.00","250000.00","Paiement salaire maitresse A",1,NULL,"9","4","73","valide","2025-10-16 13:31:15",NULL
+"120","Caisse centrale - Ariary","0.00","1250000.00","Mouvement salaire",1,NULL,"11","4","73","valide","2025-10-16 16:44:23",NULL
+"129","Caisse centrale - Ariary","0.00","78000.00","mouvement denrées",1,NULL,"11","4","73","valide","2025-10-16 16:44:23",NULL
+"205","Caisse centrale - Ariary","900000.00","0.00","mouvement ecolage",1,NULL,"13","4","73","valide","2025-10-16 17:35:55",NULL
+"213","Caisse centrale - Ariary","0.00","85000.00","Mouvement denrées",1,NULL,"13","4","73","valide","2025-10-16 17:35:55",NULL
+"219","Caisse centrale - Ariary","160000.00","0.00","Mouvement location livres",1,NULL,"13","4","73","valide","2025-10-16 17:35:55",NULL
+"154","Caisse centrale - Ariary","0.00","93000.00","mouvement denrées",1,NULL,"12","4","73","valide","2025-10-16 17:15:21",NULL
+"166","Caisse centrale - Ariary","750000.00","0.00","Mouvement ecolage",1,NULL,"12","4","73","valide","2025-10-16 17:15:21",NULL
+"174","Caisse centrale - Ariary","0.00","50000.00","Mouvement denrées",1,NULL,"12","4","73","valide","2025-10-16 17:15:21",NULL
+"189","Caisse centrale - Ariary","750000.00","0.00","Mouvement ecolage",1,NULL,"12","4","73","valide","2025-10-16 17:15:21",NULL
+"225","Caisse centrale - Ariary","110000.00","0.00","mouvement location livre & activite sportive",1,NULL,"14","4","73","valide","2025-10-16 18:05:40",NULL
+"232","Caisse centrale - Ariary","0.00","88000.00","mouvement denrées",1,NULL,"14","4","73","valide","2025-10-16 18:05:40",NULL
+"245","Caisse centrale - Ariary","100000.00","0.00","mouvement tee shirt",1,NULL,"14","4","73","valide","2025-10-16 18:05:40",NULL
+"264","Caisse centrale - Ariary","450000.00","0.00","mouvement ecolage",1,NULL,"15","4","73","valide","2025-10-16 19:02:51",NULL
+"271","Caisse centrale - Ariary","0.00","70000.00","mouvement denrées",1,NULL,"15","4","73","valide","2025-10-16 19:02:51",NULL
+"286","Caisse centrale - Ariary","320000.00","0.00","mouvement livres, activite",1,NULL,"15","4","73","valide","2025-10-16 19:02:51",NULL
+"291","Caisse centrale - Ariary","150000.00","0.00","mouvement location livre",1,NULL,"16","4","73","valide","2025-10-16 19:46:41",NULL
+"296","Caisse centrale - Ariary","0.00","382000.00","mouvement materiel pedagogique",1,NULL,"16","4","73","valide","2025-10-16 19:46:41",NULL
+"300","Caisse centrale - Ariary","0.00","520000.00","mouvement publicite",1,NULL,"16","4","73","valide","2025-10-16 19:46:41",NULL
+"308","Caisse centrale - Ariary","0.00","122000.00","mouvement denrées",1,NULL,"16","4","73","valide","2025-10-16 19:46:41",NULL
+"318","Caisse centrale - Ariary","0.00","5028000.00","mouvement entretien et equipement",1,NULL,"16","4","73","valide","2025-10-16 19:46:41",NULL
+"325","Caisse centrale - Ariary","0.00","90000.00","Achat denrées",1,NULL,"16","4","73","valide","2025-10-16 19:46:41",NULL
