@@ -27,6 +27,10 @@ import ModuleChoice from "@/views/ModuleChoice.vue";
 import AnalyseRoutes from "./routesAnalyse.js";
 import CRNature from "@/components/pages/general/CRNature.vue";
 import CRFonction from "@/components/pages/general/CRFonction.vue";
+import BilanActif from "@/components/pages/general/BilanActif.vue";
+import BilanPassif from "@/components/pages/general/BilanPassif.vue";
+import FluxTresorerie from "@/components/pages/general/FluxTresorerie.vue";
+import VariationsCapitaux from "@/components/pages/general/VariationsCapitaux.vue";
 
 const routes = [
   {
@@ -168,7 +172,28 @@ const routes = [
     path: "/CR-Fonction",
     name : "CR-Fonction",
     component : CRFonction
+  },
+  {
+    path: "/BilanActif",
+    name : "BilanActif",
+    component : BilanActif
+  },
+   {
+    path: "/BilanPassif",
+    name : "BilanPassif",
+    component : BilanPassif
+  },
+  {
+    path: "/flux-tresorerie",
+    name : "FluxTresorerie",
+    component : FluxTresorerie
+  },
+  {
+    path : "/variation-capitaux",
+    name : "VariationCapitaux",
+    component : VariationsCapitaux
   }
+
 
 
 
