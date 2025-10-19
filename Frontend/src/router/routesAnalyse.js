@@ -3,6 +3,9 @@ import Couts from "@/components/pages/analyses/Couts.vue";
 import Profits from "@/components/pages/analyses/Profits.vue";
 import Comparaison from "@/components/pages/analyses/Comparaison.vue";
 import General from "@/components/pages/indicateurs/General.vue";
+import Liquidite from "@/components/pages/indicateurs/Liquidite.vue";
+import Solvabilite from "@/components/pages/indicateurs/Solvabilite.vue";
+import Rentabilite from "@/components/pages/indicateurs/Rentabilite.vue";
 
 export default [
   {
@@ -29,5 +32,20 @@ export default [
       path: "/indicateur-general",
       name: General,
       component: General
+    },
+    {
+      path: "/indicateur-liquidite",
+      name: Liquidite,
+      component: Liquidite
+    },
+    {
+      path: "/indicateur-solvabilite",
+      name: Solvabilite,
+      component: Solvabilite
+    },
+    {
+      path: "/indicateur-rentabilite",
+      name: Rentabilite,
+      component: Rentabilite
     }
 ];

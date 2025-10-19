@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import PageAnalyse from '@/components/template/Page-analyse.vue';
-import { useIndicateurGeneral } from "@/composables/useIndicateurGeneral";
+import { useIndicateurRentabilite } from "@/composables/useIndicateurRentabilite";
 import Card from "@/components/atoms/Chart/Card.vue";
 import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Texte from "@/components/atoms/Texte.vue";
@@ -15,21 +15,18 @@ const filters = ref({
 
 const {
   exercice,
-  exercicesList,
   exercicesOptions,
-  totalProduits,
-  totalCharges,
-  nombreEleves,
-  resultatNet,
-  margeExploitation,
-  infoExercice,
+  MargeBrute,
+  MargeNette,
+  ROE,
+  ROA,
   loading,
   comparisons,
   previousYearData,
   refreshAllData,
   initializeData,
   changeExercice
-} = useIndicateurGeneral(filters);
+} = useIndicateurRentabilite(filters);
 
 // Chargement initial
 onMounted(() => {
@@ -81,7 +78,7 @@ const getTrendIcon = (comparison) => {
 <template>
   <PageAnalyse>
     <div class="main">
-      <ContentHeader :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs généraux'" />
+      <ContentHeader :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs de rentabilité'" />
       
       <!-- Filtres -->
       <div class="filtres">
@@ -104,41 +101,43 @@ const getTrendIcon = (comparison) => {
         </div>
       </div>
 
-      <!-- Indicateurs en cartes -->
+      <!-- MB -->
       <div class="graphic">
         <div class="cartes">
           <div class="hauteur">
             <Card 
-              :texte="'Total les revenus'"
-              :chiffre="parseFloat(totalProduits?.total_produits?.valeur)" 
-              :format="'money'" 
-              :icon="'bi bi-arrow-up-circle'" 
+              :texte="'Marge brute'"
+              :chiffre="parseFloat(MargeBrute?.marge_brute?.valeur)"
+              :format="'percentage'" 
+              :icon="'bi bi-bar-chart-fill'" 
               :icon-color="'green'" 
+              :negative="true"
             />
             <Card 
-              :texte="'Total des dépenses'"
-              :chiffre="parseFloat(totalCharges?.total_charges?.valeur)" 
-              :format="'money'" 
-              :icon="'bi bi-arrow-down-circle'"
-              :icon-color="'red'" 
+              :texte="'Marge nette'"
+              :chiffre="parseFloat(MargeNette?.marge_nette?.valeur)" 
+              :format="'percentage'" 
+              :icon="'bi bi-bar-chart-fill'"
+              :icon-color="'blue'" 
+              :negative="true"
             />
           </div>
           <div class="hauteur">
             
             <Card 
-              :texte="'Résultat net'"
-              :chiffre="parseFloat(resultatNet?.resultat_net?.valeur)" 
-              :format="'money'" 
-              :icon="'bi bi-cash-stack'" 
-              :icon-color="'green'" 
+              :texte="'ROE'"
+              :chiffre="parseFloat(ROE?.roe?.valeur)" 
+              :format="'percentage'" 
+              :icon="'bi bi-people-fill'" 
+              :icon-color="'purple'" 
               :negative="true" 
             />
             <Card 
-              :texte="'Marge d\'exploitation'" 
-              :chiffre="parseFloat(margeExploitation?.marge_exploitation?.valeur)"
+              :texte="'ROA'" 
+              :chiffre="parseFloat(ROA?.roa?.valeur)"
               :format="'percentage'" 
-              :icon="'bi bi-percent'" 
-              :icon-color="'purple'" 
+              :icon="'bi bi-building'" 
+              :icon-color="'grey'" 
               :negative="true" 
             />
           </div>
@@ -163,87 +162,87 @@ const getTrendIcon = (comparison) => {
               </tr>
             </thead>
             <tbody>
-              <!-- Total Produits -->
+              <!-- Marge brute -->
               <tr>
                 <td class="col">
-                  <i class="bi bi-arrow-right trend-icon green"></i>
-                  Total des revenus
+                  <i class="bi bi-bar-chart-fill trend-icon green"></i>
+                  Marge brute
                 </td>
                 <td class="col">
-                  {{ formatMoney(totalProduits?.total_produits?.valeur) }}
+                  {{ formatPercentage(MargeBrute?.marge_brute?.valeur) }}
                 </td>
                 <td class="col">
-                  {{ formatMoney(previousYearData.totalProduits?.total_produits?.valeur) }}
+                  {{ formatPercentage(previousYearData.MargeBrute?.marge_brute?.valeur) }}
                 </td>
-                <td :class="['evolution', getTrendClass(comparisons.produits)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.produits) }}</span>
-                  {{ comparisons.produits?.hasData ? formatMoney(comparisons.produits.evolution) : 'N/A' }}
+                <td :class="['evolution', getTrendClass(comparisons.brute)]">
+                  <span class="trend-icon">{{ getTrendIcon(comparisons.brute) }}</span>
+                  {{ comparisons.brute?.hasData ? formatPercentage(comparisons.brute.evolution) : 'N/A' }}
                 </td>
-                <td :class="['percentage', getTrendClass(comparisons.produits)]">
-                  {{ comparisons.produits?.hasData ? `${comparisons.produits.percentage}%` : 'N/A' }}
+                <td :class="['percentage', getTrendClass(comparisons.brute)]">
+                  {{ comparisons.brute?.hasData ? `${comparisons.brute.percentage}%` : 'N/A' }}
                 </td>
               </tr>
               
-              <!-- Total Charges -->
+              <!-- Marge nette -->
               <tr>
                 <td class="col">
-                  <i class="bi bi-arrow-left trend-icon red"></i>
-                  Total des dépenses
+                  <i class="bi bi-bar-chart-fill trend-icon blue"></i>
+                  Marge nette
                 </td>
                 <td class="col">
-                  {{ formatMoney(totalCharges?.total_charges?.valeur) }}
+                  {{ formatPercentage(MargeNette?.marge_nette?.valeur) }}
                 </td>
                 <td class="col">
-                  {{ formatMoney(previousYearData.totalCharges?.total_charges?.valeur) }}
+                  {{ formatPercentage(previousYearData.MargeNette?.marge_nette?.valeur) }}
                 </td>
-                <td :class="['evolution', getTrendClass(comparisons.charges)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.charges) }}</span>
-                  {{ comparisons.charges?.hasData ? formatMoney(comparisons.charges.evolution) : 'N/A' }}
+                <td :class="['evolution', getTrendClass(comparisons.nette)]">
+                  <span class="trend-icon">{{ getTrendIcon(comparisons.nette) }}</span>
+                  {{ comparisons.nette?.hasData ? formatPercentage(comparisons.nette.evolution) : 'N/A' }}
                 </td>
-                <td :class="['percentage', getTrendClass(comparisons.charges)]">
-                  {{ comparisons.charges?.hasData ? `${comparisons.charges.percentage}%` : 'N/A' }}
+                <td :class="['percentage', getTrendClass(comparisons.nette)]">
+                  {{ comparisons.nette?.hasData ? `${comparisons.nette.percentage}%` : 'N/A' }}
                 </td>
               </tr>
               
-              <!-- Résultat Net -->
+              <!-- ROE -->
               <tr>
                 <td class="col">
-                  <i class="bi bi-arrow-left-right trend-icon orange"></i>
-                  Résultat net
+                  <i class="bi bi-people-fill trend-icon purple"></i>
+                  ROE
                 </td>
                 <td class="col">
-                  {{ formatMoney(resultatNet?.resultat_net?.valeur) }}
+                  {{ formatPercentage(ROE?.roe?.valeur) }}
                 </td>
                 <td class="col">
-                  {{ formatMoney(previousYearData.resultatNet?.resultat_net?.valeur) }}
+                  {{ formatPercentage(previousYearData.ROE?.roe?.valeur) }}
                 </td>
-                <td :class="['evolution', getTrendClass(comparisons.resultatNet)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.resultatNet) }}</span>
-                  {{ comparisons.resultatNet?.hasData ? formatMoney(comparisons.resultatNet.evolution) : 'N/A' }}
+                <td :class="['evolution', getTrendClass(comparisons.roe)]">
+                  <span class="trend-icon">{{ getTrendIcon(comparisons.roe) }}</span>
+                  {{ comparisons.roe?.hasData ? formatPercentage(comparisons.roe.evolution) : 'N/A' }}
                 </td>
-                <td :class="['percentage', getTrendClass(comparisons.resultatNet)]">
-                  {{ comparisons.resultatNet?.hasData ? `${comparisons.resultatNet.percentage}%` : 'N/A' }}
+                <td :class="['percentage', getTrendClass(comparisons.roe)]">
+                  {{ comparisons.roe?.hasData ? `${comparisons.roe.percentage}%` : 'N/A' }}
                 </td>
               </tr>
               
-              <!-- Marge d'exploitation -->
+              <!--ROA -->
               <tr>
                 <td class="col">
-                  <i class="bi bi-percent trend-icon purple"></i>
-                  Marge d'exploitation
+                  <i class="bi bi-building trend-icon grey"></i>
+                 ROA
                 </td>
                 <td class="col">
-                  {{ formatPercentage(margeExploitation?.marge_exploitation?.valeur) }}
+                  {{ formatPercentage(ROA?.roa?.valeur) }}
                 </td>
                 <td class="col">
-                  {{ formatPercentage(previousYearData.margeExploitation?.marge_exploitation?.valeur) }}
+                  {{ formatPercentage(previousYearData.ROA?.roa?.valeur) }}
                 </td>
-                <td :class="['evolution', getTrendClass(comparisons.margeExploitation)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.margeExploitation) }}</span>
-                  {{ comparisons.margeExploitation?.hasData ? formatPercentage(comparisons.margeExploitation.evolution) : 'N/A' }}
+                <td :class="['evolution', getTrendClass(comparisons.roa)]">
+                  <span class="trend-icon">{{ getTrendIcon(comparisons.roa) }}</span>
+                  {{ comparisons.roa?.hasData ? formatPercentage(comparisons.roa.evolution) : 'N/A' }}
                 </td>
-                <td :class="['percentage', getTrendClass(comparisons.margeExploitation)]">
-                  {{ comparisons.margeExploitation?.hasData ? `${comparisons.margeExploitation.percentage}%` : 'N/A' }}
+                <td :class="['percentage', getTrendClass(comparisons.roa)]">
+                  {{ comparisons.roa?.hasData ? `${comparisons.roa.percentage}%` : 'N/A' }}
                 </td>
               </tr>
               

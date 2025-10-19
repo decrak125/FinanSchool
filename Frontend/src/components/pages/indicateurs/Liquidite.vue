@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import PageAnalyse from '@/components/template/Page-analyse.vue';
-import { useIndicateurGeneral } from "@/composables/useIndicateurGeneral";
+import { useIndicateurLiquidite } from "@/composables/useIndicateurLiquidite";
 import Card from "@/components/atoms/Chart/Card.vue";
 import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Texte from "@/components/atoms/Texte.vue";
@@ -15,21 +15,19 @@ const filters = ref({
 
 const {
   exercice,
-  exercicesList,
-  exercicesOptions,
-  totalProduits,
-  totalCharges,
-  nombreEleves,
-  resultatNet,
-  margeExploitation,
-  infoExercice,
-  loading,
-  comparisons,
-  previousYearData,
-  refreshAllData,
-  initializeData,
-  changeExercice
-} = useIndicateurGeneral(filters);
+    LiquiditeGenerale,
+    TresorerieNette,
+    BFR,
+    loading,
+    previousYearData,
+    // Computed
+    exercicesOptions,
+    comparisons, // 📌 NOUVEAU : Comparaisons N vs N-1
+    // Fonctions
+    refreshAllData,
+    initializeData,
+    changeExercice,
+} = useIndicateurLiquidite(filters);
 
 // Chargement initial
 onMounted(() => {
@@ -81,7 +79,7 @@ const getTrendIcon = (comparison) => {
 <template>
   <PageAnalyse>
     <div class="main">
-      <ContentHeader :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs généraux'" />
+      <ContentHeader :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs de liquidité'" />
       
       <!-- Filtres -->
       <div class="filtres">
@@ -109,35 +107,35 @@ const getTrendIcon = (comparison) => {
         <div class="cartes">
           <div class="hauteur">
             <Card 
-              :texte="'Total les revenus'"
-              :chiffre="parseFloat(totalProduits?.total_produits?.valeur)" 
+              :texte="'Trésorerie nette'"
+              :chiffre="parseFloat(TresorerieNette?.tresorerie_nette?.valeur)" 
               :format="'money'" 
-              :icon="'bi bi-arrow-up-circle'" 
-              :icon-color="'green'" 
+              :icon="'bi bi-wallet2'" 
+              :icon-color="'brown'" 
             />
             <Card 
-              :texte="'Total des dépenses'"
-              :chiffre="parseFloat(totalCharges?.total_charges?.valeur)" 
+              :texte="'Besoins de fond de roulement'"
+              :chiffre="parseFloat(BFR?.bfr?.valeur)" 
               :format="'money'" 
-              :icon="'bi bi-arrow-down-circle'"
-              :icon-color="'red'" 
+              :icon="'bi bi-arrow-repeat'"
+              :icon-color="'orange'" 
             />
           </div>
           <div class="hauteur">
             
             <Card 
-              :texte="'Résultat net'"
-              :chiffre="parseFloat(resultatNet?.resultat_net?.valeur)" 
-              :format="'money'" 
-              :icon="'bi bi-cash-stack'" 
-              :icon-color="'green'" 
+              :texte="'Ratio liquidité générale'"
+              :chiffre="parseFloat(LiquiditeGenerale?.ratio_liquidite_generale?.valeur)" 
+              :format="'percentage'" 
+              :icon="'bi bi-water'" 
+              :icon-color="'#499ef8'" 
               :negative="true" 
             />
             <Card 
-              :texte="'Marge d\'exploitation'" 
-              :chiffre="parseFloat(margeExploitation?.marge_exploitation?.valeur)"
-              :format="'percentage'" 
-              :icon="'bi bi-percent'" 
+              :texte="'No data'" 
+              :chiffre="0"
+              :format="'number'" 
+              :icon="'bi bi-question-lg'" 
               :icon-color="'purple'" 
               :negative="true" 
             />
@@ -163,110 +161,69 @@ const getTrendIcon = (comparison) => {
               </tr>
             </thead>
             <tbody>
-              <!-- Total Produits -->
+              <!-- Trésorerie nette -->
               <tr>
                 <td class="col">
-                  <i class="bi bi-arrow-right trend-icon green"></i>
-                  Total des revenus
+                  <i class="bi bi-wallet2 trend-icon brown"></i>
+                  Trésorerie nette
                 </td>
                 <td class="col">
-                  {{ formatMoney(totalProduits?.total_produits?.valeur) }}
+                  {{ formatMoney(TresorerieNette?.tresorerie_nette?.valeur) }}
                 </td>
                 <td class="col">
-                  {{ formatMoney(previousYearData.totalProduits?.total_produits?.valeur) }}
+                  {{ formatMoney(previousYearData.TresorerieNette?.tresorerie_nette?.valeur) }}
                 </td>
-                <td :class="['evolution', getTrendClass(comparisons.produits)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.produits) }}</span>
-                  {{ comparisons.produits?.hasData ? formatMoney(comparisons.produits.evolution) : 'N/A' }}
+                <td :class="['evolution', getTrendClass(comparisons.Tresorerie)]">
+                  <span class="trend-icon">{{ getTrendIcon(comparisons.Tresorerie) }}</span>
+                  {{ comparisons.Tresorerie?.hasData ? formatMoney(comparisons.Tresorerie.evolution) : 'N/A' }}
                 </td>
-                <td :class="['percentage', getTrendClass(comparisons.produits)]">
-                  {{ comparisons.produits?.hasData ? `${comparisons.produits.percentage}%` : 'N/A' }}
+                <td :class="['percentage', getTrendClass(comparisons.Tresorerie)]">
+                  {{ comparisons.Tresorerie?.hasData ? `${comparisons.Tresorerie.percentage}%` : 'N/A' }}
                 </td>
               </tr>
               
-              <!-- Total Charges -->
+              <!-- Besoins de fond de roulement -->
               <tr>
                 <td class="col">
-                  <i class="bi bi-arrow-left trend-icon red"></i>
-                  Total des dépenses
+                  <i class="bi bi bi-arrow-repeat trend-icon orange"></i>
+                  Besoins de fond de roulement
                 </td>
                 <td class="col">
-                  {{ formatMoney(totalCharges?.total_charges?.valeur) }}
+                  {{ formatMoney(BFR?.bfr?.valeur) }}
                 </td>
                 <td class="col">
-                  {{ formatMoney(previousYearData.totalCharges?.total_charges?.valeur) }}
+                  {{ formatMoney(previousYearData.BFR?.bfr?.valeur) }}
                 </td>
-                <td :class="['evolution', getTrendClass(comparisons.charges)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.charges) }}</span>
-                  {{ comparisons.charges?.hasData ? formatMoney(comparisons.charges.evolution) : 'N/A' }}
+                <td :class="['evolution', getTrendClass(comparisons.fondRoulement)]">
+                  <span class="trend-icon">{{ getTrendIcon(comparisons.fondRoulement) }}</span>
+                  {{ comparisons.fondRoulement?.hasData ? formatMoney(comparisons.fondRoulement.evolution) : 'N/A' }}
                 </td>
-                <td :class="['percentage', getTrendClass(comparisons.charges)]">
-                  {{ comparisons.charges?.hasData ? `${comparisons.charges.percentage}%` : 'N/A' }}
+                <td :class="['percentage', getTrendClass(comparisons.fondRoulement)]">
+                  {{ comparisons.fondRoulement?.hasData ? `${comparisons.fondRoulement.percentage}%` : 'N/A' }}
                 </td>
               </tr>
               
-              <!-- Résultat Net -->
+              <!-- Ratio liquidité générale -->
               <tr>
                 <td class="col">
-                  <i class="bi bi-arrow-left-right trend-icon orange"></i>
-                  Résultat net
+                  <i class="bi bi-water trend-icon blue"></i>
+                  Ratio liquidité générale
                 </td>
                 <td class="col">
-                  {{ formatMoney(resultatNet?.resultat_net?.valeur) }}
+                  {{ formatPercentage(LiquiditeGenerale?.ratio_liquidite_generale?.valeur) }}
                 </td>
                 <td class="col">
-                  {{ formatMoney(previousYearData.resultatNet?.resultat_net?.valeur) }}
+                  {{ formatPercentage(previousYearData.LiquiditeGenerale?.ratio_liquidite_generale?.valeur) }}
                 </td>
-                <td :class="['evolution', getTrendClass(comparisons.resultatNet)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.resultatNet) }}</span>
-                  {{ comparisons.resultatNet?.hasData ? formatMoney(comparisons.resultatNet.evolution) : 'N/A' }}
+                <td :class="['evolution', getTrendClass(comparisons.Liquidite)]">
+                  <span class="trend-icon">{{ getTrendIcon(comparisons.Liquidite) }}</span>
+                  {{ comparisons.Liquidite?.hasData ? formatPercentage(comparisons.Liquidite.evolution) : 'N/A' }}
                 </td>
-                <td :class="['percentage', getTrendClass(comparisons.resultatNet)]">
-                  {{ comparisons.resultatNet?.hasData ? `${comparisons.resultatNet.percentage}%` : 'N/A' }}
+                <td :class="['percentage', getTrendClass(comparisons.Liquidite)]">
+                  {{ comparisons.Liquidite?.hasData ? `${comparisons.Liquidite.percentage}%` : 'N/A' }}
                 </td>
               </tr>
               
-              <!-- Marge d'exploitation -->
-              <tr>
-                <td class="col">
-                  <i class="bi bi-percent trend-icon purple"></i>
-                  Marge d'exploitation
-                </td>
-                <td class="col">
-                  {{ formatPercentage(margeExploitation?.marge_exploitation?.valeur) }}
-                </td>
-                <td class="col">
-                  {{ formatPercentage(previousYearData.margeExploitation?.marge_exploitation?.valeur) }}
-                </td>
-                <td :class="['evolution', getTrendClass(comparisons.margeExploitation)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.margeExploitation) }}</span>
-                  {{ comparisons.margeExploitation?.hasData ? formatPercentage(comparisons.margeExploitation.evolution) : 'N/A' }}
-                </td>
-                <td :class="['percentage', getTrendClass(comparisons.margeExploitation)]">
-                  {{ comparisons.margeExploitation?.hasData ? `${comparisons.margeExploitation.percentage}%` : 'N/A' }}
-                </td>
-              </tr>
-              
-              <!-- Nombre d'élèves -->
-              <!-- <tr>
-                <td class="col">
-                  <i class="bi bi-people trend-icon blue"></i>
-                  Nombre d'élèves
-                </td>
-                <td class="col">
-                  {{ nombreEleves?.count || 'N/A' }}
-                </td>
-                <td class="value-previous">
-                  {{ previousYearData.nombreEleves?.count || 'N/A' }}
-                </td>
-                <td :class="['evolution', getTrendClass(comparisons.nombreEleves)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.nombreEleves) }}</span>
-                  {{ comparisons.nombreEleves?.hasData ? comparisons.nombreEleves.evolution : 'N/A' }}
-                </td>
-                <td :class="['percentage', getTrendClass(comparisons.nombreEleves)]">
-                  {{ comparisons.nombreEleves?.hasData ? `${comparisons.nombreEleves.percentage}%` : 'N/A' }}
-                </td>
-              </tr> -->
             </tbody>
           </table>
         </div>

@@ -1,25 +1,21 @@
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 
-export function useIndicateur(filters) {
+export function useIndicateurLiquidite(filters) {
   const API_URL = "http://127.0.0.1:8000/api";
   
   const exercice = ref(null);
   const exercicesList = ref([]);
-  const totalProduits = ref(null);
-  const totalCharges = ref(null);
-  const nombreEleves = ref(null);
-  const resultatNet = ref(null);
-  const margeExploitation = ref(null);
+  const LiquiditeGenerale = ref(null);
+  const TresorerieNette = ref(null);
+  const BFR = ref(null);
   const loading = ref(false);
 
   // 📌 NOUVEAU : Données de l'année N-1
   const previousYearData = ref({
-    totalProduits: null,
-    totalCharges: null,
-    nombreEleves: null,
-    resultatNet: null,
-    margeExploitation: null
+    LiquiditeGenerale: null,
+    TresorerieNette: null,
+    BFR: null,
   });
 
   // 📌 Fonction pour obtenir l'année précédente
@@ -47,34 +43,25 @@ export function useIndicateur(filters) {
     try {
       const previousDates = getPreviousYearDates(currentDateStart, currentDateEnd);
       
-      const [produits, charges, eleves, resultat, marge] = await Promise.all([
-        axios.get(`${API_URL}/analyse/total-produits`, {
+      const [Liquidite, Tresorerie, fondRoulement] = await Promise.all([
+        axios.get(`${API_URL}/analyse/ratio-liquidite-generale`, {
           params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
         }).catch(() => ({ data: null })),
         
-        axios.get(`${API_URL}/analyse/total-charges`, {
+        axios.get(`${API_URL}/analyse/tresorerie-nette`, {
           params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
         }).catch(() => ({ data: null })),
         
-        axios.get(`${API_URL}/eleves/count`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
         
-        axios.get(`${API_URL}/analyse/resultat-net`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
-        
-        axios.get(`${API_URL}/analyse/marge-exploitation`, {
+        axios.get(`${API_URL}/analyse/bfr`, {
           params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
         }).catch(() => ({ data: null }))
       ]);
 
       previousYearData.value = {
-        totalProduits: produits.data,
-        totalCharges: charges.data,
-        nombreEleves: eleves.data,
-        resultatNet: resultat.data,
-        margeExploitation: marge.data
+        LiquiditeGenerale: Liquidite.data,
+        TresorerieNette: Tresorerie.data,
+        BFR: fondRoulement.data,
       };
       console.log(previousYearData);
       
@@ -128,26 +115,18 @@ export function useIndicateur(filters) {
   // 📌 Computed pour les comparaisons
   const comparisons = computed(() => {
     return {
-      produits: getComparison(
-        totalProduits.value?.total_produits, 
-        previousYearData.value.totalProduits?.total_produits
+      Liquidite: getComparison(
+        LiquiditeGenerale.value?.ratio_liquidite_generale, 
+        previousYearData.value.LiquiditeGenerale?.ratio_liquidite_generale,
+        'pourcentage'
       ),
-      charges: getComparison(
-        totalCharges.value?.total_charges, 
-        previousYearData.value.totalCharges?.total_charges
+      Tresorerie: getComparison(
+        TresorerieNette.value?.tresorerie_nette, 
+        previousYearData.value.TresorerieNette?.tresorerie_nette
       ),
-      resultatNet: getComparison(
-        resultatNet.value?.resultat_net, 
-        previousYearData.value.resultatNet?.resultat_net
-      ),
-      margeExploitation: getComparison(
-        margeExploitation.value?.marge_exploitation?.valeur, 
-        previousYearData.value.margeExploitation?.marge_exploitation?.valeur,
-        'pourcentage',
-      ),
-      nombreEleves: getComparison(
-        nombreEleves.value, 
-        previousYearData.value.nombreEleves
+      fondRoulement: getComparison(
+        BFR.value?.bfr, 
+        previousYearData.value.BFR?.bfr
       )
     };
   });
@@ -238,91 +217,61 @@ const fetchExercicesList = async () => {
     }
   };
 
-  const getProduits = async () => {
+  const getLiquidite = async () => {
     try {
-      const response = await axios.get(`${API_URL}/analyse/total-produits`, {
+      const response = await axios.get(`${API_URL}/analyse/ratio-liquidite-generale`, {
         params: {
           date_debut: filters.value.dateStart,
           date_fin: filters.value.dateEnd,
         },
       });
-      totalProduits.value = response.data;
+      LiquiditeGenerale.value = response.data;
     } catch (error) {
-      console.error("Erreur lors de la récupération des produits", error);
+      console.error("Erreur lors de la récupération des Liquidite", error);
       throw error;
     }
   };
 
-  const getCharges = async () => {
+  const getTresorerie = async () => {
     try {
-      const response = await axios.get(`${API_URL}/analyse/total-charges`, {
+      const response = await axios.get(`${API_URL}/analyse/tresorerie-nette`, {
         params: {
           date_debut: filters.value.dateStart,
           date_fin: filters.value.dateEnd,
         },
       });
-      totalCharges.value = response.data;
+      TresorerieNette.value = response.data;
     } catch (error) {
-      console.error("Erreur lors de la récupération des charges", error);
+      console.error("Erreur lors de la récupération des Tresorerie", error);
       throw error;
     }
   };
 
-  const getNombreEleves = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/eleves/count`, {
-        params: {
-          date_debut: filters.value.dateStart,
-          date_fin: filters.value.dateEnd,
-        },
-      });
-      nombreEleves.value = response.data;
-    } catch (error) {
-      console.error("Erreur lors de la récupération du nombre d'élèves", error);
-      throw error;
-    }
-  };
 
-  const getResultatNet = async () => {
+  const getBFR = async () => {
     try {
-      const response = await axios.get(`${API_URL}/analyse/resultat-net`, {
+      const response = await axios.get(`${API_URL}/analyse/bfr`, {
         params: {
           date_debut: filters.value.dateStart,
           date_fin: filters.value.dateEnd,
         },
       });
-      resultatNet.value = response.data;
+      BFR.value = response.data;
     } catch (error) {
       console.error("Erreur lors de la récupération du résultat net", error);
       throw error;
     }
   };
 
-  const getMargeExploitation = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/analyse/marge-exploitation`, {
-        params: {
-          date_debut: filters.value.dateStart,
-          date_fin: filters.value.dateEnd,
-        },
-      });
-      margeExploitation.value = response.data;
-    } catch (error) {
-      console.error("Erreur lors de la récupération de la marge d'exploitation", error);
-      throw error;
-    }
-  };
 
   // Fonction pour rafraîchir toutes les données
   const refreshAllData = async () => {
     try {
       loading.value = true;
       await Promise.all([
-        getProduits(),
-        getCharges(),
-        getNombreEleves(),
-        getResultatNet(),
-        getMargeExploitation(),
+        getLiquidite(),
+        getTresorerie(),
+        getBFR(),
         fetchPreviousYearData(formatDateForInput(filters.value.dateStart), formatDateForInput(filters.value.dateEnd))
       ]);
       
@@ -359,16 +308,9 @@ const fetchExercicesList = async () => {
   // });
 
   // Computed pour des calculs dérivés
-  const ratioChargesProduits = computed(() => {
-    if (totalProduits.value?.total_produits?.valeur && totalCharges.value?.total_charges?.valeur) {
-      return (totalCharges.value.total_charges.valeur / totalProduits.value.total_produits.valeur * 100).toFixed(2);
-    }
-    return 0;
-  });
-
-  const resultatParEleve = computed(() => {
-    if (resultatNet.value?.resultat_net?.valeur && nombreEleves.value?.count) {
-      return (resultatNet.value.resultat_net.valeur / nombreEleves.value.count).toFixed(2);
+  const ratioTresorerieLiquidite = computed(() => {
+    if (LiquiditeGenerale.value?.ratio_liquidite_generale?.valeur && TresorerieNette.value?.tresorerie_nette?.valeur) {
+      return (TresorerieNette.value.tresorerie_nette.valeur / LiquiditeGenerale.value.ratio_liquidite_generale.valeur * 100).toFixed(2);
     }
     return 0;
   });
@@ -404,27 +346,22 @@ const fetchExercicesList = async () => {
     // Données
     exercice,
     exercicesList,
-    totalProduits,
-    totalCharges,
-    nombreEleves,
-    resultatNet,
-    margeExploitation,
+    LiquiditeGenerale,
+    TresorerieNette,
+    BFR,
     loading,
     previousYearData,
 
     // Computed
     infoExercice,
     exercicesOptions,
-    ratioChargesProduits,
-    resultatParEleve,
+    ratioTresorerieLiquidite,
     comparisons, // 📌 NOUVEAU : Comparaisons N vs N-1
 
     // Fonctions
-    getProduits,
-    getCharges,
-    getNombreEleves,
-    getResultatNet,
-    getMargeExploitation,
+    getLiquidite,
+    getTresorerie,
+    getBFR,
     refreshAllData,
     initializeData,
     changeExercice,
