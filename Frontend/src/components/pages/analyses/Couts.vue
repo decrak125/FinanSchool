@@ -9,18 +9,60 @@ import Texte from "@/components/atoms/Texte.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 import searchbar from "@/components/atoms/searchbar.vue";
 import FilterInput from "@/components/atoms/Filter-input.vue";
+import FilterSelect from "@/components/atoms/Filter-select.vue";
 
 const {
-  centresList, filters, centres, affectations, sousComptesVentiles, verificationVentilations,
-  fetchCentresList, fetchCentres, fetchAffectations, fetchSousComptesVentiles, fetchVerificationVentilations,
-  formatMontant, formatPourcentage, statsGlobales,
-  // 🔥 NOUVEAUX FILTRES
-  centresFiltres,
-  affectationsFiltrees,
-  resetFilters
+    exercice,
+    exercicesList,
+    filters,
+    centresList,
+    centres,
+    affectations,
+    sousComptesVentiles,
+    verificationVentilations,
+    selectedCentre,
+    loading,
+
+    // Computed
+    statsGlobales,
+    infoExercice,
+    centresFiltres,
+    affectationsFiltrees,
+    exercicesOptions,
+
+    // API
+    fetchCentresList,
+    fetchCentres,
+    fetchAffectations,
+    fetchSousComptesVentiles,
+    fetchVerificationVentilations,
+
+    // 🔥 NOUVELLES FONCTIONS
+    initializeData,
+    changeExercice,
+    resetFilters,
+    fetchExercicesList,
+    formatDateForInput,
+    formatDateForAPI,
+
+    // Utils
+    formatMontant,
+    formatPourcentage,
+
 } = useCout(1);
 
-const selectedCentre = ref('');
+// Gestion du changement d'exercice
+const handleExerciceChange = async (event) => {
+  const idExercice = event.target.value;
+  await changeExercice(idExercice);
+};
+
+// Rafraîchissement des données
+const refreshData = async () => {
+  await fetchCentres();
+};
+
+// const selectedCentre = ref('');
 const activeTab = ref('centres');
 const showGlobalView = ref(true);
 
@@ -95,7 +137,7 @@ const loadAllData = async () => {
 };
 
 onMounted(async () => {
-  await loadAllData();
+  await initializeData();
 });
 </script>
 <template>
@@ -110,9 +152,7 @@ onMounted(async () => {
         <ContentHeader v-if="!showGlobalView && affectations.length > 0" :menu="selectedCentre"
           :sousmenu="'Répartition des couts'" />
       </div>
-      <ContentHeader v-else :menu="'Analyse des couts'" :sousmenu="'Répartition des couts'" />
-
-      <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
+      <ContentHeader v-else :menu="'Analyse des couts'" :sousmenu="'Répartition des couts'" />      <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
       <div class="filtres">
         <Texte :type="'thin-dark'" :texte="'Du'"/>
         <div>
@@ -132,7 +172,21 @@ onMounted(async () => {
             {{ centresFiltres.length }} centre(s) trouvé(s)
           </div> -->
         </div>
-
+        <FilterSelect 
+        v-if="showGlobalView"
+          v-model="filters.idExercice"
+          @change="handleExerciceChange"
+        >
+          <option value="">Exercice ouvert (actuel)</option>
+          <option 
+            v-for="exo in exercicesOptions" 
+            :key="exo.value" 
+            :value="exo.value"
+            :selected="exo.value === filters.idExercice"
+          >
+            {{ exo.label }}
+          </option>
+        </FilterSelect>
         <!-- Filtre pour les affectations (vue détaillée) -->
         <div v-if="!showGlobalView" class="filtre-affectation mb-4">
           <div class="relative">

@@ -7,7 +7,7 @@ defineProps({
 
 <template>
 <div class="content-header">
-      <h1 class="">{{menu}}</h1>
+      <h1 class="">{{sousmenu}}</h1>
       <div class="rubrique">
         <p class="menu">{{menu}} /</p>
         <p class="sous-menu"> {{sousmenu}}</p>

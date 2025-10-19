@@ -63,6 +63,9 @@ use App\Http\Controllers\Analyse\IndicateurSolvabiliteController;
 
 
      // Indicateurs Généraux
+     Route::get('/total-produits', [IndicateursGenerauxController::class, 'calculTotalProduits']);
+     Route::get('/total-charges', [IndicateursGenerauxController::class, 'calculTotalCharges']);
+     Route::get('/resultat-net', [IndicateursGenerauxController::class, 'calculResultatNet']);
      Route::get('/marge-exploitation', [IndicateursGenerauxController::class, 'calculMargeExploitation']);
      // Indicateurs Rentabilite
      Route::get('/marge-brute', [IndicateurRentabiliteController::class, 'calculMargeBrute']);

@@ -36,7 +36,7 @@ import Texte from './Texte.vue';
     align-items: center;
     gap: 10px;
     border-radius: var(--Border-radius, 32px);
-    background: $light;
+    background: #EBEBEB;
 }
 option{
     @include input($dark, $dark, $radius-pm, $stara-medium);

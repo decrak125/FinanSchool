@@ -113,8 +113,8 @@ public function calculTresorerieNette(Request $request)
         ],
         'details_calcul' => [
             'comptes_tresorerie' => [
-                'banque' => $this->calculerSoldeCategorie('TRESO', $dateDebut, $dateFin),
-                'decouverts' => $this->calculerSoldeCategorie('DECOUV', $dateDebut, $dateFin)
+                'banque' => UtilesController::calculerTotalCategorieGroupe(['TRESO'], $dateDebut, $dateFin),
+                'decouverts' => UtilesController::calculerTotalCategorieGroupe(['DECOUV'], $dateDebut, $dateFin)
             ]
         ],
         'periode' => [
@@ -132,8 +132,8 @@ public function calculTresorerieNette(Request $request)
 private function calculerSoldeTresorerie($dateDebut, $dateFin)
 {
     // Solde des comptes banque (positif = avoir, négatif = découvert)
-    $soldeBanque = $this->calculerSoldeCategorie('TRESO', $dateDebut, $dateFin);
-    $soldeDecouverts = $this->calculerSoldeCategorie('DECOUV', $dateDebut, $dateFin);
+    $soldeBanque = UtilesController::calculerTotalCategorieGroupe(['TRESO'], $dateDebut, $dateFin);
+    $soldeDecouverts = UtilesController::calculerTotalCategorieGroupe(['DECOUV'], $dateDebut, $dateFin);
 
     return $soldeBanque + $soldeDecouverts;
 }
@@ -141,23 +141,23 @@ private function calculerSoldeTresorerie($dateDebut, $dateFin)
 /**
  * Calcule le solde d'une catégorie (Débit - Crédit)
  */
-private function calculerSoldeCategorie($codeCategorie, $dateDebut, $dateFin)
-{
-    $resultat = DB::table('ligne_ecritures as le')
-        ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
-        ->join('compte_categories as cc', 'sc.Id_Sous_compte', '=', 'cc.id_sous_compte')
-        ->join('categorie_fonctionelles as cf', 'cc.id_categorie_fonctionelle', '=', 'cf.id_categorie_fonctionelle')
-        ->where('cf.code', $codeCategorie)
-        ->where('cc.actif', true)
-        ->where('le.statut', 'valide')
-        ->whereBetween('le.date_validation', [$dateDebut, $dateFin])
-        ->select(
-            DB::raw('SUM(le."Debit" - le."Credit") as solde')
-        )
-        ->first();
+// private function calculerSoldeCategorie($codeCategorie, $dateDebut, $dateFin)
+// {
+//     $resultat = DB::table('ligne_ecritures as le')
+//         ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
+//         ->join('compte_categories as cc', 'sc.Id_Sous_compte', '=', 'cc.id_sous_compte')
+//         ->join('categorie_fonctionelles as cf', 'cc.id_categorie_fonctionelle', '=', 'cf.id_categorie_fonctionelle')
+//         ->where('cf.code', $codeCategorie)
+//         ->where('cc.actif', true)
+//         ->where('le.statut', 'valide')
+//         ->whereBetween('le.date_validation', [$dateDebut, $dateFin])
+//         ->select(
+//             DB::raw('SUM(le."Debit" - le."Credit") as solde')
+//         )
+//         ->first();
 
-    return $resultat ? $resultat->solde : 0;
-}
+//     return $resultat ? $resultat->solde : 0;
+// }
 /**
  * Calcule le Besoin en Fonds de Roulement (BFR)
  * Formule : (Stocks + Créances clients) - Dettes fournisseurs

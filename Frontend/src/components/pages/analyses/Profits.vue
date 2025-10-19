@@ -9,18 +9,60 @@ import Texte from "@/components/atoms/Texte.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 import searchbar from "@/components/atoms/searchbar.vue";
 import FilterInput from "@/components/atoms/Filter-input.vue";
+import FilterSelect from "@/components/atoms/Filter-select.vue";
 
 const {
-  centresList, filters, centres, affectations, sousComptesVentiles, verificationVentilations,
-  fetchCentresList, fetchCentres, fetchAffectations, fetchSousComptesVentiles, fetchVerificationVentilations,
-  formatMontant, formatPourcentage, statsGlobales,
-  // 🔥 NOUVEAUX FILTRES
-  centresFiltres,
-  affectationsFiltrees,
-  resetFilters
+    exercice,
+    exercicesList,
+    filters,
+    centresList,
+    centres,
+    affectations,
+    sousComptesVentiles,
+    verificationVentilations,
+    selectedCentre,
+    loading,
+
+    // Computed
+    statsGlobales,
+    infoExercice,
+    centresFiltres,
+    affectationsFiltrees,
+    exercicesOptions,
+
+    // API
+    fetchCentresList,
+    fetchCentres,
+    fetchAffectations,
+    fetchSousComptesVentiles,
+    fetchVerificationVentilations,
+
+    // 🔥 NOUVELLES FONCTIONS
+    initializeData,
+    changeExercice,
+    resetFilters,
+    fetchExercicesList,
+    formatDateForInput,
+    formatDateForAPI,
+
+    // Utils
+    formatMontant,
+    formatPourcentage,
+
 } = useCout(2);
 
-const selectedCentre = ref('');
+// Gestion du changement d'exercice
+const handleExerciceChange = async (event) => {
+  const idExercice = event.target.value;
+  await changeExercice(idExercice);
+};
+
+// Rafraîchissement des données
+const refreshData = async () => {
+  await fetchCentres();
+};
+
+// const selectedCentre = ref('');
 const activeTab = ref('centres');
 const showGlobalView = ref(true);
 
@@ -95,7 +137,7 @@ const loadAllData = async () => {
 };
 
 onMounted(async () => {
-  await loadAllData();
+  await initializeData();
 });
 </script>
 <template>
@@ -132,6 +174,21 @@ onMounted(async () => {
             {{ centresFiltres.length }} centre(s) trouvé(s)
           </div> -->
         </div>
+        <FilterSelect 
+        v-if="showGlobalView"
+          v-model="filters.idExercice"
+          @change="handleExerciceChange"
+        >
+          <option value="">Exercice ouvert (actuel)</option>
+          <option 
+            v-for="exo in exercicesOptions" 
+            :key="exo.value" 
+            :value="exo.value"
+            :selected="exo.value === filters.idExercice"
+          >
+            {{ exo.label }}
+          </option>
+        </FilterSelect>
 
         <!-- Filtre pour les affectations (vue détaillée) -->
         <div v-if="!showGlobalView" class="filtre-affectation mb-4">
@@ -280,30 +337,30 @@ onMounted(async () => {
 <style lang="scss" scoped>
 .content {
   @include position-contenus(flex, flex-start, flex-start);
-  overflow-y: auto;
+  // overflow-y: auto;
   width: 100%;
-  max-height: 60vh;
+  // max-height: 60vh;
   border-radius: $radius-pm;
   align-self: stretch;
 }
 
-.content::-webkit-scrollbar {
-  width: 10px;
-}
+// .content::-webkit-scrollbar {
+//   width: 10px;
+// }
 
-.content::-webkit-scrollbar-track {
-  background: $light;
-  border-radius: 10px;
-}
+// .content::-webkit-scrollbar-track {
+//   background: $light;
+//   border-radius: 10px;
+// }
 
-.content::-webkit-scrollbar-thumb {
-  background: $gris;
-  border-radius: 10px;
-}
+// .content::-webkit-scrollbar-thumb {
+//   background: $gris;
+//   border-radius: 10px;
+// }
 
-.content::-webkit-scrollbar-thumb:hover {
-  background: $light;
-}
+// .content::-webkit-scrollbar-thumb:hover {
+//   background: $light;
+// }
 
 .graphic {
   @include position-contenus(flex, flex-start, flex-start);
