@@ -6,7 +6,7 @@
       <div class="card card-form">
         <div class="p-6">
           <!-- Titre -->
-          <div class="card-header">
+          <div class="card-header" style="font-family: 'Stara', sans-serif;">
             <h1 class="text-3xl mb-4">
               <i class="bi bi-file-earmark-bar-graph me-2"></i> Compte de Résultat par Nature
             </h1>
@@ -49,7 +49,7 @@
           </div>
           <br>
           <!-- Tableau -->
-          <div class="table-container mt-6">
+          <div class="table-container mt-6" style="font-family: 'Stara', sans-serif; ">
             <table v-if="loading" class="table table-bordered table-striped w-full">
               <tbody>
                 <tr>
@@ -204,7 +204,7 @@ const fetchResultats = async () => {
 
     listeComplete.value = resN.map((ligneN, idx) => ({
       label: ligneN.label,
-      note: ligneN.note || "",
+      note: "",
       montantN: ligneN.montant,
       montantN1: resN1[idx] ? resN1[idx].montant : 0,
       isTotal: isLigneTotal(ligneN.label),
@@ -324,7 +324,8 @@ const exportToExcel = () => {
 .dashboard-container { 
   display: flex; 
   min-height: 100vh; 
-  flex-direction: column; 
+  flex-direction: column;
+  font-family: 'Stara', sans-serif; 
 }
 
 .main-content { 
@@ -333,6 +334,7 @@ const exportToExcel = () => {
   flex: 1; 
   background: #f8fafb; 
   min-height: calc(100vh - 80px);
+  font-family: 'Stara', sans-serif; 
 }
 
 .info-container, .export-container { 
@@ -340,12 +342,14 @@ const exportToExcel = () => {
   padding: 1.5rem; 
   border-radius: 0.75rem; 
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  font-family: 'Stara', sans-serif; 
 }
 
 .info-grid { 
   display: grid; 
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
   gap: 1rem;
+  font-family: 'Stara', sans-serif; 
 }
 
 .info-item { 
@@ -358,6 +362,7 @@ const exportToExcel = () => {
   font-size: 0.875rem; 
   color: #6b7280; 
   font-weight: 500;
+  font-family: 'Stara', sans-serif; 
 }
 
 .info-value { 
