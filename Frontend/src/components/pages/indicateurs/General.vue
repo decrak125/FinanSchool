@@ -126,7 +126,7 @@ const getTrendIcon = (comparison) => {
           <div class="hauteur">
             
             <Card 
-              :texte="'Résultat net'"
+              :texte="'Bénéfices/Pertes'"
               :chiffre="parseFloat(resultatNet?.resultat_net?.valeur)" 
               :format="'money'" 
               :icon="'bi bi-cash-stack'" 
@@ -209,7 +209,7 @@ const getTrendIcon = (comparison) => {
               <tr>
                 <td class="col">
                   <i class="bi bi-arrow-left-right trend-icon orange"></i>
-                  Résultat net
+                  Bénéfices/Pertes
                 </td>
                 <td class="col">
                   {{ formatMoney(resultatNet?.resultat_net?.valeur) }}

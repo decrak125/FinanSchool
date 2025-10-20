@@ -109,7 +109,8 @@ const getTrendIcon = (comparison) => {
             <Card 
               :texte="'Autonomie financière'"
               :chiffre="parseFloat(AutonomieFinanciere?.autonomie_financiere?.valeur)" 
-              :format="'money'" 
+              :format="'percentage'"
+              :negative="true" 
               :icon="'bi bi-shield-check'" 
               :icon-color="'green'" 
             />
@@ -168,14 +169,14 @@ const getTrendIcon = (comparison) => {
                   Autonomie financière
                 </td>
                 <td class="col">
-                  {{ formatMoney(AutonomieFinanciere?.autonomie_financiere?.valeur) }}
+                  {{ formatPercentage(AutonomieFinanciere?.autonomie_financiere?.valeur) }}
                 </td>
                 <td class="col">
-                  {{ formatMoney(previousYearData.AutonomieFinanciere?.autonomie_financiere?.valeur) }}
+                  {{ formatPercentage(previousYearData.AutonomieFinanciere?.autonomie_financiere?.valeur) }}
                 </td>
                 <td :class="['evolution', getTrendClass(comparisons.Autonomie)]">
                   <span class="trend-icon">{{ getTrendIcon(comparisons.Autonomie) }}</span>
-                  {{ comparisons.Autonomie?.hasData ? formatMoney(comparisons.Autonomie.evolution) : 'N/A' }}
+                  {{ comparisons.Autonomie?.hasData ? formatPercentage(comparisons.Autonomie.evolution) : 'N/A' }}
                 </td>
                 <td :class="['percentage', getTrendClass(comparisons.Autonomie)]">
                   {{ comparisons.Autonomie?.hasData ? `${comparisons.Autonomie.percentage}%` : 'N/A' }}

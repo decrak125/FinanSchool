@@ -14,7 +14,9 @@ compte;centre;taux;description;code_type
 758;Administration;100;Autres produits courants;PROFIT
 633;Restauration;100;Cantine scolaire;COUT
 635;Transport;100;Transport scolaire;COUT
+636;Pédagogie;100;Evenements;COUT
 644;Transport;100;Amortissements véhicules;COUT
+645;Finances;100;Creances douteuses;COUT
 605;Infrastructure;100;Achats énergie;COUT
 606;Infrastructure;100;Produits entretien;COUT
 611;Infrastructure;100;Loyers et charges;COUT

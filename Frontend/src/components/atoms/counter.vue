@@ -129,7 +129,7 @@ const props = defineProps({
   },
   duration: {
     type: Number,
-    default: 2000
+    default: 200
   },
   format: {
     type: String,
@@ -171,8 +171,8 @@ const formattedNumber = computed(() => {
   
   switch (props.format) {
     case 'percentage':
-      // Pour les pourcentages, on limite entre 0 et 100
-      const percentageValue = Math.min(100, Math.max(0, num));
+      // Pour les pourcentages, on limite entre 0 et 1000
+      const percentageValue = Math.min(1000, Math.max(0, num));
       if (percentageValue % 1 === 0) {
         return percentageValue.toFixed(0);
       }
