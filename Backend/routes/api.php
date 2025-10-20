@@ -131,6 +131,8 @@ Route::middleware('api')->group(function () {
 Route::prefix('exercices')->group(function () {
     Route::get('/', [ExerciceComptableController::class, 'index']);
     Route::get('/ouvert', [ExerciceComptableController::class, 'getExerciceOuvert']);
+    Route::get('/courant', [ExerciceComptableController::class, 'getExerciceCourant']);
+    Route::get('/verifier/courant', [ExerciceComptableController::class, 'verifierExerciceCourant']);
     Route::get('/{id}', [ExerciceComptableController::class, 'show']);
     Route::get('/{id}/dates', [ExerciceComptableController::class, 'getDates']);
     Route::post('/{id}/ouvrir', [ExerciceComptableController::class, 'ouvrir']);

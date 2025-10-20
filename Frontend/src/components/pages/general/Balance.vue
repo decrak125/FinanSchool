@@ -257,7 +257,7 @@ const fetchBalanceGenerale = async () => {
 };
 const fetchExercices = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:8000/api/exercices');
+    const res = await axios.get('http://127.0.0.1:8000/api/exercices/courant');
     exercices.value = res.data;
   } catch (e) { exercices.value = []; }
 };

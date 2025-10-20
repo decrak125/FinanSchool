@@ -94,6 +94,7 @@
 
 <script>
 import { getUser } from "../../services/Auth";
+
 export default {
   name: 'AppHeader',
   props: {
@@ -126,7 +127,8 @@ export default {
     };
   },
 
- 
+
+
   computed: {
     unreadCount() {
       return this.notifications.filter(n => !n.read).length;
@@ -152,8 +154,8 @@ export default {
       this.notifications.forEach(n => n.read = true);
     },
     handleLogout() {
-      this.$emit('logout');
-      this.showProfile = false;
+      localStorage.removeItem("token");
+      router.push("/");
     }
   }
 };
