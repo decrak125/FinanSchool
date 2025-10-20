@@ -97,4 +97,82 @@ class CompteResultatNatureController extends Controller
 
         return response()->json($structure);
     }
+
+     public static function calculerCompteResultat($dateDebut, $dateFin)
+    {
+        // Helper pour chaque poste simple
+        $get = function ($code) use ($dateDebut, $dateFin) {
+            $resultat = \App\Http\Controllers\Calcul\UtilesController::calculerSommeCategorie($code, $dateDebut, $dateFin);
+            return $resultat && $resultat->montant_total ? floatval($resultat->montant_total) : 0;
+        };
+
+        // Les montants de chaque poste
+        $ca           = $get('CA');
+        $prodStock    = $get('PRODSTOCK');
+        $prodImmo     = $get('PRODIMMO');
+        $achatConsom  = $get('ACHATCONSOM');
+        $servExt      = $get('SERVEXT');
+        $chPers       = $get('CHPERS');
+        $impTax       = $get('IMPTAX');
+        $autProdOp    = $get('AUTPRODOP');
+        $autChOp      = $get('AUTCHOP');
+        $amortProv    = $get('AMORTPROV');
+        $repriseProv  = $get('REPRISEPROV');
+        $prodFin      = $get('PRODFIN');
+        $chargeFin    = $get('CHARGEFIN');
+        $impot        = $get('IMPOT');
+        $impotDiff    = $get('IMPOTDIFF');
+        $prodExcept   = $get('PRODEXCEPT');
+        $chargExcept  = $get('CHAREXCEPT');
+
+        // Formules agrégés
+        $prodExercice         = $ca + $prodStock + $prodImmo;
+        $consoExercice        = $achatConsom + $servExt;
+        $valAjoutee           = $prodExercice - $consoExercice;
+        $excBrutExploitation  = $valAjoutee - $chPers - $impTax;
+        $resOp                = $excBrutExploitation + $autProdOp - $autChOp - $amortProv + $repriseProv;
+        $resFinancier         = $prodFin - $chargeFin;
+        $resAvantImpots       = $resOp + $resFinancier;
+        $totalProduits        = $ca + $prodStock + $prodImmo + $autProdOp + $repriseProv + $prodFin + $prodExcept;
+        $totalCharges         = $achatConsom + $servExt + $chPers + $impTax + $autChOp + $amortProv + $chargeFin + $impot + $impotDiff + $chargExcept;
+        $resNetActivOrdin     = $totalProduits - $totalCharges;
+        $resExtraordinaire    = $prodExcept - $chargExcept;
+        $resNetExercice       = $resNetActivOrdin + $resExtraordinaire;
+
+        return [
+            'date_debut' => $dateDebut,
+            'date_fin' => $dateFin,
+            'structure' => [
+                ['label'=>'Chiffre d\'affaires', 'montant'=>$ca],
+                ['label'=>'Production stockée', 'montant'=>$prodStock],
+                ['label'=>'Production immobilisée', 'montant'=>$prodImmo],
+                ['label'=>'I – Production de l\'exercice', 'montant'=>$prodExercice],
+                ['label'=>'Achats consommés', 'montant'=>$achatConsom],
+                ['label'=>'Services extérieurs et autres consommations', 'montant'=>$servExt],
+                ['label'=>'II – Consommation de l\'exercice', 'montant'=>$consoExercice],
+                ['label'=>'III – Valeur ajoutée d\'exploitation (I – II)', 'montant'=>$valAjoutee],
+                ['label'=>'Charges de personnel', 'montant'=>$chPers],
+                ['label'=>'Impôts, taxes et versements assimilés', 'montant'=>$impTax],
+                ['label'=>'IV – Excédent brut d\'exploitation', 'montant'=>$excBrutExploitation],
+                ['label'=>'Autres produits opérationnels', 'montant'=>$autProdOp],
+                ['label'=>'Autres charges opérationnelles', 'montant'=>$autChOp],
+                ['label'=>'Dotations aux amortissements, provisions et pertes de valeur', 'montant'=>$amortProv],
+                ['label'=>'Reprises sur provisions et pertes de valeur', 'montant'=>$repriseProv],
+                ['label'=>'V – Résultat opérationnel', 'montant'=>$resOp],
+                ['label'=>'Produits financiers', 'montant'=>$prodFin],
+                ['label'=>'Charges financières', 'montant'=>$chargeFin],
+                ['label'=>'VI – Résultat financier', 'montant'=>$resFinancier],
+                ['label'=>'VII – Résultat avant impôts (V + VI)', 'montant'=>$resAvantImpots],
+                ['label'=>'Impôts exigibles sur résultats', 'montant'=>$impot],
+                ['label'=>'Impôts différés', 'montant'=>$impotDiff],
+                ['label'=>'Total des produits des activités ordinaires', 'montant'=>$totalProduits],
+                ['label'=>'Total des charges des activités ordinaires', 'montant'=>$totalCharges],
+                ['label'=>'VIII – Résultat net des activités ordinaires', 'montant'=>$resNetActivOrdin],
+                ['label'=>'Éléments extraordinaires produits', 'montant'=>$prodExcept],
+                ['label'=>'Éléments extraordinaires charges', 'montant'=>$chargExcept],
+                ['label'=>'IX – Résultat extraordinaire', 'montant'=>$resExtraordinaire],
+                ['label'=>'X – Résultat net de l\'exercice', 'montant'=>$resNetExercice]
+            ]
+        ];
+    }
 }

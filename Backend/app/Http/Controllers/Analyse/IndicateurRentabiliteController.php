@@ -6,9 +6,12 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\calcul\UtilesController;
+use App\Http\Controllers\general\CompteResultatNatureController;
 
 class IndicateurRentabiliteController extends Controller
 {
+
+
     /**
      * Calcule la Marge Brute
      * Formule : (Chiffre d’affaires – Coût des ventes) / Chiffre d’affaires × 100
@@ -230,6 +233,7 @@ class IndicateurRentabiliteController extends Controller
 
     public function calculMargeNette(Request $request) // MBOLA YST
     {
+
         $request->validate([
             'date_debut' => 'required|date',
             'date_fin' => 'required|date|after_or_equal:date_debut'
@@ -237,9 +241,10 @@ class IndicateurRentabiliteController extends Controller
 
         $dateDebut = $request->date_debut;
         $dateFin = $request->date_fin;
+        $resultatNet = CompteResultatNatureController::calculerCompteResultat($dateDebut, $dateFin);
 
         // RÉSULTAT NET (après toutes les charges et produits)
-        $resultatNet = 0; // MBOLA MIANDRY AN I CEDI
+        $resultatNet = $resultatNet['structure'][28]['montant']; // MBOLA MIANDRY AN I CEDI
 
         // CHIFFRE D'AFFAIRES (Comptes 700-709)
         $chiffreAffaires = UtilesController::calculerTotalCategorieGroupe(['CA'], $dateDebut, $dateFin);
@@ -297,9 +302,9 @@ public function calculROE(Request $request) // MBOLA YST
 
     $dateDebut = $request->date_debut;
     $dateFin = $request->date_fin;
-
+    $resultatNet = CompteResultatNatureController::calculerCompteResultat($dateDebut, $dateFin);
     // RÉSULTAT NET
-    $resultatNet = 0;
+    $resultatNet = $resultatNet['structure'][28]['montant'];
 
     // CAPITAUX PROPRES (Comptes 100-149)
     $capitauxPropres = UtilesController::calculerTotalCategorieGroupe([
@@ -362,9 +367,9 @@ public function calculROA(Request $request) // MBOLA YST
 
     $dateDebut = $request->date_debut;
     $dateFin = $request->date_fin;
-
+    $resultatNet = CompteResultatNatureController::calculerCompteResultat($dateDebut, $dateFin);
     // RÉSULTAT NET
-    $resultatNet = 0;
+    $resultatNet = $resultatNet['structure'][28]['montant'];
 
     // TOTAL ACTIF (Somme de tous les actifs)
     $totalActif = UtilesController::calculerTotalCategorieGroupe([

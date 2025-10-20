@@ -1,0 +1,38 @@
+Date_ecriture,Sous_compte,Libelle,Debit,Credit,Reference
+2023-07-01,512001,Perception frais de scolarité rentrée,0,15000000,FACT-20230701
+2023-07-01,706001,Perception frais de scolarité rentrée,15000000,0,FACT-20230701
+2023-07-05,603001,Achat fournitures bureau,850000,0,FACT-FOUR-001
+2023-07-05,512001,Achat fournitures bureau,0,850000,FACT-FOUR-001
+2023-07-10,621001,Paiement salaires enseignants juillet,8000000,0,SAL-JUL23
+2023-07-10,622001,Paiement salaires administratifs juillet,3500000,0,SAL-JUL23
+2023-07-10,512001,Paiement salaires juillet,0,11500000,SAL-JUL23
+2023-08-01,611001,Paiement loyer bâtiments août,2500000,0,LOY-AOU23
+2023-08-01,512001,Paiement loyer bâtiments août,0,2500000,LOY-AOU23
+2023-08-05,605001,Facture électricité août,450000,0,FACT-EDL-AOU
+2023-08-05,512001,Facture électricité août,0,450000,FACT-EDL-AOU
+2023-08-10,621001,Paiement salaires enseignants août,8000000,0,SAL-AOU23
+2023-08-10,512001,Paiement salaires août,0,8000000,SAL-AOU23
+2023-09-15,604002,Achat tableaux pédagogiques,1200000,0,FACT-MAT-001
+2023-09-15,512001,Achat tableaux pédagogiques,0,1200000,FACT-MAT-001
+2023-09-20,633001,Achat riz cantine septembre,1800000,0,FACT-CANT-01
+2023-09-20,512001,Achat riz cantine septembre,0,1800000,FACT-CANT-01
+2023-10-01,512001,Perception frais trimestriels octobre,0,12000000,FACT-20231001
+2023-10-01,706001,Perception frais trimestriels octobre,12000000,0,FACT-20231001
+2023-11-10,612001,Réparation bâtiments,750000,0,FACT-REP-01
+2023-11-10,512001,Réparation bâtiments,0,750000,FACT-REP-01
+2023-12-15,636001,Organisation fête de fin d'année,500000,0,FACT-FETE-23
+2023-12-15,512001,Organisation fête de fin d'année,0,500000,FACT-FETE-23
+2024-01-05,512001,Perception frais 2ème semestre,0,13000000,FACT-20240105
+2024-01-05,706001,Perception frais 2ème semestre,13000000,0,FACT-20240105
+2024-02-01,602001,Achat cahiers et papiers,600000,0,FACT-FOUR-02
+2024-02-01,512001,Achat cahiers et papiers,0,600000,FACT-FOUR-02
+2024-03-10,512001,Réception subvention État,0,5000000,SUB-ETAT-24
+2024-03-10,741001,Réception subvention État,5000000,0,SUB-ETAT-24
+2024-04-30,641001,Amortissement tables et chaises,800000,0,AMORT-2024
+2024-04-30,281001,Amortissement tables et chaises,0,800000,AMORT-2024
+2024-04-30,642001,Amortissement ordinateurs,1200000,0,AMORT-2024
+2024-04-30,280001,Amortissement ordinateurs,0,1200000,AMORT-2024
+2024-05-31,645001,Provision créances douteuses,1500000,0,PROV-2024
+2024-05-31,491001,Provision créances douteuses,0,1500000,PROV-2024
+2024-06-30,120001,Bénéfice exercice 2023-2024,0,18600000,CLOT-2024
+2024-06-30,129001,Report à nouveau bénéfice,18600000,0,CLOT-2024
