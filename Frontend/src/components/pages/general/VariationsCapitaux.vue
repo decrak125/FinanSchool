@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-container w-full">
-    <Header />
+    <Header v-if="user" :user="user" />
     <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
     <div class="main-content p-6">
       <div class="card card-form">
@@ -119,8 +119,10 @@ import AppFooter from "../../molecules/Footer.vue";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { getUser } from "../../../services/Auth";
 
 const router = useRouter();
+const user = ref(null);
 const goBack = () => { router.push("/journal"); };
 const handleNavigation = item => { router.push(item.route); };
 
@@ -133,10 +135,41 @@ const exerciceInfo = ref({
   statut: ""
 });
 
+const token = localStorage.getItem("token"); // Récupérer le token
+
+if (!token) {
+  // Redirection vers login si pas de token
+  window.location.href = "/";
+} else {
+  // Configurer Axios pour inclure le token dans toutes les requêtes
+  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+}
+
 onMounted(async () => {
-  await loadExerciceOuvert();
-  await fetchVariationsCapitaux();
+  console.log("Token récupéré :", token); // Vérifie si le token existe
+  
+  if (!token) {
+    console.log("Pas de token → Redirection vers /");
+    window.location.href = "/";
+  } else {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    try {
+      console.log("Appel getUser en cours...");
+      const res = await getUser(token);
+      user.value = res.data;
+      console.log("User récupéré :", user.value);
+    } catch (err) {
+      console.error("Erreur lors de getUser :", err);
+      localStorage.removeItem("token");
+      window.location.href = "/";
+      return; // Important : arrête l'exécution
+    }
+    await loadExerciceOuvert();
+    await fetchVariationsCapitaux();
+  }
 });
+
+
 
 const loadExerciceOuvert = async () => {
   try {

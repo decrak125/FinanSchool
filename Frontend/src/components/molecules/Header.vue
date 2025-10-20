@@ -60,7 +60,7 @@
             <span class="avatar-initials">{{ getInitials(user?.name || 'U') }}</span>
           </div>
           <div class="profile-info" v-if="user">
-            <span class="profile-name">{{ user.name }}</span>
+            <span class="profile-name" v-if="user && user.name">{{ user.name }}</span>
           </div>
           <i class="bi bi-chevron-down"></i>
         </div>
@@ -93,14 +93,12 @@
 </template>
 
 <script>
-import { getUser } from "../../services/Auth";
-
 export default {
   name: 'AppHeader',
   props: {
     user: {
       type: Object,
-      default: () => ({ name: 'Utilisateur' })
+      default: () => ({ name: 'Utilisateur', email: 'email@example.com' })
     }
   },
   data() {
@@ -126,9 +124,6 @@ export default {
       ]
     };
   },
-
-
-
   computed: {
     unreadCount() {
       return this.notifications.filter(n => !n.read).length;
@@ -136,7 +131,9 @@ export default {
   },
   methods: {
     getInitials(name) {
-      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      return name
+        ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+        : 'U';
     },
     getNotificationIcon(type) {
       const icons = {
@@ -155,11 +152,13 @@ export default {
     },
     handleLogout() {
       localStorage.removeItem("token");
-      router.push("/");
+      this.$router.push("/"); // Redirection vers la page d'accueil ou login
     }
   }
 };
 </script>
+
+
 
 <style scoped>
 .app-header {

@@ -9,9 +9,11 @@ import * as XLSX from 'xlsx'
 import Sidebar from '../../molecules/Sidebar.vue'
 import Header from '../../molecules/Header.vue'
 import AppFooter from '../../molecules/Footer.vue'
+import { getUser } from "../../../services/Auth";
 
 const router = useRouter()
 const route = useRoute()
+const user = ref(null);
 
 const handleNavigation = (item) => {
   router.push(item.route)
@@ -332,9 +334,28 @@ const getNumberClass = (value) => {
   return num < 0 ? 'text-red-600' : ''
 }
 
-onMounted(() => {
-  loadGrandLivres()
-})
+onMounted(async () => {
+  console.log("Token récupéré :", token); // Vérifie si le token existe
+  
+  if (!token) {
+    console.log("Pas de token → Redirection vers /");
+    window.location.href = "/";
+  } else {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    try {
+      console.log("Appel getUser en cours...");
+      const res = await getUser(token);
+      user.value = res.data;
+      console.log("User récupéré :", user.value);
+    } catch (err) {
+      console.error("Erreur lors de getUser :", err);
+      localStorage.removeItem("token");
+      window.location.href = "/";
+      return; // Important : arrête l'exécution
+    }
+    loadGrandLivres();
+  }
+});
 
 watch(() => route.params.codeCompte, () => {
   currentPage.value = 1
@@ -344,7 +365,7 @@ watch(() => route.params.codeCompte, () => {
 
 <template>
   <div class="dashboard-container">
-    <Header />
+    <Header v-if="user" :user="user" />
     <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
     <div class="main-content p-4">
       <div class="card card-form">

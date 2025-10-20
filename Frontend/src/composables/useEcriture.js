@@ -1,9 +1,11 @@
 import { ref, onMounted, nextTick, computed } from "vue";
 import axios from "axios";
 import { useRouter } from 'vue-router';
+import { getUser } from "../services/Auth";
 
 export function useEcriture() {
   const router = useRouter();
+  const user = ref(null);
 
   // État de l'application
   const mouvements = ref([]);
@@ -519,22 +521,46 @@ const updateLigne = async (mouvementId, ligneIndex) => {
     mouvementForm.value.Date_mouvement = today;
   });
 
-  onMounted(() => {
-    const handleKeydown = (event) => {
-      if (event.ctrlKey && event.key === 'n') {
-        event.preventDefault();
-        document.querySelector('input[type="date"]')?.focus();
-      }
-      if (event.key === 'Escape') {
-        errorMessage.value = '';
-        successMessage.value = '';
-      }
-    };
-    document.addEventListener('keydown', handleKeydown);
-    return () => {
-      document.removeEventListener('keydown', handleKeydown);
-    };
-  });
+onMounted(async () => {
+  // ========== 1. AUTHENTIFICATION (EN PREMIER) ==========
+  console.log("Token récupéré :", token);
+  
+  if (!token) {
+    console.log("Pas de token → Redirection vers /");
+    window.location.href = "/";
+    return; // Arrête l'exécution immédiatement
+  }
+
+  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+  try {
+    console.log("Appel getUser en cours...");
+    const res = await getUser(token);
+    user.value = res.data;
+    console.log("User récupéré :", user.value);
+  } catch (err) {
+    console.error("Erreur lors de getUser :", err);
+    localStorage.removeItem("token");
+    window.location.href = "/";
+    return; // Arrête l'exécution
+  }
+
+  // ========== 2. CHARGEMENT DES DONNÉES DE LA PAGE ==========
+  isLoading.value = true;
+  try {
+    await fetchOptions();
+    await fetchMouvements();
+  } catch (error) {
+    handleError(error, 'Erreur lors de l\'initialisation');
+  } finally {
+    isLoading.value = false;
+  }
+
+  // ========== 3. INITIALISATION DE LA DATE ==========
+  const today = new Date().toISOString().split('T')[0];
+  mouvementForm.value.Date_mouvement = today;
+});
+
 
   const handleNavigation = (item) => {
     router.push(item.route);
