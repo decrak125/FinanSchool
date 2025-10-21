@@ -124,8 +124,7 @@ onMounted(async () => {
   <div class="dashboard-container">
     <Header v-if="user" :user="user" />
     <div v-else class="loading">Chargement...</div>
-    <Sidebar :current-route="$route.path" @navigation-change="route => router.push(route)" />
-    <div class="main-content p-4">
+    <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />    <div class="main-content p-4">
       <div class="card card-form">
         <div class="card-header d-flex space-between align-items-center">
           <h1 class="card-title text-2xl" style="margin-top: 15px;">Import des Écritures Comptables</h1>

@@ -365,13 +365,28 @@
       <div class="nav-group">
         <div class="nav-group-title">Utilitaires</div>
         
-        <div 
-          class="nav-item"
-          :class="{ active: currentRoute === '/import' }"
-          @click="navigateTo({ route: '/import', name: 'Import' })"
-        >
-          <i class="bi bi-folder2-open"></i>
-          <span>Import des données</span>
+        <div class="nav-item has-children" :class="{ 
+          active: isItemActive(getNavigationItem('import')),
+          'children-open': getNavigationItem('import').isOpen 
+        }">
+          <div class="nav-main" @click="toggleSubMenu(getNavigationItem('import'))">
+            <i class="bi bi-folder2-open"></i>
+            <span>Import de données</span>
+            <i class="chevron" :class="getNavigationItem('import').isOpen ? 'bi bi-chevron-up' : 'bi bi-chevron-down'"></i>
+          </div>
+          
+          <transition name="submenu">
+            <div v-show="getNavigationItem('import').isOpen" class="submenu">
+              <div 
+                class="submenu-item"
+                :class="{ active: currentRoute === '/import' }"
+                @click="navigateTo({ route: '/import', name: 'Import' })"
+              >
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Import Ecritures</span>
+              </div>
+            </div>
+          </transition>
         </div>
       </div>
     </nav>
@@ -482,6 +497,15 @@ export default {
           children: [
             { name: 'FluxTresorerie', route: '/flux-tresorerie', icon: 'bi bi-pie-chart' },
             { name: 'VariationCapitaux', route: '/variation-capitaux', icon: 'bi bi-arrow-repeat' }
+          ],
+          isOpen: false
+        },
+        'import': {
+          name: 'Import',
+          route: '/import',
+          icon: 'bi bi-graph-up',
+          children: [
+            { name: 'Import', route: '/import', icon: 'bi bi-pie-chart' },
           ],
           isOpen: false
         },
