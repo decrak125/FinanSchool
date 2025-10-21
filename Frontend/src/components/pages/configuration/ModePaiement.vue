@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard-container">
-    <Header />
+    <Header v-if="user" :user="user" />
     <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
     
     <div class="main-content p-4">
@@ -99,6 +99,7 @@ import axios from "axios";
 import Sidebar from "../../molecules/Sidebar.vue";
 import Header from "../../molecules/Header.vue";
 import AppFooter from "../../molecules/Footer.vue";
+import { getUser } from "../../../services/Auth";
 
 const router = useRouter();
 
@@ -170,7 +171,28 @@ const resetForm = () => {
 };
 
 // Charger au montage
-onMounted(fetchModePaiements);
+onMounted(async () => {
+  console.log("Token récupéré :", token); // Vérifie si le token existe
+  
+  if (!token) {
+    console.log("Pas de token → Redirection vers /");
+    window.location.href = "/";
+  } else {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    try {
+      console.log("Appel getUser en cours...");
+      const res = await getUser(token);
+      user.value = res.data;
+      console.log("User récupéré :", user.value);
+    } catch (err) {
+      console.error("Erreur lors de getUser :", err);
+      localStorage.removeItem("token");
+      window.location.href = "/";
+      return; // Important : arrête l'exécution
+    }
+    fetchModePaiements();
+  }
+});
 </script>
 
 <style scoped>

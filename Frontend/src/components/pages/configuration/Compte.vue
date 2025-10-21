@@ -6,9 +6,11 @@ import { useRouter } from 'vue-router'
 import Sidebar from "../../molecules/Sidebar.vue";
 import Header from "../../molecules/Header.vue";
 import AppFooter from "../../molecules/Footer.vue";
+import { getUser } from "../../../services/Auth"; // Ajuste le chemin
+
 
 const router = useRouter();
-
+const user = ref(null);
 const handleNavigation = (item) => {
   router.push(item.route);
 };
@@ -41,11 +43,7 @@ const form = ref({
 
 const token = localStorage.getItem("token");
 
-if (!token) {
-  window.location.href = "/";
-} else {
-  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-}
+
 
 const loadClasses = async () => {
   try {
@@ -191,16 +189,36 @@ const deleteCompte = async (id) => {
   }
 }
 
-onMounted(() => {
-  loadClasses()
-  loadRubriques()
-  loadComptes()
-})
+onMounted(async () => {
+  console.log("Token récupéré :", token); // Vérifie si le token existe
+  
+  if (!token) {
+    console.log("Pas de token → Redirection vers /");
+    window.location.href = "/";
+  } else {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    try {
+      console.log("Appel getUser en cours...");
+      const res = await getUser(token);
+      user.value = res.data;
+      console.log("User récupéré :", user.value);
+    } catch (err) {
+      console.error("Erreur lors de getUser :", err);
+      localStorage.removeItem("token");
+      window.location.href = "/";
+      return; // Important : arrête l'exécution
+    }
+    loadClasses();
+    loadRubriques();
+    loadComptes();
+  }
+});
 </script>
 
 <template>
   <div class="dashboard-container">
-    <Header />
+    <Header v-if="user" :user="user" />
+  <div v-else class="loading">Chargement...</div>
     <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
     <div class="main-content p-4">
       <div class="card card-form">

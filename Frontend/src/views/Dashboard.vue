@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container">
     <!-- Header -->
-    <Header />
+    <Header v-if="user" :user="user" />
 
     <!-- Sidebar -->
     <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />

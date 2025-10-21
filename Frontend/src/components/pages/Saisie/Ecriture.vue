@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container w-full">
     <!-- Header -->
-    <Header />
+    <Header v-if="user" :user="user" />
 
     <!-- Sidebar -->
     <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
@@ -335,12 +335,48 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from "vue";
+import axios from "axios";
+import { useRouter } from "vue-router";
+import { getUser } from "../../../services/Auth"; // Adapte le chemin
 import Header from "../../molecules/Header.vue";
 import Sidebar from "../../molecules/Sidebar.vue";
 import AppFooter from "../../molecules/Footer.vue";
 import { useEcriture } from '@/composables/useEcriture';
 
-// Import and use the composable
+const router = useRouter();
+const user = ref(null);
+const token = localStorage.getItem("token");
+
+// ========== AUTHENTIFICATION ==========
+onMounted(async () => {
+  console.log("Token récupéré :", token);
+  
+  if (!token) {
+    console.log("Pas de token → Redirection vers /");
+    window.location.href = "/";
+    return;
+  }
+
+  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+  try {
+    console.log("Appel getUser en cours...");
+    const res = await getUser(token);
+    user.value = res.data;
+    console.log("User récupéré :", user.value);
+  } catch (err) {
+    console.error("Erreur lors de getUser :", err);
+    localStorage.removeItem("token");
+    window.location.href = "/";
+    return;
+  }
+
+  // Une fois authentifié, initialiser les données via le composable
+  // (le composable useEcriture doit avoir son propre onMounted pour charger les données)
+});
+
+// ========== UTILISATION DU COMPOSABLE ==========
 const {
   mouvements,
   journals,
@@ -381,6 +417,7 @@ const {
   formatMontant
 } = useEcriture();
 </script>
+
 
 <style scoped>
 @keyframes spin {
