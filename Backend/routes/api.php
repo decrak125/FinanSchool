@@ -29,6 +29,7 @@ use App\Http\Controllers\general\BilanActifController;
 use App\Http\Controllers\general\BilanPassifController;
 use App\Http\Controllers\general\FluxTresorerieController;
 use App\Http\Controllers\general\VariationsCapitauxController;
+use App\Http\Controllers\import\ImportEcritureController;
 
 Route::middleware('api')->group(function () {
     Route::post('/example', function (Request $request) {
@@ -146,5 +147,8 @@ Route::get('/bilan/passif', [BilanPassifController::class, 'index']);
 Route::get('/flux-tresorerie', [FluxTresorerieController::class, 'index']);
 Route::get('/variations-capitaux', [VariationsCapitauxController::class, 'index']);
 
+Route::get('/ecritures/imports/historique', [ImportEcritureController::class, 'historique']);
+Route::post('/ecritures/import', [ImportEcritureController::class, 'import']);
+Route::post('/ecritures/import/validate', [ImportEcritureController::class, 'validateImport']);
 
 });

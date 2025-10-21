@@ -31,6 +31,7 @@ import BilanActif from "@/components/pages/general/BilanActif.vue";
 import BilanPassif from "@/components/pages/general/BilanPassif.vue";
 import FluxTresorerie from "@/components/pages/general/FluxTresorerie.vue";
 import VariationsCapitaux from "@/components/pages/general/VariationsCapitaux.vue";
+import Import from "@/components/pages/import/Import.vue";
 
 const routes = [
   {
@@ -192,6 +193,11 @@ const routes = [
     path : "/variation-capitaux",
     name : "VariationCapitaux",
     component : VariationsCapitaux
+  },
+  {
+    path : "/import",
+    name : "Import",
+    component : Import
   }
 
 

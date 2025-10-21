@@ -368,7 +368,7 @@
         <div 
           class="nav-item"
           :class="{ active: currentRoute === '/import' }"
-          @click="navigateTo({ route: '/import', name: 'Import des données' })"
+          @click="navigateTo({ route: '/import', name: 'Import' })"
         >
           <i class="bi bi-folder2-open"></i>
           <span>Import des données</span>
