@@ -187,7 +187,7 @@ public function calculResultatNet(Request $request)
             'SERVEXT',      // Services extérieurs (611-619)
             'CHPERS',       // Charges de personnel (620-629)
             'AUTCHOP',      // Autres charges d'exploitation (630-639)
-            'AMORTPROV'     // Dotations aux amortissements/provisions (640-649)
+            'CHAREXPL'     // Dotations aux amortissements/provisions (643-644)
         ], $dateDebut, $dateFin);
 
         // CALCUL DE LA MARGE D'EXPLOITATION

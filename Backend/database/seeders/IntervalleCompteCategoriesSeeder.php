@@ -86,6 +86,9 @@ class IntervalleCompteCategoriesSeeder extends Seeder
             ['compte_debut' => '512', 'compte_fin' => '512', 'code_cat' => 'TRESO'],
             // Comptes de trésorerie découverts bancaires
             ['compte_debut' => '519', 'compte_fin' => '519', 'code_cat' => 'DECOUV'],
+            // Charges d'exploitation
+            ['compte_debut' => '643', 'compte_fin' => '644', 'code_cat' => 'CHAREXPL']
+            
 
         ];
 

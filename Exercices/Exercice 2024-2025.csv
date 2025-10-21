@@ -34,5 +34,5 @@ Date;Sous-compte;Libelle;Debit;Credit;Reference
 30/04/2025;280001;Amortissement ordinateurs;0;1200000;AMORT-2025
 31/05/2025;645001;Provision creances douteuses;1500000;0;PROV-2025
 31/05/2025;491001;Provision creances douteuses;0;1500000;PROV-2025
-30/06/2025;120001;Benefice exercice 2024-2025;0;18600000;CLOT-2025
-30/06/2025;129001;Report a nouveau benefice;18600000;0;CLOT-2025
+30/06/2025;120001;Benefice exercice 2024-2025;0;13350000;CLOT-2025
+30/06/2025;119001;Report a nouveau benefice;13350000;0;CLOT-2025
