@@ -481,7 +481,7 @@ const getTrendIcon = (comparison) => {
 
 .trend-stable, .trend-neutral {
   color: #6c757d;
-  background-color: rgba(108, 117, 125, 0.1);
+  // background-color: rgba(108, 117, 125, 0.1);
 }
 
 /* Responsive */

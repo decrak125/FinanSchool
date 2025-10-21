@@ -216,12 +216,12 @@ const getTrendIcon = (comparison) => {
                 <td class="col">
                   {{ formatPercentage(previousYearData.ROE?.roe?.valeur) }}
                 </td>
-                <td :class="['evolution', getTrendClass(comparisons.roe)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.roe) }}</span>
-                  {{ comparisons.roe?.hasData ? formatPercentage(comparisons.roe.evolution) : 'N/A' }}
+                <td :class="['evolution', getTrendClass(comparisons.ROE)]">
+                  <span class="trend-icon">{{ getTrendIcon(comparisons.ROE) }}</span>
+                  {{ comparisons.ROE?.hasData ? formatPercentage(comparisons.ROE.evolution) : 'N/A' }}
                 </td>
-                <td :class="['percentage', getTrendClass(comparisons.roe)]">
-                  {{ comparisons.roe?.hasData ? `${comparisons.roe.percentage}%` : 'N/A' }}
+                <td :class="['percentage', getTrendClass(comparisons.ROE)]">
+                  {{ comparisons.ROE?.hasData ? `${comparisons.ROE.percentage}%` : 'N/A' }}
                 </td>
               </tr>
               
@@ -237,12 +237,12 @@ const getTrendIcon = (comparison) => {
                 <td class="col">
                   {{ formatPercentage(previousYearData.ROA?.roa?.valeur) }}
                 </td>
-                <td :class="['evolution', getTrendClass(comparisons.roa)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.roa) }}</span>
-                  {{ comparisons.roa?.hasData ? formatPercentage(comparisons.roa.evolution) : 'N/A' }}
+                <td :class="['evolution', getTrendClass(comparisons.ROA)]">
+                  <span class="trend-icon">{{ getTrendIcon(comparisons.ROA) }}</span>
+                  {{ comparisons.ROA?.hasData ? formatPercentage(comparisons.ROA.evolution) : 'N/A' }}
                 </td>
-                <td :class="['percentage', getTrendClass(comparisons.roa)]">
-                  {{ comparisons.roa?.hasData ? `${comparisons.roa.percentage}%` : 'N/A' }}
+                <td :class="['percentage', getTrendClass(comparisons.ROA)]">
+                  {{ comparisons.ROA?.hasData ? `${comparisons.ROA.percentage}%` : 'N/A' }}
                 </td>
               </tr>
               
@@ -523,7 +523,7 @@ const getTrendIcon = (comparison) => {
 
 .trend-stable, .trend-neutral {
   color: #6c757d;
-  background-color: rgba(108, 117, 125, 0.1);
+  // background-color: rgba(108, 117, 125, 0.1);
 }
 
 /* Responsive */

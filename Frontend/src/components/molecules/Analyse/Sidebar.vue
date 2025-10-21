@@ -52,17 +52,17 @@ const menuConfig = [
       },
       {
         id: 'ratios_rentabilite',
-        texte: 'Ratios de rentabilité',
+        texte: 'Indicateurs de rentabilité',
         redirection: '/indicateur-rentabilite'
       },
       {
         id: 'ratios_liquidite',
-        texte: 'Ratios de liquidité',
+        texte: 'Indicateurs de liquidité',
         redirection: '/indicateur-liquidite'
       },
       {
         id: 'ratios_solvabilite',
-        texte: 'Ratios de solvabilité',
+        texte: 'Indicateurs de solvabilité',
         redirection: '/indicateur-solvabilite'
       }
       

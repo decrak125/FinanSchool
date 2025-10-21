@@ -190,14 +190,14 @@ const getTrendIcon = (comparison) => {
                   Capacité de remboursement
                 </td>
                 <td class="col">
-                  {{ formatMoney(CapaciteRemboursement?.capacite_remboursement?.valeur) }}
+                  {{ CapaciteRemboursement?.capacite_remboursement?.valeur }} ans
                 </td>
                 <td class="col">
-                  {{ formatMoney(previousYearData.CapaciteRemboursement?.capacite_remboursement?.valeur) }}
+                  {{ previousYearData.CapaciteRemboursement?.capacite_remboursement?.valeur }} ans
                 </td>
                 <td :class="['evolution', getTrendClass(comparisons.Remboursement)]">
                   <span class="trend-icon">{{ getTrendIcon(comparisons.Remboursement) }}</span>
-                  {{ comparisons.Remboursement?.hasData ? formatMoney(comparisons.Remboursement.evolution) : 'N/A' }}
+                  {{ comparisons.Remboursement?.hasData ? comparisons.Remboursement.evolution + 'an' : 'N/A' }}
                 </td>
                 <td :class="['percentage', getTrendClass(comparisons.Remboursement)]">
                   {{ comparisons.Remboursement?.hasData ? `${comparisons.Remboursement.percentage}%` : 'N/A' }}
@@ -482,7 +482,7 @@ const getTrendIcon = (comparison) => {
 
 .trend-stable, .trend-neutral {
   color: #6c757d;
-  background-color: rgba(108, 117, 125, 0.1);
+  // background-color: rgba(108, 117, 125, 0.1);
 }
 
 /* Responsive */

@@ -26,17 +26,30 @@ export function useIndicateurSolvabilite(filters) {
 
   // 📌 Fonction pour obtenir les dates de l'année précédente
   const getPreviousYearDates = (currentDateStart, currentDateEnd) => {
+    // Étape 1 : convertir en date "pure" (sans heures)
     const start = new Date(currentDateStart);
     const end = new Date(currentDateEnd);
-    
-    const previousStart = new Date(start.getFullYear() - 1, start.getMonth(), start.getDate());
-    const previousEnd = new Date(end.getFullYear() - 1, end.getMonth(), end.getDate());
-    
+
+    // On force l'heure à 00:00:00 pour éviter tout décalage
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    // Étape 2 : faire les calculs de l’année précédente
+    const previousStart = new Date(start);
+    previousStart.setFullYear(previousStart.getFullYear() - 1);
+
+    const previousEnd = new Date(end);
+    previousEnd.setFullYear(previousEnd.getFullYear() - 1);
+
+    // Étape 3 : convertir proprement en string locale au format ISO (YYYY-MM-DD)
+    const formatDate = (d) => d.toLocaleDateString('fr-CA'); // format sûr
+
     return {
-      dateStart: previousStart.toISOString().split('T')[0],
-      dateEnd: previousEnd.toISOString().split('T')[0]
+      dateStart: formatDate(previousStart),
+      dateEnd: formatDate(previousEnd)
     };
   };
+
 
   // 📌 Récupérer les données de l'année N-1
   const fetchPreviousYearData = async (currentDateStart, currentDateEnd) => {
@@ -116,8 +129,8 @@ export function useIndicateurSolvabilite(filters) {
   const comparisons = computed(() => {
     return {
       Endettement: getComparison(
-        RatioEndettement.value?.ratio_endettement, 
-        previousYearData.value.RatioEndettement?.ratio_endettement,
+        RatioEndettement.value?.ratio_endettement.valeur, 
+        previousYearData.value.RatioEndettement?.ratio_endettement.valeur,
         'pourcentage'
       ),
       Remboursement: getComparison(
@@ -125,8 +138,9 @@ export function useIndicateurSolvabilite(filters) {
         previousYearData.value.CapaciteRemboursement?.capacite_remboursement
       ),
       Autonomie: getComparison(
-        AutonomieFinanciere.value?.autonomie_financiere, 
-        previousYearData.value.AutonomieFinanciere?.autonomie_financiere
+        AutonomieFinanciere.value?.autonomie_financiere.valeur, 
+        previousYearData.value.AutonomieFinanciere?.autonomie_financiere.valeur,
+        'pourcentage'
       )
     };
   });

@@ -26,24 +26,37 @@ export function useIndicateurRentabilite(filters) {
   };
   
 
-  // 📌 Fonction pour obtenir les dates de l'année précédente
-  const getPreviousYearDates = (currentDateStart, currentDateEnd) => {
-    const start = new Date(currentDateStart);
-    const end = new Date(currentDateEnd);
-    
-    const previousStart = new Date(start.getFullYear() - 1, start.getMonth(), start.getDate());
-    const previousEnd = new Date(end.getFullYear() - 1, end.getMonth(), end.getDate());
-    
-    return {
-      dateStart: previousStart.toISOString().split('T')[0],
-      dateEnd: previousEnd.toISOString().split('T')[0]
-    };
+const getPreviousYearDates = (currentDateStart, currentDateEnd) => {
+  // Étape 1 : convertir en date "pure" (sans heures)
+  const start = new Date(currentDateStart);
+  const end = new Date(currentDateEnd);
+
+  // On force l'heure à 00:00:00 pour éviter tout décalage
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  // Étape 2 : faire les calculs de l’année précédente
+  const previousStart = new Date(start);
+  previousStart.setFullYear(previousStart.getFullYear() - 1);
+
+  const previousEnd = new Date(end);
+  previousEnd.setFullYear(previousEnd.getFullYear() - 1);
+
+  // Étape 3 : convertir proprement en string locale au format ISO (YYYY-MM-DD)
+  const formatDate = (d) => d.toLocaleDateString('fr-CA'); // format sûr
+
+  return {
+    dateStart: formatDate(previousStart),
+    dateEnd: formatDate(previousEnd)
   };
+};
+
 
   // 📌 Récupérer les données de l'année N-1
   const fetchPreviousYearData = async (currentDateStart, currentDateEnd) => {
     try {
       const previousDates = getPreviousYearDates(currentDateStart, currentDateEnd);
+      console.log(previousDates);
       
       const [brute, nette, roe, roa] = await Promise.all([
         axios.get(`${API_URL}/analyse/marge-brute`, {
@@ -122,24 +135,24 @@ export function useIndicateurRentabilite(filters) {
   const comparisons = computed(() => {
     return {
       brute: getComparison(
-        MargeBrute.value?.marge_brute, 
-        previousYearData.value.MargeBrute?.marge_brute,
-        'pourcentage',
+        MargeBrute.value?.marge_brute.valeur, 
+        previousYearData.value.MargeBrute?.marge_brute.valeur,
+        'pourcentage'
       ),
       nette: getComparison(
-        MargeNette.value?.marge_nette, 
-        previousYearData.value.MargeNette?.marge_nette,
-        'pourcentage',
-      ),
-      ROA: getComparison(
-        ROA.value?.roa, 
-        previousYearData.value.ROA?.roa,
-        'pourcentage',
+        MargeNette.value?.marge_nette.valeur, 
+        previousYearData.value.MargeNette?.marge_nette.valeur,
+        'pourcentage'
       ),
       ROE: getComparison(
-        ROE.value?.roe, 
-        previousYearData.value.ROE?.roe,
-        'pourcentage',
+        ROE.value?.roe.valeur, 
+        previousYearData.value.ROE?.roe.valeur,
+        'pourcentage'
+      ),
+      ROA: getComparison(
+        ROA.value?.roa.valeur, 
+        previousYearData.value.ROA?.roa.valeur,
+        'pourcentage'
       )
     };
   });

@@ -244,7 +244,7 @@ class IndicateurRentabiliteController extends Controller
         $resultatNet = CompteResultatNatureController::calculerCompteResultat($dateDebut, $dateFin);
 
         // RÉSULTAT NET (après toutes les charges et produits)
-        $resultatNet = $resultatNet['structure'][28]['montant']; // MBOLA MIANDRY AN I CEDI
+        $resultatNet = $resultatNet['structure'][29]['montant']; // MBOLA MIANDRY AN I CEDI
 
         // CHIFFRE D'AFFAIRES (Comptes 700-709)
         $chiffreAffaires = UtilesController::calculerTotalCategorieGroupe(['CA'], $dateDebut, $dateFin);
@@ -304,7 +304,7 @@ public function calculROE(Request $request) // MBOLA YST
     $dateFin = $request->date_fin;
     $resultatNet = CompteResultatNatureController::calculerCompteResultat($dateDebut, $dateFin);
     // RÉSULTAT NET
-    $resultatNet = $resultatNet['structure'][28]['montant'];
+    $resultatNet = $resultatNet['structure'][29]['montant'];
 
     // CAPITAUX PROPRES (Comptes 100-149)
     $capitauxPropres = UtilesController::calculerTotalCategorieGroupe([
@@ -369,7 +369,7 @@ public function calculROA(Request $request) // MBOLA YST
     $dateFin = $request->date_fin;
     $resultatNet = CompteResultatNatureController::calculerCompteResultat($dateDebut, $dateFin);
     // RÉSULTAT NET
-    $resultatNet = $resultatNet['structure'][28]['montant'];
+    $resultatNet = $resultatNet['structure'][29]['montant'];
 
     // TOTAL ACTIF (Somme de tous les actifs)
     $totalActif = UtilesController::calculerTotalCategorieGroupe([
