@@ -511,7 +511,7 @@ export function useAffectations() {
   return {
     affectations, centres, comptes, types, file, showVentilationForm, switchToEditMode, switchToViewMode,
     showDetails, totalTauxClass, isFormValid, hasDuplicateCentres,
-    selectedGroup,
+    selectedGroup, nombreLignesLoader, loadingTable,
     editingVentilation, cancelTableModifications, saveTableModifications, removeVentilationFromTable,
     form, isEditing, message, addVentilationToTable,
     fetchData, save, remove, resetForm, onFileChange, uploadFile,

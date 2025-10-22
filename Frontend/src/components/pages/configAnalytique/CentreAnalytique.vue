@@ -258,7 +258,7 @@ const filteredCount = computed(() => {
 }
 
 #axesTable {
-  @include table();
+   @include table(#f5f5f5);
 }
 
 .informations {

@@ -10,7 +10,7 @@ export function useIndicateurLiquidite(filters) {
   const TresorerieNette = ref(null);
   const BFR = ref(null);
   const loading = ref(false);
-
+  const loadingTable = ref(true);
   // 📌 NOUVEAU : Données de l'année N-1
   const previousYearData = ref({
     LiquiditeGenerale: null,
@@ -53,6 +53,7 @@ export function useIndicateurLiquidite(filters) {
 
   // 📌 Récupérer les données de l'année N-1
   const fetchPreviousYearData = async (currentDateStart, currentDateEnd) => {
+    loadingTable.value = true;
     try {
       const previousDates = getPreviousYearDates(currentDateStart, currentDateEnd);
       
@@ -82,6 +83,8 @@ export function useIndicateurLiquidite(filters) {
     } catch (error) {
       console.error("Erreur lors de la récupération des données N-1:", error);
       return null;
+    } finally {
+      loadingTable.value = false;
     }
   };
 
@@ -370,7 +373,7 @@ const fetchExercicesList = async () => {
     exercicesOptions,
     ratioTresorerieLiquidite,
     comparisons, // 📌 NOUVEAU : Comparaisons N vs N-1
-
+    loadingTable,
     // Fonctions
     getLiquidite,
     getTresorerie,

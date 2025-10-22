@@ -6,6 +6,9 @@ import Card from "@/components/atoms/Chart/Card.vue";
 import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import FilterSelect from "@/components/atoms/Filter-select.vue";
+import LoadingText from "@/components/atoms/Loading-text.vue";
+
+const nombreLignesLoader = 5;
 
 const filters = ref({
   dateStart: "",
@@ -14,6 +17,7 @@ const filters = ref({
 });
 
 const {
+  loadingTable,
   exercice,
   exercicesOptions,
   MargeBrute,
@@ -161,7 +165,7 @@ const getTrendIcon = (comparison) => {
                 <th class="col">Variation</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody v-if="!loadingTable">
               <!-- Marge brute -->
               <tr>
                 <td class="col">
@@ -266,6 +270,15 @@ const getTrendIcon = (comparison) => {
                   {{ comparisons.nombreEleves?.hasData ? `${comparisons.nombreEleves.percentage}%` : 'N/A' }}
                 </td>
               </tr> -->
+            </tbody>
+            <tbody v-if="loadingTable">
+              <tr v-for="n in nombreLignesLoader" :key="'loader-' + n">
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+              </tr>
             </tbody>
           </table>
         </div>

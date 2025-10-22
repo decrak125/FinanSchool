@@ -108,5 +108,6 @@
     text-align: center;
     font-size: inherit;
     font-weight: 600;
+    /* font-family: sans-serif; */
   }
   </style>

@@ -656,7 +656,7 @@ const showAllVentilations = (group) => {
                   </div>
                 </td>
               </tr>
-              <tr v-for="n in nombreLignesLoader" :key="'loader-' + n">
+              <tr v-if="loadingTable" v-for="n in nombreLignesLoader" :key="'loader-' + n">
                 <td class="col"><LoadingText :type="'line-1'"/></td>
                 <td class="col"><LoadingText :type="'line-1'"/></td>
                 <td class="col"><LoadingText :type="'line-1'"/></td>

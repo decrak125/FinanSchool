@@ -6,7 +6,9 @@ import Card from "@/components/atoms/Chart/Card.vue";
 import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import FilterSelect from "@/components/atoms/Filter-select.vue";
+import LoadingText from "@/components/atoms/Loading-text.vue";
 
+const nombreLignesLoader = ref(3);
 const filters = ref({
   dateStart: "",
   dateEnd: "",
@@ -15,6 +17,7 @@ const filters = ref({
 
 const {
   exercice,
+  loadingTable,
     RatioEndettement,
     CapaciteRemboursement,
     AutonomieFinanciere,
@@ -161,7 +164,7 @@ const getTrendIcon = (comparison) => {
                 <th class="col">Variation</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody v-if="!loadingTable">
               <!-- Autonomie financière -->
               <tr>
                 <td class="col">
@@ -225,6 +228,15 @@ const getTrendIcon = (comparison) => {
                 </td>
               </tr>
               
+            </tbody>
+            <tbody v-if="loadingTable">
+              <tr v-for="n in nombreLignesLoader" :key="'loader-' + n">
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+              </tr>
             </tbody>
           </table>
         </div>

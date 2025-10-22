@@ -122,10 +122,10 @@ const props = defineProps({
   number: {
     type: [Number, String],
     required: true,
-    validator: (value) => {
-      const num = parseFloat(value);
-      return !isNaN(num); // Permet les nombres négatifs
-    }
+    // validator: (value) => {
+    //   const num = parseFloat(value);
+    //   return !isNaN(num); // Permet les nombres négatifs
+    // }
   },
   duration: {
     type: Number,

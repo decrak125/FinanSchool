@@ -10,6 +10,7 @@ export function useIndicateurSolvabilite(filters) {
   const CapaciteRemboursement = ref(null);
   const AutonomieFinanciere = ref(null);
   const loading = ref(false);
+  const loadingTable = ref(true);
 
   // 📌 NOUVEAU : Données de l'année N-1
   const previousYearData = ref({
@@ -54,6 +55,7 @@ export function useIndicateurSolvabilite(filters) {
   // 📌 Récupérer les données de l'année N-1
   const fetchPreviousYearData = async (currentDateStart, currentDateEnd) => {
     try {
+      loadingTable.value = true;
       const previousDates = getPreviousYearDates(currentDateStart, currentDateEnd);
       
       const [Endettement, Remboursement, Autonomie] = await Promise.all([
@@ -82,6 +84,8 @@ export function useIndicateurSolvabilite(filters) {
     } catch (error) {
       console.error("Erreur lors de la récupération des données N-1:", error);
       return null;
+    } finally {
+      loadingTable.value = false;
     }
   };
 
@@ -371,7 +375,7 @@ const fetchExercicesList = async () => {
     exercicesOptions,
     ratioRemboursementEndettement,
     comparisons, // 📌 NOUVEAU : Comparaisons N vs N-1
-
+    loadingTable,
     // Fonctions
     getEndettement,
     getRemboursement,

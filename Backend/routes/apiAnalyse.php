@@ -59,6 +59,7 @@ use App\Http\Controllers\Analyse\IndicateurSolvabiliteController;
           Route::get('/cout-profit/resume-annuel', [CoutEtProfitController::class, 'getResumeAnnuelCoutProfit']);
           Route::get('/cout-profit/rentabilite-type', [CoutEtProfitController::class, 'getAnalyseRentabiliteParType']);
           Route::get('/cout-profit/evolution-mensuelle', [CoutEtProfitController::class, 'getEvolutionMensuelleCoutProfit']);
+          Route::get('/cout-profit/classementCentre', [CoutEtProfitController::class,'classementSousCompte']);
 
 
 

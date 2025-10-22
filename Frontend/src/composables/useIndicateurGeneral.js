@@ -12,6 +12,7 @@ export function useIndicateurGeneral(filters) {
   const resultatNet = ref(null);
   const margeExploitation = ref(null);
   const loading = ref(false);
+  const loadingTable = ref(false);
 
   // 📌 NOUVEAU : Données de l'année N-1
   const previousYearData = ref({
@@ -58,9 +59,9 @@ export function useIndicateurGeneral(filters) {
   // 📌 Récupérer les données de l'année N-1
   const fetchPreviousYearData = async (currentDateStart, currentDateEnd) => {
     try {
+      loadingTable.value = true;
       const previousDates = getPreviousYearDates(currentDateStart, currentDateEnd);
-      
-      const [produits, charges, eleves, resultat, marge] = await Promise.all([
+      const [produits, charges, resultat, marge] = await Promise.all([
         axios.get(`${API_URL}/analyse/total-produits`, {
           params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
         }).catch(() => ({ data: null })),
@@ -69,9 +70,9 @@ export function useIndicateurGeneral(filters) {
           params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
         }).catch(() => ({ data: null })),
         
-        axios.get(`${API_URL}/eleves/count`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
+        // axios.get(`${API_URL}/eleves/count`, {
+        //   params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
+        // }).catch(() => ({ data: null })),
         
         axios.get(`${API_URL}/analyse/resultat-net`, {
           params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
@@ -85,12 +86,12 @@ export function useIndicateurGeneral(filters) {
       previousYearData.value = {
         totalProduits: produits.data,
         totalCharges: charges.data,
-        nombreEleves: eleves.data,
+        // nombreEleves: eleves.data,
         resultatNet: resultat.data,
         margeExploitation: marge.data
       };
       console.log(previousYearData);
-      
+        loadingTable.value = false;
       return previousYearData.value;
     } catch (error) {
       console.error("Erreur lors de la récupération des données N-1:", error);
@@ -274,6 +275,7 @@ const fetchExercicesList = async () => {
           date_fin: filters.value.dateEnd,
         },
       });
+      console.log(response.data);
       totalCharges.value = response.data;
     } catch (error) {
       console.error("Erreur lors de la récupération des charges", error);
@@ -281,20 +283,20 @@ const fetchExercicesList = async () => {
     }
   };
 
-  const getNombreEleves = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/eleves/count`, {
-        params: {
-          date_debut: filters.value.dateStart,
-          date_fin: filters.value.dateEnd,
-        },
-      });
-      nombreEleves.value = response.data;
-    } catch (error) {
-      console.error("Erreur lors de la récupération du nombre d'élèves", error);
-      throw error;
-    }
-  };
+  // const getNombreEleves = async () => {
+  //   try {
+  //     const response = await axios.get(`${API_URL}/eleves/count`, {
+  //       params: {
+  //         date_debut: filters.value.dateStart,
+  //         date_fin: filters.value.dateEnd,
+  //       },
+  //     });
+  //     nombreEleves.value = response.data;
+  //   } catch (error) {
+  //     console.error("Erreur lors de la récupération du nombre d'élèves", error);
+  //     throw error;
+  //   }
+  // };
 
   const getResultatNet = async () => {
     try {
@@ -330,10 +332,11 @@ const fetchExercicesList = async () => {
   const refreshAllData = async () => {
     try {
       loading.value = true;
+      loadingTable.value = true;
       await Promise.all([
         getProduits(),
         getCharges(),
-        getNombreEleves(),
+        // getNombreEleves(),
         getResultatNet(),
         getMargeExploitation(),
         fetchPreviousYearData(formatDateForInput(filters.value.dateStart), formatDateForInput(filters.value.dateEnd))
@@ -347,6 +350,7 @@ const fetchExercicesList = async () => {
       console.error("Erreur lors du rafraîchissement des données", error);
     } finally {
       loading.value = false;
+      loadingTable.value = false;
     }
   };
 
@@ -431,11 +435,11 @@ const fetchExercicesList = async () => {
     ratioChargesProduits,
     resultatParEleve,
     comparisons, // 📌 NOUVEAU : Comparaisons N vs N-1
-
+    loadingTable,
     // Fonctions
     getProduits,
     getCharges,
-    getNombreEleves,
+    // getNombreEleves,
     getResultatNet,
     getMargeExploitation,
     refreshAllData,

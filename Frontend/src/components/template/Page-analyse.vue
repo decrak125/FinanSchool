@@ -14,7 +14,7 @@ if (!token) {
   <div class="all">
     <div class="container" v-if="token">
       <div class="sidebar">
-        <sidebar class="sidebar-desktop" />
+        <sidebar />
       </div>
       <div class="main">
         <div class="header">
@@ -99,7 +99,7 @@ if (!token) {
   @include position-contenus(block, center, center);
 }
 
-.sidebar-desktop {
+#sb {
   @media (max-width: 1024px) {
     display: none;
   }

@@ -6,15 +6,18 @@ import Card from "@/components/atoms/Chart/Card.vue";
 import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import FilterSelect from "@/components/atoms/Filter-select.vue";
+import LoadingText from "@/components/atoms/Loading-text.vue";
 
 const filters = ref({
   dateStart: "",
   dateEnd: "",
   idExercice: ""
 });
+const nombreLignesLoader = ref(4)
 
 const {
   exercice,
+  loadingTable,
   exercicesList,
   exercicesOptions,
   totalProduits,
@@ -49,7 +52,7 @@ const handleRefresh = () => {
 
 // Formater les valeurs monétaires
 const formatMoney = (value) => {
-  if (value === null || value === undefined) return 'N/A';
+  if (value === null || value === undefined) return '';
   return new Intl.NumberFormat('mg-MG', {
     style: 'currency',
     currency: 'MGA',
@@ -60,7 +63,7 @@ const formatMoney = (value) => {
 
 // Formater les pourcentages
 const formatPercentage = (value) => {
-  if (value === null || value === undefined) return 'N/A';
+  if (value === null || value === undefined) return '';
   return `${parseFloat(value).toFixed(2)}%`;
 };
 
@@ -110,14 +113,14 @@ const getTrendIcon = (comparison) => {
           <div class="hauteur">
             <Card 
               :texte="'Total les revenus'"
-              :chiffre="parseFloat(totalProduits?.total_produits?.valeur)" 
+              :chiffre="parseInt(totalProduits?.total_produits?.valeur)" 
               :format="'money'" 
               :icon="'bi bi-arrow-up-circle'" 
               :icon-color="'green'" 
             />
             <Card 
               :texte="'Total des dépenses'"
-              :chiffre="parseFloat(totalCharges?.total_charges?.valeur)" 
+              :chiffre="parseInt(totalCharges?.total_charges?.valeur)" 
               :format="'money'" 
               :icon="'bi bi-arrow-down-circle'"
               :icon-color="'red'" 
@@ -127,7 +130,7 @@ const getTrendIcon = (comparison) => {
             
             <Card 
               :texte="'Bénéfices/Pertes'"
-              :chiffre="parseFloat(resultatNet?.resultat_net?.valeur)" 
+              :chiffre="parseInt(resultatNet?.resultat_net?.valeur)" 
               :format="'money'" 
               :icon="'bi bi-cash-stack'" 
               :icon-color="'green'" 
@@ -135,7 +138,7 @@ const getTrendIcon = (comparison) => {
             />
             <Card 
               :texte="'Marge d\'exploitation'" 
-              :chiffre="parseFloat(margeExploitation?.marge_exploitation?.valeur)"
+              :chiffre="parseInt(margeExploitation?.marge_exploitation?.valeur)"
               :format="'percentage'" 
               :icon="'bi bi-percent'" 
               :icon-color="'purple'" 
@@ -162,7 +165,7 @@ const getTrendIcon = (comparison) => {
                 <th class="col">Variation</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody v-if="!loadingTable">
               <!-- Total Produits -->
               <tr>
                 <td class="col">
@@ -267,6 +270,15 @@ const getTrendIcon = (comparison) => {
                   {{ comparisons.nombreEleves?.hasData ? `${comparisons.nombreEleves.percentage}%` : 'N/A' }}
                 </td>
               </tr> -->
+            </tbody>
+            <tbody v-if="loadingTable">
+              <tr v-for="n in nombreLignesLoader" :key="'loader-' + n">
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+                <td><LoadingText :type="'line-1'" /></td>
+              </tr>
             </tbody>
           </table>
         </div>

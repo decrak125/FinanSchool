@@ -11,6 +11,8 @@ export function useIndicateurRentabilite(filters) {
   const ROE = ref(null);
   const ROA = ref(null);
   const loading = ref(false);
+  const loadingTable = ref(false);
+
 
   // 📌 NOUVEAU : Données de l'année N-1
   const previousYearData = ref({
@@ -55,6 +57,7 @@ const getPreviousYearDates = (currentDateStart, currentDateEnd) => {
   // 📌 Récupérer les données de l'année N-1
   const fetchPreviousYearData = async (currentDateStart, currentDateEnd) => {
     try {
+      loadingTable.value = true;
       const previousDates = getPreviousYearDates(currentDateStart, currentDateEnd);
       console.log(previousDates);
       
@@ -83,7 +86,7 @@ const getPreviousYearDates = (currentDateStart, currentDateEnd) => {
         ROA: roa.data,
       };
       console.log(previousYearData);
-      
+      loadingTable.value = false;
       return previousYearData.value;
     } catch (error) {
       console.error("Erreur lors de la récupération des données N-1:", error);
@@ -120,7 +123,7 @@ const getPreviousYearDates = (currentDateStart, currentDateEnd) => {
     let trend = 'stable';
     if (evolution > 0) trend = 'up';
     if (evolution < 0) trend = 'down';
-
+    
     return {
       evolution,
       percentage: Math.abs(percentage).toFixed(1),
@@ -386,7 +389,7 @@ const fetchExercicesList = async () => {
     ROA,
     loading,
     previousYearData,
-
+    loadingTable,
     // Computed
     infoExercice,
     exercicesOptions,

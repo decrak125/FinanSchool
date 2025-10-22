@@ -2,7 +2,7 @@
 import Counter from '../counter.vue';
     defineProps({
         texte: String,
-        chiffre: Number,
+        chiffre: {type:[Number, String]},
         icon: String,
         iconColor: String,
         format: String,
