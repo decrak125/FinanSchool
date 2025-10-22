@@ -91,6 +91,9 @@ const saveSousCompte = async () => {
     } else {
       await axios.post(`${API_URL}/sous-comptes`, form.value)
       alert('Sous-compte créé avec succès')
+
+      // Appel API d’assignation automatique juste après la création
+      await axios.post(`${API_URL}/assigner-toutes-automatiquement`);
     }
     showModal.value = false
     loadSousComptes()
@@ -100,6 +103,7 @@ const saveSousCompte = async () => {
     alert('Erreur enregistrement sous-compte')
   }
 }
+
 
 const deleteSousCompte = async (id) => {
   if (confirm('Voulez-vous vraiment supprimer ce sous-compte ?')) {

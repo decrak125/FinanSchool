@@ -250,6 +250,42 @@ GROUP BY c."Code_compte", c."Libelle", sc."Code_sous_compte", sc."Libelle", me."
 ORDER BY c."Code_compte", sc."Code_sous_compte";
 
 
+CREATE OR REPLACE VIEW vue_balance_generales AS
+SELECT
+    c."Code_compte" AS code_compte,
+    c."Libelle" AS libelle_compte,
+    sc."Code_sous_compte" AS code_sous_compte,
+    sc."Libelle" AS libelle_sous_compte,
+    COALESCE(SUM(le."Debit"), 0) AS total_debit,
+    COALESCE(SUM(le."Credit"), 0) AS total_credit,
+    COALESCE(SUM(le."Debit") - SUM(le."Credit"), 0) AS solde_final
+FROM "ligne_ecritures" le
+JOIN "sous_comptes" sc ON le."Id_Sous_compte" = sc."Id_Sous_compte"
+JOIN "comptes" c ON sc."Id_Compte" = c."Id_Compte"
+GROUP BY c."Code_compte", c."Libelle", sc."Code_sous_compte", sc."Libelle"
+ORDER BY c."Code_compte", sc."Code_sous_compte";
+
+CREATE OR REPLACE VIEW vue_balance_generale AS
+SELECT
+    c."Code_compte" AS code_compte,
+    c."Libelle" AS libelle_compte,
+    sc."Code_sous_compte" AS code_sous_compte,
+    sc."Libelle" AS libelle_sous_compte,
+    COALESCE(SUM(le."Debit"), 0) AS total_debit,
+    COALESCE(SUM(le."Credit"), 0) AS total_credit,
+    COALESCE(SUM(le."Debit") - SUM(le."Credit"), 0) AS solde_final,
+    me."Date_mouvement" AS date_mouvement
+FROM "ligne_ecritures" le
+JOIN "sous_comptes" sc ON le."Id_Sous_compte" = sc."Id_Sous_compte"
+JOIN "comptes" c ON sc."Id_Compte" = c."Id_Compte"
+JOIN "mouvement_ecritures" me ON le."Id_Mouvement_ecriture" = me."Id_Mouvement_ecriture"
+GROUP BY c."Code_compte", c."Libelle", sc."Code_sous_compte", sc."Libelle", me."Date_mouvement"
+ORDER BY c."Code_compte", sc."Code_sous_compte", me."Date_mouvement";
+
+
+
+
+
 -- Version avec contraintes supplémentaires
 CREATE TABLE Exercice_comptable(
    Id_Exercice_comptable SERIAL PRIMARY KEY,

@@ -158,7 +158,6 @@ const filters = ref({
   exercice_comptable: "",
 });
 
-
 // Groupement des comptes (classe ➔ sous-comptes)
 const groupedComptes = computed(() => {
   const grouped = {};
@@ -207,6 +206,7 @@ const totalDebit = computed(() => {
     (sum, acc) => sum + (acc.total_debit || 0), 0
   );
 });
+
 const totalCredit = computed(() => {
   return Object.values(groupedComptes.value).reduce(
     (sum, acc) => sum + (acc.total_credit || 0), 0
@@ -220,9 +220,11 @@ const toggleAccount = (accountCode) => {
     expandedAccounts.value.add(accountCode);
   }
 };
+
 const handleNavigation = (item) => {
   router.push(item.route);
 };
+
 const token = localStorage.getItem("token");
 if (!token) {
   window.location.href = "/";
@@ -235,10 +237,8 @@ const formatNumber = (number) => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
     useGrouping: true
-  }); // Affiche bien : 5 000,00
+  });
 };
-
-
 
 const fetchBalanceGenerale = async () => {
   try {
@@ -258,14 +258,43 @@ const fetchBalanceGenerale = async () => {
     loading.value = false;
   }
 };
+
 const fetchExercices = async () => {
   try {
-    const res = await axios.get('http://127.0.0.1:8000/api/exercices/courant');
+    const res = await axios.get('http://127.0.0.1:8000/api/exercices');
     exercices.value = res.data;
-  } catch (e) { exercices.value = []; }
+  } catch (e) { 
+    exercices.value = []; 
+  }
 };
 
-const applyFilters = () => { fetchBalanceGenerale(); };
+// NOUVELLE FONCTION : Charger l'exercice courant et initialiser les filtres
+const fetchExerciceCourant = async () => {
+  try {
+    const { data } = await axios.get('http://127.0.0.1:8000/api/exercices/courant');
+    const exercice = data.exercice || data;
+    
+    // Initialiser les filtres avec l'exercice courant
+    filters.value.date_debut = exercice.Date_debut;
+    filters.value.date_fin = exercice.Date_fin;
+    filters.value.exercice_comptable = exercice.Id_Exercice_comptable ?? exercice.id ?? "";
+    
+    // Charger la balance avec ces dates
+    await fetchBalanceGenerale();
+  } catch (err) {
+    console.error('Erreur chargement exercice courant:', err);
+    // Fallback : charger sans filtre
+    filters.value.date_debut = "";
+    filters.value.date_fin = "";
+    filters.value.exercice_comptable = "";
+    await fetchBalanceGenerale();
+  }
+};
+
+const applyFilters = () => { 
+  fetchBalanceGenerale(); 
+};
+
 const resetFilters = () => {
   filters.value = {
     date_debut: "",
@@ -276,7 +305,7 @@ const resetFilters = () => {
   fetchBalanceGenerale();
 };
 
-const societeNom = "RAITRA KIDZ"; // Ou récupéré dynamiquement, selon ton app
+const societeNom = "RAITRA KIDZ";
 
 const formatNumberSage = (number) => {
   if (isNaN(number)) return '0,00';
@@ -292,7 +321,6 @@ const exportToPDF = () => {
   }
   const doc = new jsPDF();
 
-  // -- EN-TÊTE SAGE 100 --
   doc.setFontSize(12);
   doc.setTextColor(44, 62, 80);
   doc.setFont("helvetica", "bold");
@@ -310,12 +338,10 @@ const exportToPDF = () => {
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(44, 62, 80);
-  // Deux infos en colonnes
   doc.text(`Période : ${filters.value.date_debut || "N/A"} à ${filters.value.date_fin || "N/A"}`, 14, 38);
   doc.text(`Exercice : ${filters.value.exercice_comptable || "Tous"}`, 120, 38);
   doc.text(`Classe de compte : ${filters.value.classe_compte || "Toutes"}`, 14, 44);
 
-  // -- TABLEAU
   const tableData = [];
   Object.entries(groupedComptes.value).forEach(([mainCode, mainAccount]) => {
     tableData.push([
@@ -380,7 +406,6 @@ const exportToPDF = () => {
   doc.save(`Balance_Generale_${new Date().toISOString().split("T")[0]}.pdf`);
 };
 
-
 const exportToExcel = () => {
   if (!Object.keys(groupedComptes.value).length) {
     alert("Aucune donnée à exporter");
@@ -420,10 +445,13 @@ const exportToExcel = () => {
     `balance_generale_${new Date().toISOString().split("T")[0]}.xlsx`
   );
 };
-const goBack = () => { router.push("/journal"); };
+
+const goBack = () => { 
+  router.push("/journal"); 
+};
 
 onMounted(async () => {
-  console.log("Token récupéré :", token); // Vérifie si le token existe
+  console.log("Token récupéré :", token);
   
   if (!token) {
     console.log("Pas de token → Redirection vers /");
@@ -439,14 +467,18 @@ onMounted(async () => {
       console.error("Erreur lors de getUser :", err);
       localStorage.removeItem("token");
       window.location.href = "/";
-      return; // Important : arrête l'exécution
+      return;
     }
-    fetchExercices();
-  fetchBalanceGenerale();
+    
+    // Charger la liste des exercices (pour le select)
+    await fetchExercices();
+    
+    // Charger l'exercice courant et afficher la balance par défaut
+    await fetchExerciceCourant();
   }
 });
-
 </script>
+
 
 <style scoped>
 .dashboard-container {
