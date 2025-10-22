@@ -21,6 +21,7 @@ import selectTable from "@/components/atoms/select-table.vue";
 import InputTable from "@/components/atoms/Input-table.vue";
 import TextareaTable from "@/components/atoms/Textarea-table.vue";
 import SelectTable from "@/components/atoms/select-table.vue";
+import LoadingText from "@/components/atoms/Loading-text.vue";
 
 const openForm = ref(false);
 const openImport = ref(false);
@@ -29,7 +30,7 @@ const loading = ref(true);
 const {
   affectations, centres, comptes, types, file, showVentilationForm, // ← AJOUT types
   showDetails, totalTauxClass, isFormValid, hasDuplicateCentres,
-  selectedGroup,
+  selectedGroup, loadingTable, nombreLignesLoader,
   editingVentilation, cancelTableModifications, saveTableModifications, removeVentilationFromTable,
   form, isEditing, message, addVentilationToTable,
   fetchData, save, remove, resetForm, onFileChange, uploadFile,
@@ -629,7 +630,7 @@ const showAllVentilations = (group) => {
       </div>
       <transition name="fade">
         <div class="content">
-          <table class="table" id="axesTable" v-if="!loading">
+          <table class="table" id="axesTable">
             <thead>
               <tr>
                 <th class="col">Code</th>
@@ -640,7 +641,7 @@ const showAllVentilations = (group) => {
               </tr>
             </thead>
             <tbody>
-              <tr v-for="group in donneesPagination" :key="group.Id_Sous_compte">
+              <tr v-for="group in donneesPagination" :key="group.Id_Sous_compte" v-if="donneesPagination.length > 0">
                 <td class="col">{{ group.Code_sous_compte }}</td>
                 <td class="col">{{ group.Libelle }}</td>
                 <td class="col">{{ group.ventilations.length }}</td>
@@ -655,11 +656,18 @@ const showAllVentilations = (group) => {
                   </div>
                 </td>
               </tr>
-              <tr v-if="donneesPagination.length === 0 && !loading">
+              <tr v-for="n in nombreLignesLoader" :key="'loader-' + n">
+                <td class="col"><LoadingText :type="'line-1'"/></td>
+                <td class="col"><LoadingText :type="'line-1'"/></td>
+                <td class="col"><LoadingText :type="'line-1'"/></td>
+                <td class="col"><LoadingText :type="'line-1'"/></td>
+                <td class="col"><LoadingText :type="'line-1'"/></td>
+              </tr>
+              <!-- <tr v-if="donneesPagination.length === 0 && !loading">
                 <td colspan="5" class="col text-center">
                   Aucune affectation trouvée
                 </td>
-              </tr>
+              </tr> -->
             </tbody>
           </table>
         </div>

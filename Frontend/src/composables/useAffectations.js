@@ -10,6 +10,8 @@ export function useAffectations() {
   const types = ref([]); // ← NOUVEAU : Liste des types
   const editingVentilation = ref(null);
   const showVentilationForm = ref(false);
+  const nombreLignesLoader = ref(10);
+  const loadingTable = ref(true);
   const form = ref({
     Id_Compte: null,
     ventilations: []
@@ -37,6 +39,7 @@ export function useAffectations() {
 
   // Fetch initial data
   const fetchData = async () => {
+    loadingTable.value = true;
     const [resAffect, resCentres, resComptes, resTypes] = await Promise.all([ // ← AJOUT resTypes
       axios.get(`${API_URL}/affectations`),
       axios.get(`${API_URL}/centres`),
@@ -47,6 +50,7 @@ export function useAffectations() {
     centres.value = resCentres.data;
     comptes.value = resComptes.data;
     types.value = resTypes.data; // ← NOUVEAU : Stocker les types
+    loadingTable.value = false;
   };
 
   // Computed property pour les affectations filtrées

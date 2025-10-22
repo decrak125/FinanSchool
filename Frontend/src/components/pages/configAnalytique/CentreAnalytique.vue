@@ -16,6 +16,7 @@ import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 import FilterSelect from '@/components/atoms/Filter-select.vue';
 import searchbar from '@/components/atoms/searchbar.vue';
 import Counter from "@/components/atoms/counter.vue";
+import LoadingText from '@/components/atoms/Loading-text.vue';
 
 const openForm = ref(false);
 const openImport = ref(false);
@@ -24,6 +25,8 @@ const {
   centres,
   axes,
   // types,
+  loading,
+  nombreLignesLoader,
   form,
   isEditing,
   editingId,
@@ -199,7 +202,7 @@ const filteredCount = computed(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="centre in donneesPagination" :key="centre.id_centre">
+            <tr v-for="centre in donneesPagination" :key="centre.id_centre" v-if="centres.length > 0">
               <td class="col">{{ centre.id_centre }}</td>
               <td class="col">{{ centre.nom }}</td>
               <td class="col">{{ centre.description }}</td>
@@ -213,6 +216,14 @@ const filteredCount = computed(() => {
                 
               </td>
             </tr>
+            <tr v-if="loading" v-for="n in nombreLignesLoader" :key="'loader-' + n">
+              <td class="col"><LoadingText type="line-1" /></td>
+              <td class="col"><LoadingText type="line-2" /></td>
+              <td class="col"><LoadingText type="line-4" /></td>
+              <td class="col"><LoadingText type="line-1" /></td>
+              <td class="col"><LoadingText type="line-1" /></td>
+            </tr>
+            
           </tbody>
         </table>
         </div>

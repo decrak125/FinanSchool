@@ -13,6 +13,8 @@ export function useCentres() {
   const fileInput = ref(null);
   const importMessage = ref("");
   const importSuccess = ref(false);
+  const loading = ref(true);
+  const nombreLignesLoader = ref(10);
 
   // Variables pour les filtres
   const searchTerm = ref("");
@@ -29,8 +31,11 @@ export function useCentres() {
 
   // Charger toutes les données nécessaires
   const fetchCentres = async () => {
+    loading.value = true;
     const res = await axios.get(`${API_URL}/centres`);
     centres.value = res.data;
+    loading.value = false;
+    nombreLignesLoader.value = centres.value.length || 10;
   };
 
   const fetchAxes = async () => {
@@ -45,6 +50,7 @@ export function useCentres() {
 
   // Computed property pour les centres filtrés
   const filteredCentres = computed(() => {
+    loading.value = true;
     return centres.value.filter(centre => {
       // Filtre par recherche de nom
       const matchesSearch = searchTerm.value === "" || 
@@ -57,16 +63,19 @@ export function useCentres() {
       // Filtre par type
       // const matchesType = selectedType.value === "" || 
       //   centre.id_type.toString() === selectedType.value;
-      
+      loading.value = false;
       return matchesSearch && matchesAxe;
     });
+    loading.value = false;
   });
 
   // Réinitialiser les filtres
   const resetFilters = () => {
+    loading.value = true;
     searchTerm.value = "";
     selectedAxe.value = "";
     // selectedType.value = "";
+    loading.value = false;
   };
 
   // Ajouter / Mettre à jour
@@ -154,6 +163,8 @@ export function useCentres() {
     centres,
     axes,
     // types,
+    loading,
+    nombreLignesLoader,
     form,
     isEditing,
     editingId,

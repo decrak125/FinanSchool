@@ -13,6 +13,7 @@ import Pagination from "@/components/molecules/Pagination.vue";
 import { usePagination } from "@/composables/usePagination";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 import Counter from "@/components/atoms/counter.vue";
+import LoadingText from "@/components/atoms/Loading-text.vue";
 
 
 const openForm = ref(false);
@@ -21,6 +22,8 @@ const { axes,
   form,
   isEditing,
   editingId,
+  loading,
+  nombreLignesLoader,
   file,
   importMessage,
   importSuccess,
@@ -111,6 +114,12 @@ const {
                 <BoutonIcon @click="editAxe(axe), openForm = true" icon-name="pen" :type="'edit'" />
                 <BoutonIcon @click="deleteAxe(axe.id_axe)" icon-name="trash" :type="'cancel'" />
               </td>
+            </tr>
+            <tr v-if="loading" v-for="n in nombreLignesLoader" :key="'loader-' + n">
+              <td class="col"><LoadingText :type="'line-1'" /></td>
+              <td class="col"><LoadingText :type="'line-1'" /></td>
+              <td class="col"><LoadingText :type="'line-1'" /></td>
+              <td class="col"><LoadingText :type="'line-1'" /></td>
             </tr>
           </tbody>
         </table>

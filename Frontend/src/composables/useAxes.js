@@ -6,6 +6,9 @@ export function useAxes() {
     const form = ref({ axe: "", description: "" });
     const isEditing = ref(false);
     const editingId = ref(null);
+    const loading = ref(true);
+    const nombreLignesLoader = ref(5);
+
     
     const file = ref(null);
     const importMessage = ref("");
@@ -21,16 +24,25 @@ export function useAxes() {
     
     // Charger les axes
     const fetchAxes = async () => {
+      loading.value = true;
       const res = await axios.get("http://127.0.0.1:8000/api/axes");
+      nombreLignesLoader.value = res.data.length || 10;
       axes.value = res.data;
+      loading.value = false;
     };
     
     // Ajouter / Mettre à jour
     const saveAxe = async () => {
       if (isEditing.value) {
+        loading.value = true;
         await axios.put(`http://127.0.0.1:8000/api/axes/${editingId.value}`, form.value);
+        loading.value = false;
+        nombreLignesLoader.value = axes.value.length || 10;
       } else {
+        loading.value = true;
         await axios.post("http://127.0.0.1:8000/api/axes", form.value);
+        loading.value = false;
+        nombreLignesLoader.value = axes.value.length || 10;
       }
       resetForm();
       fetchAxes();
@@ -49,16 +61,21 @@ export function useAxes() {
     // Supprimer
     const deleteAxe = async (id) => {
       if (confirm("Supprimer cet axe ?")) {
+        loading.value = true;
         await axios.delete(`http://127.0.0.1:8000/api/axes/${id}`);
+        loading.value = false;
+        nombreLignesLoader.value = axes.value.length || 10;
         fetchAxes();
       }
     };
     
     // Reset formulaire
     const resetForm = () => {
+      loading.value = true;
       form.value = { axe: "", description: "" };
       isEditing.value = false;
       editingId.value = null;
+      loading.value = false;
     };
     
     // Gestion import CSV/Excel
@@ -97,6 +114,8 @@ export function useAxes() {
         isEditing,
         editingId,
         file,
+        loading,
+        nombreLignesLoader,
         importMessage,
         importSuccess,
         fetchAxes,
