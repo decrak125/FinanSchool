@@ -30,6 +30,7 @@ use App\Http\Controllers\general\BilanPassifController;
 use App\Http\Controllers\general\FluxTresorerieController;
 use App\Http\Controllers\general\VariationsCapitauxController;
 use App\Http\Controllers\import\ImportEcritureController;
+use App\Http\Controllers\tableau\DashboardController;
 
 Route::middleware('api')->group(function () {
     Route::post('/example', function (Request $request) {
@@ -150,5 +151,12 @@ Route::get('/variations-capitaux', [VariationsCapitauxController::class, 'index'
 Route::get('/ecritures/imports/historique', [ImportEcritureController::class, 'historique']);
 Route::post('/ecritures/import', [ImportEcritureController::class, 'import']);
 Route::post('/ecritures/import/validate', [ImportEcritureController::class, 'validateImport']);
+
+
+
+Route::get('/dashboard/evolution-ca', [DashboardController::class, 'evolutionCA']);
+Route::get('/dashboard/evolution-tresorerie', [DashboardController::class, 'evolutionTresorerie']);
+Route::get('/dashboard/composition-bilan', [DashboardController::class, 'compositionBilan']);
+Route::get('/dashboard/decomposition-resultat', [DashboardController::class, 'decompositionResultat']);
 
 });

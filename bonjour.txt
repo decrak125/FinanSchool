@@ -1,2 +1,3 @@
 hello.
 composer require maatwebsite/excel
+npm install chart.js vue-chartjs
