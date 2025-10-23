@@ -225,6 +225,7 @@ public function calculResultatNet(Request $request)
                 'date_debut' => $dateDebut,
                 'date_fin' => $dateFin
             ],
+            'description' => 'Capacité de l’école à dégager une marge sur son activité.',
             'formule' => '(Produits d\'exploitation - Charges d\'exploitation) / Produits d\'exploitation × 100'
         ]);
     }

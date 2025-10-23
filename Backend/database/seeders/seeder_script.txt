@@ -6,3 +6,7 @@ php artisan db:seed --class=TypeCategoriesSeeder
 php artisan db:seed --class=FonctionEconomiquesSeeder
 php artisan db:seed --class=IntervalleCompteCategoriesSeeder
 php artisan db:seed --class=ExerciceComptableSeeder
+php artisan db:seed --class=NiveauAlerteSeeder
+php artisan db:seed --class=IndicateursAnalytiqueSeeder
+php artisan db:seed --class=InterpretationIndicateurSeeder
+
