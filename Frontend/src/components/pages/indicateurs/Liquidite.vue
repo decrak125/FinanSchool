@@ -7,6 +7,9 @@ import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import FilterSelect from "@/components/atoms/Filter-select.vue";
 import LoadingText from "@/components/atoms/Loading-text.vue";
+import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
+import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
+
 
 const nombreLignesLoader = 3;
 
@@ -15,6 +18,10 @@ const filters = ref({
   dateEnd: "",
   idExercice: ""
 });
+
+const detailsLiquiditeGenerale = ref(false)
+const detailsTresorerieNette = ref(false)
+const detailsBFR = ref(false)
 
 const {
   exercice,
@@ -82,6 +89,149 @@ const getTrendIcon = (comparison) => {
 
 <template>
   <PageAnalyse>
+    <PopUp v-if="detailsTresorerieNette">
+      <div class="details-popup">
+        <div class="popuphead">
+          <Texte :texte="TresorerieNette?.definition" :type="'dark'" />
+          <BoutonIcon @click="detailsTresorerieNette = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
+        </div>
+        <div class="indicateur-detail">
+          <table class="table" id="axesTable">
+            <thead>
+              <tr>
+                <th class="col">Indicateur</th>
+                <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="detailTitle">Banque</td>
+                <td id="detail">{{ formatMoney(TresorerieNette?.details_calcul?.comptes_tresorerie?.banque) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.TresorerieNette?.details_calcul?.comptes_tresorerie?.banque)
+                }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Découverts</td>
+                <td id="detail">{{ formatMoney(TresorerieNette?.details_calcul?.comptes_tresorerie?.decouverts) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.TresorerieNette?.details_calcul?.comptes_tresorerie?.decouverts) }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="footable">
+              <tr>
+                <td id="detailTitle">Trésorerie nette</td>
+                <td id="detail">{{ formatMoney(TresorerieNette?.tresorerie_nette?.valeur) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.TresorerieNette?.tresorerie_nette?.valeur) }}</td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Formule</td>
+                <td id="detail" colspan="2">{{ TresorerieNette?.formule }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </PopUp>
+        <PopUp v-if="detailsBFR">
+      <div class="details-popup">
+        <div class="popuphead">
+          <Texte :texte="BFR?.definition" :type="'dark'" />
+          <BoutonIcon @click="detailsBFR = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
+        </div>
+        <div class="indicateur-detail">
+          <table class="table" id="axesTable">
+            <thead>
+              <tr>
+                <th class="col">Indicateur</th>
+                <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="detailTitle">stocks</td>
+                <td id="detail">{{ formatMoney(BFR?.details_calcul?.stocks) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.BFR?.details_calcul?.stocks)
+                }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Créances clients</td>
+                <td id="detail">{{ formatMoney(BFR?.details_calcul?.creances_clients) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.BFR?.details_calcul?.creances_clients) }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Dettes fournisseurs</td>
+                <td id="detail">{{ formatMoney(BFR?.details_calcul?.dettes_fournisseurs) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.BFR?.details_calcul?.dettes_fournisseurs) }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="footable">
+              <tr>
+                <td id="detailTitle">Besoin en fonds de roulement</td>
+                <td id="detail">{{ formatMoney(BFR?.bfr?.valeur) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.BFR?.bfr?.valeur) }}</td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Formule</td>
+                <td id="detail" colspan="2">{{ BFR?.formule }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </PopUp>
+        <PopUp v-if="detailsLiquiditeGenerale">
+      <div class="details-popup">
+        <div class="popuphead">
+          <Texte :texte="LiquiditeGenerale?.definition" :type="'dark'" />
+          <BoutonIcon @click="detailsLiquiditeGenerale = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
+        </div>
+        <div class="indicateur-detail">
+          <table class="table" id="axesTable">
+            <thead>
+              <tr>
+                <th class="col">Indicateur</th>
+                <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="detailTitle">Actif circulant</td>
+                <td id="detail">{{ formatMoney(LiquiditeGenerale?.details_calcul?.actif_circulant) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.LiquiditeGenerale?.details_calcul?.actif_circulant)
+                }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Passif à court terme</td>
+                <td id="detail">{{ formatMoney(LiquiditeGenerale?.details_calcul?.passif_court_terme) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.LiquiditeGenerale?.details_calcul?.passif_court_terme) }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="footable">
+              <tr>
+                <td id="detailTitle">Liquidité générale</td>
+                <td id="detail">{{ formatPercentage(LiquiditeGenerale?.ratio_liquidite_generale?.valeur) }}</td>
+                <td id="detail">{{ formatPercentage(previousYearData.LiquiditeGenerale?.ratio_liquidite_generale?.valeur) }}</td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Formule</td>
+                <td id="detail" colspan="2">{{ LiquiditeGenerale?.formule }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </PopUp>
+
+
     <div class="main">
       <ContentHeader :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs de liquidité'" />
       
@@ -162,6 +312,7 @@ const getTrendIcon = (comparison) => {
                 <th class="col">{{ exercice?.Annee_fiscale-1 }}</th>
                 <th class="col">Évolution</th>
                 <th class="col">Variation</th>
+                <th class="col">Action</th>
               </tr>
             </thead>
             <tbody v-if="!loadingTable">
@@ -184,6 +335,10 @@ const getTrendIcon = (comparison) => {
                 <td :class="['percentage', getTrendClass(comparisons.Tresorerie)]">
                   {{ comparisons.Tresorerie?.hasData ? `${comparisons.Tresorerie.percentage}%` : 'N/A' }}
                 </td>
+                <td>
+                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                    @click="detailsTresorerieNette = !detailsTresorerieNette" />
+                </td>
               </tr>
               
               <!-- Besoins de fond de roulement -->
@@ -204,6 +359,10 @@ const getTrendIcon = (comparison) => {
                 </td>
                 <td :class="['percentage', getTrendClass(comparisons.fondRoulement)]">
                   {{ comparisons.fondRoulement?.hasData ? `${comparisons.fondRoulement.percentage}%` : 'N/A' }}
+                </td>
+                <td>
+                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                    @click="detailsBFR = !detailsBFR" />
                 </td>
               </tr>
               
@@ -226,6 +385,10 @@ const getTrendIcon = (comparison) => {
                 <td :class="['percentage', getTrendClass(comparisons.Liquidite)]">
                   {{ comparisons.Liquidite?.hasData ? `${comparisons.Liquidite.percentage}%` : 'N/A' }}
                 </td>
+                <td>
+                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                    @click="detailsLiquiditeGenerale = !detailsLiquiditeGenerale" />
+                </td>
               </tr>
               
             </tbody>
@@ -246,13 +409,39 @@ const getTrendIcon = (comparison) => {
 </template>
 
 <style lang="scss" scoped>
+.details-popup{
+  min-width: 75vh;
+}
 #axesTable {
   @include table(#f5f5f5);
-  
+  cursor: pointer;
   @media (max-width: $mobile) {
     font-size: 0.875rem;
   }
 }
+
+#footable {
+  font-family: $stara-bold;
+  // font-size: 16px;
+  background-color: $light;
+}
+
+#detail {
+  color: $gris;
+  cursor: default;
+}
+
+.popuphead {
+  @include position-contenus();
+  justify-content: space-between;
+}
+
+#detailTitle {
+  color: $gris;
+  padding-left: 24px;
+  cursor: default;
+}
+
 .cartes {
   @include position-contenus(grid, center, center);
   padding: 0;

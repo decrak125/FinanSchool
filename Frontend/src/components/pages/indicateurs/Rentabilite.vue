@@ -7,6 +7,9 @@ import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import FilterSelect from "@/components/atoms/Filter-select.vue";
 import LoadingText from "@/components/atoms/Loading-text.vue";
+import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
+import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
+
 
 const nombreLignesLoader = 5;
 
@@ -15,6 +18,11 @@ const filters = ref({
   dateEnd: "",
   idExercice: ""
 });
+
+const detailsMargebrute = ref(false)
+const detailsMargenette = ref(false)
+const detailsRoe= ref(false)
+const detailsRoa = ref(false)
 
 const {
   loadingTable,
@@ -81,6 +89,195 @@ const getTrendIcon = (comparison) => {
 
 <template>
   <PageAnalyse>
+    <!-- POP UP  -->
+    <PopUp v-if="detailsMargebrute">
+      <div class="details-popup">
+        <div class="popuphead">
+          <Texte :texte="'Mesure la rentabilité opérationnelle de base.'" :type="'dark'" />
+          <BoutonIcon @click="detailsMargebrute = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
+        </div>
+        <div class="indicateur-detail">
+          <table class="table" id="axesTable">
+            <thead>
+              <tr>
+                <th class="col">Indicateur</th>
+                <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="detailTitle">Chiffre d'affaires</td>
+                <td id="detail">{{ formatMoney(MargeBrute?.details_calcul?.chiffre_affaires) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.MargeBrute?.details_calcul?.chiffre_affaires) }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Cout des ventes</td>
+                <td id="detail">{{ formatMoney(MargeBrute?.details_calcul?.cout_ventes) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.MargeBrute?.details_calcul?.cout_ventes)
+                }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Marge absolue</td>
+                <td id="detail">{{ formatMoney(MargeBrute?.details_calcul?.marge_absolue) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.MargeBrute?.details_calcul?.marge_absolue) }}</td>
+              </tr>
+            </tbody>
+            <tfoot id="footable">
+              <tr>
+                <td id="detailTitle">Marge Brute</td>
+                <td id="detail">{{ formatPercentage(MargeBrute?.marge_brute?.valeur) }}</td>
+                <td id="detail">{{ formatPercentage(previousYearData.MargeBrute?.marge_brute?.valeur) }}</td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Formule</td>
+                <td id="detail" colspan="2">{{ MargeBrute?.formule }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </PopUp>
+    <PopUp v-if="detailsMargenette">
+      <div class="details-popup">
+        <div class="popuphead">
+          <Texte :texte="'Montre le bénéfice final par Ar de ventes.'" :type="'dark'" />
+          <BoutonIcon @click="detailsMargenette = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
+        </div>
+        <div class="indicateur-detail">
+          <table class="table" id="axesTable">
+            <thead>
+              <tr>
+                <th class="col">Indicateur</th>
+                <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="detailTitle">Resultat net</td>
+                <td id="detail">{{ formatMoney(MargeNette?.details_calcul?.resultat_net) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.MargeNette?.details_calcul?.resultat_net)
+                }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Chiffre d'affaires</td>
+                <td id="detail">{{ formatMoney(MargeNette?.details_calcul?.chiffre_affaires) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.MargeNette?.details_calcul?.chiffre_affaires) }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="footable">
+              <tr>
+                <td id="detailTitle">Marge Nette</td>
+                <td id="detail">{{ formatPercentage(MargeNette?.marge_nette?.valeur) }}</td>
+                <td id="detail">{{ formatPercentage(previousYearData.MargeNette?.marge_nette?.valeur) }}</td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Formule</td>
+                <td id="detail" colspan="2">{{ MargeNette?.formule }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </PopUp>
+    <PopUp v-if="detailsRoe">
+      <div class="details-popup">
+        <div class="popuphead">
+          <Texte :texte="ROE?.definition" :type="'dark'" />
+          <BoutonIcon @click="detailsRoe = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
+        </div>
+        <div class="indicateur-detail">
+          <table class="table" id="axesTable">
+            <thead>
+              <tr>
+                <th class="col">Indicateur</th>
+                <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="detailTitle">Resultat net</td>
+                <td id="detail">{{ formatMoney(ROE?.details_calcul?.resultat_net) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.ROE?.details_calcul?.resultat_net)
+                }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Capitaux propres</td>
+                <td id="detail">{{ formatMoney(ROE?.details_calcul?.capitaux_propres) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.ROE?.details_calcul?.capitaux_propres) }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="footable">
+              <tr>
+                <td id="detailTitle">ROE</td>
+                <td id="detail">{{ formatPercentage(ROE?.roe?.valeur) }}</td>
+                <td id="detail">{{ formatPercentage(previousYearData.ROE?.roe?.valeur) }}</td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Formule</td>
+                <td id="detail" colspan="2">{{ ROE?.formule }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </PopUp>
+    <PopUp v-if="detailsRoa">
+      <div class="details-popup">
+        <div class="popuphead">
+          <Texte :texte="ROA?.definition" :type="'dark'" />
+          <BoutonIcon @click="detailsRoa = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
+        </div>
+        <div class="indicateur-detail">
+          <table class="table" id="axesTable">
+            <thead>
+              <tr>
+                <th class="col">Indicateur</th>
+                <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="detailTitle">Resultat net</td>
+                <td id="detail">{{ formatMoney(ROA?.details_calcul?.resultat_net) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.ROA?.details_calcul?.resultat_net)
+                }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Total actif</td>
+                <td id="detail">{{ formatMoney(ROA?.details_calcul?.total_actif) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.ROA?.details_calcul?.total_actif) }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="footable">
+              <tr>
+                <td id="detailTitle">ROA</td>
+                <td id="detail">{{ formatPercentage(ROA?.roa?.valeur) }}</td>
+                <td id="detail">{{ formatPercentage(previousYearData.ROA?.roa?.valeur) }}</td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Formule</td>
+                <td id="detail" colspan="2">{{ ROA?.formule }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </PopUp>
+
+
+
     <div class="main">
       <ContentHeader :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs de rentabilité'" />
       
@@ -163,6 +360,7 @@ const getTrendIcon = (comparison) => {
                 <th class="col">{{ exercice?.Annee_fiscale-1 }}</th>
                 <th class="col">Évolution</th>
                 <th class="col">Variation</th>
+                <th class="col">Action</th>
               </tr>
             </thead>
             <tbody v-if="!loadingTable">
@@ -185,6 +383,10 @@ const getTrendIcon = (comparison) => {
                 <td :class="['percentage', getTrendClass(comparisons.brute)]">
                   {{ comparisons.brute?.hasData ? `${comparisons.brute.percentage}%` : 'N/A' }}
                 </td>
+                <td>
+                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                    @click="detailsMargebrute = !detailsMargebrute" />
+                </td>
               </tr>
               
               <!-- Marge nette -->
@@ -205,6 +407,10 @@ const getTrendIcon = (comparison) => {
                 </td>
                 <td :class="['percentage', getTrendClass(comparisons.nette)]">
                   {{ comparisons.nette?.hasData ? `${comparisons.nette.percentage}%` : 'N/A' }}
+                </td>
+                <td>
+                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                    @click="detailsMargenette = !detailsMargenette" />
                 </td>
               </tr>
               
@@ -227,6 +433,10 @@ const getTrendIcon = (comparison) => {
                 <td :class="['percentage', getTrendClass(comparisons.ROE)]">
                   {{ comparisons.ROE?.hasData ? `${comparisons.ROE.percentage}%` : 'N/A' }}
                 </td>
+                <td>
+                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                    @click="detailsRoe = !detailsRoe" />
+                </td>
               </tr>
               
               <!--ROA -->
@@ -247,6 +457,10 @@ const getTrendIcon = (comparison) => {
                 </td>
                 <td :class="['percentage', getTrendClass(comparisons.ROA)]">
                   {{ comparisons.ROA?.hasData ? `${comparisons.ROA.percentage}%` : 'N/A' }}
+                </td>
+                <td>
+                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                    @click="detailsRoa = !detailsRoa" />
                 </td>
               </tr>
               
@@ -290,11 +504,36 @@ const getTrendIcon = (comparison) => {
 <style lang="scss" scoped>
 #axesTable {
   @include table(#f5f5f5);
-  
+  cursor: pointer;
   @media (max-width: $mobile) {
     font-size: 0.875rem;
   }
 }
+.details-popup{
+  min-width: 75vh;
+}
+#footable {
+  font-family: $stara-bold;
+  // font-size: 16px;
+  background-color: $light;
+}
+
+#detail {
+  color: $gris;
+  cursor: default;
+}
+
+.popuphead {
+  @include position-contenus();
+  justify-content: space-between;
+}
+
+#detailTitle {
+  color: $gris;
+  padding-left: 24px;
+  cursor: default;
+}
+
 .cartes {
   @include position-contenus(grid, center, center);
   padding: 0;

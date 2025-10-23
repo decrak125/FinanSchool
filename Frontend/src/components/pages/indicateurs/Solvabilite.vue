@@ -7,6 +7,9 @@ import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import FilterSelect from "@/components/atoms/Filter-select.vue";
 import LoadingText from "@/components/atoms/Loading-text.vue";
+import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
+import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
+
 
 const nombreLignesLoader = ref(3);
 const filters = ref({
@@ -14,6 +17,10 @@ const filters = ref({
   dateEnd: "",
   idExercice: ""
 });
+
+const detailsEndettement = ref(false)
+const detailsRemboursement = ref(false)
+const detailsAutonomie = ref(false)
 
 const {
   exercice,
@@ -81,6 +88,143 @@ const getTrendIcon = (comparison) => {
 
 <template>
   <PageAnalyse>
+    <PopUp v-if="detailsAutonomie">
+      <div class="details-popup">
+        <div class="popuphead">
+          <Texte :texte="AutonomieFinanciere?.definition" :type="'dark'" />
+          <BoutonIcon @click="detailsAutonomie = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
+        </div>
+        <div class="indicateur-detail">
+          <table class="table" id="axesTable">
+            <thead>
+              <tr>
+                <th class="col">Indicateur</th>
+                <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="detailTitle">Capitaux</td>
+                <td id="detail">{{ formatMoney(AutonomieFinanciere?.details_calcul?.capitaux_propres) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.AutonomieFinanciere?.details_calcul?.capitaux_propres)
+                }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Total Bilan</td>
+                <td id="detail">{{ formatMoney(AutonomieFinanciere?.details_calcul?.total_bilan) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.AutonomieFinanciere?.details_calcul?.total_bilan) }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="footable">
+              <tr>
+                <td id="detailTitle">Marge Nette</td>
+                <td id="detail">{{ CapaciteRemboursement?.capacite_remboursement?.valeur }}</td>
+                <td id="detail">{{ formatPercentage(previousYearData.AutonomieFinanciere?.autonomie_financiere?.valeur) }}</td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Formule</td>
+                <td id="detail" colspan="2">{{ AutonomieFinanciere?.formule }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </PopUp>
+    <PopUp v-if="detailsRemboursement">
+      <div class="details-popup">
+        <div class="popuphead">
+          <Texte :texte="CapaciteRemboursement?.definition" :type="'dark'" />
+          <BoutonIcon @click="detailsRemboursement = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
+        </div>
+        <div class="indicateur-detail">
+          <table class="table" id="axesTable">
+            <thead>
+              <tr>
+                <th class="col">Indicateur</th>
+                <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="detailTitle">Endettement net</td>
+                <td id="detail">{{ formatMoney(CapaciteRemboursement?.details_calcul?.endettement_net) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.CapaciteRemboursement?.details_calcul?.endettement_net)
+                }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">CAF (Cash Flow)</td>
+                <td id="detail">{{ formatMoney(CapaciteRemboursement?.details_calcul?.caf) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.CapaciteRemboursement?.details_calcul?.caf) }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="footable">
+              <tr>
+                <td id="detailTitle">Capacité de remboursement</td>
+                <td id="detail">{{ CapaciteRemboursement?.capacite_remboursement?.valeur }} an(s)</td>
+                <td id="detail">{{ previousYearData.CapaciteRemboursement?.capacite_remboursement?.valeur }} an(s)</td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Formule</td>
+                <td id="detail" colspan="2">{{ CapaciteRemboursement?.formule }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </PopUp>
+    <PopUp v-if="detailsEndettement">
+      <div class="details-popup">
+        <div class="popuphead">
+          <Texte :texte="RatioEndettement?.definition" :type="'dark'" />
+          <BoutonIcon @click="detailsEndettement = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
+        </div>
+        <div class="indicateur-detail">
+          <table class="table" id="axesTable">
+            <thead>
+              <tr>
+                <th class="col">Indicateur</th>
+                <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td id="detailTitle">Dettes financières</td>
+                <td id="detail">{{ formatMoney(RatioEndettement?.details_calcul?.dettes_financieres) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.RatioEndettement?.details_calcul?.dettes_financieres)
+                }}
+                </td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Capitaux propres</td>
+                <td id="detail">{{ formatMoney(RatioEndettement?.details_calcul?.capitaux_propres) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.RatioEndettement?.details_calcul?.capitaux_propres) }}
+                </td>
+              </tr>
+            </tbody>
+            <tfoot id="footable">
+              <tr>
+                <td id="detailTitle">Ratio d'endettement</td>
+                <td id="detail">{{ formatPercentage(RatioEndettement?.ratio_endettement?.valeur) }}</td>
+                <td id="detail">{{ formatPercentage(previousYearData.RatioEndettement?.ratio_endettement?.valeur) }}</td>
+              </tr>
+              <tr>
+                <td id="detailTitle">Formule</td>
+                <td id="detail" colspan="2">{{ RatioEndettement?.formule }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </PopUp>
+
+
     <div class="main">
       <ContentHeader :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs de solvabilité'" />
       
@@ -162,6 +306,7 @@ const getTrendIcon = (comparison) => {
                 <th class="col">{{ exercice?.Annee_fiscale-1 }}</th>
                 <th class="col">Évolution</th>
                 <th class="col">Variation</th>
+                <th class="col">Action</th>
               </tr>
             </thead>
             <tbody v-if="!loadingTable">
@@ -172,7 +317,7 @@ const getTrendIcon = (comparison) => {
                   Autonomie financière
                 </td>
                 <td class="col">
-                  {{ formatPercentage(AutonomieFinanciere?.autonomie_financiere?.valeur) }}
+                  {{ CapaciteRemboursement?.capacite_remboursement?.valeur }}
                 </td>
                 <td class="col">
                   {{ formatPercentage(previousYearData.AutonomieFinanciere?.autonomie_financiere?.valeur) }}
@@ -183,6 +328,10 @@ const getTrendIcon = (comparison) => {
                 </td>
                 <td :class="['percentage', getTrendClass(comparisons.Autonomie)]">
                   {{ comparisons.Autonomie?.hasData ? `${comparisons.Autonomie.percentage}%` : 'N/A' }}
+                </td>
+                <td>
+                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                    @click="detailsAutonomie = !detailsAutonomie" />
                 </td>
               </tr>
               
@@ -205,6 +354,10 @@ const getTrendIcon = (comparison) => {
                 <td :class="['percentage', getTrendClass(comparisons.Remboursement)]">
                   {{ comparisons.Remboursement?.hasData ? `${comparisons.Remboursement.percentage}%` : 'N/A' }}
                 </td>
+                <td>
+                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                    @click="detailsRemboursement = !detailsRemboursement" />
+                </td>
               </tr>
               
               <!-- Ratio d'endettement -->
@@ -226,6 +379,10 @@ const getTrendIcon = (comparison) => {
                 <td :class="['percentage', getTrendClass(comparisons.Endettement)]">
                   {{ comparisons.Endettement?.hasData ? `${comparisons.Endettement.percentage}%` : 'N/A' }}
                 </td>
+                <td>
+                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                    @click="detailsEndettement = !detailsEndettement" />
+                </td>
               </tr>
               
             </tbody>
@@ -246,13 +403,41 @@ const getTrendIcon = (comparison) => {
 </template>
 
 <style lang="scss" scoped>
+
+.details-popup{
+  min-width: 75vh;
+}
 #axesTable {
   @include table(#f5f5f5);
-  
+  cursor: pointer;
   @media (max-width: $mobile) {
     font-size: 0.875rem;
   }
 }
+
+#footable {
+  font-family: $stara-bold;
+  // font-size: 16px;
+  background-color: $light;
+}
+
+#detail {
+  color: $gris;
+  cursor: default;
+}
+
+.popuphead {
+  @include position-contenus();
+  justify-content: space-between;
+}
+
+#detailTitle {
+  color: $gris;
+  padding-left: 24px;
+  cursor: default;
+}
+
+
 .cartes {
   @include position-contenus(grid, center, center);
   padding: 0;
