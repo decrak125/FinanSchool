@@ -47,6 +47,11 @@ class IndicateursAnalytiqueSeeder extends Seeder
                 'formule' => '(Chiffre d\'affaires – Coût des ventes) / Chiffre d\'affaires'
             ],
             [
+                'libelle' => 'Marge d\'exploitation (EBIT)',
+                'description' => 'Évalue la performance des activités principales',
+                'formule' => 'Résultat d\'exploitation / Chiffre d\'affaires'
+            ],
+            [
                 'libelle' => 'Marge nette',
                 'description' => 'Montre le bénéfice final par euro de ventes',
                 'formule' => 'Résultat net / Chiffre d\'affaires'
@@ -102,8 +107,6 @@ class IndicateursAnalytiqueSeeder extends Seeder
                 'libelle' => $indicateur['libelle'],
                 'description' => $indicateur['description'],
                 'formule' => $indicateur['formule'],
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
         }
     }

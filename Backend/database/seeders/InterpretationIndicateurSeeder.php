@@ -352,8 +352,6 @@ class InterpretationIndicateurSeeder extends Seeder
                 'valeur' => $interpretation['valeur'],
                 'interpretation' => $interpretation['interpretation'],
                 'id_niveau_alerte' => $interpretation['id_niveau_alerte'],
-                'created_at' => now(),
-                'updated_at' => now(),
             ]);
         }
     }

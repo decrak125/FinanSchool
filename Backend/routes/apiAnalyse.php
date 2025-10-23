@@ -11,6 +11,9 @@ use App\Http\Controllers\Analyse\IndicateursGenerauxController;
 use App\Http\Controllers\Analyse\IndicateurRentabiliteController;
 use App\Http\Controllers\Analyse\IndicateurLiquiditeController;
 use App\Http\Controllers\Analyse\IndicateurSolvabiliteController;
+use App\Http\Controllers\ParametresAnalytique\IndicateurAnalytiqueController;
+use App\Http\Controllers\ParametresAnalytique\NiveauAlerteController;
+use App\Http\Controllers\ParametresAnalytique\InterpretationIndicateurController;
 
     Route::put('/affectations/multiple', [AffectationAnalytiqueController::class, 'updateMultiple']);
     Route::delete('/affectations/sous-compte/{id_sous_compte}', [AffectationAnalytiqueController::class, 'destroyBySousCompte']);
@@ -19,6 +22,14 @@ use App\Http\Controllers\Analyse\IndicateurSolvabiliteController;
     Route::apiResource('types', TypeCentreController::class);
     Route::apiResource('centres', CentreAnalytiqueController::class);
     Route::apiResource('affectations', AffectationAnalytiqueController::class);
+     Route::apiResource('indicateurs-analytique', IndicateurAnalytiqueController::class);
+     Route::apiResource('niveaux-alerte', NiveauAlerteController::class);
+     Route::apiResource('interpretations-indicateur', InterpretationIndicateurController::class);
+
+     // Routes supplémentaires
+     Route::get('indicateurs-analytique/categorie/{categorie}', [IndicateurAnalytiqueController::class, 'getByCategorie']);
+     Route::get('interpretations-indicateur/indicateur/{idIndicateur}', [InterpretationIndicateurController::class, 'getByIndicateur']);
+     Route::post('interpretations-indicateur/indicateur/{idIndicateur}/valeur', [InterpretationIndicateurController::class, 'getInterpretationForValue']);
 
     // Importation
     Route::post('/import/axes', [AxeAnalytiqueController::class, 'import']);
