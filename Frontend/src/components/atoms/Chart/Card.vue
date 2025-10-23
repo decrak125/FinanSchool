@@ -1,21 +1,30 @@
 <script setup>
+
 import Counter from '../counter.vue';
+import LoadingText from '../Loading-text.vue';
     defineProps({
         texte: String,
         chiffre: {type:[Number, String]},
         icon: String,
         iconColor: String,
         format: String,
-        negative: Boolean
+        negative: Boolean,
+        loading: {type: Boolean, default: false}
     })
 </script>
 <template>
-    <div class="Count-content">
+    <div class="Count-content" v-if="!loading">
         <i v-bind:class="icon" v-bind:style="`color:${iconColor};`"></i>
             <p class="texte">{{texte}}</p>
-          <!-- CORRECTION : utiliser === ou == au lieu de = -->
           <Counter v-if="chiffre === null || chiffre === undefined" :number="0" :format="format" :allowNegative="negative" />
           <Counter v-else :number="chiffre" :format="format" :allowNegative="negative" />
+    </div>
+
+    <div v-if="loading" class="Count-content">
+        <i><LoadingText :type="'circle'" /></i>
+            <p class="texte"><LoadingText :type="'line-4'" /></p>
+          <LoadingText :type="'line-1'" />
+          <LoadingText :type="'line-1'" />
     </div>
 </template>
 <style lang="scss" scoped>
@@ -34,9 +43,8 @@ i{
   flex-shrink: 0;
 }
 .Count-content {
-    max-width: 300px;
-    min-width: 250px;
-    height: max-content;
+    width: 275px;
+    height: 194px;
     align-items: center;
     justify-content: center;
   display: block;

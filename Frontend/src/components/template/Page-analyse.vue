@@ -38,6 +38,10 @@ if (!token) {
 </template>
 
 <style lang="scss" scoped>
+html, body {
+  height: 100%;
+  margin: 0;
+}
 .container {
   display: flex;
   width: 100%;

@@ -116,7 +116,7 @@ const getTrendIcon = (comparison) => {
               :chiffre="parseInt(totalProduits?.total_produits?.valeur)" 
               :format="'money'" 
               :icon="'bi bi-arrow-up-circle'" 
-              :icon-color="'green'" 
+              :icon-color="'green'"
             />
             <Card 
               :texte="'Total des dépenses'"

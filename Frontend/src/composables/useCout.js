@@ -25,6 +25,26 @@ export function useCout(type) {
   const sousComptesVentiles = ref([]);
   const verificationVentilations = ref([]);
   const selectedCentre = ref(null);
+  const classement = ref([]);
+
+  const fetchClassement = async () => {
+    try {
+      loading.value = true;
+      const response = await axios.get(`${API_URL}/analyse/cout-profit/classementCentre`, {
+        params: {
+          date_start: formatDateForAPI(filters.value.dateStart),
+          date_end: formatDateForAPI(filters.value.dateEnd),
+          id_centre: filters.value.idCentre || null,
+          id_type: type,
+        },
+      });
+      classement.value = response.data;
+    } catch (error) {
+      console.error("Erreur fetchClassement:", error);
+    } finally {
+      loading.value = false;
+    }
+  };
 
   // 📌 Fonction pour convertir le format de date
   const formatDateForInput = (dateString) => {
@@ -246,6 +266,7 @@ export function useCout(type) {
       await fetchCentresList();
       await fetchCentres();
       await fetchVerificationVentilations();
+      await fetchClassement();
     } catch (error) {
       console.error("Erreur initializeData:", error);
     } finally {
@@ -260,6 +281,7 @@ export function useCout(type) {
       if (filters.value.dateStart && filters.value.dateEnd) {
         await fetchCentres();
         await fetchVerificationVentilations();
+        await fetchClassement();
       }
     },
     { immediate: false }
@@ -276,6 +298,19 @@ export function useCout(type) {
       centre.centre.toLowerCase().includes(searchTerm) ||
       centre.montant_ventile.toString().includes(searchTerm) ||
       centre.montant_brut.toString().includes(searchTerm)
+    );
+  });
+
+  const classementFiltrees = computed(() => {
+    if (!classement.value.length) return [];
+    
+    if (!filters.value.searchClassement) return classement.value;
+    
+    const searchTerm = filters.value.searchClassement.toLowerCase();
+    return classement.value.filter(classement => 
+      classement.centre_nom.toLowerCase().includes(searchTerm) ||
+      classement.montant_ventile.toString().includes(searchTerm) ||
+      classement.montant_brut.toString().includes(searchTerm)
     );
   });
 
@@ -410,11 +445,13 @@ export function useCout(type) {
     centresFiltres,
     affectationsFiltrees,
     exercicesOptions,
-
+    classement,
+    classementFiltrees,
     // API
     fetchCentresList,
     fetchCentres,
     fetchAffectations,
+    fetchClassement,
     fetchSousComptesVentiles,
     fetchVerificationVentilations,
 

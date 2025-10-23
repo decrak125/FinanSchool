@@ -10,6 +10,7 @@ import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 import searchbar from "@/components/atoms/searchbar.vue";
 import FilterInput from "@/components/atoms/Filter-input.vue";
 import FilterSelect from "@/components/atoms/Filter-select.vue";
+import Leaderboard from "@/components/atoms/Chart/Leaderboard.vue";
 
 const {
     exercice,
@@ -22,18 +23,20 @@ const {
     verificationVentilations,
     selectedCentre,
     loading,
-
+    classement,
     // Computed
     statsGlobales,
     infoExercice,
     centresFiltres,
     affectationsFiltrees,
+    classementFiltrees,
     exercicesOptions,
 
     // API
     fetchCentresList,
     fetchCentres,
     fetchAffectations,
+    fetchClassement,
     fetchSousComptesVentiles,
     fetchVerificationVentilations,
 
@@ -328,6 +331,9 @@ onMounted(async () => {
           </div>
 
         </div>
+        <div class="droite">
+          <Leaderboard :depenses="classementFiltrees" :texte="'Classement des profits'" />
+        </div>
       </div>
     </div>
   </PageAnalyse>
@@ -335,14 +341,26 @@ onMounted(async () => {
 
 
 <style lang="scss" scoped>
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
 .content {
   @include position-contenus(flex, flex-start, flex-start);
   // overflow-y: auto;
   width: 100%;
+  height: 100%;
   // max-height: 60vh;
   border-radius: $radius-pm;
   align-self: stretch;
+  gap: 32px;
+
+  // @media (max-width: $mobile) {
+  //   max-height: 50vh;
+  // }
 }
+
 
 // .content::-webkit-scrollbar {
 //   width: 10px;
@@ -385,7 +403,21 @@ onMounted(async () => {
   @include position-contenus(grid, center, center);
   gap: 10px;
 }
-
+.droite {
+  padding: 10px 0;
+  height: 100%;
+  @include position-contenus(flex, center, center);
+  gap: 10px;
+  
+  @media (max-width: $tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: $mobile) {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
 #axesTable {
   @include table(#f5f5f5);
 }

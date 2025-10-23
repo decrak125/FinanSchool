@@ -19,7 +19,7 @@ defineProps({
 //   margin-bottom: 10px;
 //   border: 1px solid #d3d3d3;
 //   padding: 15px;
-  background-color: #ececec;
+  // background-color: #ececec;
   overflow: hidden;
 }
 
@@ -48,12 +48,15 @@ defineProps({
   width: 50px;
   height: 50px;
   border-radius: 50%;
+  background-color: #ececec;
 }
 
 .loader .button {
   display: inline-block;
   height: 32px;
   width: 75px;
+  background-color: #ececec;
+
 }
 
 .loader .line-1 {
@@ -61,7 +64,8 @@ defineProps({
   top: 11px;
 //   left: 58px;
   height: 16px;
-  width: 10%;
+  width: 100%;
+  background-color: #ececec;
 }
 
 .loader .line-2 {
@@ -69,7 +73,8 @@ defineProps({
 //   top: 34px;
 //   left: 58px;
   height: 16px;
-  width: 30%;
+  width: 80%;
+  background-color: #ececec;
 }
 
 .loader .line-3 {
@@ -78,6 +83,7 @@ defineProps({
   left: 0px;
   height: 16px;
   width: 50%;
+  background-color: #ececec;
 }
 
 .loader .line-4 {
@@ -86,6 +92,7 @@ defineProps({
   left: 0px;
   height: 16px;
   width: 70%;
+  background-color: #ececec;
 }
 
 @keyframes gradient-animation_2 {
