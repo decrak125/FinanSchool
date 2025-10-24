@@ -475,7 +475,7 @@ export default {
 }
 .exercice-info p {
   margin: 0;
-  color: #475569;
+  color: #25ae39;
   font-size: 15px;
 }
 .exercice-info strong {
