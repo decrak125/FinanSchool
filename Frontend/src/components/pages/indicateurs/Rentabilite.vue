@@ -313,6 +313,8 @@ const getTrendIcon = (comparison) => {
               :icon="'bi bi-bar-chart-fill'" 
               :icon-color="'green'" 
               :negative="true"
+              :variation="getTrendIcon(comparisons.brute) + ' ' + comparisons.brute.percentage"
+              :colorVariation="getTrendClass(comparisons.brute)"
             />
             <Card 
               :texte="'Marge nette'"
@@ -321,6 +323,8 @@ const getTrendIcon = (comparison) => {
               :icon="'bi bi-bar-chart-fill'"
               :icon-color="'blue'" 
               :negative="true"
+              :variation="getTrendIcon(comparisons.nette) + ' ' + comparisons.nette.percentage"
+              :colorVariation="getTrendClass(comparisons.nette)"
             />
           </div>
           <div class="hauteur">
@@ -332,6 +336,8 @@ const getTrendIcon = (comparison) => {
               :icon="'bi bi-people-fill'" 
               :icon-color="'purple'" 
               :negative="true" 
+              :variation="getTrendIcon(comparisons.ROE) + ' ' + comparisons.ROE.percentage"
+              :colorVariation="getTrendClass(comparisons.ROE)"
             />
             <Card 
               :texte="'ROA'" 
@@ -340,6 +346,8 @@ const getTrendIcon = (comparison) => {
               :icon="'bi bi-building'" 
               :icon-color="'grey'" 
               :negative="true" 
+              :variation="getTrendIcon(comparisons.ROA) + ' ' + comparisons.ROA.percentage"
+              :colorVariation="getTrendClass(comparisons.ROA)"
             />
           </div>
         </div>

@@ -9,6 +9,7 @@ import FilterSelect from "@/components/atoms/Filter-select.vue";
 import LoadingText from "@/components/atoms/Loading-text.vue";
 import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
+import InterpretationCard from "@/components/atoms/Chart/InterpretationCard.vue";
 
 
 const filters = ref({
@@ -191,14 +192,14 @@ const getTrendIcon = (comparison) => {
                 <td id="detail">{{ formatMoney(totalCharges?.details_comptes?.autres_charges_exploitation) }}</td>
                 <td id="detail">{{
                   formatMoney(previousYearData.totalCharges?.details_comptes?.autres_charges_exploitation)
-                  }}
+                }}
                 </td>
               </tr>
               <tr>
                 <td id="detailTitle">Dotations aux amortissements</td>
                 <td id="detail">{{ formatMoney(totalCharges?.details_comptes?.dotations_amortissements) }}</td>
                 <td id="detail">{{ formatMoney(previousYearData.totalCharges?.details_comptes?.dotations_amortissements)
-                  }}
+                }}
                 </td>
               </tr>
               <tr>
@@ -211,7 +212,7 @@ const getTrendIcon = (comparison) => {
                 <td id="detailTitle">Charges exceptionnelles</td>
                 <td id="detail">{{ formatMoney(totalCharges?.details_comptes?.charges_exceptionnelles) }}</td>
                 <td id="detail">{{ formatMoney(previousYearData.totalCharges?.details_comptes?.charges_exceptionnelles)
-                  }}
+                }}
                 </td>
               </tr>
             </tbody>
@@ -290,7 +291,8 @@ const getTrendIcon = (comparison) => {
               <tr>
                 <td id="detailTitle">Produits d'exploitation</td>
                 <td id="detail">{{ formatMoney(margeExploitation?.details_calcul?.produits_exploitation) }}</td>
-                <td id="detail">{{ formatMoney(previousYearData.margeExploitation?.details_calcul?.produits_exploitation) }}
+                <td id="detail">{{
+                  formatMoney(previousYearData.margeExploitation?.details_calcul?.produits_exploitation) }}
                 </td>
               </tr>
               <tr>
@@ -303,14 +305,16 @@ const getTrendIcon = (comparison) => {
               <tr>
                 <td id="detailTitle">Resultat d'exploitation</td>
                 <td id="detail">{{ formatMoney(margeExploitation?.details_calcul?.resultat_exploitation) }}</td>
-                <td id="detail">{{ formatMoney(previousYearData.margeExploitation?.details_calcul?.resultat_exploitation) }}</td>
+                <td id="detail">{{
+                  formatMoney(previousYearData.margeExploitation?.details_calcul?.resultat_exploitation) }}</td>
               </tr>
             </tbody>
             <tfoot id="footable">
               <tr>
                 <td id="detailTitle">Marge d'exploitation</td>
                 <td id="detail">{{ formatPercentage(margeExploitation?.marge_exploitation?.valeur) }}</td>
-                <td id="detail">{{ formatPercentage(previousYearData.margeExploitation?.marge_exploitation?.valeur) }}</td>
+                <td id="detail">{{ formatPercentage(previousYearData.margeExploitation?.marge_exploitation?.valeur) }}
+                </td>
               </tr>
               <tr>
                 <td id="detailTitle">Formule</td>
@@ -344,18 +348,27 @@ const getTrendIcon = (comparison) => {
         <div class="cartes">
           <div class="hauteur">
             <Card :texte="'Total les revenus'" :chiffre="parseInt(totalProduits?.total_produits?.valeur)"
-              :format="'money'" :icon="'bi bi-arrow-up-circle'" :icon-color="'green'" />
+              :format="'money'" :icon="'bi bi-arrow-up-circle'" :icon-color="'green'"
+              :variation="getTrendIcon(comparisons.produits) + ' ' + comparisons.produits.percentage"
+              :colorVariation="getTrendClass(comparisons.produits)" />
             <Card :texte="'Total des dépenses'" :chiffre="parseInt(totalCharges?.total_charges?.valeur)"
-              :format="'money'" :icon="'bi bi-arrow-down-circle'" :icon-color="'red'" />
+              :format="'money'" :icon="'bi bi-arrow-down-circle'" :icon-color="'red'"
+              :variation="getTrendIcon(comparisons.charges) + ' ' + comparisons.charges.percentage"
+              :colorVariation="getTrendClass(comparisons.charges)" />
           </div>
           <div class="hauteur">
 
             <Card :texte="'Bénéfices/Pertes'" :chiffre="parseInt(resultatNet?.resultat_net?.valeur)" :format="'money'"
-              :icon="'bi bi-cash-stack'" :icon-color="'green'" :negative="true" />
+              :icon="'bi bi-cash-stack'" :icon-color="'green'" :negative="true"
+              :variation="getTrendIcon(comparisons.resultatNet) + ' ' + comparisons.resultatNet.percentage"
+              :colorVariation="getTrendClass(comparisons.resultatNet)" />
             <Card :texte="'Marge d\'exploitation'" :chiffre="parseInt(margeExploitation?.marge_exploitation?.valeur)"
-              :format="'percentage'" :icon="'bi bi-percent'" :icon-color="'purple'" :negative="true" />
+              :format="'percentage'" :icon="'bi bi-percent'" :icon-color="'purple'" :negative="true"
+              :variation="getTrendIcon(comparisons.margeExploitation) + ' ' + comparisons.margeExploitation.percentage"
+              :colorVariation="getTrendClass(comparisons.margeExploitation)" />
           </div>
         </div>
+        <InterpretationCard />
       </div>
 
 
@@ -535,9 +548,11 @@ const getTrendIcon = (comparison) => {
     font-size: 0.875rem;
   }
 }
-.details-popup{
+
+.details-popup {
   min-width: 75vh;
 }
+
 #footable {
   font-family: $stara-bold;
   // font-size: 16px;

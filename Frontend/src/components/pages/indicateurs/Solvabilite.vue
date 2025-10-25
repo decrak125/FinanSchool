@@ -260,6 +260,8 @@ const getTrendIcon = (comparison) => {
               :negative="true" 
               :icon="'bi bi-shield-check'" 
               :icon-color="'green'" 
+              :variation="getTrendIcon(comparisons.Autonomie) + ' ' + comparisons.Autonomie.percentage"
+              :colorVariation="getTrendClass(comparisons.Autonomie)"
             />
             <Card 
               :texte="'Capacité de remboursement'"
@@ -267,6 +269,8 @@ const getTrendIcon = (comparison) => {
               :format="'number'" 
               :icon="'bi bi-credit-card-2-front-fill'"
               :icon-color="'orange'" 
+              :variation="getTrendIcon(comparisons.Remboursement) + ' ' + comparisons.Remboursement.percentage"
+              :colorVariation="getTrendClass(comparisons.Remboursement)"
             />
           </div>
           <div class="hauteur">
@@ -278,6 +282,8 @@ const getTrendIcon = (comparison) => {
               :icon="'bi bi-bank'" 
               :icon-color="'grey'" 
               :negative="true" 
+              :variation="getTrendIcon(comparisons.Endettement) + ' ' + comparisons.Endettement.percentage"
+              :colorVariation="getTrendClass(comparisons.Endettement)"
             />
             <Card 
               :texte="'No data'" 

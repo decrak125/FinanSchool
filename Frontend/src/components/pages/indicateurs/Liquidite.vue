@@ -266,6 +266,8 @@ const getTrendIcon = (comparison) => {
               :format="'money'" 
               :icon="'bi bi-wallet2'" 
               :icon-color="'brown'" 
+              :variation="getTrendIcon(comparisons.Tresorerie) + ' ' + comparisons.Tresorerie.percentage"
+              :colorVariation="getTrendClass(comparisons.Tresorerie)"
             />
             <Card 
               :texte="'Besoins de fond de roulement'"
@@ -273,6 +275,8 @@ const getTrendIcon = (comparison) => {
               :format="'money'" 
               :icon="'bi bi-arrow-repeat'"
               :icon-color="'orange'" 
+              :variation="getTrendIcon(comparisons.fondRoulement) + ' ' + comparisons.fondRoulement.percentage"
+              :colorVariation="getTrendClass(comparisons.fondRoulement)"
             />
           </div>
           <div class="hauteur">
@@ -284,6 +288,8 @@ const getTrendIcon = (comparison) => {
               :icon="'bi bi-water'" 
               :icon-color="'#499ef8'" 
               :negative="true" 
+              :variation="getTrendIcon(comparisons.Liquidite) + ' ' + comparisons.Liquidite.percentage"
+              :colorVariation="getTrendClass(comparisons.Liquidite)"
             />
             <Card 
               :texte="'No data'" 

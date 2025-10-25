@@ -131,7 +131,7 @@ export function useIndicateurGeneral(filters) {
 
     return {
       evolution,
-      percentage: Math.abs(percentage).toFixed(1),
+      percentage: Math.abs(percentage).toFixed(2),
       trend,
       hasData: true,
       currentValue: current,
