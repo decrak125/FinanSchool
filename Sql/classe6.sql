@@ -1,86 +1,119 @@
 -- =====================================
--- INSERTIONS CLASSE 6 - Comptes de charges (RAITRA KIDZ)
+-- INSERTIONS CLASSE 6 - Comptes de charges (PCG 2005)
 -- =====================================
 
 -- Classe 6
 INSERT INTO classes ("Code", "Libelle") VALUES
 ('6', 'Comptes de charges');
 
--- 60 Charges d exploitation
+-- 60 Achats consommés
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('60', 'Charges d exploitation', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
+('60', 'Achats consommés', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('601', 'Achats de matieres premieres produits alimentaires pour la cantine', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
-('602', 'Achats de fournitures scolaires et pedagogiques', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
-('603', 'Achats de fournitures de bureau et administratives', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
-('604', 'Achats de petit materiel et equipements d enseignement', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
-('605', 'Achats d eau electricite gaz', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
-('606', 'Achats de produits d entretien et de nettoyage', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
-('607', 'Achats d autres approvisionnements tenues scolaires etc', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60'));
+('601', 'Matières premières', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
+('602', 'Autres approvisionnements', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
+('603', 'Variations des stocks', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
+('604', 'Achats d’études et de prestations de service', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
+('605', 'Achats de matériels, équipements et travaux', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
+('606', 'Achats non stockés de matières et fournitures', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
+('607', 'Achats de marchandises', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
+('608', 'Frais accessoires d’achat', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60')),
+('609', 'Rabais, remises et ristournes obtenus sur achats', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '60'));
 
--- 61 Services exterieurs
+-- 61 Services extérieurs
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('61', 'Services exterieurs', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
+('61', 'Services extérieurs', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('611', 'Loyers et charges locatives batiments scolaires', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
-('612', 'Entretien et reparations batiments materiel vehicules scolaires', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
-('613', 'Assurance responsabilite civile assurance scolaire assurance personnel', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
-('614', 'Publicite communication promotion', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
-('615', 'Frais de scolarite verses aux instances homologation', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
-('616', 'Honoraires comptable avocat consultant', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
-('617', 'Frais de surveillance gardiennage et securite', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
-('618', 'Frais bancaires et services financiers', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
-('619', 'Autres services exterieurs', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61'));
+('611', 'Sous-traitance générale', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
+('613', 'Locations', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
+('614', 'Charges locatives et de copropriété', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
+('615', 'Entretien, réparations et maintenance', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
+('616', 'Primes d’assurances', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
+('617', 'Études et recherches', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
+('618', 'Documentation et divers', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61')),
+('619', 'Rabais, remises, ristournes sur services extérieurs', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '61'));
 
--- 62 Charges de personnel
+-- 62 Autres services extérieurs
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('62', 'Charges de personnel', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
+('62', 'Autres services extérieurs', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('621', 'Salaires et traitements des enseignants', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
-('622', 'Salaires du personnel administratif', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
-('623', 'Salaires du personnel technique et d entretien', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
-('624', 'Primes indemnites et avantages divers', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
-('625', 'Charges sociales obligatoires CNAPS OSTIE etc', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
-('626', 'Formation et perfectionnement du personnel', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62'));
+('621', 'Personnel extérieur à l’entreprise', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
+('622', 'Rémunérations d’intermédiaires et honoraires', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
+('623', 'Publicité, publication, relations publiques', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
+('624', 'Transports de biens et transport collectif du personnel', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
+('625', 'Déplacements, missions et réceptions', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
+('626', 'Frais postaux et de télécommunications', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
+('627', 'Services bancaires et assimilés', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
+('628', 'Cotisations et divers', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62')),
+('629', 'Rabais, remises, ristournes sur autres services extérieurs', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '62'));
 
--- 63 Autres charges d exploitation
+-- 63 Impôts, taxes et versements assimilés
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('63', 'Autres charges d exploitation', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
+('63', 'Impôts, taxes et versements assimilés', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('631', 'Fournitures pedagogiques distribuees aux eleves', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '63')),
-('632', 'Depenses pour activites scolaires et parascolaires sorties sport culture', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '63')),
-('633', 'Cantine denrees alimentaires gaz entretien cuisine', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '63')),
-('634', 'Frais de sante et hygiene scolaire', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '63')),
-('635', 'Transport scolaire carburant entretien assurance vehicules', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '63')),
-('636', 'Organisation d evenements fetes scolaires remise de diplomes', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '63'));
+('631', 'Impôts, taxes et versements assimilés sur rémunérations', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '63')),
+('635', 'Autres impôts et taxes', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '63'));
 
--- 64 Dotations aux amortissements et provisions
+-- 64 Charges de personnel
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('64', 'Dotations aux amortissements et provisions', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
+('64', 'Charges de personnel', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('641', 'Amortissements du mobilier scolaire', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '64')),
-('642', 'Amortissements du materiel informatique et audiovisuel', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '64')),
-('643', 'Amortissements des batiments scolaires', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '64')),
-('644', 'Amortissements des vehicules bus scolaires', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '64')),
-('645', 'Provisions pour creances douteuses parents ne payant pas les frais', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '64'));
+('641', 'Rémunérations du personnel', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '64')),
+('644', 'Rémunérations des dirigeants', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '64')),
+('645', 'Cotisations aux organismes sociaux', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '64')),
+('646', 'Charges sociales sur rémunérations des dirigeants', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '64')),
+('647', 'Autres charges sociales', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '64')),
+('648', 'Autres charges de personnel', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '64'));
 
--- 65 Charges financieres
+-- 65 Autres charges des activités ordinaires
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('65', 'Charges financieres', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
+('65', 'Autres charges des activités ordinaires', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('651', 'Interets sur emprunts bancaires', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '65')),
-('659', 'Autres charges financieres', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '65'));
+('651', 'Redevances pour concessions, brevets, licences, logiciels et valeurs similaires', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '65')),
+('652', 'Moins-values sur cessions d’actifs non courants', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '65')),
+('653', 'Jetons de présence', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '65')),
+('654', 'Pertes sur créances irrécouvrables', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '65')),
+('655', 'Quote-part de résultat sur opérations faites en commun', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '65')),
+('656', 'Amendes, pénalités, subventions accordées, dons et libéralités', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '65')),
+('657', 'Charges exceptionnelles de gestion courante', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '65')),
+('658', 'Autres charges de gestion courante', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '65'));
 
--- 67 Charges exceptionnelles
+-- 66 Charges financières
 INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
-('67', 'Charges exceptionnelles', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
+('66', 'Charges financières', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
 
 INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
-('671', 'Penalites et amendes', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '67')),
-('672', 'Charges exceptionnelles diverses travaux urgents non prevus', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '67'));
+('661', 'Charges d’intérêts', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '66')),
+('664', 'Pertes sur créances liées à des participations', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '66')),
+('665', 'Moins-values sur titres de placement', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '66')),
+('666', 'Pertes de change', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '66')),
+('667', 'Moins-values sur instruments financiers et assimilés', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '66')),
+('668', 'Autres charges financières', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '66'));
+
+-- 67 Éléments extraordinaires (charges)
+INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
+('67', 'Éléments extraordinaires (charges)', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
+
+-- 68 Dotations aux amortissements, provisions, pertes de valeur
+INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
+('68', 'Dotations aux amortissements, provisions et pertes de valeur', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
+
+INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
+('681', 'Dotations - actifs non courants', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '68')),
+('685', 'Dotations - actifs courants', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '68'));
+
+-- 69 Impôts sur les bénéfices
+INSERT INTO rubriques ("Code_rubrique", "Libelle", "Id_Classe") VALUES
+('69', 'Impôts sur les bénéfices', (SELECT "Id_Classe" FROM classes WHERE "Code" = '6'));
+
+INSERT INTO comptes ("Code_compte", "Libelle", "Id_Rubrique") VALUES
+('692', 'Imposition différée actif', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '69')),
+('693', 'Imposition différée passif', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '69')),
+('695', 'Impôts sur les bénéfices basés sur le résultat des activités ordinaires', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '69')),
+('698', 'Autres impôts sur les résultats', (SELECT "Id_Rubrique" FROM rubriques WHERE "Code_rubrique" = '69'));
