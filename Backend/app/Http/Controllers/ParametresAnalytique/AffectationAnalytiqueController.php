@@ -312,7 +312,7 @@ class AffectationAnalytiqueController extends Controller
     /**
      * 🔹 Import CSV avec ventilation
      */
-    public function import(Request $request)
+    public function importViaCompte(Request $request)
     {
         $request->validate([
             'file' => 'required|mimes:csv,txt'
@@ -382,4 +382,78 @@ class AffectationAnalytiqueController extends Controller
             'message'  => "Import terminé : $imported créés, $skipped ignorés."
         ]);
     }
+    /**
+ * 🔹 Import CSV avec ventilation directe par sous-comptes
+ */
+public function importDirecte(Request $request)
+{
+    $request->validate([
+        'file' => 'required|mimes:csv,txt'
+    ]);
+
+    $imported = 0;
+    $skipped = 0;
+
+    $file = $request->file('file');
+    $path = $file->getRealPath();
+
+    if (($handle = fopen($path, "r")) !== false) {
+        $header = fgetcsv($handle, 1000, ";");
+
+        while (($row = fgetcsv($handle, 1000, ";")) !== false) {
+            $data = [];
+            foreach ($header as $i => $key) {
+                $data[$key] = $row[$i] ?? null;
+            }
+
+            // Lecture directe du code sous-compte
+            $codeSousCompte = strtolower(trim($data['sous_compte'] ?? $row[0]));
+            $nomCentre      = strtolower(trim($data['centre'] ?? $row[1]));
+            $codeType       = strtolower(trim($data['code_type'] ?? $row[4]));
+            $taux           = floatval($data['taux'] ?? 100);
+            $desc           = $data['description'] ?? '';
+
+            // Recherche directe du sous-compte
+            $sousCompte = SousCompte::whereRaw('LOWER("Code_sous_compte") = ?', [$codeSousCompte])->first();
+            $centre = CentreAnalytique::whereRaw('LOWER(nom) = ?', [$nomCentre])->first();
+            $type = \App\Models\ParametresAnalytique\TypeCentre::whereRaw('LOWER(code) = ?', [$codeType])->first();
+
+            // Vérification que tous les éléments existent
+            if (!$sousCompte || !$centre || !$type) {
+                $skipped++;
+                continue;
+            }
+
+            // Vérification si l'affectation existe déjà
+            $exists = AffectationAnalytique::where('Id_Sous_compte', $sousCompte->Id_Sous_compte)
+                ->where('id_centre', $centre->id_centre)
+                ->exists();
+
+            if ($exists) {
+                $skipped++;
+                continue;
+            }
+
+            // Création directe de l'affectation
+            AffectationAnalytique::create([
+                'Id_Sous_compte' => $sousCompte->Id_Sous_compte,
+                'id_centre'      => $centre->id_centre,
+                'id_type'        => $type->id_type,
+                'taux'           => $taux,
+                'description'    => $sousCompte->Libelle . ($desc ? ' - ' . $desc : ''),
+            ]);
+
+            $imported++;
+        }
+
+        fclose($handle);
+    }
+
+    return response()->json([
+        'success'  => true,
+        'imported' => $imported,
+        'skipped'  => $skipped,
+        'message'  => "Import terminé : $imported créés, $skipped ignorés."
+    ]);
+}
 }

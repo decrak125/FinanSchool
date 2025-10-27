@@ -310,7 +310,7 @@ export function useAffectations() {
     formData.append("file", file.value);
 
     try {
-      const res = await axios.post(`${API_URL}/import/affectations`, formData, {
+      const res = await axios.post(`${API_URL}/import/affectations/direct`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

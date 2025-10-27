@@ -20,8 +20,8 @@ class ExerciceComptableSeeder extends Seeder
 
         // Générer les exercices de 2018 à 2038
         for ($annee = 2018; $annee <= 2038; $annee++) {
-            $dateDebut = Carbon::create($annee, 7, 1);
-            $dateFin = Carbon::create($annee + 1, 6, 30);
+            $dateDebut = Carbon::create($annee, 1, 1);
+            $dateFin = Carbon::create($annee, 12, 31);
 
             // Déterminer le statut : OUVERT si la date actuelle est dans la période, sinon CLOTURE
             $statut = ($dateActuelle->between($dateDebut, $dateFin)) ? 'OUVERT' : 'CLOTURE';

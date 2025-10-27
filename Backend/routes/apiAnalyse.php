@@ -34,7 +34,8 @@ use App\Http\Controllers\ParametresAnalytique\InterpretationIndicateurController
     // Importation
     Route::post('/import/axes', [AxeAnalytiqueController::class, 'import']);
     Route::post('/import/centres', [CentreAnalytiqueController::class, 'import']);
-    Route::post('/import/affectations', [AffectationAnalytiqueController::class, 'import']);
+    Route::post('/import/affectations', [AffectationAnalytiqueController::class, 'importViaCompte']);
+    Route::post('/import/affectations/direct', [AffectationAnalytiqueController::class, 'importDirecte']);
 
     // Analyse cout et profit
     Route::prefix('analyse')->group(function () {

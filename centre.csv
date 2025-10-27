@@ -1,7 +1,7 @@
 nom;description;axe
 Pédagogie;Support pédagogique et matériel;FONCTION
 Administration;Gestion administrative et financière;FONCTION
-Restauration;Service de restauration scolaire;FONCTION
+Cantine;Service de restauration scolaire;FONCTION
 Transport;Transport scolaire et véhicules;FONCTION
 Infrastructure;Maintenance des bâtiments et équipements;FONCTION
 Activités;Activités parascolaires et événements;FONCTION
@@ -9,5 +9,5 @@ Ventes;Ventes et prestations de services;FONCTION
 Finances;Gestion financière et subventions;FONCTION
 Sécurité;Sécurité et assurances;FONCTION
 RH;Ressources humaines et paie;FONCTION
-Production;Production et immobilisations;FONCTION
+Productions;Production et immobilisations;FONCTION
 Communication;Publicité et communication;FONCTION

@@ -1,0 +1,164 @@
+sous_compte;centre;code_type;taux;description
+601001;Pédagogie;COUT;100;Papier, cahiers et copies
+601002;Pédagogie;COUT;100;Encres, craies et peintures
+601003;Pédagogie;COUT;100;Matériel scientifique et technique
+601004;Pédagogie;COUT;100;Fournitures artistiques
+601005;Cantine;COUT;100;Achat de riz
+601006;Cantine;COUT;100;Achat de légumes
+601007;Cantine;COUT;100;Achat de fruits
+601008;Cantine;COUT;100;Achat de viande et poisson
+601009;Cantine;COUT;100;Achat de gouters
+602001;Administration;COUT;100;Fournitures de bureau
+602002;Administration;COUT;100;Cartouches et toners
+602003;Pédagogie;COUT;100;Stylos, crayons et gommes
+602004;Administration;COUT;100;Classeurs, dossiers et archives
+602005;Pédagogie;COUT;100;Livres et manuels scolaires
+602006;Pédagogie;COUT;100;Matériel pédagogique divers
+603001;Administration;COUT;100;Papeterie administrative
+603002;Administration;COUT;100;Cartouches et toners
+603003;Administration;COUT;100;Classeurs dossiers et archives
+604001;Pédagogie;COUT;100;Conception pédagogique externe
+604002;RH;COUT;100;Services de formation continue du personnel
+604003;Infrastructure;COUT;100;Maintenance informatique
+604004;Infrastructure;COUT;100;Achats études techniques
+605001;Infrastructure;COUT;100;Tables et chaises scolaires
+605002;Pédagogie;COUT;100;Tableaux et équipement pédagogiques
+605003;Infrastructure;COUT;100;Matériel informatique de base
+605004;Infrastructure;COUT;100;Factures électricité
+605005;Infrastructure;COUT;100;Factures eau
+605006;Infrastructure;COUT;100;Factures gaz
+606001;Infrastructure;COUT;100;Produits de nettoyage classes
+606002;Infrastructure;COUT;100;Produits hygiène toilettes
+606003;Infrastructure;COUT;100;Matériel de nettoyage (balais, serpillières)
+607001;Pédagogie;COUT;100;Uniformes et tenues scolaires
+607002;Activités;COUT;100;Équipements sportifs
+607003;Activités;COUT;100;Matériel pour activités culturelles
+608001;Transport;COUT;100;Frais de transport des fournitures
+608002;Finances;COUT;100;Frais de douane
+609001;Finances;COUT;100;Remises fournisseurs de papeterie
+611001;Infrastructure;COUT;100;Loyer des salles de classe
+611002;Infrastructure;COUT;100;Loyer des bureaux administratifs
+611003;Infrastructure;COUT;100;Charges eau et électricité bâtiments
+613001;Sécurité;COUT;100;Assurance responsabilité civile
+613002;Sécurité;COUT;100;Assurance scolaire élèves
+613003;Sécurité;COUT;100;Assurance du personnel
+614001;Infrastructure;COUT;100;Charges copropriété écoles
+615001;Infrastructure;COUT;100;Réparation bâtiments scolaires
+615002;Infrastructure;COUT;100;Réparation matériel scolaire
+615003;Transport;COUT;100;Réparation bus scolaire
+616001;Sécurité;COUT;100;Assurance bâtiments
+616002;Sécurité;COUT;100;Assurance véhicules scolaires
+617001;Sécurité;COUT;100;Salaires agents sécurité
+617002;Sécurité;COUT;100;Fournitures pour gardiennage
+617003;Sécurité;COUT;100;Contrat entreprise de sécurité
+618001;Administration;COUT;100;Abonnement revues professionnelles
+619001;Sécurité;COUT;100;Remises sur entretien et gardiennage
+622001;RH;COUT;100;Salaires personnel administratif
+622002;RH;COUT;100;Indemnités personnel administratif
+623001;Communication;COUT;100;Publicité institutionnelle
+624001;Transport;COUT;100;Transport élèves et enseignants
+624002;Transport;COUT;100;Transport matériel scolaire
+625001;RH;COUT;100;Cotisations CNAPS
+625002;RH;COUT;100;Cotisations OSTIE
+625003;RH;COUT;100;Autres charges sociales obligatoires
+625004;Administration;COUT;100;Déplacements professionnels
+625005;Activités;COUT;100;Réceptions et événements
+626001;Administration;COUT;100;Frais envois postaux
+626002;Administration;COUT;100;Abonnement téléphonique et internet
+627001;Finances;COUT;100;Commissions bancaires
+628001;Administration;COUT;100;Cotisation associations pédagogiques
+628002;Activités;COUT;100;Organisation de fetes
+629001;Finances;COUT;100;Remises prestations services
+631001;RH;COUT;100;IRSA enseignants
+631002;RH;COUT;100;IRSA personnel administratif
+635001;Finances;COUT;100;Taxe foncière
+635002;Finances;COUT;100;Taxe professionnelle
+635003;Finances;COUT;100;TVA non déductible
+641001;RH;COUT;100;Vacations et contractuels
+641002;RH;COUT;100;Salaires enseignants primaire
+641003;RH;COUT;100;Salaires enseignants secondaire
+644001;RH;COUT;100;Rémunération direction établissement
+645001;RH;COUT;100;Cotisations retraites
+646001;RH;COUT;100;Cotisations sociales dirigeants
+647001;RH;COUT;100;Autres charges sociales
+648001;RH;COUT;100;Primes et gratifications
+651001;Pédagogie;COUT;100;Licences logiciels éducatifs
+651002;Pédagogie;COUT;100;Abonnements plateformes pédagogiques
+652001;Infrastructure;COUT;100;Moins-value mobilier scolaire
+653001;Administration;COUT;100;Jetons de présence AG
+654001;Finances;COUT;100;Pertes sur créances parents
+655001;Finances;COUT;100;Quote-part activités communes
+656001;Finances;COUT;100;Amendes administratives
+656002;Finances;COUT;100;Subventions accordées
+656003;Finances;COUT;100;Dons
+657001;Administration;COUT;100;Dépenses urgentes
+658001;Administration;COUT;100;Autres dépenses courantes
+661001;Finances;COUT;100;Intérêts prêt bancaire
+661002;Finances;COUT;100;Intérêts crédit bus scolaire
+664001;Finances;COUT;100;Pertes sur partenariats
+665001;Finances;COUT;100;Moins-value titres placements
+666001;Finances;COUT;100;Pertes de change opération bancaire
+667001;Finances;COUT;100;Moins-value financière
+668001;Finances;COUT;100;Frais bancaires divers
+681001;Infrastructure;COUT;100;Amortissement mobilier scolaire
+681002;Infrastructure;COUT;100;Amortissement matériel informatique
+681003;Infrastructure;COUT;100;Amortissement bâtiments
+681004;Transport;COUT;100;Amortissement véhicules
+685001;Finances;COUT;100;Provisions pour risques
+692001;Finances;COUT;100;Impôts différés actifs
+693001;Finances;COUT;100;Impôts différés passifs
+695001;Finances;COUT;100;Impôts bénéfices courants
+698001;Finances;COUT;100;Autres impôts sur bénéfices
+701001;Ventes;PROFIT;100;Ventes de manuels scolaires produits en interne
+701002;Ventes;PROFIT;100;Ventes de cahiers personnalises ecole
+701003;Ventes;PROFIT;100;Ventes de uniformes scolaires fabriques
+702001;Ventes;PROFIT;100;Vente de polycopies
+702002;Ventes;PROFIT;100;Vente de fascicules de cours
+703001;Ventes;PROFIT;100;Vente de materiels scolaires usagers
+703002;Ventes;PROFIT;100;Vente de livres anciens ou surplus
+704001;Ventes;PROFIT;100;Travaux realises par eleves (expos, projets)
+704002;Ventes;PROFIT;100;Travaux pratiques vendus
+705001;Ventes;PROFIT;100;Etudes ou recherches pedagogiques
+706001;Ventes;PROFIT;100;Frais de scolarite
+706002;Ventes;PROFIT;100;Frais dinscription
+706003;Ventes;PROFIT;100;Frais de transport scolaire
+706004;Ventes;PROFIT;100;Frais de cantine
+706005;Ventes;PROFIT;100;Frais de garderie
+707001;Ventes;PROFIT;100;Vente de fournitures scolaires
+707002;Ventes;PROFIT;100;Vente de uniformes scolaires
+707003;Ventes;PROFIT;100;Vente de articles divers (snack, boissons)
+708001;Ventes;PROFIT;100;Location salles ou materiels
+708002;Activités;PROFIT;100;Organisation fetes et evenements
+708003;Activités;PROFIT;100;Club parascolaire (sport musique art)
+709001;Ventes;PROFIT;100;Remises frais de scolarite
+709002;Ventes;PROFIT;100;Rabais sur ventes de fournitures
+713001;Ventes;PROFIT;100;Variation stock fournitures
+713002;Ventes;PROFIT;100;Variation stock uniformes
+714001;Ventes;PROFIT;100;Variation stock livres
+714002;Ventes;PROFIT;100;Variation stock marchandises annexes
+721001;Productions;PROFIT;100;Developpement logiciel pedagogique
+722001;Productions;PROFIT;100;Amenagements classes ou laboratoires
+741001;Finances;PROFIT;100;Subvention de lEtat
+741002;Finances;PROFIT;100;Subvention dautorites locales
+748001;Finances;PROFIT;100;Subvention ONG et associations
+748002;Finances;PROFIT;100;Subvention entreprises privees
+751001;Productions;PROFIT;100;Location logiciels pedagogiques
+751002;Productions;PROFIT;100;Utilisation brevets pedagogiques
+752001;Finances;PROFIT;100;Cession anciens ordinateurs
+752002;Finances;PROFIT;100;Cession anciens vehicules scolaires
+753001;Administration;PROFIT;100;Remuneration conseil administration
+754001;Finances;PROFIT;100;Subventions constructions batiments
+756001;Finances;PROFIT;100;Dons de materiels scolaires
+756002;Finances;PROFIT;100;Dons financiers
+757001;Finances;PROFIT;100;Produits exceptionnels sur gestion
+758001;Finances;PROFIT;100;Revenus divers non specifies
+761001;Finances;PROFIT;100;Revenus participation associations scolaires
+763001;Finances;PROFIT;100;Revenus creances sur parents
+764001;Finances;PROFIT;100;Revenus placement court terme
+766001;Finances;PROFIT;100;Gains sur operations devises
+768001;Finances;PROFIT;100;Produits financiers divers
+781001;Finances;PROFIT;100;Reprise sur batiments
+781002;Finances;PROFIT;100;Reprise sur materiels
+785001;Finances;PROFIT;100;Reprise sur stocks
+786001;Finances;PROFIT;100;Reprise sur emprunts
+786002;Finances;PROFIT;100;Reprise sur creances douteuses
