@@ -7,7 +7,12 @@ INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
 ('601001', 'Papier, cahiers et copies', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601')),
 ('601002', 'Encres, craies et peintures', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601')),
 ('601003', 'Matériel scientifique et technique', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601')),
-('601004', 'Fournitures artistiques', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601'));
+('601004', 'Fournitures artistiques', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601')),
+('601005', 'Achat de riz', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601')),
+('601006', 'Achat de légumes', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601')),
+('601007', 'Achat de fruits', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601')),
+('601008', 'Achat de viande et poisson', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601')),
+('601009', 'Achat de gouters', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '601'));
 
 -- 602 Autres approvisionnements
 INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
@@ -102,10 +107,6 @@ INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
 INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
 ('619001', 'Remises sur entretien et gardiennage', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '619'));
 
--- 621 Personnel extérieur à l’entreprise
-INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
-('621001', 'Salaires enseignants primaire', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '621')),
-('621002', 'Salaires enseignants secondaire', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '621'));
 
 -- 622 Rémunérations d’intermédiaires et honoraires
 INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
@@ -140,7 +141,8 @@ INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
 
 -- 628 Cotisations et divers
 INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
-('628001', 'Cotisation associations pédagogiques', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '628'));
+('628001', 'Cotisation associations pédagogiques', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '628')),
+('628002', 'Organisation de fetes', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '628'));
 
 -- 629 Rabais, remises, ristournes sur autres services extérieurs
 INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
@@ -160,6 +162,9 @@ INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
 -- 641 Rémunérations du personnel
 INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
 ('641001', 'Vacations et contractuels', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '641'));
+INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES
+('641002', 'Salaires enseignants primaire', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '641')),
+('641003', 'Salaires enseignants secondaire', (SELECT "Id_Compte" FROM comptes WHERE "Code_compte" = '641'));
 
 -- 644 Rémunérations des dirigeants
 INSERT INTO Sous_comptes ("Code_sous_compte", "Libelle", "Id_Compte") VALUES

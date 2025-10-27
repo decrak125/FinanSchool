@@ -1,0 +1,9 @@
+DB::table('ligne_ecritures')->TRUNCATE();
+DB::table('mouvement_ecritures')->TRUNCATE();
+DB::table('affectationanalytique')->TRUNCATE();
+DB::table('compte_categories')->TRUNCATE();
+DB::table('intervalle_comptes_categorie')->TRUNCATE();
+DB::table('sous_comptes')->TRUNCATE();
+DB::table('comptes')->TRUNCATE();
+DB::table('rubriques')->TRUNCATE();
+DB::table('classes')->TRUNCATE();
