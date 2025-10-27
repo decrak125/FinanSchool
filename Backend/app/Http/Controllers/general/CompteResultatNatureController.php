@@ -67,7 +67,7 @@ class CompteResultatNatureController extends Controller
             ['label'=>'Production stockée',                  'note'=>'', 'montant'=>$prodStock],
             ['label'=>'Production immobilisée',              'note'=>'', 'montant'=>$prodImmo],
             ['label'=>'Subventions d’exploitation',          'note'=>'comptes 740-749', 'montant'=>$subventionExp],
-            ['label'=>'I – Production de l’exercice',        'note'=>'CA + stockée + immobilisée + subventions', 'montant'=>$prodExercice],
+            ['label'=>'I – Production de l’exercice',        'note'=>'CA + stockée + immobilisée + subventions', 'montant'=>$prodExercice, 'isTotal'=>true],
             ['label'=>'Achats consommés',                    'note'=>'', 'montant'=>$achatConsom],
             ['label'=>'Services extérieurs et autres consommations', 'note'=>'', 'montant'=>$servExt],
             ['label'=>'II – Consommation de l’exercice',     'note'=>'', 'montant'=>$consoExercice],
