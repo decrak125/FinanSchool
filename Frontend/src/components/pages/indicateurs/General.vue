@@ -63,8 +63,8 @@ const handleRefresh = () => {
 const formatMoney = (value) => {
   if (value === null || value === undefined) return '';
   return new Intl.NumberFormat('mg-MG', {
-    style: 'currency',
-    currency: 'MGA',
+    // style: 'currency',
+    // currency: 'MGA',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(value);
@@ -368,7 +368,14 @@ const getTrendIcon = (comparison) => {
               :colorVariation="getTrendClass(comparisons.margeExploitation)" />
           </div>
         </div>
-        <InterpretationCard />
+        <InterpretationCard 
+        :chiffre="comparisons.margeExploitation?.hasData ? formatPercentage(comparisons.margeExploitation.evolution) : 'N/A'" 
+        :texte="'Marge d\'exploitation'"
+        :interpretation="margeExploitation?.marge_exploitation?.interpretation" 
+        :icon="getTrendIcon(comparisons.margeExploitation)"
+        :variation="comparisons.margeExploitation.percentage"
+        :colorVariation="getTrendClass(comparisons.margeExploitation)"
+        />
       </div>
 
 
