@@ -62,6 +62,7 @@ class CoutEtProfitController extends Controller
         $idSousCompte = $request->input('id_sous_compte'); // ← NOUVEAU
         $montantMin = $request->input('montant_min'); // ← NOUVEAU
         $montantMax = $request->input('montant_max'); // ← NOUVEAU
+        $idType = $request->input('id_type');
     
         $query = DB::table('ligne_ecritures as le')
             ->select(
@@ -92,6 +93,9 @@ class CoutEtProfitController extends Controller
         if ($idSousCompte) {
             $query->where('sc.Id_Sous_compte', $idSousCompte);
         }
+        if ($idType) {
+            $query->where('aa.id_type', $idType);
+        }
     
         $results = $query
             ->groupBy('aa.id_type', 'aa.description', 'ca.nom', 'aa.taux', 'sc.Id_Sous_compte', 'sc.Libelle')
@@ -118,6 +122,7 @@ class CoutEtProfitController extends Controller
         $dateStart = $request->input('date_start', '2025-01-01');
         $dateEnd   = $request->input('date_end', '2025-12-31');
         $idCentre  = $request->input('id_centre');
+        $idType = $request->input('id_type');
 
         $query = DB::table('ligne_ecritures as le')
             ->select(
@@ -126,6 +131,7 @@ class CoutEtProfitController extends Controller
                 'ca.nom as centre_nom',
                 'aa.taux as taux_ventilation',
                 'aa.description as description_ventilation',
+                // 'aa.id_type as id_type',
                 // 🔥 CORRECTION : ABS() POUR AVOIR DES MONTANTS POSITIFS
                 DB::raw('ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) as montant_ventile'),
                 DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_total_sous_compte'),
@@ -139,6 +145,9 @@ class CoutEtProfitController extends Controller
 
         if ($idCentre) {
             $query->where('ca.id_centre', $idCentre);
+        }
+        if ($idType) {
+            $query->where('aa.id_type', $idType);
         }
 
         $results = $query

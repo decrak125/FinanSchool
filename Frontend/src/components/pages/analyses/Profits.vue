@@ -73,7 +73,7 @@ const showGlobalView = ref(true);
 const centresChartData = computed(() => ({
   data: centresFiltres.value.map(c => parseFloat(c.montant_ventile) || 0),
   labels: centresFiltres.value.map(c => c.centre),
-  title: 'Coûts ventilés par centres'
+  title: 'Profits ventilés par centres'
 }));
 
 const affectationsChartData = computed(() => ({
@@ -220,26 +220,28 @@ onMounted(async () => {
             <div class="cartes" v-if="statsGlobales != null">
               <div class="hauteur">
                 <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantVentile"
-                  :texte="'Total des profits ventilés.'" :icon="'bi bi-currency-dollar'" :icon-color="'orange'"
+                  :texte="'Total des profits.'" :icon="'bi bi-currency-dollar'" :icon-color="'orange'"
                   :format="'money'" />
-                <Card v-else :chiffre="selectedCentreStats?.montantVentile" :texte="`Coût ventilé - ${selectedCentre}`"
-                  :icon="'bi bi-currency-dollar'" :icon-color="'orange'" :format="'money'" />
+                <Card v-else :chiffre="statsGlobales.totalMontantVentile"
+                  :texte="'Total des profits.'" :icon="'bi bi-currency-dollar'" :icon-color="'orange'"
+                  :format="'money'" />
 
-                <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantBrut" :texte="'Total brut.'"
-                  :icon="'bi bi-cash'" :icon-color="'green'" :format="'money'" />
-                <Card v-else :chiffre="selectedCentreStats?.montantBrut" :texte="`Coût brut - ${selectedCentre}`"
+                <Card v-if="showGlobalView" :chiffre="classement.length" :texte="'Total des affectations.'"
+                  :icon="'bi bi-cash'" :icon-color="'green'" :format="'number'" />
+
+                <Card v-else :chiffre="selectedCentreStats?.montantVentile" :texte="`Coût ventilé - ${selectedCentre}`"
                   :icon="'bi bi-cash'" :icon-color="'green'" :format="'money'" />
               </div>
               <div class="hauteur">
-                <Card v-if="showGlobalView" :chiffre="statsGlobales.difference" :texte="'Différence.'"
-                  :icon="'bi bi-calculator-fill'" :icon-color="'grey'" :format="'money'" />
+                <Card v-if="showGlobalView" :chiffre="classement.length" :texte="'Total des affectations.'"
+                  :icon="'bi bi-diagram-3'" :icon-color="'purple'" :format="'number'" />
                 <Card v-else :chiffre="selectedCentreStats?.pourcentageVentile" :texte="`% Ventilé - ${selectedCentre}`"
                   :icon="'bi bi-percent'" :icon-color="'blue'" :format="'percentage'" />
 
                 <Card v-if="showGlobalView" :chiffre="statsGlobales.nombreCentres" :texte="'Centres des profits actifs.'"
                   :icon="'bi bi-activity'" :icon-color="'green'" />
-                <Card v-else :chiffre="selectedCentreStats?.pourcentageBrut" :texte="`% Brut - ${selectedCentre}`"
-                  :icon="'bi bi-percent'" :icon-color="'purple'" :format="'percentage'" />
+                <Card v-else :chiffre="affectationsFiltrees?.length" :texte="`Affectations ${selectedCentre} actifs` "
+                  :icon="'bi bi-activity'" :icon-color="'green'" :format="'number'" />
               </div>
             </div>
 
@@ -276,9 +278,7 @@ onMounted(async () => {
                 <tr>
                   <th class="col">Centre</th>
                   <th class="col">Montant Ventilé</th>
-                  <th class="col">Montant Brut</th>
                   <th class="col">% Ventilé</th>
-                  <th class="col">% Brut</th>
                   <th class="col">Action</th>
                 </tr>
               </thead>
@@ -287,11 +287,9 @@ onMounted(async () => {
                 <tr v-for="centre in centresFiltres" :key="centre.id_centre" class="cursor-pointer hover:bg-gray-100">
                   <td class="col">{{ centre.centre }}</td>
                   <td class="col">{{ formatMontant(centre.montant_ventile) }}</td>
-                  <td class="col">{{ formatMontant(centre.montant_brut) }}</td>
                   <td class="col" :class="formatPourcentage(centre.pourcentage_ventile).classe">
                     {{ formatPourcentage(centre.pourcentage_ventile).valeur }}
                   </td>
-                  <td class="col">{{ centre.pourcentage_brut }}%</td>
                   <td class="col">
                     <BoutonIcon @click="handleFetchAffectations(centre)" icon-name="eye" :type="'edit'" />
                   </td>
@@ -308,9 +306,8 @@ onMounted(async () => {
                 <tr>
                   <th class="col">Description</th>
                   <th class="col">Centre</th>
-                  <th class="col">Taux Ventilation</th>
                   <th class="col">Montant Ventilé</th>
-                  <th class="col">Montant Brut</th>
+                  <th class="col">Taux Ventilation</th>
                   <th class="col">% Ventilé</th>
                 </tr>
               </thead>
@@ -319,9 +316,8 @@ onMounted(async () => {
                 <tr v-for="a in affectationsFiltrees" :key="a.affectation_description">
                   <td class="col">{{ a.libelle_sous_compte || 'N/A' }}</td>
                   <td class="col">{{ a.centre_nom }}</td>
-                  <td class="col">{{ a.taux_ventilation }}%</td>
                   <td class="col">{{ formatMontant(a.montant_ventile) }}</td>
-                  <td class="col">{{ formatMontant(a.montant_brut) }}</td>
+                  <td class="col">{{ a.taux_ventilation }}%</td>
                   <td class="col" :class="formatPourcentage(a.pourcentage_ventile).classe">
                     {{ formatPourcentage(a.pourcentage_ventile).valeur }}
                   </td>

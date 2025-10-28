@@ -456,4 +456,101 @@ public function importDirecte(Request $request)
         'message'  => "Import terminé : $imported créés, $skipped ignorés."
     ]);
 }
+
+
+
+/**
+ * 🔹 Affiche les sous-comptes non affectés avec pagination (Code_compte 600-799)
+ */
+public function sousComptesNonAffectesPagines(Request $request)
+{
+    $perPage = $request->get('per_page', 8);
+    
+    $sousComptesNonAffectes = SousCompte::whereNotIn('Id_Sous_compte', function($query) {
+        $query->select('Id_Sous_compte')
+              ->from('affectationanalytique');
+    })
+    ->whereHas('compte', function($query) {
+        $query->whereBetween('Code_compte', [600, 799]);
+    })
+    ->with(['compte'])
+    ->paginate($perPage);
+
+    return response()->json([
+        'success' => true,
+        'data' => $sousComptesNonAffectes
+    ]);
+}
+
+/**
+ * 🔹 Crée une affectation pour un sous-compte spécifique
+ */
+public function storeForSousCompte(Request $request)
+{
+    $request->validate([
+        'Id_Sous_compte' => 'required|exists:sous_comptes,Id_Sous_compte',
+        'ventilations' => 'required|array|min:1',
+        'ventilations.*.id_centre' => 'required|exists:centreanalytique,id_centre',
+        'ventilations.*.id_type' => 'required|exists:typecentre,id_type',
+        'ventilations.*.taux' => 'required|numeric|min:0|max:100',
+        'ventilations.*.description' => 'nullable|string|max:255',
+    ]);
+
+    // Vérifier que le total des taux = 100%
+    $totalTaux = collect($request->ventilations)->sum('taux');
+    if (abs($totalTaux - 100) > 0.01) {
+        return response()->json([
+            'success' => false,
+            'message' => "Le total des taux doit être égal à 100% (actuellement: $totalTaux%)"
+        ], 422);
+    }
+
+    // Vérifier que le sous-compte existe
+    $sousCompte = SousCompte::find($request->Id_Sous_compte);
+    if (!$sousCompte) {
+        return response()->json([
+            'success' => false,
+            'message' => "Sous-compte non trouvé"
+        ], 422);
+    }
+
+    $affectations = [];
+    $doublons = [];
+
+    foreach ($request->ventilations as $ventilation) {
+        $existeDeja = AffectationAnalytique::where('Id_Sous_compte', $request->Id_Sous_compte)
+            ->where('id_centre', $ventilation['id_centre'])
+            ->exists();
+
+        if ($existeDeja) {
+            $centreNom = CentreAnalytique::find($ventilation['id_centre'])->nom ?? $ventilation['id_centre'];
+            $doublons[] = 'Centre ' . $centreNom;
+            continue;
+        }
+
+        $affectations[] = AffectationAnalytique::create([
+            'Id_Sous_compte' => $request->Id_Sous_compte,
+            'id_centre'      => $ventilation['id_centre'],
+            'id_type'        => $ventilation['id_type'],
+            'taux'           => $ventilation['taux'],
+            'description'    => $ventilation['description'] ?? $sousCompte->Libelle . ' - Ventilation',
+        ]);
+    }
+
+    $message = count($affectations) . ' affectation(s) créée(s) avec succès pour le sous-compte ' . $sousCompte->Code_sous_compte;
+    
+    if (count($doublons) > 0) {
+        $message .= '. ' . count($doublons) . ' doublon(s) ignoré(s): ' . implode(', ', array_slice($doublons, 0, 5));
+        if (count($doublons) > 5) {
+            $message .= '...';
+        }
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => $message,
+        'data'    => $affectations,
+        'doublons_ignores' => $doublons
+    ], 201);
+}
 }

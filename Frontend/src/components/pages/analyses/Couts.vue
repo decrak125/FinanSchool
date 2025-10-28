@@ -11,45 +11,46 @@ import searchbar from "@/components/atoms/searchbar.vue";
 import FilterInput from "@/components/atoms/Filter-input.vue";
 import FilterSelect from "@/components/atoms/Filter-select.vue";
 import Leaderboard from "@/components/atoms/Chart/Leaderboard.vue";
+
 const {
-  exercice,
-  exercicesList,
-  filters,
-  centresList,
-  centres,
-  affectations,
-  sousComptesVentiles,
-  verificationVentilations,
-  selectedCentre,
-  loading,
-  classement,
-  // Computed
-  statsGlobales,
-  infoExercice,
-  centresFiltres,
-  affectationsFiltrees,
-  classementFiltrees,
-  exercicesOptions,
+    exercice,
+    exercicesList,
+    filters,
+    centresList,
+    centres,
+    affectations,
+    sousComptesVentiles,
+    verificationVentilations,
+    selectedCentre,
+    loading,
+    classement,
+    // Computed
+    statsGlobales,
+    infoExercice,
+    centresFiltres,
+    affectationsFiltrees,
+    classementFiltrees,
+    exercicesOptions,
 
-  // API
-  fetchCentresList,
-  fetchCentres,
-  fetchAffectations,
-  fetchClassement,
-  fetchSousComptesVentiles,
-  fetchVerificationVentilations,
+    // API
+    fetchCentresList,
+    fetchCentres,
+    fetchAffectations,
+    fetchClassement,
+    fetchSousComptesVentiles,
+    fetchVerificationVentilations,
 
-  // 🔥 NOUVELLES FONCTIONS
-  initializeData,
-  changeExercice,
-  resetFilters,
-  fetchExercicesList,
-  formatDateForInput,
-  formatDateForAPI,
+    // 🔥 NOUVELLES FONCTIONS
+    initializeData,
+    changeExercice,
+    resetFilters,
+    fetchExercicesList,
+    formatDateForInput,
+    formatDateForAPI,
 
-  // Utils
-  formatMontant,
-  formatPourcentage,
+    // Utils
+    formatMontant,
+    formatPourcentage,
 
 } = useCout(1);
 
@@ -155,14 +156,15 @@ onMounted(async () => {
           :sousmenu="'Répartition des couts'" />
       </div>
       <ContentHeader v-else :menu="'Analyse des couts'" :sousmenu="'Répartition des couts'" />
+
       <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
       <div class="filtres">
-        <Texte :type="'thin-dark'" :texte="'Du'" />
+        <Texte :type="'thin-dark'" :texte="'Du'"/>
         <div>
 
           <FilterInput type="date" v-model="filters.dateStart" />
         </div>
-        <Texte :type="'thin-dark'" :texte="'au'" />
+        <Texte :type="'thin-dark'" :texte="'au'"/>
         <div>
           <FilterInput type="date" v-model="filters.dateEnd" />
           <!-- <input type="date" v-model="filters.dateEnd" class="border rounded p-1" /> -->
@@ -175,13 +177,22 @@ onMounted(async () => {
             {{ centresFiltres.length }} centre(s) trouvé(s)
           </div> -->
         </div>
-        <FilterSelect v-if="showGlobalView" v-model="filters.idExercice" @change="handleExerciceChange">
+        <FilterSelect 
+        v-if="showGlobalView"
+          v-model="filters.idExercice"
+          @change="handleExerciceChange"
+        >
           <option value="">Exercice ouvert (actuel)</option>
-          <option v-for="exo in exercicesOptions" :key="exo.value" :value="exo.value"
-            :selected="exo.value === filters.idExercice">
+          <option 
+            v-for="exo in exercicesOptions" 
+            :key="exo.value" 
+            :value="exo.value"
+            :selected="exo.value === filters.idExercice"
+          >
             {{ exo.label }}
           </option>
         </FilterSelect>
+
         <!-- Filtre pour les affectations (vue détaillée) -->
         <div v-if="!showGlobalView" class="filtre-affectation mb-4">
           <div class="relative">
@@ -209,40 +220,28 @@ onMounted(async () => {
             <div class="cartes" v-if="statsGlobales != null">
               <div class="hauteur">
                 <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantVentile"
-                  :texte="'Total des couts ventilés.'" :icon="'bi bi-currency-dollar'" :icon-color="'orange'"
+                  :texte="'Total des couts.'" :icon="'bi bi-currency-dollar'" :icon-color="'orange'"
                   :format="'money'" />
-                <Card v-else :chiffre="selectedCentreStats?.montantVentile" :texte="`Coût ventilé - ${selectedCentre}`"
-                  :icon="'bi bi-currency-dollar'" :icon-color="'orange'" :format="'money'" />
+                <Card v-else :chiffre="statsGlobales.totalMontantVentile"
+                  :texte="'Total des couts.'" :icon="'bi bi-currency-dollar'" :icon-color="'orange'"
+                  :format="'money'" />
 
-                <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantBrut" :texte="'Total brut.'"
-                  :icon="'bi bi-cash'" :icon-color="'green'" :format="'money'" />
-                <Card v-else :chiffre="selectedCentreStats?.montantBrut" :texte="`Coût brut - ${selectedCentre}`"
+                <Card v-if="showGlobalView" :chiffre="classement.length" :texte="'Total des affectations.'"
+                  :icon="'bi bi-cash'" :icon-color="'green'" :format="'number'" />
+
+                <Card v-else :chiffre="selectedCentreStats?.montantVentile" :texte="`Coût ventilé - ${selectedCentre}`"
                   :icon="'bi bi-cash'" :icon-color="'green'" :format="'money'" />
               </div>
               <div class="hauteur">
-                <Card v-if="showGlobalView" :chiffre="statsGlobales.difference" :texte="'Différence.'"
-                  :icon="'bi bi-calculator-fill'" :icon-color="'grey'" :format="'money'" />
+                <Card v-if="showGlobalView" :chiffre="classement.length" :texte="'Total des affectations.'"
+                  :icon="'bi bi-diagram-3'" :icon-color="'purple'" :format="'number'" />
                 <Card v-else :chiffre="selectedCentreStats?.pourcentageVentile" :texte="`% Ventilé - ${selectedCentre}`"
                   :icon="'bi bi-percent'" :icon-color="'blue'" :format="'percentage'" />
 
                 <Card v-if="showGlobalView" :chiffre="statsGlobales.nombreCentres" :texte="'Centres des couts actifs.'"
                   :icon="'bi bi-activity'" :icon-color="'green'" />
-                <Card v-else :chiffre="selectedCentreStats?.pourcentageBrut" :texte="`% Brut - ${selectedCentre}`"
-                  :icon="'bi bi-percent'" :icon-color="'purple'" :format="'percentage'" />
-              </div>
-            </div>
-            <div class="cartes" v-else>
-              <div class="hauteur">
-                <Card :chiffre="selectedCentreStats?.montantVentile" :texte="`Coût ventilé - ${selectedCentre}`"
-                  :icon="'bi bi-currency-dollar'" :icon-color="'orange'" :format="'money'" :loading="true" />
-              <Card :chiffre="selectedCentreStats?.montantBrut" :texte="`Coût brut - ${selectedCentre}`"
-                  :icon="'bi bi-cash'" :icon-color="'green'" :format="'money'" :loading="true" />
-              </div>
-              <div class="hauteur">
-                <Card :chiffre="selectedCentreStats?.pourcentageVentile" :texte="`% Ventilé - ${selectedCentre}`"
-                  :icon="'bi bi-percent'" :icon-color="'blue'" :format="'percentage'" :loading="true" />
-                <Card :chiffre="selectedCentreStats?.pourcentageBrut" :texte="`% Brut - ${selectedCentre}`"
-                  :icon="'bi bi-percent'" :icon-color="'purple'" :format="'percentage'" :loading="true" />
+                <Card v-else :chiffre="affectationsFiltrees?.length" :texte="`Affectations ${selectedCentre} actifs` "
+                  :icon="'bi bi-activity'" :icon-color="'green'" :format="'number'" />
               </div>
             </div>
 
@@ -279,9 +278,7 @@ onMounted(async () => {
                 <tr>
                   <th class="col">Centre</th>
                   <th class="col">Montant Ventilé</th>
-                  <th class="col">Montant Brut</th>
                   <th class="col">% Ventilé</th>
-                  <th class="col">% Brut</th>
                   <th class="col">Action</th>
                 </tr>
               </thead>
@@ -290,11 +287,9 @@ onMounted(async () => {
                 <tr v-for="centre in centresFiltres" :key="centre.id_centre" class="cursor-pointer hover:bg-gray-100">
                   <td class="col">{{ centre.centre }}</td>
                   <td class="col">{{ formatMontant(centre.montant_ventile) }}</td>
-                  <td class="col">{{ formatMontant(centre.montant_brut) }}</td>
                   <td class="col" :class="formatPourcentage(centre.pourcentage_ventile).classe">
                     {{ formatPourcentage(centre.pourcentage_ventile).valeur }}
                   </td>
-                  <td class="col">{{ centre.pourcentage_brut }}%</td>
                   <td class="col">
                     <BoutonIcon @click="handleFetchAffectations(centre)" icon-name="eye" :type="'edit'" />
                   </td>
@@ -311,9 +306,8 @@ onMounted(async () => {
                 <tr>
                   <th class="col">Description</th>
                   <th class="col">Centre</th>
-                  <th class="col">Taux Ventilation</th>
                   <th class="col">Montant Ventilé</th>
-                  <th class="col">Montant Brut</th>
+                  <th class="col">Taux Ventilation</th>
                   <th class="col">% Ventilé</th>
                 </tr>
               </thead>
@@ -322,9 +316,8 @@ onMounted(async () => {
                 <tr v-for="a in affectationsFiltrees" :key="a.affectation_description">
                   <td class="col">{{ a.libelle_sous_compte || 'N/A' }}</td>
                   <td class="col">{{ a.centre_nom }}</td>
-                  <td class="col">{{ a.taux_ventilation }}%</td>
                   <td class="col">{{ formatMontant(a.montant_ventile) }}</td>
-                  <td class="col">{{ formatMontant(a.montant_brut) }}</td>
+                  <td class="col">{{ a.taux_ventilation }}%</td>
                   <td class="col" :class="formatPourcentage(a.pourcentage_ventile).classe">
                     {{ formatPourcentage(a.pourcentage_ventile).valeur }}
                   </td>
@@ -335,7 +328,7 @@ onMounted(async () => {
 
         </div>
         <div class="droite">
-          <Leaderboard :depenses="classementFiltrees" :texte="'Classement des Dépenses'" :ready="true" />
+          <Leaderboard v-if="showGlobalView" :depenses="classementFiltrees" :texte="'Classement des couts'" />
         </div>
       </div>
     </div>
@@ -344,15 +337,16 @@ onMounted(async () => {
 
 
 <style lang="scss" scoped>
-// Variables de breakpoints
-$mobile: 768px;
-$tablet: 1024px;
-$desktop: 1200px;
 
+html, body {
+  height: 100%;
+  margin: 0;
+}
 .content {
   @include position-contenus(flex, flex-start, flex-start);
   // overflow-y: auto;
   width: 100%;
+  height: 100%;
   // max-height: 60vh;
   border-radius: $radius-pm;
   align-self: stretch;
@@ -363,12 +357,9 @@ $desktop: 1200px;
   // }
 }
 
+
 // .content::-webkit-scrollbar {
 //   width: 10px;
-
-//   @media (max-width: $mobile) {
-//     width: 6px;
-//   }
 // }
 
 // .content::-webkit-scrollbar-track {
@@ -390,99 +381,46 @@ $desktop: 1200px;
   padding: 10px 0;
   align-self: stretch;
   gap: 32px;
-
-  @media (max-width: $tablet) {
-    gap: 24px;
-    flex-direction: column;
-  }
-
-  @media (max-width: $mobile) {
-    gap: 16px;
-    padding: 5px 0;
-  }
 }
 
 .cartes {
   @include position-contenus(grid, center, center);
   padding: 0;
   gap: 32px;
-
-  @media (max-width: $tablet) {
-    gap: 24px;
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: $mobile) {
-    gap: 16px;
-    grid-template-columns: 1fr;
-  }
 }
 
 .hauteur {
   @include position-contenus(flex, center, center);
   padding: 0;
   gap: 32px;
-
-  @media (max-width: $tablet) {
-    gap: 24px;
-    flex-direction: column;
-  }
-
-  @media (max-width: $mobile) {
-    gap: 16px;
-  }
 }
 
 .gauche {
   @include position-contenus(grid, center, center);
   gap: 10px;
-
-  @media (max-width: $tablet) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: $mobile) {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
 }
-
 .droite {
   padding: 10px 0;
+  height: 100%;
   @include position-contenus(flex, center, center);
   gap: 10px;
-
+  
   @media (max-width: $tablet) {
     grid-template-columns: repeat(2, 1fr);
   }
-
+  
   @media (max-width: $mobile) {
     grid-template-columns: 1fr;
     gap: 8px;
   }
 }
-
 #axesTable {
   @include table(#f5f5f5);
-
-  @media (max-width: $mobile) {
-    font-size: 0.875rem;
-  }
 }
 
 .chart-container {
   width: fit-content;
   height: fit-content;
-
-  @media (max-width: $tablet) {
-    width: 100%;
-    max-width: 400px;
-    margin: 0 auto;
-  }
-
-  @media (max-width: $mobile) {
-    max-width: 300px;
-  }
 }
 
 .chart-container :deep(.apexcharts-pie-series) path {
@@ -508,15 +446,6 @@ $desktop: 1200px;
   flex: 1 0 0;
   align-self: stretch;
   animation: appear 0.6s ease-out forwards;
-
-  @media (max-width: $tablet) {
-    padding: 0 24px;
-  }
-
-  @media (max-width: $mobile) {
-    padding: 0 16px;
-    gap: 8px;
-  }
 }
 
 .informations {
@@ -525,12 +454,6 @@ $desktop: 1200px;
   align-self: stretch;
   border-bottom: 1px solid #C5C5C5;
   gap: 10px;
-
-  @media (max-width: $mobile) {
-    flex-direction: column;
-    padding: 8px 0;
-    gap: 8px;
-  }
 }
 
 .filtres {
@@ -538,59 +461,27 @@ $desktop: 1200px;
   padding: 0 0;
   align-self: self-start;
   gap: 10px;
-
-  @media (max-width: $tablet) {
-    flex-wrap: wrap;
-    align-self: stretch;
-  }
-
-  @media (max-width: $mobile) {
-    gap: 8px;
-    justify-content: center;
-  }
 }
 
 .donuts {
   @include position-contenus(flex, flex-start, flex-start);
   gap: 32px;
-
-  @media (max-width: $tablet) {
-    gap: 24px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  @media (max-width: $mobile) {
-    gap: 16px;
-    flex-direction: column;
-    align-items: center;
-  }
 }
 
 .back-button {
   margin-top: 20px;
-
-  @media (max-width: $mobile) {
-    margin-top: 16px;
-    width: 100%;
-    text-align: center;
-  }
 }
 
 .info-lalina {
   align-self: baseline;
   @include position-contenus(flex, center, center);
   gap: 16px;
-
-  @media (max-width: $tablet) {
-    align-self: center;
-  }
-
-  @media (max-width: $mobile) {
-    flex-direction: column;
-    gap: 12px;
-    text-align: center;
-  }
 }
 
-// Duplicate .filtres class removed since it's already defined above</style>
+.filtres {
+  @include position-contenus(flex, flex-start, center);
+  padding: 0 0;
+  align-self: self-start;
+  gap: 10px;
+}
+</style>

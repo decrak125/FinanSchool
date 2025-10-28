@@ -7,6 +7,7 @@ export function useCout(type) {
   const exercice = ref(null);
   const exercicesList = ref([]); // 📌 Nouveau: liste de tous les exercices
   const loading = ref(false);
+  const idType = ref(type);
   
   // 📌 Filtres avec dates basées sur l'exercice
   const filters = ref({
@@ -186,7 +187,7 @@ export function useCout(type) {
           date_start: formatDateForAPI(filters.value.dateStart),
           date_end: formatDateForAPI(filters.value.dateEnd),
           id_centre: filters.value.idCentre || null,
-          id_type: type,
+          id_type: idType.value,
         },
       });
       centres.value = response.data;
@@ -208,6 +209,7 @@ export function useCout(type) {
           date_start: formatDateForAPI(filters.value.dateStart),
           date_end: formatDateForAPI(filters.value.dateEnd),
           id_centre: centre.id_centre,
+          id_type: idType.value,
         },
       });
       affectations.value = response.data;
@@ -228,6 +230,7 @@ export function useCout(type) {
           date_start: formatDateForAPI(filters.value.dateStart),
           date_end: formatDateForAPI(filters.value.dateEnd),
           id_centre: centre ? centre.id_centre : (filters.value.idCentre || null),
+          id_type: idType.value,
         },
       });
       sousComptesVentiles.value = response.data;
