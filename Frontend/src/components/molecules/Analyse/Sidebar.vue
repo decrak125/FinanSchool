@@ -89,6 +89,11 @@ const menuConfig = [
         id: 'Affectations',
         texte: 'Affectations aux centres',
         redirection: '/affectation-analytique'
+      },
+      {
+        id: 'non-affected',
+        texte: 'Sous-comptes non affectés',
+        redirection: '/non-affected'
       }
     ]
   },

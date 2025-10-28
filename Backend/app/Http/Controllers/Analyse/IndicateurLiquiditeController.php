@@ -44,16 +44,19 @@ class IndicateurLiquiditeController extends Controller
 
         // CALCUL DU RATIO
         $ratio = 0;
-        $interpretation = "";
+        $interpretation = "Non définie";
         $niveauAlerte = null;
+        $interpretationData = $this->getInterpretation('Ratio de liquidité générale', $ratio);
+        $formule = $interpretationData['formule'];
 
         if ($passifCourtTerme > 0) {
             $ratio = $actifCirculant / $passifCourtTerme;
             
             // Récupérer l'interprétation depuis la table
-            $interpretationData = $this->getInterpretation('Ratio de liquidité générale', $ratio);
+            // $interpretationData = $this->getInterpretation('Ratio de liquidité générale', $ratio);
             $interpretation = $interpretationData['interpretation'];
             $niveauAlerte = $interpretationData['niveau_alerte'];
+            $formule = $interpretationData['formule'];
         }
 
         return response()->json([
@@ -72,7 +75,7 @@ class IndicateurLiquiditeController extends Controller
                 'date_debut' => $dateDebut,
                 'date_fin' => $dateFin
             ],
-            'formule' => $interpretationData['formule'],
+            'formule' => $formule,
             'definition' => 'Mesure la capacité à honorer les dettes à court terme'
         ]);
     }

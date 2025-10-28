@@ -6,6 +6,7 @@ import General from "@/components/pages/indicateurs/General.vue";
 import Liquidite from "@/components/pages/indicateurs/Liquidite.vue";
 import Solvabilite from "@/components/pages/indicateurs/Solvabilite.vue";
 import Rentabilite from "@/components/pages/indicateurs/Rentabilite.vue";
+import NonAffected from "@/components/pages/configAnalytique/NonAffected.vue";
 
 export default [
   {
@@ -47,5 +48,10 @@ export default [
       path: "/indicateur-rentabilite",
       name: Rentabilite,
       component: Rentabilite
+    },
+    {
+      path: "/non-affected",
+      name: NonAffected,
+      component: NonAffected
     }
 ];

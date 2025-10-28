@@ -25,7 +25,8 @@ use App\Http\Controllers\ParametresAnalytique\InterpretationIndicateurController
      Route::apiResource('indicateurs-analytique', IndicateurAnalytiqueController::class);
      Route::apiResource('niveaux-alerte', NiveauAlerteController::class);
      Route::apiResource('interpretations-indicateur', InterpretationIndicateurController::class);
-
+     Route::get('/affectations/non-affectes/pagines', [AffectationAnalytiqueController::class, 'sousComptesNonAffectesPagines']);
+     Route::post('/affectations/store-sous-compte', [AffectationAnalytiqueController::class, 'storeForSousCompte']);
      // Routes supplémentaires
      Route::get('indicateurs-analytique/categorie/{categorie}', [IndicateurAnalytiqueController::class, 'getByCategorie']);
      Route::get('interpretations-indicateur/indicateur/{idIndicateur}', [InterpretationIndicateurController::class, 'getByIndicateur']);
