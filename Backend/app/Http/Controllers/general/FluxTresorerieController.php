@@ -26,10 +26,10 @@ class FluxTresorerieController extends Controller
         };
 
         // Helper pour variations (à implémenter selon ta logique)
-        $getVariation = function ($code) use ($dateDebut, $dateFin) {
-            // Calcule la variation N - N-1 pour les postes de bilan
-            return 0; // Placeholder
-        };
+$getVariation = function ($code) use ($dateDebut, $dateFin) {
+    return \App\Http\Controllers\calcul\UtilesController::calculerVariationCategorie($code, $dateDebut, $dateFin);
+};
+
 
         // ============ CALCUL DU RÉSULTAT NET ============
         $ca = $get('CA');

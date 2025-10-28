@@ -222,11 +222,11 @@
               </div>
               <div 
                 class="submenu-item"
-                :class="{ active: currentRoute === '/tiers' }"
-                @click="navigateTo({ route: '/tiers', name: 'Tiers' })"
+                :class="{ active: currentRoute === '/amortissement' }"
+                @click="navigateTo({ route: '/amortissement', name: 'Amortissement' })"
               >
                 <i class="bi bi-people"></i>
-                <span>Tiers</span>
+                <span>Amortissements</span>
               </div>
             </div>
           </transition>
@@ -516,7 +516,7 @@ export default {
           children: [
             { name: 'Devises', route: '/devise', icon: 'bi bi-currency-exchange' },
             { name: 'Modes de paiement', route: '/paiement-mode', icon: 'bi bi-credit-card' },
-            { name: 'Tiers', route: '/tiers', icon: 'bi bi-people' }
+            { name: 'Amortissement', route: '/amortissement', icon: 'bi bi-people' }
           ],
           isOpen: false
         }

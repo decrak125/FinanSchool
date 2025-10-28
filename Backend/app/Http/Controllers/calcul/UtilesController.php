@@ -166,5 +166,19 @@ public function getSommeParCategorie(Request $request)
     return $resultat;
 }
 
+public static function calculerVariationCategorie($codeCategorie, $dateDebut, $dateFin)
+{
+    // Solde à la date de début
+    $resultatDebut = self::calculerSommeCategorie($codeCategorie, $dateDebut, $dateDebut);
+    $montantDebut = $resultatDebut && $resultatDebut->montant_total ? floatval($resultatDebut->montant_total) : 0;
+
+    // Solde à la date de fin
+    $resultatFin = self::calculerSommeCategorie($codeCategorie, $dateFin, $dateFin);
+    $montantFin = $resultatFin && $resultatFin->montant_total ? floatval($resultatFin->montant_total) : 0;
+
+    return $montantFin - $montantDebut; // Variation N - N-1
+}
+
+
 
 }

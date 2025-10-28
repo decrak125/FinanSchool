@@ -61,38 +61,27 @@ export function useEcriture() {
     }, 3000);
   };
 
-  const fetchMouvements = async () => {
-    try {
-      const res = await axios.get("http://127.0.0.1:8000/api/mouvements");
-      const mouvementsData = res.data;
-
-      for (let m of mouvementsData) {
-        try {
-          const lignesRes = await axios.get(`http://127.0.0.1:8000/api/lignes?mouvement_id=${m.Id_Mouvement_ecriture}`);
-          m.lignes = (lignesRes.data || [])
-            .filter(l => l.Id_Mouvement_ecriture === m.Id_Mouvement_ecriture)
-            .map(ligne => ({
-              ...ligne,
-              sousCompteSearch: ligne.sous_compte ? `${ligne.sous_compte.Code_sous_compte} - ${ligne.sous_compte.Libelle}` : '',
-              showSuggestions: false,
-              suggestions: [],
-              selectedSuggestionIndex: -1,
-              sousCompteError: '',
-              enregistrementEnCours: false // ✅ AJOUTÉ ICI
-            }));
-        } catch (error) {
-          console.error(`Erreur lors du chargement des lignes pour le mouvement ${m.Id_Mouvement_ecriture}:`, error);
-          m.lignes = [];
-        }
-      }
+const fetchMouvements = async () => {
+  try {
+    // ✅ Utilisez la route complète au lieu de index()
+    const res = await axios.get("http://127.0.0.1:8000/api/mouvements-complets?limit=100");
+    
+    console.log('📦 Données reçues:', res.data);
+    
+    // Si c'est paginé, les données sont dans res.data.data
+    const mouvementsData = res.data.data || res.data;
+    
+    mouvements.value = mouvementsData
+      .sort((a, b) => new Date(b.Date_mouvement) - new Date(a.Date_mouvement));
       
-      mouvements.value = mouvementsData
-        .filter(m => !isMouvementValide(m))
-        .sort((a, b) => new Date(b.Date_mouvement) - new Date(a.Date_mouvement));
-    } catch (error) {
-      handleError(error, 'Erreur lors du chargement des mouvements');
-    }
-  };
+  } catch (error) {
+    handleError(error, 'Erreur lors du chargement des mouvements');
+  }
+};
+
+
+
+
 
   const fetchOptions = async () => {
     try {
@@ -507,28 +496,14 @@ const updateLigne = async (mouvementId, ligneIndex) => {
     }).format(montant);
   };
 
-  onMounted(async () => {
-    isLoading.value = true;
-    try {
-      await fetchOptions();
-      await fetchMouvements();
-    } catch (error) {
-      handleError(error, 'Erreur lors de l\'initialisation');
-    } finally {
-      isLoading.value = false;
-    }
-    const today = new Date().toISOString().split('T')[0];
-    mouvementForm.value.Date_mouvement = today;
-  });
-
-onMounted(async () => {
-  // ========== 1. AUTHENTIFICATION (EN PREMIER) ==========
+ onMounted(async () => {
+  // ========== 1. AUTHENTIFICATION ==========
   console.log("Token récupéré :", token);
   
   if (!token) {
     console.log("Pas de token → Redirection vers /");
     window.location.href = "/";
-    return; // Arrête l'exécution immédiatement
+    return;
   }
 
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -542,10 +517,10 @@ onMounted(async () => {
     console.error("Erreur lors de getUser :", err);
     localStorage.removeItem("token");
     window.location.href = "/";
-    return; // Arrête l'exécution
+    return;
   }
 
-  // ========== 2. CHARGEMENT DES DONNÉES DE LA PAGE ==========
+  // ========== 2. CHARGEMENT DES DONNÉES ==========
   isLoading.value = true;
   try {
     await fetchOptions();
@@ -556,10 +531,11 @@ onMounted(async () => {
     isLoading.value = false;
   }
 
-  // ========== 3. INITIALISATION DE LA DATE ==========
+  // ========== 3. INITIALISATION DATE ==========
   const today = new Date().toISOString().split('T')[0];
   mouvementForm.value.Date_mouvement = today;
 });
+
 
 
   const handleNavigation = (item) => {

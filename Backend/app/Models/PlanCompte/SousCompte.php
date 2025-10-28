@@ -27,4 +27,9 @@ class SousCompte extends Model
     {
         return $this->belongsTo(Compte::class, 'Id_Compte', 'Id_Compte');
     }
+
+     public function amortissements()
+    {
+        return $this->hasMany(Amortissement::class, 'Id_Sous_compte');
+    }
 }

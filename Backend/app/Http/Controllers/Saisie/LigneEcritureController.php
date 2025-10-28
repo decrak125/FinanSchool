@@ -22,16 +22,20 @@ class LigneEcritureController extends Controller
 
         try {
             $mouvements = MouvementEcriture::with([
-                'lignes.sousCompte',
-                'lignes.modePaiement',
-                'journal'
-            ])
-                ->whereHas('lignes', function ($query) {
-                    $query->where('statut', '!=', 'valide')
-                        ->orWhereNull('statut');
-                })
-                ->orderBy('Date_mouvement', 'desc')
-                ->paginate($limit);
+            'lignes.sousCompte',
+            'lignes.modePaiement',
+            'journal'
+        ])
+        // ✅ CORRECTION : Inclure les mouvements sans lignes OU avec lignes non validées
+        ->where(function ($query) {
+            $query->whereHas('lignes', function ($q) {
+                $q->where('statut', '!=', 'valide')
+                  ->orWhereNull('statut');
+            })
+            ->orWhereDoesntHave('lignes'); // ✅ Ajoute les mouvements sans lignes
+        })
+        ->orderBy('Date_mouvement', 'desc')
+        ->paginate($limit);
 
             $mouvements->getCollection()->transform(function ($mouvement) {
                 $totalDebit = $mouvement->lignes->sum('Debit');
@@ -71,6 +75,17 @@ class LigneEcritureController extends Controller
             ], 500);
         }
     }
+
+    // Dans app/Http/Controllers/MouvementController.php
+public function index()
+{
+    $mouvements = MouvementEcriture::with(['lignes.sousCompte', 'journal'])
+        ->orderBy('Date_mouvement', 'desc')
+        ->get();
+    
+    return response()->json($mouvements);
+}
+
 
     public function createMouvement(Request $request)
     {
@@ -171,10 +186,7 @@ class LigneEcritureController extends Controller
 
     // ========== Lignes ==========
 
-    public function index()
-    {
-        return LigneEcriture::with('journal', 'sousCompte', 'mouvement', 'modePaiement')->get();
-    }
+   
 
     public function show($id)
     {

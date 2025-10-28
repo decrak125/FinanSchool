@@ -31,6 +31,7 @@ use App\Http\Controllers\general\FluxTresorerieController;
 use App\Http\Controllers\general\VariationsCapitauxController;
 use App\Http\Controllers\import\ImportEcritureController;
 use App\Http\Controllers\tableau\DashboardController;
+use App\Http\Controllers\Saisie\AmortissementController;
 
 Route::middleware('api')->group(function () {
     Route::post('/example', function (Request $request) {
@@ -158,5 +159,11 @@ Route::get('/dashboard/evolution-ca', [DashboardController::class, 'evolutionCA'
 Route::get('/dashboard/evolution-tresorerie', [DashboardController::class, 'evolutionTresorerie']);
 Route::get('/dashboard/composition-bilan', [DashboardController::class, 'compositionBilan']);
 Route::get('/dashboard/decomposition-resultat', [DashboardController::class, 'decompositionResultat']);
+
+
+
+Route::get('amortissements/taux', [AmortissementController::class, 'getTaux']);
+Route::get('amortissements/solde-brut/{Id_Sous_compte}/{finExercice}', [AmortissementController::class, 'getSoldeBrut']);
+Route::apiResource('amortissements', AmortissementController::class);
 
 });
