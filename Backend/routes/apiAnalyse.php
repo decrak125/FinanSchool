@@ -14,7 +14,10 @@ use App\Http\Controllers\Analyse\IndicateurSolvabiliteController;
 use App\Http\Controllers\ParametresAnalytique\IndicateurAnalytiqueController;
 use App\Http\Controllers\ParametresAnalytique\NiveauAlerteController;
 use App\Http\Controllers\ParametresAnalytique\InterpretationIndicateurController;
+use App\Http\Controllers\ChatBot\ChatController;
 
+     Route::post('/chat/send', [ChatController::class, 'sendMessage']);
+     Route::get('/chat/history/{sessionId}', [ChatController::class, 'getChatHistory']);
     Route::put('/affectations/multiple', [AffectationAnalytiqueController::class, 'updateMultiple']);
     Route::delete('/affectations/sous-compte/{id_sous_compte}', [AffectationAnalytiqueController::class, 'destroyBySousCompte']);
     // crud parametres analytiques

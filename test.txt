@@ -1,4 +1,4 @@
-composer require maatwebsite/excel
+composer require openai-php/laravel
 npm install apexcharts vue3-apexcharts
 
 

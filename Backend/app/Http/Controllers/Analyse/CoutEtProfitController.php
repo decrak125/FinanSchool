@@ -411,6 +411,24 @@ public function getClassementCentres(Request $request)
     return response()->json($classement);
 }
 
+public function getClassementCentresLocal($year, $idType)
+{
+        $centres = DB::table('mv_comparaison_annuelle')
+            ->where('annee', $year)
+            ->where('id_type', $idType)
+            ->orderByDesc('montant_ventile')
+            ->get();
+        
+        $total = $centres->sum('montant_ventile');
+        
+        return $centres->map(function($centre, $index) use ($total) {
+            $centre->rang_global = $index + 1;
+            $centre->part_marche = $total > 0 ? round(($centre->montant_ventile / $total * 100), 2) : 0;
+
+            return $centre;
+        });
+}
+
 public function getAlertesAutomatiques(Request $request)
 {
     // 🔥 Déclencher l'événement
@@ -670,4 +688,61 @@ public function classementSousCompte(Request $request)
     }
 
     return response()->json($results->values());
-}}
+}
+public function classementSousCompteLocal($idType,$dateStart,$dateEnd,$idCentre,$idSousCompte,$montantMin,$montantMax)
+{
+    event(new MouvementCreated());
+    
+    $query = DB::table('ligne_ecritures as le')
+        ->select(
+            'aa.id_type',
+            'aa.description as affectation_description',
+            'ca.nom as centre_nom',
+            'aa.taux as taux_ventilation',
+            'sc.Id_Sous_compte as id_sous_compte',
+            'sc.Libelle as libelle_sous_compte',
+            // Montants
+            DB::raw('ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) as montant_ventile'),
+            DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_brut'),
+            DB::raw('ROUND(ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) * 100.0 / NULLIF(SUM(ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)))) OVER (), 0), 2) as pourcentage_ventile'),
+            DB::raw('ROUND(ABS(SUM(le."Debit" - le."Credit")) * 100.0 / NULLIF(SUM(ABS(SUM(le."Debit" - le."Credit"))) OVER (), 0), 2) as pourcentage_brut')
+        )
+        ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
+        ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
+        ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')
+        ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
+        ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd]);
+
+    // Filtrer par centre si fourni
+    if ($idCentre) {
+        $query->where('ca.id_centre', $idCentre);
+    }
+
+    // Filtres sous-compte
+    if ($idSousCompte) {
+        $query->where('sc.Id_Sous_compte', $idSousCompte);
+    }
+
+    // 🔥 Filtrer par type spécifique
+    if ($idType) {
+        $query->where('aa.id_type', $idType);
+    }
+
+    $results = $query
+        ->groupBy('aa.id_type', 'aa.description', 'ca.nom', 'aa.taux', 'sc.Id_Sous_compte', 'sc.Libelle')
+        ->orderByDesc('montant_ventile') // Classement du plus gros au plus petit montant
+        ->limit(10) // Les 10 plus gros montants
+        ->get();
+
+    // Filtrage par montant (fait après pour éviter la complexité SQL)
+    if ($montantMin) {
+        $results = $results->where('montant_ventile', '>=', $montantMin);
+    }
+    
+    if ($montantMax) {
+        $results = $results->where('montant_ventile', '<=', $montantMax);
+    }
+
+    return $results;
+}
+}

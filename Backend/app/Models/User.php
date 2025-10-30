@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Notifications\ResetPasswordNotification;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\ChatBot\ChatMessage;
 
 
 class User extends Authenticatable
@@ -55,6 +56,14 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+     /**
+     * Relation avec les messages du chatbot
+     */
+    public function chatMessages()
+    {
+        return $this->hasMany(ChatMessage::class);
     }
 
 
