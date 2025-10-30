@@ -32,8 +32,13 @@ use App\Http\Controllers\general\VariationsCapitauxController;
 use App\Http\Controllers\import\ImportEcritureController;
 use App\Http\Controllers\tableau\DashboardController;
 use App\Http\Controllers\Saisie\AmortissementController;
+use App\Http\Controllers\ChatBot\ChatController;
 
 Route::middleware('api')->group(function () {
+    
+    Route::post('/chat/send', [ChatController::class, 'sendMessage']);
+    Route::get('/chat/history/{sessionId}', [ChatController::class, 'getChatHistory']);
+
     Route::post('/example', function (Request $request) {
         return response()->json(['message' => 'POST request received']);
     });
