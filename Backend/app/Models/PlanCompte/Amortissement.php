@@ -5,16 +5,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Amortissement extends Model
 {
-    protected $table = 'amortissements';
+    protected $table = 'immobilisations';
     protected $fillable = [
+        'libelle',
         'Id_Sous_compte',
         'taux_amortissement_id',
-        'date_amortissement',
-        'exercice',
-        'montant',
-        'cumul',
-        'is_exceptionnel',
-        'commentaire'
+        'valeur_brute',
+        'date_acquisition',
+        'date_debut_utilisation'
     ];
 
     public function sousCompte()

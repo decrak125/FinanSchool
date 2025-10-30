@@ -8,22 +8,17 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('amortissements', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('Id_Sous_compte')
-                  ->constrained('sous_comptes', 'Id_Sous_compte')
-                  ->onDelete('cascade');
-            $table->foreignId('taux_amortissement_id')
-                  ->constrained('taux_amortissement')
-                  ->onDelete('restrict');
-            $table->date('date_amortissement');
-            $table->integer('exercice');
-            $table->decimal('montant', 19, 2);
-            $table->decimal('cumul', 19, 2)->default(0);
-            $table->boolean('is_exceptionnel')->default(false);
-            $table->text('commentaire')->nullable();
-            $table->timestamps();
-        });
+       Schema::create('immobilisations', function (Blueprint $table) {
+    $table->id();
+    $table->string('libelle');
+    $table->foreignId('Id_Sous_compte')->constrained('sous_comptes', 'Id_Sous_compte')->onDelete('cascade');
+    $table->foreignId('taux_amortissement_id')->constrained('taux_amortissement')->onDelete('restrict');
+    $table->decimal('valeur_brute', 19, 2);
+    $table->date('date_acquisition');
+    $table->date('date_debut_utilisation')->nullable();
+    $table->timestamps();
+});
+
     }
     public function down(): void
     {

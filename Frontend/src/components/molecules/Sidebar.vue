@@ -60,14 +60,6 @@
                 <i class="bi bi-tags"></i>
                 <span>Types de journaux</span>
               </div>
-              <div 
-                class="submenu-item"
-                :class="{ active: currentRoute === '/nouveau-journal' }"
-                @click="navigateTo({ route: '/nouveau-journal', name: 'Nouveau journal' })"
-              >
-                <i class="bi bi-plus-circle"></i>
-                <span>Nouveau journal</span>
-              </div>
             </div>
           </transition>
         </div>

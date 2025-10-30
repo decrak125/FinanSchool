@@ -37,7 +37,8 @@ class IntervalleCompteCategoriesSeeder extends Seeder
             ['compte_debut' => '210', 'compte_fin' => '219', 'code_cat' => 'IMMOCO'],        // Imm. corporelles
             ['compte_debut' => '230', 'compte_fin' => '239', 'code_cat' => 'IMMOCOURS'],     // Imm. en cours
             ['compte_debut' => '260', 'compte_fin' => '279', 'code_cat' => 'IMMOFIN'],       // Imm. financières
-
+            ['compte_debut' => '280', 'compte_fin' => '280', 'code_cat' => 'AMORT_IMMOINC'],
+            ['compte_debut' => '281', 'compte_fin' => '281', 'code_cat' => 'AMORT_IMMOCO'],
             ['compte_debut' => '310', 'compte_fin' => '399', 'code_cat' => 'STOCKS'],        // Stocks/en-cours
 
             ['compte_debut' => '411', 'compte_fin' => '419', 'code_cat' => 'CLIENTS'],       // Clients

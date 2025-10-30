@@ -167,8 +167,21 @@ Route::get('/dashboard/decomposition-resultat', [DashboardController::class, 'de
 
 
 
-Route::get('amortissements/taux', [AmortissementController::class, 'getTaux']);
-Route::get('amortissements/solde-brut/{Id_Sous_compte}/{finExercice}', [AmortissementController::class, 'getSoldeBrut']);
-Route::apiResource('amortissements', AmortissementController::class);
+
+// routes/api.php
+
+
+
+// Liste des immobilisations (avec amortissement exercice courant)
+Route::get('/amortissement', [AmortissementController::class, 'index']);
+
+// Création d'une immobilisation
+Route::post('/amortissement', [AmortissementController::class, 'store']);
+
+// Détail d'une immobilisation (avec calcul d'amortissement)
+Route::get('/amortissement/{id}', [AmortissementController::class, 'show']);
+
+// Liste des taux d'amortissement
+Route::get('/taux-amortissement', [AmortissementController::class, 'getTaux']);
 
 });
