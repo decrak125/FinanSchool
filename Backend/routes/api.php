@@ -94,7 +94,7 @@ Route::middleware('api')->group(function () {
 
     Route::post('/mouvements/{id}/solder', [LigneEcritureController::class, 'solderMouvement']);
 
-    
+
     Route::get('/mouvements-complets', [LigneEcritureController::class, 'getMouvementsComplets']);
     Route::post('/mouvements/{id}/valider', [LigneEcritureController::class, 'validerMouvementComplet']);
     Route::delete('/mouvements/{id}', [LigneEcritureController::class, 'deleteMouvement']);
@@ -163,11 +163,23 @@ Route::post('/ecritures/import/validate', [ImportEcritureController::class, 'val
 
 
 
-Route::get('/dashboard/evolution-ca', [DashboardController::class, 'evolutionCA']);
-Route::get('/dashboard/evolution-tresorerie', [DashboardController::class, 'evolutionTresorerie']);
-Route::get('/dashboard/composition-bilan', [DashboardController::class, 'compositionBilan']);
-Route::get('/dashboard/decomposition-resultat', [DashboardController::class, 'decompositionResultat']);
+// routes/api.php
 
+Route::prefix('dashboard')->group(function () {
+    // 1. Évolution du Chiffre d'Affaires (CA) par mois
+    Route::get('/evolution-ca', [DashboardController::class, 'evolutionCA']);
+    
+    // 2. Évolution de la Trésorerie par mois
+    Route::get('/evolution-tresorerie', [DashboardController::class, 'evolutionTresorerie']);
+    
+    // 3. Composition du Bilan
+    Route::get('/composition-bilan', [DashboardController::class, 'compositionBilan']);
+    
+    // 4. Décomposition du résultat
+    Route::get('/decomposition-resultat', [DashboardController::class, 'decompositionResultat']);
+    Route::get('/resume', [DashboardController::class, 'resumeDashboard']);
+
+});
 
 
 

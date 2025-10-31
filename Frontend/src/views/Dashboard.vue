@@ -40,6 +40,22 @@
           </select>
         </div>
 
+        <!-- Cartes résumé -->
+        <div class="resume-cards" v-if="resumeData">
+          <div class="card simple-card">
+            <div class="card-title">Solde actuel CA</div>
+            <div class="card-value">{{ resumeData.solde_ca !== null ? resumeData.solde_ca.toLocaleString('fr-FR') : '–' }}</div>
+          </div>
+          <div class="card simple-card">
+            <div class="card-title">Solde Charges</div>
+            <div class="card-value">{{ resumeData.solde_charges !== null ? resumeData.solde_charges.toLocaleString('fr-FR') : '–' }}</div>
+          </div>
+          <div class="card simple-card">
+            <div class="card-title">Écritures non validées</div>
+            <div class="card-value">{{ resumeData.nb_ecritures_non_validees ?? '–' }}</div>
+          </div>
+        </div>
+
         <!-- Dashboard Charts -->
         <div class="charts-grid">
           <div class="chart-card">
@@ -147,6 +163,7 @@ export default {
       tresorerieData: { labels: [], series: [] },
       bilanData: { labels: [], series: [] },
       resultatData: { labels: [], series: [] },
+      resumeData: null,
       lineOptions: {
         responsive: true,
         maintainAspectRatio: true,
@@ -345,22 +362,42 @@ export default {
         return;
       }
       try {
-        const year = new Date(this.exerciceCourant.Date_debut).getFullYear();
+        const date_debut = this.exerciceCourant.Date_debut.slice(0, 10);
+        const date_fin = this.exerciceCourant.Date_fin.slice(0, 10);
 
-        const resCA = await axios.get('http://localhost:8000/api/dashboard/evolution-ca', { params: { year } });
+        // Résumé
+        const resResume = await axios.get(
+          'http://localhost:8000/api/dashboard/resume',
+          { params: { date_debut, date_fin } }
+        );
+        this.resumeData = resResume.data;
+
+        // CA
+        const resCA = await axios.get(
+          'http://localhost:8000/api/dashboard/evolution-ca',
+          { params: { date_debut, date_fin } }
+        );
         this.caData = this.extractLabelsAndSeries(resCA.data, 'mois', 'montant');
 
-        const resTres = await axios.get('http://localhost:8000/api/dashboard/evolution-tresorerie', { params: { year } });
+        // Trésorerie
+        const resTres = await axios.get(
+          'http://localhost:8000/api/dashboard/evolution-tresorerie',
+          { params: { date_debut, date_fin } }
+        );
         this.tresorerieData = this.extractLabelsAndSeries(resTres.data, 'mois', 'montant');
 
-        const resBil = await axios.get('http://localhost:8000/api/dashboard/composition-bilan', {
-          params: { date: this.exerciceCourant.Date_fin || new Date().toISOString().slice(0, 10) }
-        });
+        // Bilan
+        const resBil = await axios.get(
+          'http://localhost:8000/api/dashboard/composition-bilan',
+          { params: { date_fin } }
+        );
         this.bilanData = this.extractLabelsAndSeries(resBil.data, 'poste', 'montant');
 
-        const resRes = await axios.get('http://localhost:8000/api/dashboard/decomposition-resultat', {
-          params: { date: this.exerciceCourant.Date_fin || new Date().toISOString().slice(0, 10) }
-        });
+        // Résultat
+        const resRes = await axios.get(
+          'http://localhost:8000/api/dashboard/decomposition-resultat',
+          { params: { date_fin } }
+        );
         this.resultatData = this.extractLabelsAndSeries(resRes.data, 'etape', 'montant');
       } catch (error) {
         console.error('Erreur de chargement des données:', error);
@@ -480,6 +517,33 @@ export default {
 }
 .exercice-info strong {
   color: #1e293b;
+}
+.resume-cards {
+  display: flex;
+  gap: 28px;
+  margin-bottom: 32px;
+}
+.simple-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  padding: 18px 30px 12px 24px;
+  min-width: 220px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.card-title {
+  font-size: 15px;
+  color: #4f4f4f;
+  margin-bottom: 10px;
+}
+.card-value {
+  font-size: 2.1em;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 5px;
 }
 button {
   background: red;
