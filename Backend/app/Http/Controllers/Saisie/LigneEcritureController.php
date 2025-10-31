@@ -186,7 +186,59 @@ public function index()
 
     // ========== Lignes ==========
 
-   
+   public function solderMouvement($mouvementId)
+{
+    DB::beginTransaction();
+    try {
+        $mouvement = MouvementEcriture::with(['lignes', 'journal'])->findOrFail($mouvementId);
+        $totalDebit = $mouvement->lignes->sum('Debit');
+        $totalCredit = $mouvement->lignes->sum('Credit');
+        $solde = $totalDebit - $totalCredit;
+
+        // S'il est déjà équilibré, on arrête.
+        if (abs($solde) < 0.01) {
+            return response()->json([
+                'error' => 'Le mouvement est déjà équilibré.'
+            ], 400);
+        }
+
+        // Compte de contrepartie du journal
+        $Id_Sous_compte_contra = $mouvement->journal?->Id_Sous_compte;
+        if (!$Id_Sous_compte_contra) {
+            return response()->json([
+                'error' => 'Aucun compte de contrepartie défini pour le journal.'
+            ], 400);
+        }
+
+        // Création de la ligne de contrepartie
+        $dataLigneContra = [
+            'Libelle' => $mouvement->lignes->count() > 0 ? $mouvement->lignes[0]->Libelle : 'Soldé',
+            'Debit' => $solde < 0 ? abs($solde) : 0,
+            'Credit' => $solde > 0 ? abs($solde) : 0,
+            'Reference' => null,
+            'Quantite' => 1,
+            'Id_Mode_paiement' => null,
+            'Id_Mouvement_ecriture' => $mouvement->Id_Mouvement_ecriture,
+            'Id_Journal' => $mouvement->Id_Journal,
+            'Id_Sous_compte' => $Id_Sous_compte_contra,
+        ];
+
+        $ligne = LigneEcriture::create($dataLigneContra);
+
+        DB::commit();
+        return response()->json([
+            'message' => 'Mouvement soldé avec contrepartie.',
+            'ligne' => $ligne
+        ]);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'error' => 'Erreur lors du solder.',
+            'message' => config('app.debug') ? $e->getMessage() : 'Erreur serveur'
+        ], 500);
+    }
+}
+
 
     public function show($id)
     {

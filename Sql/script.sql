@@ -232,6 +232,9 @@ ORDER BY c."Code_compte" ASC,
 
 
 
+
+
+
 CREATE OR REPLACE VIEW vue_balance_generale AS
 SELECT
     c."Code_compte"        AS code_compte,

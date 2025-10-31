@@ -92,6 +92,9 @@ Route::middleware('api')->group(function () {
     Route::post('lignes/{id}/valider', [LigneEcritureController::class, 'valider']);
     Route::apiResource('devises', DeviseController::class);
 
+    Route::post('/mouvements/{id}/solder', [LigneEcritureController::class, 'solderMouvement']);
+
+    
     Route::get('/mouvements-complets', [LigneEcritureController::class, 'getMouvementsComplets']);
     Route::post('/mouvements/{id}/valider', [LigneEcritureController::class, 'validerMouvementComplet']);
     Route::delete('/mouvements/{id}', [LigneEcritureController::class, 'deleteMouvement']);

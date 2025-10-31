@@ -80,6 +80,17 @@ const fetchMouvements = async () => {
 };
 
 
+const solderMouvement = async (mouvementId) => {
+  errorMessage.value = '';
+  successMessage.value = '';
+  try {
+    const res = await axios.post(`http://127.0.0.1:8000/api/mouvements/${mouvementId}/solder`);
+    showSuccess('Mouvement soldé : ligne ajoutée');
+    await fetchMouvements(); // Refresh listing
+  } catch (error) {
+    handleError(error, 'Erreur lors du solder');
+  }
+};
 
 
 
@@ -579,6 +590,7 @@ const updateLigne = async (mouvementId, ligneIndex) => {
     validerMouvement,
     getJournalLibelle,
     formatDate,
+    solderMouvement,
     formatMontant
   };
 }

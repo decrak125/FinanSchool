@@ -100,6 +100,10 @@
                         <span v-else class="badge badge-error" style="margin-left: 10px; height: 28px;">
                           <i class="bi bi-exclamation-triangle me-1" style="margin-right: 5px;"> </i> Non équilibré ({{ formatMontant(getDifference(m)) }})
                         </span>
+
+                        <!-- Dans la table de mouvements, pour chaque mouvement -->
+                       
+
                         
                         <button 
                           v-if="isEquilibre(m) && !isMouvementValide(m)" 
@@ -110,6 +114,20 @@
                           >
                           <i class="bi bi-check-lg me-1"></i>
                           {{ isValidating ? 'Validation...' : 'Valider' }}
+                        </button>
+
+                         <button
+                          v-if="!isEquilibre(m)"
+                          @click="solderMouvement(m.Id_Mouvement_ecriture)"
+                          class="btn btn-sm btn-warning ml-2"
+                          style = "margin-left: 10px;
+                                    height: 30px;
+                                    text-align: center;
+                                    padding-top: 4px;
+                                    bottom: 4px;
+                                    padding-right: 12px;"
+                        >
+                          <i class="bi bi-balance-scale me-1"></i> Solder
                         </button>
                         
                         <span v-if="isMouvementValide(m)" class="badge badge-primary">
@@ -414,6 +432,7 @@ const {
   validerMouvement,
   getJournalLibelle,
   formatDate,
+  solderMouvement,
   formatMontant
 } = useEcriture();
 </script>
