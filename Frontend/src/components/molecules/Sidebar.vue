@@ -568,7 +568,7 @@ export default {
   height: 100vh;
   padding: 24px 0;
   flex-direction: column;
-  background: linear-gradient(180deg, #142c6c 0%, #051442 100%);
+  background: linear-gradient(180deg, #1c45bd 0%, #011244 100%);
   color: white;
   font-family: 'Stara', sans-serif;
   font-size: 12px;

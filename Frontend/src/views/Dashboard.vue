@@ -28,8 +28,8 @@
 
         <!-- Filtre exercice -->
         <div class="filter-section" v-if="exercicesFiltrés.length">
-          <label for="exercice-select"><strong>Sélectionner un exercice :</strong></label>
-          <select id="exercice-select" v-model="selectedExercice" @change="changeExercice">
+          <label for="form-select"><strong>Sélectionner un exercice :</strong></label>
+          <select id="form-select" v-model="selectedExercice" @change="changeExercice">
             <option 
               v-for="ex in exercicesFiltrés" 
               :key="ex.Id_Exercice_comptable" 
@@ -108,6 +108,21 @@
         </div>
       </div>
 
+      <!-- Bouton flottant pour ouvrir/fermer le Chatbot -->
+      <!-- BOUTON ROND FLOTTANT (FIXE EN BAS À DROITE) -->
+<button class="chatbot-float-btn" @click="showChat = !showChat">
+  <span v-if="!showChat">💬</span>
+  <span v-else>✖</span>
+</button>
+
+<!-- POPIN CHATBOT (fixe à droite, petite taille) -->
+<transition name="chatbot-fade">
+  <div v-if="showChat">
+    <ChatBot />
+  </div>
+</transition>
+
+      
       <!-- Footer -->
       <AppFooter />
     </div>
@@ -119,6 +134,7 @@ import { getUser } from "../services/Auth";
 import Sidebar from "../components/molecules/Sidebar.vue";
 import Header from "../components/molecules/Header.vue";
 import AppFooter from "../components/molecules/Footer.vue";
+import ChatBot from "../components/molecules/ChatBot.vue";
 import axios from 'axios';
 import { Line, Pie, Bar } from 'vue-chartjs';
 import {
@@ -149,6 +165,7 @@ export default {
     Sidebar,
     Header,
     AppFooter,
+    ChatBot,
     Line,
     Pie,
     Bar
@@ -156,6 +173,7 @@ export default {
   data() {
     return {
       user: null,
+      showChat: false,
       exercices: [],
       selectedExercice: null,
       exerciceCourant: null,
@@ -593,6 +611,56 @@ button:hover {
   color: #64748b;
   padding: 40px;
 }
+
+.chatbot-float-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 32px;
+  width: 54px;
+  height: 54px;
+  background: linear-gradient(135deg,#1c45bd 0%,#011244 100%);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 101;
+  border: none;
+  box-shadow: 0 6px 16px rgba(102,126,234,0.22);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.chatbot-float-btn:hover {
+  box-shadow: 0 10px 22px rgba(102,126,234,0.32);
+  background: linear-gradient(135deg,#011244 0%,#1c45bd 100%);
+}
+
+.dashboard-chatbot-chatbox {
+  position: fixed;
+  bottom: 100px;
+  right: 40px;
+  width: 380px;
+  max-width: 99vw;
+  height: 520px;
+  max-height: 80vh;
+  z-index: 100;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 8px 36px rgba(90,60,130,0.14);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Animation d'apparition */
+.chatbot-fade-enter-active, .chatbot-fade-leave-active {
+  transition: opacity 0.25s;
+}
+.chatbot-fade-enter, .chatbot-fade-leave-to {
+  opacity: 0;
+}
+
 @media (max-width: 768px) {
   .main-content {
     margin-left: 0;
@@ -603,6 +671,20 @@ button:hover {
   }
   .chart-wrapper-pie {
     max-height: 400px;
+  }
+  .dashboard-chatbot-chatbox {
+    right: 5vw;
+    bottom: 80px;
+    width: 98vw;
+    height: 90vh;
+    border-radius: 8px;
+  }
+  .chatbot-float-btn {
+    right: 8vw;
+    bottom: 18px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.3em;
   }
 }
 </style>

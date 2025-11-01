@@ -3,6 +3,7 @@
 namespace App\Models\ChatBot;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
 class ChatMessage extends Model
 {
@@ -16,7 +17,7 @@ class ChatMessage extends Model
     /**
      * Relation avec l'utilisateur
      */
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
