@@ -99,18 +99,35 @@ class ChatController extends Controller
     }
 
     // Détection des questions sur les centres de coût
-    if (str_contains($messagetext, 'depense') || str_contains($messagetext, 'charge') || str_contains($messagetext, 'cout')) {
+    if (str_contains($messagetext, 'depense') || str_contains($messagetext, 'charge') || str_contains($messagetext, 'cout') || (str_contains($messagetext, 'sorti') && str_contains($messagetext, 'argent'))) {
         $year = ChatUtilesController::extractYearFromMessage($messagetext);
         
         try {
-            if (str_contains($messagetext, 'centre')) {
                 if ((str_contains($messagetext, 'plus') && str_contains($messagetext, 'grand')) || str_contains($messagetext, 'max')) {
+                    if (str_contains($messagetext, 'centre')) {
                     return DepensesProfitsController::getBiggestCentre($year, 1);
+                    }
+                    else {
+                    return DepensesProfitsController::getBiggestAffectation(1, $year, 1);
+                    }
                 } 
-                elseif ($this->containsNormalized($messagetext, ['classement', 'top', 'liste'])) {
-                    return DepensesProfitsController::getClassementCentre($year, 1);
+                elseif ($this->containsNormalized($messagetext, ['classement', 'top'])) {
+                    if (str_contains($messagetext, 'centre')) {
+                    return DepensesProfitsController::getClassementCentre($year, 1, 5);
+                    }
+                    else {
+                    return DepensesProfitsController::getBiggestAffectation(2,$year, 1);
+                    }
                 }
-            }
+                elseif ($this->containsNormalized($messagetext, ['tout', 'liste'])) {
+                    if (str_contains($messagetext, 'centre')) {
+                    return DepensesProfitsController::getClassementCentre($year, 1, 0);
+                    }
+                    else {
+                    return DepensesProfitsController::getBiggestAffectation(3,$year, 1);
+                    }
+                }
+
         } catch (\Exception $e) {
             return "Désolé, une erreur s'est produite lors de l'accès aux données financières.";
         }
