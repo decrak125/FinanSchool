@@ -257,7 +257,7 @@ const chartOptions = computed(() => {
     },
     yaxis: {
       title: {
-        text: 'Montant (€)',
+        text: 'Montant (Ar)',
         style: {
           fontFamily: 'stara',
           fontWeight: '600',
@@ -272,12 +272,12 @@ const chartOptions = computed(() => {
           fontSize: '11px'
         },
         formatter: function(value) {
-          if (value >= 1000000) {
-            return '€' + (value / 1000000).toFixed(1) + 'M';
-          } else if (value >= 1000) {
-            return '€' + (value / 1000).toFixed(0) + 'K';
-          }
-          return '€' + value;
+          return new Intl.NumberFormat('mg-MG', {
+          // style: 'currency',
+          // currency: 'MGA',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }).format(value);
         }
       }
     },
@@ -298,11 +298,12 @@ const chartOptions = computed(() => {
       },
       y: {
         formatter: function(value) {
-          return new Intl.NumberFormat('fr-FR', { 
-            style: 'currency', 
-            currency: 'EUR',
-            maximumFractionDigits: 0
-          }).format(value);
+          return new Intl.NumberFormat('mg-MG', {
+    // style: 'currency',
+    // currency: 'MGA',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
         }
       }
     },
@@ -407,10 +408,11 @@ const getColor = (index) => {
 };
 
 const formatMontant = (montant) => {
-  return new Intl.NumberFormat('fr-FR', { 
-    style: 'currency', 
-    currency: 'EUR',
-    maximumFractionDigits: 0 
+  return new Intl.NumberFormat('mg-MG', {
+    // style: 'currency',
+    // currency: 'MGA',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   }).format(parseFloat(montant) || 0);
 };
 

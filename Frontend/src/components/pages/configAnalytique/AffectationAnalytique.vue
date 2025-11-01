@@ -26,10 +26,13 @@ import LoadingText from "@/components/atoms/Loading-text.vue";
 const openForm = ref(false);
 const openImport = ref(false);
 const loading = ref(true);
+const opendelete = ref(false);
+const openremove = ref(false);
+const selected = ref(null);
 
 const {
   affectations, centres, comptes, types, file, showVentilationForm, // ← AJOUT types
-  showDetails, totalTauxClass, isFormValid, hasDuplicateCentres,
+  showDetails, totalTauxClass, isFormValid, hasDuplicateCentres, id_to_delete,
   selectedGroup, loadingTable, nombreLignesLoader,
   editingVentilation, cancelTableModifications, saveTableModifications, removeVentilationFromTable,
   form, isEditing, message, addVentilationToTable,
@@ -421,7 +424,7 @@ const showAllVentilations = (group) => {
               <th class="col">Type</th> <!-- ← NOUVELLE COLONNE -->
               <th class="col">Description</th>
               <th class="col">Taux</th>
-              <th class="col">Actions</th>
+              <th class="col" v-if="detailsMode != 'view'">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -433,13 +436,13 @@ const showAllVentilations = (group) => {
                 <td class="col">{{ vent.type_nom }}</td> <!-- ← AJOUT colonne type -->
                 <td class="col">{{ vent.description }}</td>
                 <td class="col">{{ Number(vent.taux || 0).toFixed(2) }}%</td>
-                <td class="col">
+                <!-- <td class="col">
                   <BoutonIcon 
-                    @click="remove(vent.id_affectation); showDetails=false" 
+                    @click="id_to_delete=vent.id_affectation ; openremove = true;  selected = selectedGroup?.ventilations?.length" 
                     icon-name="trash" 
                     :type="'cancel'" 
                   />
-                </td>
+                </td> -->
               </tr>
             </template>
 
@@ -518,7 +521,7 @@ const showAllVentilations = (group) => {
               <td></td>
               <td></td>
               <td class="col">{{selectedGroup?.ventilations?.reduce((sum, v) => sum + Number(v.taux || 0), 0).toFixed(2)}}%</td>
-              <td></td>
+              <!-- <td></td> -->
             </template>
 
             <!-- MODE ÉDITION -->
@@ -589,6 +592,30 @@ const showAllVentilations = (group) => {
     </div>
   </PopUp>
 </transition>
+      <transition name="fade">
+      <PopUp v-if="opendelete">
+          <Icon :color="'primary'" :icon="'bi bi-envelope'" />
+        <Texte :type="'bold-dark'" texte="Supprimer ces affectations ?" />
+        <Texte :type="'dark'"
+          texte="Une fois l'opération faite, la suppression sera irréversible" />
+        <div class="PPbtn">
+          <Bouton @click="removeBySousCompte(id_to_delete), opendelete = false" :type="'input'" :texte="'Confirmer'" />
+        <Bouton @click="opendelete = false" :type="'cancel'" :texte="'Annuler'" />
+        </div>
+      </PopUp>
+      </transition>
+      <transition name="fade">
+      <PopUp v-if="openremove">
+          <Icon :color="'primary'" :icon="'bi bi-envelope'" />
+        <Texte :type="'bold-dark'" texte="Supprimer cette ventilation ?" />
+        <Texte :type="'dark'"
+          texte="Une fois l'opération faite, la suppression sera irréversible" />
+        <div class="PPbtn">
+          <Bouton @click="remove(id_to_delete, selected), openremove = false" :type="'input'" :texte="'Confirmer'" />
+        <Bouton @click="openremove = false" :type="'cancel'" :texte="'Annuler'" />
+        </div>
+      </PopUp>
+      </transition>
 
     <div class="main">
       <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Affectation Analytique'" />
@@ -651,7 +678,7 @@ const showAllVentilations = (group) => {
                     <!-- Utiliser showAllVentilations au lieu de showVentilationDetails -->
                     <BoutonIcon @click="showAllVentilations(group)" icon-name="eye" :type="'edit'" />
                   <BoutonIcon
-                    @click="removeBySousCompte(group.Id_Sous_compte), showDetails=false" icon-name="trash" :type="'cancel'"
+                    @click="id_to_delete = group.Id_Sous_compte, opendelete=true, showDetails=false " icon-name="trash" :type="'cancel'"
                   />
                   </div>
                 </td>
@@ -909,5 +936,10 @@ const showAllVentilations = (group) => {
 
 .text-center {
   text-align: center;
+}
+.PPbtn{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 </style>

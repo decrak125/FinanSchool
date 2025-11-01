@@ -60,13 +60,11 @@ export function useAxes() {
     
     // Supprimer
     const deleteAxe = async (id) => {
-      if (confirm("Supprimer cet axe ?")) {
         loading.value = true;
         await axios.delete(`http://127.0.0.1:8000/api/axes/${id}`);
         loading.value = false;
         nombreLignesLoader.value = axes.value.length || 10;
         fetchAxes();
-      }
     };
     
     // Reset formulaire

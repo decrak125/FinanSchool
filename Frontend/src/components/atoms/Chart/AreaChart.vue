@@ -8,12 +8,7 @@
     <div v-else class="area-chart-wrapper">
       <div class="chart-container">
         <div class="graphic-wrapper">
-          <apexchart
-            type="line"
-            :height="height"
-            :options="chartOptions"
-            :series="series"
-          ></apexchart>
+          <apexchart type="line" :height="height" :options="chartOptions" :series="series"></apexchart>
         </div>
         <div class="voir" @click="showDetails = !showDetails">
           <i class="bi bi-eye"></i>
@@ -21,7 +16,7 @@
           <p v-if="showDetails">Masquer les détails</p>
         </div>
       </div>
-      
+
       <transition name="fade">
         <div class="legend-container" v-if="showDetails">
           <div class="legend-wrapper">
@@ -131,7 +126,7 @@ const chartOptions = computed(() => {
     },
     yaxis: {
       title: {
-        text: 'Montant (€)',
+        text: 'Montant (Ar)',
         style: {
           fontFamily: 'stara',
           fontWeight: '500',
@@ -139,11 +134,12 @@ const chartOptions = computed(() => {
         }
       },
       labels: {
-        formatter: function(value) {
-          return new Intl.NumberFormat('fr-FR', { 
-            style: 'currency', 
-            currency: 'EUR',
-            maximumFractionDigits: 0 
+        formatter: function (value) {
+          return new Intl.NumberFormat('mg-MG', {
+            // style: 'currency',
+            // currency: 'MGA',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
           }).format(value);
         },
         style: {
@@ -160,10 +156,12 @@ const chartOptions = computed(() => {
         fontFamily: 'stara'
       },
       y: {
-        formatter: function(value) {
-          return new Intl.NumberFormat('fr-FR', { 
-            style: 'currency', 
-            currency: 'EUR' 
+        formatter: function (value) {
+          return new Intl.NumberFormat('mg-MG', {
+            // style: 'currency',
+            // currency: 'MGA',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
           }).format(value);
         }
       }
@@ -229,17 +227,17 @@ const transformData = (data) => {
 
   // Grouper les données par centre
   const centres = {};
-  
+
   data.forEach(item => {
     const centreName = item.centre;
     const moisIndex = parseInt(item.mois) - 1;
     const montant = parseFloat(item.montant_ventile) || parseFloat(item.montant_brut) || 0;
-    
+
     if (!centres[centreName]) {
       // ⭐⭐ IMPORTANT : Initialiser avec 0 au lieu de null pour éviter les cassures
       centres[centreName] = new Array(12).fill(0);
     }
-    
+
     if (moisIndex >= 0 && moisIndex < 12) {
       centres[centreName][moisIndex] = montant;
     }
@@ -259,20 +257,21 @@ const getColor = (index) => {
 
 const formatTotal = (data) => {
   const total = data.reduce((sum, value) => sum + (value || 0), 0);
-  return new Intl.NumberFormat('fr-FR', { 
-    style: 'currency', 
-    currency: 'EUR',
-    maximumFractionDigits: 0 
+  return new Intl.NumberFormat('mg-MG', {
+    // style: 'currency',
+    // currency: 'MGA',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   }).format(total);
 };
 
 const calculatePercentage = (data) => {
   const total = data.reduce((sum, value) => sum + (value || 0), 0);
-  const allTotals = series.value.map(serie => 
+  const allTotals = series.value.map(serie =>
     serie.data.reduce((sum, value) => sum + (value || 0), 0)
   );
   const grandTotal = allTotals.reduce((sum, value) => sum + value, 0);
-  
+
   return grandTotal > 0 ? ((total / grandTotal) * 100).toFixed(1) : 0;
 };
 
@@ -283,7 +282,9 @@ watch(() => props.chartData, (newData) => {
 </script>
 
 <style scoped>
-.loading, .error, .no-data {
+.loading,
+.error,
+.no-data {
   text-align: center;
   padding: 40px;
   font-size: 16px;
@@ -304,7 +305,7 @@ watch(() => props.chartData, (newData) => {
 }
 
 .area-chart-wrapper {
-/* display: flex; */
+  /* display: flex; */
   width: 100%;
   background-color: #fff;
   border-radius: 8px;
@@ -448,16 +449,16 @@ watch(() => props.chartData, (newData) => {
   .area-chart-wrapper {
     flex-direction: column;
   }
-  
+
   .graphic-wrapper {
     padding: 0.5rem;
   }
-  
+
   .legend-wrapper {
     padding: 1rem;
     max-height: 150px;
   }
-  
+
   .voir {
     padding: 0.75rem;
   }
@@ -468,16 +469,16 @@ watch(() => props.chartData, (newData) => {
     gap: 0.5rem;
     padding: 0.375rem;
   }
-  
+
   .legend-color {
     width: 12px;
     height: 12px;
   }
-  
+
   .legend-label {
     font-size: 11px;
   }
-  
+
   .legend-value,
   .legend-percentage {
     font-size: 10px;
@@ -489,6 +490,7 @@ watch(() => props.chartData, (newData) => {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

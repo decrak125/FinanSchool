@@ -12,6 +12,8 @@ export function useAffectations() {
   const showVentilationForm = ref(false);
   const nombreLignesLoader = ref(10);
   const loadingTable = ref(true);
+  var id_to_delete = ref(null);
+
   const form = ref({
     Id_Compte: null,
     ventilations: []
@@ -29,7 +31,7 @@ export function useAffectations() {
   const filterSelectedCentre = ref("");
 
   // Variables pour les détails
-  const showDetails = ref(false);
+  var showDetails = ref(false);
   const selectedGroup = ref(null);
   const detailsMode = ref('view'); // 'view' ou 'edit'
 
@@ -56,13 +58,13 @@ export function useAffectations() {
   // Computed property pour les affectations filtrées
   const filteredAffectations = computed(() => {
     return affectations.value.filter(affectation => {
-      const matchesSearch = filterSearchTerm.value === "" || 
+      const matchesSearch = filterSearchTerm.value === "" ||
         (affectation.sous_compte?.Code_sous_compte?.toLowerCase().includes(filterSearchTerm.value.toLowerCase()) ||
-         affectation.sous_compte?.Libelle?.toLowerCase().includes(filterSearchTerm.value.toLowerCase()));
-      
-      const matchesCentre = filterSelectedCentre.value === "" || 
+          affectation.sous_compte?.Libelle?.toLowerCase().includes(filterSearchTerm.value.toLowerCase()));
+
+      const matchesCentre = filterSelectedCentre.value === "" ||
         affectation.id_centre?.toString() === filterSelectedCentre.value;
-      
+
       return matchesSearch && matchesCentre;
     });
   });
@@ -88,8 +90,8 @@ export function useAffectations() {
     if (!form.value.ventilations || form.value.ventilations.length === 0) return false;
     if (Math.abs(totalTaux.value - 100) > 0.01) return false;
     if (hasDuplicateCentres.value) return false;
-    
-    return form.value.ventilations.every(vent => 
+
+    return form.value.ventilations.every(vent =>
       vent.id_centre && vent.id_type && vent.taux !== null && vent.taux !== undefined // ← AJOUT vent.id_type
     );
   });
@@ -100,12 +102,12 @@ export function useAffectations() {
     const totalTauxCalculated = form.value.ventilations?.reduce((sum, v) => {
       return sum + Number(v.taux || 0);
     }, 0) || 0;
-  
+
     if (Math.abs(totalTauxCalculated - 100) > 0.01) {
       alert(`Le total des taux doit être égal à 100% (actuellement: ${totalTauxCalculated.toFixed(2)}%)`);
       return false;
     }
-  
+
     try {
       if (isEditing.value) {
         await updateMultipleVentilations();
@@ -114,7 +116,7 @@ export function useAffectations() {
           alert("Sélectionnez un compte");
           return false;
         }
-        
+
         // Pour la création, envoyer chaque ventilation avec id_type
         await axios.post(`${API_URL}/affectations`, {
           Id_Compte: form.value.Id_Compte,
@@ -126,7 +128,7 @@ export function useAffectations() {
           }))
         });
       }
-      
+
       resetForm();
       await fetchData();
       return true;
@@ -150,7 +152,7 @@ export function useAffectations() {
           description: vent.description
         }))
       });
-      
+
       return response.data;
     } catch (error) {
       console.error('Erreur mise à jour multiple:', error);
@@ -180,11 +182,21 @@ export function useAffectations() {
   };
 
   // Suppression d'une affectation
-  const remove = async (id) => {
-    if (confirm("Supprimer cette affectation ?")) {
-      await axios.delete(`${API_URL}/affectations/${id}`);
-      await fetchData();
-    }
+  const remove = async (id, selected) => {
+    await axios.delete(`${API_URL}/affectations/${id}`);
+    showDetails.value = false;
+    await fetchData();
+    const wasDetailsOpen = showDetails.value;
+    // const currentGroup = selected.value;
+    console.log('nb:' + selected);
+    setTimeout(() => {
+        if (selected > 1) {
+          showDetails.value = true;
+        }
+        // else {
+        //   showDetails.value = false;
+        // }
+    }, 300);
   };
 
   // Édition d'une ventilation individuelle
@@ -212,9 +224,9 @@ export function useAffectations() {
         description: v.description || ""
       }))
     };
-  
+
     searchTerm.value = `${group.Code_sous_compte} - ${group.Libelle}`;
-    
+
     isEditing.value = true;
     editingId.value = group.Id_Sous_compte;
   };
@@ -222,7 +234,7 @@ export function useAffectations() {
   // Sauvegarde d'une ventilation individuelle
   const saveVentilation = async () => {
     if (!editingVentilation.value) return;
-    
+
     try {
       await axios.put(`${API_URL}/affectations/${editingVentilation.value.id_affectation}`, {
         id_centre: editingVentilation.value.id_centre,
@@ -230,16 +242,16 @@ export function useAffectations() {
         taux: editingVentilation.value.taux,
         description: editingVentilation.value.description
       });
-      
+
       const wasDetailsOpen = showDetails.value;
       const currentGroup = selectedGroup.value;
-      
+
       showVentilationForm.value = false;
       showDetails.value = false;
       editingVentilation.value = null;
-      
+
       await fetchData();
-      
+
       if (wasDetailsOpen && currentGroup) {
         setTimeout(() => {
           const updatedGroup = affectationsGrouped.value.find(
@@ -251,7 +263,7 @@ export function useAffectations() {
           }
         }, 100);
       }
-      
+
     } catch (error) {
       console.error('Erreur:', error);
       alert(error.response?.data?.message || 'Erreur lors de la modification');
@@ -260,8 +272,8 @@ export function useAffectations() {
 
   // Réinitialisation du formulaire
   const resetForm = () => {
-    form.value = { 
-      Id_Compte: null, 
+    form.value = {
+      Id_Compte: null,
       ventilations: []
     };
     searchTerm.value = "";
@@ -335,14 +347,14 @@ export function useAffectations() {
     }
 
     const ventilationToRemove = form.value.ventilations[index];
-  
+
     // SUPPRIMER SANS REDISTRIBUER le taux
     form.value.ventilations.splice(index, 1);
-    
+
     // Optionnel : redistribution automatique du taux
     const totalActuel = form.value.ventilations.reduce((sum, v) => sum + Number(v.taux || 0), 0);
     const tauxRestant = 100 - totalActuel;
-    
+
     if (tauxRestant > 0 && form.value.ventilations.length > 0) {
       // Répartir le taux restant sur la dernière ventilation
       const derniereIndex = form.value.ventilations.length - 1;
@@ -350,7 +362,7 @@ export function useAffectations() {
         (Number(form.value.ventilations[derniereIndex].taux || 0) + tauxRestant).toFixed(2)
       );
     }
-    
+
     if (ventilationToRemove.id_affectation) {
       await fetchData();
     }
@@ -358,24 +370,25 @@ export function useAffectations() {
 
   // Suppression par sous-compte
   const removeBySousCompte = async (id_sous_compte) => {
-    if (confirm("Voulez-vous supprimer toutes les affectations de ce sous-compte ?")) {
-      try {
-        await axios.delete(`${API_URL}/affectations/sous-compte/${id_sous_compte}`);
-        await fetchData();
-        return true;
-      } catch (error) {
-        console.error('Erreur suppression par sous-compte:', error);
-        alert("Erreur lors de la suppression");
-        return false;
-      }
+    try {
+      await axios.delete(`${API_URL}/affectations/sous-compte/${id_sous_compte}`);
+      await fetchData();
+      id_to_delete = null;
+      return true;
+    } catch (error) {
+      console.error('Erreur suppression par sous-compte:', error);
+      alert("Erreur lors de la suppression");
+      id_to_delete = null;
+      return false;
     }
+    id_to_delete = null;
     return false;
   };
 
   // Groupement des affectations
   const affectationsGrouped = computed(() => {
     const grouped = {};
-    
+
     affectations.value.forEach(aff => {
       const key = aff.Id_Sous_compte;
       if (!grouped[key]) {
@@ -397,7 +410,7 @@ export function useAffectations() {
         description: aff.description
       });
     });
-    
+
     return Object.values(grouped);
   });
 
@@ -415,13 +428,13 @@ export function useAffectations() {
   // Fonctions pour gérer l'édition dans le tableau
   const addVentilationToTable = () => {
     if (!form.value.ventilations) form.value.ventilations = [];
-    
+
     const totalTaux = form.value.ventilations.reduce((sum, v) => {
       return sum + Number(Number(v.taux || 0).toFixed(2));
     }, 0);
-    
+
     const remainingTaux = Number((100 - totalTaux).toFixed(2));
-    
+
     if (remainingTaux <= 0) {
       alert("Le total des taux atteint déjà 100% !");
       return;
@@ -442,19 +455,19 @@ export function useAffectations() {
     }
 
     const ventilationToRemove = form.value.ventilations[index];
-    
-    if (ventilationToRemove.id_affectation) {
-      if (!confirm("Supprimer cette ventilation de la liste ? Elle sera supprimée de la base de données lors de la sauvegarde.")) {
-        return;
-      }
-    }
+
+    // if (ventilationToRemove.id_affectation) {
+    //   if (!confirm("Supprimer cette ventilation de la liste ? Elle sera supprimée de la base de données lors de la sauvegarde.")) {
+    //     return;
+    //   }
+    // }
 
     form.value.ventilations.splice(index, 1);
-    
+
     // Redistribution automatique
     const totalActuel = form.value.ventilations.reduce((sum, v) => sum + Number(v.taux || 0), 0);
     const tauxRestant = 100 - totalActuel;
-    
+
     if (tauxRestant > 0 && form.value.ventilations.length > 0) {
       const derniereIndex = form.value.ventilations.length - 1;
       form.value.ventilations[derniereIndex].taux = Number(
@@ -509,6 +522,7 @@ export function useAffectations() {
   };
 
   return {
+    id_to_delete,
     affectations, centres, comptes, types, file, showVentilationForm, switchToEditMode, switchToViewMode,
     showDetails, totalTauxClass, isFormValid, hasDuplicateCentres,
     selectedGroup, nombreLignesLoader, loadingTable,

@@ -1,12 +1,16 @@
 <script setup>
+import { ref, computed, onMounted } from "vue";
 import searchbar from '@/components/atoms/searchbar.vue';
 import profile from '@/components/atoms/profile.vue';
-</script>
 
+
+
+
+</script>
 <template>
     <div class="header">
         <searchbar :placeholder="'Rechercher ou taper une commande...'" :name="'search'" />
-        <profile :texte="'Jean Dupont'" :icon="'bi bi-person-circle'" />
+        <profile/>
     </div>
 </template>
 

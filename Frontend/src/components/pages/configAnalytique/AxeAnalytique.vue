@@ -18,7 +18,11 @@ import LoadingText from "@/components/atoms/Loading-text.vue";
 
 const openForm = ref(false);
 const openImport = ref(false);
-const { axes,
+const opendelete = ref(false);
+const id_to_delete = ref(null);
+
+const {
+  axes,
   form,
   isEditing,
   editingId,
@@ -53,6 +57,18 @@ const {
 <template>
   <PageAnalyse>
     <transition name="fade">
+      <PopUp v-if="opendelete">
+        <Icon :color="'primary'" :icon="'bi bi-envelope'" />
+        <Texte :type="'bold-dark'" texte="Supprimer cet axe ?" />
+        <Texte :type="'dark'"
+          texte="Une fois l'opération faite, la suppression sera irréversible" />
+        <div class="PPbtn">
+          <Bouton @click="deleteAxe(id_to_delete), opendelete = false" :type="'input'" :texte="'Confirmer'" />
+        <Bouton @click="opendelete = false" :type="'cancel'" :texte="'Annuler'" />
+        </div>
+      </PopUp>
+    </transition>
+    <transition name="fade">
       <PopUp v-if="openForm">
         <form @submit.prevent="saveAxe" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
           <Texte :texte="'Créer une axe analytique'" :type="'dark'" />
@@ -82,9 +98,10 @@ const {
       <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Axe Analytique'" />
       <div class="informations">
         <p class="Count-content">
-          <Counter v-if="axes.length>0" :number="axes.length" />
-            <Counter v-if="axes.length == 0" :number="0" />
-          axes analytique disponibles.</p>
+          <Counter v-if="axes.length > 0" :number="axes.length" />
+          <Counter v-if="axes.length == 0" :number="0" />
+          axes analytique disponibles.
+        </p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
           <Bouton type="primary" texte="Ajouter" redirection="" @click="openForm = !openForm" />
@@ -96,43 +113,45 @@ const {
       <transition name="fade">
         <div class="content">
           <table class="table" id="axesTable">
-          <thead>
-            <tr class="">
-              <th class="col">#</th>
-              <th class="col">Axe</th>
-              <th class="col">Description</th>
-              <th class="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+            <thead>
+              <tr class="">
+                <th class="col">#</th>
+                <th class="col">Axe</th>
+                <th class="col">Description</th>
+                <th class="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
 
-            <tr v-for="axe in donneesPagination" :key="axe.id_axe">
-              <td class="col">{{ axe.id_axe }}</td>
-              <td class="col">{{ axe.axe }}</td>
-              <td class="col">{{ axe.description }}</td>
-              <td class="col text-center">
-                <BoutonIcon @click="editAxe(axe), openForm = true" icon-name="pen" :type="'edit'" />
-                <BoutonIcon @click="deleteAxe(axe.id_axe)" icon-name="trash" :type="'cancel'" />
-              </td>
-            </tr>
-            <tr v-if="loading" v-for="n in nombreLignesLoader" :key="'loader-' + n">
-              <td class="col"><LoadingText :type="'line-1'" /></td>
-              <td class="col"><LoadingText :type="'line-1'" /></td>
-              <td class="col"><LoadingText :type="'line-1'" /></td>
-              <td class="col"><LoadingText :type="'line-1'" /></td>
-            </tr>
-          </tbody>
-        </table>
+              <tr v-for="axe in donneesPagination" :key="axe.id_axe" v-if="!loading">
+                <td class="col">{{ axe.id_axe }}</td>
+                <td class="col">{{ axe.axe }}</td>
+                <td class="col">{{ axe.description }}</td>
+                <td class="col text-center">
+                  <BoutonIcon @click="editAxe(axe), openForm = true" icon-name="pen" :type="'edit'" />
+                  <BoutonIcon @click="id_to_delete = axe.id_axe, opendelete = true" icon-name="trash" :type="'cancel'" />
+                </td>
+              </tr>
+              <tr v-if="loading" v-for="n in nombreLignesLoader" :key="'loader-' + n">
+                <td class="col">
+                  <LoadingText :type="'line-1'" />
+                </td>
+                <td class="col">
+                  <LoadingText :type="'line-1'" />
+                </td>
+                <td class="col">
+                  <LoadingText :type="'line-1'" />
+                </td>
+                <td class="col">
+                  <LoadingText :type="'line-1'" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </transition>
-      <Pagination 
-      :donnees="centres" 
-      :current-page="currentPage" 
-      :items-per-page="itemsPerPage"
-      :total-pages="totalPages"
-      :go-to-page="goToPage"
-      :previous-page="previousPage"
-      :next-page="nextPage" />
+      <Pagination :donnees="centres" :current-page="currentPage" :items-per-page="itemsPerPage"
+        :total-pages="totalPages" :go-to-page="goToPage" :previous-page="previousPage" :next-page="nextPage" />
     </div>
   </PageAnalyse>
 </template>
@@ -149,7 +168,7 @@ const {
 }
 
 #axesTable {
-   @include table(#f5f5f5);
+  @include table(#f5f5f5);
 }
 
 .informations {
@@ -221,6 +240,7 @@ const {
   opacity: 1;
   transform: scale(1);
 }
+
 .content {
   overflow-y: auto;
   /* Scroll vertical */
@@ -251,8 +271,13 @@ const {
   background: #a8a8a8;
 }
 
-.popupContent{
-  @include position-contenus(flex,center, flex-start);
+.popupContent {
+  @include position-contenus(flex, center, flex-start);
+  gap: 10px;
+}
+.PPbtn{
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 </style>

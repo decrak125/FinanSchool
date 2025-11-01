@@ -271,7 +271,7 @@
       },
       yaxis: {
         title: {
-          text: 'Montant (€)',
+          text: 'Montant (Ar)',
           style: {
             fontFamily: 'stara',
             fontWeight: '600',
@@ -286,11 +286,12 @@
             fontSize: '11px'
           },
           formatter: function(value) {
-            return new Intl.NumberFormat('fr-FR', { 
-              style: 'currency', 
-              currency: 'EUR',
-              maximumFractionDigits: 0
-            }).format(value);
+            return new Intl.NumberFormat('mg-MG', {
+          // style: 'currency',
+          // currency: 'MGA',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }).format(value);
           }
         }
       },
@@ -311,11 +312,12 @@
         },
         y: {
           formatter: function(value) {
-            return new Intl.NumberFormat('fr-FR', { 
-              style: 'currency', 
-              currency: 'EUR',
-              maximumFractionDigits: 0
-            }).format(value);
+            return new Intl.NumberFormat('mg-MG', {
+          // style: 'currency',
+          // currency: 'MGA',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }).format(value);
           }
         }
       },
@@ -445,11 +447,12 @@
   
   // Méthodes utilitaires
   const formatMontant = (montant) => {
-    return new Intl.NumberFormat('fr-FR', { 
-      style: 'currency', 
-      currency: 'EUR',
-      maximumFractionDigits: 0 
-    }).format(parseFloat(montant) || 0);
+    return new Intl.NumberFormat('mg-MG', {
+          // style: 'currency',
+          // currency: 'MGA',
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0
+        }).format(parseFloat(montant) || 0);
   };
   
   const formatPourcentage = (pourcentage) => {

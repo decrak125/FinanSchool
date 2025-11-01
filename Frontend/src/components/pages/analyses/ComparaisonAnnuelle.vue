@@ -88,9 +88,11 @@ const fetchTypes = async () => {
 };
 
 const formatMontant = (montant) => {
-  return new Intl.NumberFormat('fr-FR', { 
-    style: 'currency', 
-    currency: 'EUR' 
+  return new Intl.NumberFormat('mg-MG', {
+    // style: 'currency',
+    // currency: 'MGA',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   }).format(parseFloat(montant) || 0);
 };
 

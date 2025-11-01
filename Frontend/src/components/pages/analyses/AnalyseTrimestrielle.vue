@@ -31,9 +31,11 @@ const totalMontantFormatted = computed(() => {
   const total = chartData.value.reduce((sum, item) => {
     return sum + (parseFloat(item.montant_brut) || 0);
   }, 0);
-  return new Intl.NumberFormat('fr-FR', { 
-    style: 'currency', 
-    currency: 'EUR' 
+  return new Intl.NumberFormat('mg-MG', {
+    // style: 'currency',
+    // currency: 'MGA',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   }).format(total);
 });
 
@@ -89,9 +91,11 @@ const getTrimestreName = (trimestreNumber) => {
 };
 
 const formatMontant = (montant) => {
-  return new Intl.NumberFormat('fr-FR', { 
-    style: 'currency', 
-    currency: 'EUR' 
+  return new Intl.NumberFormat('mg-MG', {
+    // style: 'currency',
+    // currency: 'MGA',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
   }).format(parseFloat(montant) || 0);
 };
 

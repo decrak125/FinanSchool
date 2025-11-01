@@ -101,10 +101,8 @@ export function useCentres() {
 
   // Supprimer
   const deleteCentre = async (id) => {
-    if (confirm("Supprimer ce centre ?")) {
       await axios.delete(`${API_URL}/centres/${id}`);
       fetchCentres();
-    }
   };
 
   // Reset formulaire

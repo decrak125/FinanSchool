@@ -20,6 +20,8 @@ import LoadingText from '@/components/atoms/Loading-text.vue';
 
 const openForm = ref(false);
 const openImport = ref(false);
+const opendelete = ref(false);
+const id_to_delete = ref(null);
 const {
   API_URL,
   centres,
@@ -89,6 +91,18 @@ const filteredCount = computed(() => {
 
 <template>
   <PageAnalyse>
+      <transition name="fade">
+      <PopUp v-if="opendelete">
+        <Icon :color="'primary'" :icon="'bi bi-envelope'" />
+        <Texte :type="'bold-dark'" texte="Supprimer ce centre ?" />
+        <Texte :type="'dark'"
+          texte="Une fois l'opération faite, la suppression sera irréversible" />
+        <div class="PPbtn">
+          <Bouton @click="deleteCentre(id_to_delete), opendelete = false" :type="'input'" :texte="'Confirmer'" />
+        <Bouton @click="opendelete = false" :type="'cancel'" :texte="'Annuler'" />
+        </div>
+      </PopUp>
+      </transition>
     <transition name="fade">
       <PopUp v-if="openForm">
         <form @submit.prevent="saveCentre" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
@@ -137,7 +151,7 @@ const filteredCount = computed(() => {
       <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Centre Analytique'" />
       <div class="informations">
         <p class="Count-content">
-          <Counter v-if="centres.length>0" :number="centres.length" />
+          <Counter v-if="centres.length>0" :number="filteredCentres.length" />
             <Counter v-if="centres.length == 0" :number="0" /> centres analytique disponibles.</p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
@@ -202,7 +216,7 @@ const filteredCount = computed(() => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="centre in donneesPagination" :key="centre.id_centre" v-if="centres.length > 0">
+            <tr v-for="centre in donneesPagination" :key="centre.id_centre" v-if="loading == false">
               <td class="col">{{ centre.id_centre }}</td>
               <td class="col">{{ centre.nom }}</td>
               <td class="col">{{ centre.description }}</td>
@@ -211,7 +225,7 @@ const filteredCount = computed(() => {
               <td class="col text-center">
                 <div class="action-content">
                   <BoutonIcon @click="editCentre(centre), openForm = true" icon-name="pen" :type="'edit'" />
-                  <BoutonIcon @click="deleteCentre(centre.id_centre)" icon-name="trash" :type="'cancel'" />
+                  <BoutonIcon @click="id_to_delete = centre.id_centre,opendelete = true" icon-name="trash" :type="'cancel'" />
                 </div>
                 
               </td>
@@ -374,6 +388,11 @@ const filteredCount = computed(() => {
 .action-content{
   display: flex;
   justify-content: center;
+  gap: 10px;
+}
+.PPbtn{
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 </style>
