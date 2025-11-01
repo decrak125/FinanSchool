@@ -112,8 +112,7 @@ CREATE TABLE CentreAnalytique (
     id_centre SERIAL PRIMARY KEY,
     nom VARCHAR(150) NOT NULL,
     description VARCHAR(100) NOT NULL,
-    id_axe INT NOT NULL REFERENCES AxesAnalytique(id_axe),
-    id_type INT NOT NULL REFERENCES TypeCentre(id_type)
+    id_axe INT NOT NULL REFERENCES AxesAnalytique(id_axe)
 );
 
 -- Table des affectations analytiques
@@ -121,6 +120,7 @@ CREATE TABLE AffectationAnalytique (
     id_affectation SERIAL PRIMARY KEY,
     Id_Sous_compte INT NOT NULL REFERENCES Sous_comptes("Id_Sous_compte"), -- à relier à ta table SousCompte plus tard
     id_centre INT NOT NULL REFERENCES CentreAnalytique(id_centre),
+    id_type INT NOT NULL REFERENCES TypeCentre(id_type)
     description VARCHAR(100) NOT NULL
 );
 
