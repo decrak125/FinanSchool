@@ -20,8 +20,6 @@ class NiveauxUrgenceSeeder extends Seeder
             'icone' => 'bi bi-bell-fill',
             'couleur' => '#01CC00',
             'ordre' => 1,
-            'created_at' => now(),
-            'updated_at' => now(),
         ],
         [
             'code' => 'avertissement',
@@ -29,8 +27,6 @@ class NiveauxUrgenceSeeder extends Seeder
             'icone' => 'bi bi-exclamation-circle-fill',
             'couleur' => '#F89400',
             'ordre' => 2,
-            'created_at' => now(),
-            'updated_at' => now(),
         ],
         [
             'code' => 'urgent',
@@ -38,8 +34,6 @@ class NiveauxUrgenceSeeder extends Seeder
             'icone' => 'bi bi-x-circle-fill',
             'couleur' => '#FE0000',
             'ordre' => 3,
-            'created_at' => now(),
-            'updated_at' => now(),
         ],
     ]);
 }
