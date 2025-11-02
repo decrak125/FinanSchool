@@ -8,4 +8,4 @@ php artisan reverb:start
 
 # dans vue js
 
-npm install --save laravel-echo
+npm install laravel-echo
