@@ -73,9 +73,9 @@ return [
 
         'apps' => [
             [
-                'key' => env('REVERB_APP_KEY'),
-                'secret' => env('REVERB_APP_SECRET'),
-                'app_id' => env('REVERB_APP_ID'),
+                'key' => env('local'),
+                'secret' => env('secret'),
+                'app_id' => env('base64:CF4bQcY4Q5B+9MCEveyFZb7Ax20tnedH8AVQWnW9MG0='),
                 'options' => [
                     'host' => env('REVERB_HOST'),
                     'port' => env('REVERB_PORT', 443),

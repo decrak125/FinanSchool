@@ -10,5 +10,6 @@ php artisan db:seed --class=NiveauAlerteSeeder
 php artisan db:seed --class=IndicateursAnalytiqueSeeder
 php artisan db:seed --class=InterpretationIndicateurSeeder
 php artisan db:seed --class=NiveauxUrgenceSeeder
+php artisan db:seed --class=TypesEvenementSeeder
 
 

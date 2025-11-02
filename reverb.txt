@@ -9,3 +9,4 @@ php artisan reverb:start
 # dans vue js
 
 npm install laravel-echo
+npm install pusher-js
