@@ -7,7 +7,8 @@ export function useAffectations() {
   const affectations = ref([]);
   const centres = ref([]);
   const comptes = ref([]);
-  const types = ref([]); // ← NOUVEAU : Liste des types
+  const types = ref([]);
+  const codesAnalytiques = ref([]); // ← NOUVEAU : Liste des codes analytiques
   const editingVentilation = ref(null);
   const showVentilationForm = ref(false);
   const nombreLignesLoader = ref(10);
@@ -29,6 +30,7 @@ export function useAffectations() {
   // Variables pour les filtres
   const filterSearchTerm = ref("");
   const filterSelectedCentre = ref("");
+  const filterSelectedCode = ref(""); // ← NOUVEAU : Filtre par code analytique
 
   // Variables pour les détails
   var showDetails = ref(false);
@@ -42,16 +44,18 @@ export function useAffectations() {
   // Fetch initial data
   const fetchData = async () => {
     loadingTable.value = true;
-    const [resAffect, resCentres, resComptes, resTypes] = await Promise.all([ // ← AJOUT resTypes
+    const [resAffect, resCentres, resComptes, resTypes, resCodes] = await Promise.all([ // ← AJOUT resCodes
       axios.get(`${API_URL}/affectations`),
       axios.get(`${API_URL}/centres`),
       axios.get(`${API_URL}/comptes`),
-      axios.get(`${API_URL}/types`) // ← NOUVEAU : Récupérer les types
+      axios.get(`${API_URL}/types`),
+      axios.get(`${API_URL}/codes`) // ← NOUVEAU : Récupérer les codes analytiques
     ]);
     affectations.value = resAffect.data;
     centres.value = resCentres.data;
     comptes.value = resComptes.data;
-    types.value = resTypes.data; // ← NOUVEAU : Stocker les types
+    types.value = resTypes.data;
+    codesAnalytiques.value = resCodes.data; // ← NOUVEAU : Stocker les codes analytiques
     loadingTable.value = false;
   };
 
@@ -65,7 +69,10 @@ export function useAffectations() {
       const matchesCentre = filterSelectedCentre.value === "" ||
         affectation.id_centre?.toString() === filterSelectedCentre.value;
 
-      return matchesSearch && matchesCentre;
+      const matchesCode = filterSelectedCode.value === "" || // ← NOUVEAU : Filtre par code
+        affectation.id_code?.toString() === filterSelectedCode.value;
+
+      return matchesSearch && matchesCentre && matchesCode;
     });
   });
 
@@ -92,7 +99,7 @@ export function useAffectations() {
     if (hasDuplicateCentres.value) return false;
 
     return form.value.ventilations.every(vent =>
-      vent.id_centre && vent.id_type && vent.taux !== null && vent.taux !== undefined // ← AJOUT vent.id_type
+      vent.id_centre && vent.id_type && vent.taux !== null && vent.taux !== undefined
     );
   });
 
@@ -117,12 +124,13 @@ export function useAffectations() {
           return false;
         }
 
-        // Pour la création, envoyer chaque ventilation avec id_type
+        // Pour la création, envoyer chaque ventilation avec id_type et id_code
         await axios.post(`${API_URL}/affectations`, {
           Id_Compte: form.value.Id_Compte,
           ventilations: form.value.ventilations.map(vent => ({
             id_centre: vent.id_centre,
-            id_type: vent.id_type, // ← NOUVEAU CHAMP
+            id_type: vent.id_type,
+            id_code: vent.id_code, // ← NOUVEAU CHAMP
             taux: vent.taux,
             description: vent.description || ''
           }))
@@ -147,7 +155,8 @@ export function useAffectations() {
         ventilations: form.value.ventilations.map(vent => ({
           id_affectation: vent.id_affectation || null,
           id_centre: vent.id_centre,
-          id_type: vent.id_type, // ← NOUVEAU CHAMP
+          id_type: vent.id_type,
+          id_code: vent.id_code, // ← NOUVEAU CHAMP
           taux: vent.taux,
           description: vent.description
         }))
@@ -167,7 +176,8 @@ export function useAffectations() {
       ventilations: aff.ventilations?.map(v => ({
         id_affectation: v.id_affectation,
         id_centre: v.id_centre,
-        id_type: v.id_type, // ← NOUVEAU CHAMP
+        id_type: v.id_type,
+        id_code: v.id_code, // ← NOUVEAU CHAMP
         taux: v.taux,
         description: v.description
       })) || []
@@ -187,15 +197,11 @@ export function useAffectations() {
     showDetails.value = false;
     await fetchData();
     const wasDetailsOpen = showDetails.value;
-    // const currentGroup = selected.value;
     console.log('nb:' + selected);
     setTimeout(() => {
         if (selected > 1) {
           showDetails.value = true;
         }
-        // else {
-        //   showDetails.value = false;
-        // }
     }, 300);
   };
 
@@ -219,7 +225,8 @@ export function useAffectations() {
       ventilations: group.ventilations.map(v => ({
         id_affectation: v.id_affectation,
         id_centre: v.id_centre,
-        id_type: v.id_type, // ← NOUVEAU CHAMP
+        id_type: v.id_type,
+        id_code: v.id_code, // ← NOUVEAU CHAMP
         taux: v.taux,
         description: v.description || ""
       }))
@@ -238,7 +245,8 @@ export function useAffectations() {
     try {
       await axios.put(`${API_URL}/affectations/${editingVentilation.value.id_affectation}`, {
         id_centre: editingVentilation.value.id_centre,
-        id_type: editingVentilation.value.id_type, // ← NOUVEAU CHAMP
+        id_type: editingVentilation.value.id_type,
+        id_code: editingVentilation.value.id_code, // ← NOUVEAU CHAMP
         taux: editingVentilation.value.taux,
         description: editingVentilation.value.description
       });
@@ -403,9 +411,11 @@ export function useAffectations() {
       grouped[key].ventilations.push({
         id_affectation: aff.id_affectation,
         id_centre: aff.id_centre,
-        id_type: aff.id_type, // ← NOUVEAU CHAMP
+        id_type: aff.id_type,
+        id_code: aff.id_code, // ← NOUVEAU CHAMP
         centre_nom: aff.centre?.nom,
-        type_nom: types.value.find(t => t.id_type === aff.id_type)?.code || 'N/A', // ← NOUVEAU : Nom du type
+        type_nom: types.value.find(t => t.id_type === aff.id_type)?.code || 'N/A',
+        code_nom: codesAnalytiques.value.find(c => c.id_code === aff.id_code)?.code || 'N/A', // ← NOUVEAU : Nom du code
         taux: aff.taux,
         description: aff.description
       });
@@ -442,7 +452,8 @@ export function useAffectations() {
 
     form.value.ventilations.push({
       id_centre: null,
-      id_type: null, // ← NOUVEAU CHAMP
+      id_type: null,
+      id_code: null, // ← NOUVEAU CHAMP
       taux: Number(remainingTaux.toFixed(2)),
       description: ""
     });
@@ -455,12 +466,6 @@ export function useAffectations() {
     }
 
     const ventilationToRemove = form.value.ventilations[index];
-
-    // if (ventilationToRemove.id_affectation) {
-    //   if (!confirm("Supprimer cette ventilation de la liste ? Elle sera supprimée de la base de données lors de la sauvegarde.")) {
-    //     return;
-    //   }
-    // }
 
     form.value.ventilations.splice(index, 1);
 
@@ -515,15 +520,28 @@ export function useAffectations() {
     }
   };
 
-  // NOUVEAU : Fonction pour obtenir le nom du type
+  // Fonction pour obtenir le nom du type
   const getTypeName = (id_type) => {
     const type = types.value.find(t => t.id_type === id_type);
     return type ? type.code : 'N/A';
   };
 
+  // NOUVEAU : Fonction pour obtenir le nom du code analytique
+  const getCodeName = (id_code) => {
+    const code = codesAnalytiques.value.find(c => c.id_code === id_code);
+    return code ? code.code : 'N/A';
+  };
+
+  // NOUVEAU : Réinitialiser tous les filtres
+  const resetFilters = () => {
+    filterSearchTerm.value = '';
+    filterSelectedCentre.value = '';
+    filterSelectedCode.value = '';
+  };
+
   return {
     id_to_delete,
-    affectations, centres, comptes, types, file, showVentilationForm, switchToEditMode, switchToViewMode,
+    affectations, centres, comptes, types, codesAnalytiques, file, showVentilationForm, switchToEditMode, switchToViewMode,
     showDetails, totalTauxClass, isFormValid, hasDuplicateCentres,
     selectedGroup, nombreLignesLoader, loadingTable,
     editingVentilation, cancelTableModifications, saveTableModifications, removeVentilationFromTable,
@@ -533,6 +551,7 @@ export function useAffectations() {
     searchCompte, selectCompte,
     filterSearchTerm,
     filterSelectedCentre,
+    filterSelectedCode, // ← NOUVEAU : Exposer le filtre code
     filteredAffectations, detailsMode,
     editVentilation,
     saveVentilation,
@@ -541,6 +560,8 @@ export function useAffectations() {
     updateMultipleVentilations,
     editGroup, removeBySousCompte,
     affectationsGrouped,
-    getTypeName // ← NOUVEAU : Exposer la fonction
+    getTypeName,
+    getCodeName, // ← NOUVEAU : Exposer la fonction
+    resetFilters // ← NOUVEAU : Exposer la fonction reset
   };
 }

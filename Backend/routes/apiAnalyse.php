@@ -14,6 +14,8 @@ use App\Http\Controllers\Analyse\IndicateurSolvabiliteController;
 use App\Http\Controllers\ParametresAnalytique\IndicateurAnalytiqueController;
 use App\Http\Controllers\ParametresAnalytique\NiveauAlerteController;
 use App\Http\Controllers\ParametresAnalytique\InterpretationIndicateurController;
+use App\Http\Controllers\ParametresAnalytique\CodeAnalytiqueController;
+use App\Http\Controllers\Analyse\IndicateurPedagogiqueController;
 // use App\Http\Controllers\ChatBot\ChatController;
 
 //      Route::post('/chat/send', [ChatController::class, 'sendMessage']);
@@ -25,6 +27,7 @@ use App\Http\Controllers\ParametresAnalytique\InterpretationIndicateurController
     Route::apiResource('types', TypeCentreController::class);
     Route::apiResource('centres', CentreAnalytiqueController::class);
     Route::apiResource('affectations', AffectationAnalytiqueController::class);
+    Route::apiResource('codes', CodeAnalytiqueController::class);
      Route::apiResource('indicateurs-analytique', IndicateurAnalytiqueController::class);
      Route::apiResource('niveaux-alerte', NiveauAlerteController::class);
      Route::apiResource('interpretations-indicateur', InterpretationIndicateurController::class);
@@ -98,6 +101,12 @@ use App\Http\Controllers\ParametresAnalytique\InterpretationIndicateurController
      Route::get('/ratio-endettement', [IndicateurSolvabiliteController::class, 'calculRatioEndettement']);
      Route::get('/capacite-remboursement', [IndicateurSolvabiliteController::class, 'calculCapaciteRemboursement']);
      Route::get('/autonomie-financiere', [IndicateurSolvabiliteController::class, 'calculAutonomieFinanciere']);
+     // indicateurs pedagogiques
+     Route::get('/cout-fonctionnement-par-eleve',[IndicateurPedagogiqueController::class,'calculCoutFonctionnementParEleve']);
+     Route::get('/chiffre-affaires-par-eleve',[IndicateurPedagogiqueController::class,'calculChiffreAffairesParEleve']);
+     Route::get('/part-masse-salariale-enseignante',[IndicateurPedagogiqueController::class,'calculPartMasseSalarialeEnseignante']);
+     Route::get('/marge-par-eleve',[IndicateurPedagogiqueController::class,'calculMargeParEleve']);
+     Route::get('/tous-indicateurs',[IndicateurPedagogiqueController::class,'calculTousIndicateursPedagogiques']);
     });
 
 

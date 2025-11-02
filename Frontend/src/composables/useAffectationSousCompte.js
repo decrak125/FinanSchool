@@ -46,6 +46,7 @@ export function useAffectationSousCompte() {
       ventilations: [{
         id_centre: null,
         id_type: null,
+        id_code: null, // ← NOUVEAU CHAMP
         taux: 100,
         description: ""
       }]
@@ -70,6 +71,7 @@ export function useAffectationSousCompte() {
     form.value.ventilations.push({
       id_centre: null,
       id_type: null,
+      id_code: null, // ← NOUVEAU CHAMP
       taux: Number(remainingTaux.toFixed(2)),
       description: ""
     });
@@ -121,6 +123,7 @@ export function useAffectationSousCompte() {
         ventilations: form.value.ventilations.map(vent => ({
           id_centre: vent.id_centre,
           id_type: vent.id_type,
+          id_code: vent.id_code, // ← NOUVEAU CHAMP
           taux: vent.taux,
           description: vent.description || ''
         }))

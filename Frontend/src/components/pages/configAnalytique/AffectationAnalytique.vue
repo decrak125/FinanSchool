@@ -31,7 +31,7 @@ const openremove = ref(false);
 const selected = ref(null);
 
 const {
-  affectations, centres, comptes, types, file, showVentilationForm, // ← AJOUT types
+  affectations, centres, comptes, types, codesAnalytiques, file, showVentilationForm, // ← AJOUT codesAnalytiques
   showDetails, totalTauxClass, isFormValid, hasDuplicateCentres, id_to_delete,
   selectedGroup, loadingTable, nombreLignesLoader,
   editingVentilation, cancelTableModifications, saveTableModifications, removeVentilationFromTable,
@@ -41,6 +41,7 @@ const {
   searchCompte, selectCompte,
   filterSearchTerm,
   filterSelectedCentre,
+  filterSelectedCode, // ← NOUVEAU : Filtre par code
   filteredAffectations,
   editVentilation,
   saveVentilation,
@@ -50,7 +51,9 @@ const {
   editGroup, removeBySousCompte,
   switchToEditMode, switchToViewMode,detailsMode,
   affectationsGrouped,
-  getTypeName // ← NOUVEAU : Fonction pour obtenir le nom du type
+  getTypeName,
+  getCodeName, // ← NOUVEAU : Fonction pour obtenir le nom du code
+  resetFilters // ← NOUVEAU : Fonction reset filters
 } = useAffectations();
 
 // Computed pour les données groupées ET filtrées (uniquement pour l'affichage du tableau)
@@ -62,6 +65,10 @@ const filteredAffectationsGrouped = computed(() => {
       const key = aff.Id_Sous_compte;
       if (!grouped[key]) {
         grouped[key] = {
+          id_code: aff.code_analytique?.id_code,
+          id_centre: aff.centre?.id_centre,
+          centre: aff.centre?.nom,
+          code: aff.code_analytique?.code,
           Id_Sous_compte: aff.Id_Sous_compte,
           Id_Compte: aff.sous_compte?.Id_Compte,
           Code_sous_compte: aff.sous_compte?.Code_sous_compte,
@@ -72,9 +79,11 @@ const filteredAffectationsGrouped = computed(() => {
       grouped[key].ventilations.push({
         id_affectation: aff.id_affectation,
         id_centre: aff.id_centre,
-        id_type: aff.id_type, // ← AJOUT id_type
+        id_type: aff.id_type,
+        id_code: aff.id_code, // ← AJOUT id_code
         centre_nom: aff.centre?.nom,
-        type_nom: getTypeName(aff.id_type), // ← AJOUT type_nom
+        type_nom: getTypeName(aff.id_type),
+        code_nom: getCodeName(aff.id_code), // ← AJOUT code_nom
         taux: aff.taux,
         description: aff.description
       });
@@ -140,7 +149,8 @@ const addVentilation = () => {
 
   form.value.ventilations.push({
     id_centre: null,
-    id_type: null, // ← AJOUT id_type
+    id_type: null,
+    id_code: null, // ← AJOUT id_code
     taux: Number(remainingTaux.toFixed(2)),
     description: ""
   });
@@ -157,12 +167,6 @@ const handleSave = async () => {
 const openFormPopup = () => {
   resetForm();
   openForm.value = true;
-};
-
-// Réinitialiser les filtres
-const resetFilters = () => {
-  filterSearchTerm.value = '';
-  filterSelectedCentre.value = '';
 };
 
 // Fonction pour afficher les détails avec TOUTES les ventilations
@@ -230,7 +234,8 @@ const showAllVentilations = (group) => {
           <thead>
             <tr>
               <th class="col">Centre</th>
-              <th class="col">Type</th> <!-- ← NOUVELLE COLONNE -->
+              <th class="col">Type</th>
+              <th class="col">Code Analytique</th> <!-- ← NOUVELLE COLONNE -->
               <th class="col">Description</th>
               <th class="col">Taux</th>
               <th class="col">Actions</th>
@@ -255,7 +260,7 @@ const showAllVentilations = (group) => {
                   </option>
                 </SelectTable>
               </td>
-              <td class="col"> <!-- ← NOUVELLE COLONNE -->
+              <td class="col">
                 <SelectTable 
                   v-model="vent.id_type" 
                   :label="''"
@@ -269,6 +274,22 @@ const showAllVentilations = (group) => {
                     :value="type.id_type"
                   >
                     {{ type.code }} - {{ type.libelle }}
+                  </option>
+                </SelectTable>
+              </td>
+              <td class="col"> <!-- ← NOUVELLE COLONNE -->
+                <SelectTable 
+                  v-model="vent.id_code" 
+                  :label="''"
+                  class="compact-select"
+                >
+                  <option value="">Aucun code</option>
+                  <option 
+                    v-for="code in codesAnalytiques" 
+                    :key="code.id_code" 
+                    :value="code.id_code"
+                  >
+                    {{ code.code }} - {{ code.libelle }}
                   </option>
                 </SelectTable>
               </td>
@@ -321,6 +342,7 @@ const showAllVentilations = (group) => {
             </td>
             <td></td>
             <td></td>
+            <td></td>
             <td class="col total-cell">
               <span class="total-label">Total:</span>
               <span class="total-value" :class="totalTauxClass">
@@ -352,7 +374,6 @@ const showAllVentilations = (group) => {
             :texte="`Veuillez d'abord sélectionner un compte`"
             :type="'thin-warning'"
           />
-
         </div>
       </div>
 
@@ -373,6 +394,7 @@ const showAllVentilations = (group) => {
     </div>
   </PopUp>
 </transition>
+
     <!-- Popup pour l'import -->
     <transition name="fade">
       <PopUp v-if="openImport">
@@ -386,6 +408,7 @@ const showAllVentilations = (group) => {
         </div>
       </PopUp>
     </transition>
+
     <transition name="fade">
   <PopUp v-if="showDetails">
     <div class="details-popup">
@@ -405,7 +428,6 @@ const showAllVentilations = (group) => {
           />
         </div>
         <div v-else>
-          
           <BoutonIcon 
             @click="cancelTableModifications()" 
             icon-name="x-lg" 
@@ -421,7 +443,8 @@ const showAllVentilations = (group) => {
           <thead>
             <tr>
               <th class="col">Centre</th>
-              <th class="col">Type</th> <!-- ← NOUVELLE COLONNE -->
+              <th class="col">Type</th>
+              <th class="col">Code Analytique</th> <!-- ← NOUVELLE COLONNE -->
               <th class="col">Description</th>
               <th class="col">Taux</th>
               <th class="col" v-if="detailsMode != 'view'">Actions</th>
@@ -433,16 +456,10 @@ const showAllVentilations = (group) => {
               <!-- Afficher TOUTES les ventilations du sous-compte -->
               <tr v-for="vent in selectedGroup?.ventilations || []" :key="vent.id_affectation">
                 <td class="col">{{ vent.centre_nom }}</td>
-                <td class="col">{{ vent.type_nom }}</td> <!-- ← AJOUT colonne type -->
+                <td class="col">{{ vent.type_nom }}</td>
+                <td class="col">{{ vent.code_nom }}</td> <!-- ← AJOUT colonne code -->
                 <td class="col">{{ vent.description }}</td>
                 <td class="col">{{ Number(vent.taux || 0).toFixed(2) }}%</td>
-                <!-- <td class="col">
-                  <BoutonIcon 
-                    @click="id_to_delete=vent.id_affectation ; openremove = true;  selected = selectedGroup?.ventilations?.length" 
-                    icon-name="trash" 
-                    :type="'cancel'" 
-                  />
-                </td> -->
               </tr>
             </template>
 
@@ -466,7 +483,7 @@ const showAllVentilations = (group) => {
                     </option>
                   </selectTable>
                 </td>
-                <td class="col"> <!-- ← NOUVELLE COLONNE -->
+                <td class="col">
                   <selectTable 
                     v-model="vent.id_type" 
                     :label="''"
@@ -479,6 +496,22 @@ const showAllVentilations = (group) => {
                       :value="type.id_type"
                     >
                       {{ type.code }} - {{ type.libelle }}
+                    </option>
+                  </selectTable>
+                </td>
+                <td class="col"> <!-- ← NOUVELLE COLONNE -->
+                  <selectTable 
+                    v-model="vent.id_code" 
+                    :label="''"
+                    class="compact-select"
+                  >
+                    <option value="">Aucun code</option>
+                    <option 
+                      v-for="code in codesAnalytiques" 
+                      :key="code.id_code" 
+                      :value="code.id_code"
+                    >
+                      {{ code.code }} - {{ code.libelle }}
                     </option>
                   </selectTable>
                 </td>
@@ -520,8 +553,8 @@ const showAllVentilations = (group) => {
               <td class="col">Total</td>
               <td></td>
               <td></td>
+              <td></td>
               <td class="col">{{selectedGroup?.ventilations?.reduce((sum, v) => sum + Number(v.taux || 0), 0).toFixed(2)}}%</td>
-              <!-- <td></td> -->
             </template>
 
             <!-- MODE ÉDITION -->
@@ -531,32 +564,17 @@ const showAllVentilations = (group) => {
               </td>
               <td></td>
               <td></td>
+              <td></td>
               <td class="col">
                 <span class="total-value" :class="totalTauxClass">
                   {{ totalTauxForm.toFixed(2) }}%
                 </span>
               </td>
               <td class="col">
-                 
               </td>
             </template>
           </tfoot>
         </table>
-
-        <!-- Messages d'information (uniquement en mode édition) -->
-        <!-- <div v-if="detailsMode === 'edit'">
-          <div v-if="totalTauxForm !== 100" class="taux-warning mt-3">
-            <p class="text-amber-600 text-sm">
-              ⚠️ Le total des taux doit être exactement 100% (actuellement : {{ totalTauxForm.toFixed(2) }}%)
-            </p>
-          </div>
-
-          <div v-if="hasDuplicateCentres" class="duplicate-warning mt-3">
-            <p class="text-red-600 text-sm">
-              ❌ Vous ne pouvez pas avoir plusieurs ventilations pour le même centre
-            </p>
-          </div>
-        </div> -->
       </div>
 
       <!-- Boutons selon le mode -->
@@ -581,17 +599,13 @@ const showAllVentilations = (group) => {
             :texte="'Valider'" 
             :disabled="!isFormValid"
           />
-          <!-- <Bouton 
-            @click="cancelTableModifications" 
-            type="cancel" 
-            :texte="'Annuler'" 
-          /> -->
         </div>
         </template>
       </div>
     </div>
   </PopUp>
 </transition>
+
       <transition name="fade">
       <PopUp v-if="opendelete">
           <Icon :color="'primary'" :icon="'bi bi-envelope'" />
@@ -604,6 +618,7 @@ const showAllVentilations = (group) => {
         </div>
       </PopUp>
       </transition>
+
       <transition name="fade">
       <PopUp v-if="openremove">
           <Icon :color="'primary'" :icon="'bi bi-envelope'" />
@@ -641,9 +656,17 @@ const showAllVentilations = (group) => {
             {{ centre.nom }}
           </option>
         </FilterSelect>
+
+        <!-- NOUVEAU : Filtre par code analytique -->
+        <FilterSelect v-model="filterSelectedCode" :label="''">
+          <option value="">Tous les codes</option>
+          <option v-for="code in codesAnalytiques" :key="code.id_code" :value="code.id_code">
+            {{ code.code }}
+          </option>
+        </FilterSelect>
         
         <BoutonIcon 
-        v-if="filterSearchTerm || filterSelectedCentre"
+        v-if="filterSearchTerm || filterSelectedCentre || filterSelectedCode"
           @click="resetFilters" 
           type="cancel" 
           :icon-name="'x-lg'"
@@ -661,6 +684,8 @@ const showAllVentilations = (group) => {
             <thead>
               <tr>
                 <th class="col">Code</th>
+                <th class="col">Numero de compte</th>
+                <th class="col">Centre</th>
                 <th class="col">Libellé</th>
                 <th class="col">Nombre de ventilations</th>
                 <th class="col">Total taux</th>
@@ -669,7 +694,9 @@ const showAllVentilations = (group) => {
             </thead>
             <tbody>
               <tr v-for="group in donneesPagination" :key="group.Id_Sous_compte" v-if="donneesPagination.length > 0">
+                <td class="col">{{ group.code }}</td>
                 <td class="col">{{ group.Code_sous_compte }}</td>
+                <td class="col">{{ group.centre }}</td>
                 <td class="col">{{ group.Libelle }}</td>
                 <td class="col">{{ group.ventilations.length }}</td>
                 <td class="col">{{group.ventilations.reduce((sum, v) => sum + Number(v.taux || 0), 0).toFixed(2)}}%</td>
@@ -690,17 +717,10 @@ const showAllVentilations = (group) => {
                 <td class="col"><LoadingText :type="'line-1'"/></td>
                 <td class="col"><LoadingText :type="'line-1'"/></td>
               </tr>
-              <!-- <tr v-if="donneesPagination.length === 0 && !loading">
-                <td colspan="5" class="col text-center">
-                  Aucune affectation trouvée
-                </td>
-              </tr> -->
             </tbody>
           </table>
         </div>
       </transition>
-
-      <!-- Popup pour voir les détails des ventilations -->
 
       <Pagination 
         :donnees="filteredAffectationsGrouped" 
@@ -890,7 +910,6 @@ const showAllVentilations = (group) => {
   padding: 0 0;
   align-self: self-start;
   gap: 10px;
-  // width: 100%;
 }
 
 .reset-filter-btn {

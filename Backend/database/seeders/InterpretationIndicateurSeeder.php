@@ -344,6 +344,112 @@ class InterpretationIndicateurSeeder extends Seeder
                 'interpretation' => 'Capacité de remboursement faible - Risque élevé',
                 'id_niveau_alerte' => $niveauxAlerte['Mauvais']->id_niveau_alerte
             ],
+
+            // ---------------------------------------------------------------------
+            // INDICATEURS PEDAGOGIQUES
+            // COÛT DE FONCTIONNEMENT PAR ÉLÈVE
+            [
+                'id_indicateur_analytique' => $indicateurs['Coût de Fonctionnement par élève']->id_indicateur_analytique,
+                'valeur' => 0.00,
+                'interpretation' => 'Coût de fonctionnement très faible - Efficacité optimale',
+                'id_niveau_alerte' => $niveauxAlerte['Bon']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Coût de Fonctionnement par élève']->id_indicateur_analytique,
+                'valeur' => 1000.00,
+                'interpretation' => 'Coût de fonctionnement faible - Bonne efficacité',
+                'id_niveau_alerte' => $niveauxAlerte['Bon']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Coût de Fonctionnement par élève']->id_indicateur_analytique,
+                'valeur' => 2000.00,
+                'interpretation' => 'Coût de fonctionnement acceptable - Efficacité moyenne',
+                'id_niveau_alerte' => $niveauxAlerte['Moyen']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Coût de Fonctionnement par élève']->id_indicateur_analytique,
+                'valeur' => 3000.00,
+                'interpretation' => 'Coût de fonctionnement élevé - Nécessite une optimisation',
+                'id_niveau_alerte' => $niveauxAlerte['Mauvais']->id_niveau_alerte
+            ],
+
+            // CHIFFRE D'AFFAIRES PAR ÉLÈVE
+            [
+                'id_indicateur_analytique' => $indicateurs['Chiffre d\'Affaires par élève']->id_indicateur_analytique,
+                'valeur' => 4000.00,
+                'interpretation' => 'Très bon chiffre d\'affaires par élève - Excellente valorisation',
+                'id_niveau_alerte' => $niveauxAlerte['Bon']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Chiffre d\'Affaires par élève']->id_indicateur_analytique,
+                'valeur' => 3000.00,
+                'interpretation' => 'Bon chiffre d\'affaires par élève - Valorisation satisfaisante',
+                'id_niveau_alerte' => $niveauxAlerte['Bon']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Chiffre d\'Affaires par élève']->id_indicateur_analytique,
+                'valeur' => 2000.00,
+                'interpretation' => 'Chiffre d\'affaires par élève acceptable - Valorisation moyenne',
+                'id_niveau_alerte' => $niveauxAlerte['Moyen']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Chiffre d\'Affaires par élève']->id_indicateur_analytique,
+                'valeur' => 1000.00,
+                'interpretation' => 'Chiffre d\'affaires par élève faible - Revoir la stratégie tarifaire',
+                'id_niveau_alerte' => $niveauxAlerte['Mauvais']->id_niveau_alerte
+            ],
+
+            // PART DE LA MASSE SALARIALE ENSEIGNANTE
+            [
+                'id_indicateur_analytique' => $indicateurs['Part de la Masse Salariale Enseignante']->id_indicateur_analytique,
+                'valeur' => 40.00,
+                'interpretation' => 'Part enseignante optimale - Équilibre budgétaire excellent',
+                'id_niveau_alerte' => $niveauxAlerte['Bon']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Part de la Masse Salariale Enseignante']->id_indicateur_analytique,
+                'valeur' => 50.00,
+                'interpretation' => 'Part enseignante raisonnable - Équilibre budgétaire bon',
+                'id_niveau_alerte' => $niveauxAlerte['Bon']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Part de la Masse Salariale Enseignante']->id_indicateur_analytique,
+                'valeur' => 60.00,
+                'interpretation' => 'Part enseignante élevée - Surveillance recommandée',
+                'id_niveau_alerte' => $niveauxAlerte['Moyen']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Part de la Masse Salariale Enseignante']->id_indicateur_analytique,
+                'valeur' => 70.00,
+                'interpretation' => 'Part enseignante très élevée - Déséquilibre budgétaire',
+                'id_niveau_alerte' => $niveauxAlerte['Mauvais']->id_niveau_alerte
+            ],
+
+            // MARGE PAR ÉLÈVE
+            [
+                'id_indicateur_analytique' => $indicateurs['Marge par élève']->id_indicateur_analytique,
+                'valeur' => 1000.00,
+                'interpretation' => 'Excellente marge par élève - Rentabilité très forte',
+                'id_niveau_alerte' => $niveauxAlerte['Bon']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Marge par élève']->id_indicateur_analytique,
+                'valeur' => 500.00,
+                'interpretation' => 'Bonne marge par élève - Rentabilité satisfaisante',
+                'id_niveau_alerte' => $niveauxAlerte['Bon']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Marge par élève']->id_indicateur_analytique,
+                'valeur' => 0.00,
+                'interpretation' => 'Marge par élève nulle - Équilibre précaire',
+                'id_niveau_alerte' => $niveauxAlerte['Moyen']->id_niveau_alerte
+            ],
+            [
+                'id_indicateur_analytique' => $indicateurs['Marge par élève']->id_indicateur_analytique,
+                'valeur' => -500.00,
+                'interpretation' => 'Marge par élève négative - Situation déficitaire',
+                'id_niveau_alerte' => $niveauxAlerte['Mauvais']->id_niveau_alerte
+            ],
         ];
 
         foreach ($interpretations as $interpretation) {

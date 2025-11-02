@@ -33,3 +33,10 @@
 | **Autonomie financière**      | Capitaux propres / Total bilan        | > 30% = bonne autonomie financière.                   |
 | **Capacité de remboursement** | Endettement net / CAF (Cash Flow)     | Nombre d’années nécessaires pour rembourser la dette. |
 
+4. Indicateurs pedagogiques
+| Indicateur                             | Formule                                                        | Interprétation                                                      |
+| -------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Coût de Fonctionnement par élève       | Total des Charges d'Exploitation / Effectif total des élèves   | Donne le "prix de revient" moyen d'un élève. KPI de base essentiel. |
+| Chiffre d'Affaires par Élève           | Total des Produits d'Exploitation / Effectif total des élèves  | Montant moyen des ressources générées par élève.                    |
+| Part de la Masse Salariale Enseignante |	(Masse Salariale Enseignante / Total des Charges) * 100       | Poids du coût des enseignants dans le budget total.                 |
+| Marge par Élève                        | (Total Produits - Total Charges) / Effectif total des élèves   | Marge nette dégagée par élève. Le moteur de la rentabilité.         |

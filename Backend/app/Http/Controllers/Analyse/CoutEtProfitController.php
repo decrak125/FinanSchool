@@ -10,6 +10,7 @@ use App\Events\MouvementCreated;
 class CoutEtProfitController extends Controller
 {
     // Fonction pour récupérer les montants par centre analytique avec taux de ventilation
+// Fonction pour récupérer les montants par centre analytique avec taux de ventilation
     public function AnalyseCoutEtProfit(Request $request)
     {
         // 🔥 Déclencher l'événement
@@ -19,6 +20,7 @@ class CoutEtProfitController extends Controller
         $dateEnd = $request->input('date_end', '2025-12-31');
         $idCentre  = $request->input('id_centre'); // facultatif
         $idType = $request->input('id_type');
+        $idCode = $request->input('id_code'); // ← NOUVEAU : filtre par code analytique
 
         $query = DB::table('ligne_ecritures as le')
             ->select(
@@ -43,6 +45,10 @@ class CoutEtProfitController extends Controller
         if ($idType) {
             $query->where('aa.id_type', $idType);
         }
+        // ← NOUVEAU : Filtrer par code analytique si fourni
+        if ($idCode) {
+            $query->where('aa.id_code', $idCode);
+        }
 
         $results = $query
             ->groupBy('aa.id_type','ca.id_centre', 'ca.nom')
@@ -59,10 +65,11 @@ class CoutEtProfitController extends Controller
         $dateStart = $request->input('date_start', '2025-01-01');
         $dateEnd   = $request->input('date_end', '2025-12-31');
         $idCentre  = $request->input('id_centre'); // facultatif
-        $idSousCompte = $request->input('id_sous_compte'); // ← NOUVEAU
-        $montantMin = $request->input('montant_min'); // ← NOUVEAU
-        $montantMax = $request->input('montant_max'); // ← NOUVEAU
+        $idSousCompte = $request->input('id_sous_compte');
+        $montantMin = $request->input('montant_min');
+        $montantMax = $request->input('montant_max');
         $idType = $request->input('id_type');
+        $idCode = $request->input('id_code'); // ← NOUVEAU : filtre par code analytique
     
         $query = DB::table('ligne_ecritures as le')
             ->select(
@@ -70,8 +77,10 @@ class CoutEtProfitController extends Controller
                 'aa.description as affectation_description',
                 'ca.nom as centre_nom',
                 'aa.taux as taux_ventilation',
-                'sc.Id_Sous_compte as id_sous_compte', // ← AJOUTÉ
-                'sc.Libelle as libelle_sous_compte',   // ← AJOUTÉ
+                'sc.Id_Sous_compte as id_sous_compte',
+                'sc.Libelle as libelle_sous_compte',
+                'aa.id_code', // ← NOUVEAU : inclure l'id_code
+                'co.code', // ← NOUVEAU : inclure le code
                 // 🔥 CORRECTION : ABS() POUR AVOIR DES MONTANTS POSITIFS
                 DB::raw('ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) as montant_ventile'),
                 DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_brut'),
@@ -82,6 +91,7 @@ class CoutEtProfitController extends Controller
             ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
             ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')
             ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
+            ->join('code_analytique as co', 'aa.id_code', '=', 'co.id_code')
             ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd]);
     
         // Filtrer par centre si fourni
@@ -89,16 +99,21 @@ class CoutEtProfitController extends Controller
             $query->where('ca.id_centre', $idCentre);
         }
     
-        // ← NOUVEAUX FILTRES
+        // Filtres existants
         if ($idSousCompte) {
             $query->where('sc.Id_Sous_compte', $idSousCompte);
         }
         if ($idType) {
             $query->where('aa.id_type', $idType);
         }
+        // ← NOUVEAU : Filtrer par code analytique si fourni
+        if ($idCode) {
+            $query->where('aa.id_code', $idCode);
+            
+        }
     
         $results = $query
-            ->groupBy('aa.id_type', 'aa.description', 'ca.nom', 'aa.taux', 'sc.Id_Sous_compte', 'sc.Libelle')
+            ->groupBy('aa.id_type', 'aa.description', 'ca.nom', 'aa.taux', 'sc.Id_Sous_compte', 'sc.Libelle', 'aa.id_code', 'co.code')
             ->orderByDesc('montant_ventile')
             ->get();
     
@@ -123,6 +138,7 @@ class CoutEtProfitController extends Controller
         $dateEnd   = $request->input('date_end', '2025-12-31');
         $idCentre  = $request->input('id_centre');
         $idType = $request->input('id_type');
+        $idCode = $request->input('id_code', null); // ← NOUVEAU : filtre par code analytique
 
         $query = DB::table('ligne_ecritures as le')
             ->select(
@@ -131,7 +147,8 @@ class CoutEtProfitController extends Controller
                 'ca.nom as centre_nom',
                 'aa.taux as taux_ventilation',
                 'aa.description as description_ventilation',
-                // 'aa.id_type as id_type',
+                'aa.id_code as id_code', // ← NOUVEAU : inclure l'id_code
+                'co.code as code',
                 // 🔥 CORRECTION : ABS() POUR AVOIR DES MONTANTS POSITIFS
                 DB::raw('ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) as montant_ventile'),
                 DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_total_sous_compte'),
@@ -139,6 +156,7 @@ class CoutEtProfitController extends Controller
             )
             ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
             ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
+            ->join('code_analytique as co', 'aa.id_code', '=', 'co.id_code')
             ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
             ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')
             ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd]);
@@ -149,12 +167,17 @@ class CoutEtProfitController extends Controller
         if ($idType) {
             $query->where('aa.id_type', $idType);
         }
-
-        $results = $query
-            ->groupBy('sc.Code_sous_compte', 'sc.Libelle', 'ca.nom', 'aa.taux', 'aa.description')
+        // ← NOUVEAU : Filtrer par code analytique si fourni
+        if ($idCode) {
+            $query->where('aa.id_code', $idCode);
+        }
+         $results = $query
+            ->groupBy('sc.Code_sous_compte', 'sc.Libelle', 'ca.nom', 'aa.taux', 'aa.description', 'aa.id_code', 'co.code')
             ->orderBy('sc.Code_sous_compte')
             ->orderByDesc('montant_ventile')
             ->get();
+
+        
 
         return response()->json($results);
     }
@@ -166,8 +189,9 @@ class CoutEtProfitController extends Controller
         event(new MouvementCreated());
         $dateStart = $request->input('date_start', '2025-01-01');
         $dateEnd   = $request->input('date_end', '2025-12-31');
+        $idCode = $request->input('id_code'); // ← NOUVEAU : filtre par code analytique
 
-        $results = DB::table('sous_compte as sc')
+        $query = DB::table('sous_compte as sc')
             ->select(
                 'sc.Code_sous_compte',
                 'sc.Libelle',
@@ -176,6 +200,14 @@ class CoutEtProfitController extends Controller
                 DB::raw('CASE WHEN COALESCE(SUM(aa.taux), 0) = 100 THEN true ELSE false END as ventilation_complete')
             )
             ->leftJoin('affectationanalytique as aa', 'sc.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
+            ->whereBetween('aa.created_at', [$dateStart, $dateEnd]); // Ajout de filtre par date
+
+        // ← NOUVEAU : Filtrer par code analytique si fourni
+        if ($idCode) {
+            $query->where('aa.id_code', $idCode);
+        }
+
+        $results = $query
             ->groupBy('sc.Code_sous_compte', 'sc.Libelle')
             ->havingRaw('COUNT(aa.id_affectation) > 0') // Uniquement les sous-comptes avec ventilations
             ->orderBy('sc.Code_sous_compte')
@@ -184,32 +216,36 @@ class CoutEtProfitController extends Controller
         return response()->json($results);
     }
 
-    // 🔥 ANALYSE MENSUELLE PAR CENTRE
-// 🔥 ANALYSE MENSUELLE AVEC VUE MATERIALISÉE
-public function donneesMensuellesOptimise(Request $request)
-{
-    // 🔥 Déclencher l'événement
-    event(new MouvementCreated());
-    $year = $request->input('year', date('Y'));
-    $idCentre = $request->input('id_centre');
-    $idType = $request->input('id_type', 1);
+    // 🔥 ANALYSE MENSUELLE AVEC VUE MATERIALISÉE
+    public function donneesMensuellesOptimise(Request $request)
+    {
+        // 🔥 Déclencher l'événement
+        event(new MouvementCreated());
+        $year = $request->input('year', date('Y'));
+        $idCentre = $request->input('id_centre');
+        $idType = $request->input('id_type', 1);
+        $idCode = $request->input('id_code'); // ← NOUVEAU : filtre par code analytique
 
-    $query = DB::table('mv_analyse_mensuelle')
-        ->select('*')
-        ->where('annee', $year)
-        ->where('id_type', $idType);
+        $query = DB::table('mv_analyse_mensuelle')
+            ->select('*')
+            ->where('annee', $year)
+            ->where('id_type', $idType);
 
-    if ($idCentre) {
-        $query->where('id_centre', $idCentre);
+        if ($idCentre) {
+            $query->where('id_centre', $idCentre);
+        }
+        // ← NOUVEAU : Filtrer par code analytique si fourni
+        if ($idCode) {
+            $query->where('id_code', $idCode);
+        }
+
+        $results = $query
+            ->orderBy('mois')
+            ->orderBy('centre')
+            ->get();
+
+        return response()->json($results);
     }
-
-    $results = $query
-        ->orderBy('mois')
-        ->orderBy('centre')
-        ->get();
-
-    return response()->json($results);
-}
 
 // 🔥 ANALYSE TRIMESTRIELLE OPTIMISÉE AVEC VUE MATERIALISÉE
 public function AnalyseTrimestrielleParCentreOptimise(Request $request)

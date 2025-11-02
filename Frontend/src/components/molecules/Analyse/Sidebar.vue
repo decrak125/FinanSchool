@@ -51,7 +51,12 @@ const menuConfig = [
         redirection: '/indicateur-general'
       },
       {
-        id: 'ratios_rentabilite',
+        id: 'indicateurs_pedagogique',
+        texte: 'Indicateurs pedagogiques',
+        redirection: '/indicateur-pedagogique'
+      },
+      {
+        id: 'indicateurs_rentabilite',
         texte: 'Indicateurs de rentabilité',
         redirection: '/indicateur-rentabilite'
       },
@@ -84,6 +89,11 @@ const menuConfig = [
         id: 'Centres',
         texte: 'Centres analytiques',
         redirection: '/centre-analytique'
+      },
+      {
+        id: 'Codes',
+        texte: 'Codes analytiques',
+        redirection: '/code-analytique'
       },
       {
         id: 'Affectations',

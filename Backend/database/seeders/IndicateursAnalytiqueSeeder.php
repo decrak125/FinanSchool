@@ -100,6 +100,26 @@ class IndicateursAnalytiqueSeeder extends Seeder
                 'description' => 'Nombre d\'années nécessaires pour rembourser la dette',
                 'formule' => 'Endettement net / CAF (Cash Flow)'
             ],
+            [
+                'libelle' => 'Coût de Fonctionnement par élève',
+                'description' => 'Donne le "prix de revient" moyen d\'un élève. KPI de base essentiel.',
+                'formule' => 'Total des Charges d\'Exploitation / Effectif total des élèves'
+            ],
+            [
+                'libelle' => 'Chiffre d\'Affaires par élève',
+                'description' => 'Montant moyen des ressources générées par élève.',
+                'formule' => 'Total des Produits d\'Exploitation / Effectif total des élèves'
+            ],
+            [
+                'libelle' => 'Part de la Masse Salariale Enseignante',
+                'description' => 'Poids du coût des enseignants dans le budget total.',
+                'formule' => '(Masse Salariale Enseignante / Total des Charges) * 100'
+            ],
+            [
+                'libelle' => 'Marge par élève',
+                'description' => 'Marge nette dégagée par élève. Le moteur de la rentabilité.',
+                'formule' => '(Total Produits - Total Charges) / Effectif total des élèves'
+            ],
         ];
 
         foreach ($indicateurs as $indicateur) {

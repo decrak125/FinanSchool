@@ -7,6 +7,8 @@ import Liquidite from "@/components/pages/indicateurs/Liquidite.vue";
 import Solvabilite from "@/components/pages/indicateurs/Solvabilite.vue";
 import Rentabilite from "@/components/pages/indicateurs/Rentabilite.vue";
 import NonAffected from "@/components/pages/configAnalytique/NonAffected.vue";
+import CodeAnalytique from "@/components/pages/configAnalytique/CodeAnalytique.vue";
+import Pedagogique from "@/components/pages/indicateurs/Pedagogique.vue";
 
 export default [
   {
@@ -53,5 +55,15 @@ export default [
       path: "/non-affected",
       name: NonAffected,
       component: NonAffected
-    }
+    },
+    {
+      path: "/code-analytique",
+      name: CodeAnalytique,
+      component: CodeAnalytique
+    },
+    {
+      path: "/indicateur-pedagogique",
+      name: Pedagogique,
+      component: Pedagogique
+    },
 ];

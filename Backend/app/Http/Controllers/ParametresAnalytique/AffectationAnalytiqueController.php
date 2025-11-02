@@ -10,17 +10,18 @@ use App\Models\PlanCompte\Compte;
 use App\Models\PlanCompte\SousCompte;
 use Illuminate\Support\Facades\DB;
 use App\Models\ParametresAnalytique\TypeCentre;
+use App\Models\ParametresAnalytique\CodeAnalytique;
 
 class AffectationAnalytiqueController extends Controller
 {
     public function index()
     {
-        return AffectationAnalytique::with(['centre', 'sousCompte', 'type'])->get();
+        return AffectationAnalytique::with(['centre', 'sousCompte', 'type', 'codeAnalytique'])->get();
     }
 
     public function show($id)
     {
-        return AffectationAnalytique::with(['centre', 'sousCompte', 'type'])->findOrFail($id);
+        return AffectationAnalytique::with(['centre', 'sousCompte', 'type', 'codeAnalytique'])->findOrFail($id);
     }
 
     /**
@@ -32,7 +33,8 @@ class AffectationAnalytiqueController extends Controller
             'Id_Compte' => 'required|exists:comptes,Id_Compte',
             'ventilations' => 'required|array|min:1',
             'ventilations.*.id_centre' => 'required|exists:centreanalytique,id_centre',
-            'ventilations.*.id_type' => 'required|exists:typecentre,id_type', // ← NOUVEAU CHAMP
+            'ventilations.*.id_type' => 'required|exists:typecentre,id_type',
+            'ventilations.*.id_code' => 'nullable|exists:code_analytique,id_code', // ← NOUVEAU CHAMP
             'ventilations.*.taux' => 'required|numeric|min:0|max:100',
             'ventilations.*.description' => 'nullable|string|max:255',
         ]);
@@ -73,7 +75,8 @@ class AffectationAnalytiqueController extends Controller
                 $affectations[] = AffectationAnalytique::create([
                     'Id_Sous_compte' => $sous->Id_Sous_compte,
                     'id_centre'      => $ventilation['id_centre'],
-                    'id_type'        => $ventilation['id_type'], // ← NOUVEAU CHAMP
+                    'id_type'        => $ventilation['id_type'],
+                    'id_code'        => $ventilation['id_code'] ?? null, // ← NOUVEAU CHAMP
                     'taux'           => $ventilation['taux'],
                     'description'    => $ventilation['description'] ?? $sous->Libelle . ' - Ventilation',
                 ]);
@@ -106,7 +109,8 @@ class AffectationAnalytiqueController extends Controller
             'ventilations' => 'required|array|min:1',
             'ventilations.*.id_affectation' => 'nullable|exists:affectationanalytique,id_affectation',
             'ventilations.*.id_centre' => 'required|exists:centreanalytique,id_centre',
-            'ventilations.*.id_type' => 'required|exists:typecentre,id_type', // ← NOUVEAU CHAMP
+            'ventilations.*.id_type' => 'required|exists:typecentre,id_type',
+            'ventilations.*.id_code' => 'nullable|exists:code_analytique,id_code', // ← NOUVEAU CHAMP
             'ventilations.*.taux' => 'required|numeric|min:0|max:100',
             'ventilations.*.description' => 'nullable|string|max:255',
         ]);
@@ -142,7 +146,8 @@ class AffectationAnalytiqueController extends Controller
                 if ($affectation) {
                     $affectation->update([
                         'id_centre' => $ventilation['id_centre'],
-                        'id_type'   => $ventilation['id_type'], // ← NOUVEAU CHAMP
+                        'id_type'   => $ventilation['id_type'],
+                        'id_code'   => $ventilation['id_code'] ?? null, // ← NOUVEAU CHAMP
                         'taux' => $ventilation['taux'],
                         'description' => $ventilation['description'] ?? $affectation->description,
                     ]);
@@ -161,7 +166,8 @@ class AffectationAnalytiqueController extends Controller
                     AffectationAnalytique::create([
                         'Id_Sous_compte' => $request->Id_Sous_compte,
                         'id_centre' => $ventilation['id_centre'],
-                        'id_type'   => $ventilation['id_type'], // ← NOUVEAU CHAMP
+                        'id_type'   => $ventilation['id_type'],
+                        'id_code'   => $ventilation['id_code'] ?? null, // ← NOUVEAU CHAMP
                         'taux' => $ventilation['taux'],
                         'description' => $ventilation['description'] ?? 'Ventilation',
                     ]);
@@ -204,14 +210,16 @@ class AffectationAnalytiqueController extends Controller
 
         $request->validate([
             'id_centre' => 'required|exists:centreanalytique,id_centre',
-            'id_type'   => 'required|exists:typecentre,id_type', // ← NOUVEAU CHAMP
+            'id_type'   => 'required|exists:typecentre,id_type',
+            'id_code'   => 'nullable|exists:code_analytique,id_code', // ← NOUVEAU CHAMP
             'taux' => 'required|numeric|min:0|max:100',
             'description' => 'nullable|string|max:255',
         ]);
 
         $affectation->update([
             'id_centre' => $request->id_centre,
-            'id_type'   => $request->id_type, // ← NOUVEAU CHAMP
+            'id_type'   => $request->id_type,
+            'id_code'   => $request->id_code, // ← NOUVEAU CHAMP
             'taux' => $request->taux,
             'description' => $request->description ?? $affectation->description,
         ]);
@@ -219,7 +227,7 @@ class AffectationAnalytiqueController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Ventilation mise à jour avec succès.',
-            'data' => $affectation->fresh(['centre', 'sousCompte'])
+            'data' => $affectation->fresh(['centre', 'sousCompte', 'codeAnalytique'])
         ]);
     }
 
@@ -310,7 +318,7 @@ class AffectationAnalytiqueController extends Controller
     }
 
     /**
-     * 🔹 Import CSV avec ventilation
+     * 🔹 Import CSV avec ventilation via compte
      */
     public function importViaCompte(Request $request)
     {
@@ -335,15 +343,17 @@ class AffectationAnalytiqueController extends Controller
 
                 $codeCompte = strtolower(trim($data['compte'] ?? $row[0]));
                 $nomCentre  = strtolower(trim($data['centre'] ?? $row[1]));
-                $codeType   = strtolower(trim($data['code_type'] ?? $row[4])); // ← NOUVEAU CHAMP
+                $codeType   = strtolower(trim($data['code_type'] ?? $row[4]));
+                $codeAnalytique = strtolower(trim($data['code_analytique'] ?? $row[5] ?? '')); // ← NOUVEAU CHAMP
                 $taux       = floatval($data['taux'] ?? 100);
                 $desc       = $data['description'] ?? '';
 
                 $compte = Compte::whereRaw('LOWER("Code_compte") = ?', [$codeCompte])->first();
                 $centre = CentreAnalytique::whereRaw('LOWER(nom) = ?', [$nomCentre])->first();
-                $type = \App\Models\ParametresAnalytique\TypeCentre::whereRaw('LOWER(code) = ?', [$codeType])->first(); // ← NOUVEAU
+                $type = TypeCentre::whereRaw('LOWER(code) = ?', [$codeType])->first();
+                $codeAnalytique = !empty($codeAnalytique) ? CodeAnalytique::whereRaw('LOWER(code) = ?', [$codeAnalytique])->first() : null; // ← NOUVEAU
 
-                if (!$compte || !$centre || !$type) { // ← VÉRIFICATION TYPE AJOUTÉE
+                if (!$compte || !$centre || !$type) {
                     $skipped++;
                     continue;
                 }
@@ -363,7 +373,8 @@ class AffectationAnalytiqueController extends Controller
                     AffectationAnalytique::create([
                         'Id_Sous_compte' => $sous->Id_Sous_compte,
                         'id_centre'      => $centre->id_centre,
-                        'id_type'        => $type->id_type, // ← NOUVEAU CHAMP
+                        'id_type'        => $type->id_type,
+                        'id_code'        => $codeAnalytique->id_code ?? null, // ← NOUVEAU CHAMP
                         'taux'           => $taux,
                         'description'    => $sous->Libelle . ($desc ? ' - ' . $desc : ''),
                     ]);
@@ -382,175 +393,179 @@ class AffectationAnalytiqueController extends Controller
             'message'  => "Import terminé : $imported créés, $skipped ignorés."
         ]);
     }
+
     /**
- * 🔹 Import CSV avec ventilation directe par sous-comptes
- */
-public function importDirecte(Request $request)
-{
-    $request->validate([
-        'file' => 'required|mimes:csv,txt'
-    ]);
+     * 🔹 Import CSV avec ventilation directe par sous-comptes
+     */
+    public function importDirecte(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:csv,txt'
+        ]);
 
-    $imported = 0;
-    $skipped = 0;
+        $imported = 0;
+        $skipped = 0;
 
-    $file = $request->file('file');
-    $path = $file->getRealPath();
+        $file = $request->file('file');
+        $path = $file->getRealPath();
 
-    if (($handle = fopen($path, "r")) !== false) {
-        $header = fgetcsv($handle, 1000, ";");
+        if (($handle = fopen($path, "r")) !== false) {
+            $header = fgetcsv($handle, 1000, ";");
 
-        while (($row = fgetcsv($handle, 1000, ";")) !== false) {
-            $data = [];
-            foreach ($header as $i => $key) {
-                $data[$key] = $row[$i] ?? null;
+            while (($row = fgetcsv($handle, 1000, ";")) !== false) {
+                $data = [];
+                foreach ($header as $i => $key) {
+                    $data[$key] = $row[$i] ?? null;
+                }
+
+                // Lecture directe du code sous-compte
+                $codeSousCompte = strtolower(trim($data['sous_compte'] ?? $row[0]));
+                $nomCentre      = strtolower(trim($data['centre'] ?? $row[1]));
+                $codeType       = strtolower(trim($data['code_type'] ?? $row[4]));
+                $codeAnalytique = strtolower(trim($data['code_analytique'] ?? $row[5] ?? '')); // ← NOUVEAU CHAMP
+                $taux           = floatval($data['taux'] ?? 100);
+                $desc           = $data['description'] ?? '';
+
+                // Recherche directe du sous-compte
+                $sousCompte = SousCompte::whereRaw('LOWER("Code_sous_compte") = ?', [$codeSousCompte])->first();
+                $centre = CentreAnalytique::whereRaw('LOWER(nom) = ?', [$nomCentre])->first();
+                $type = TypeCentre::whereRaw('LOWER(code) = ?', [$codeType])->first();
+                $codeAnalytique = !empty($codeAnalytique) ? CodeAnalytique::whereRaw('LOWER(code) = ?', [$codeAnalytique])->first() : null; // ← NOUVEAU
+
+                // Vérification que tous les éléments existent
+                if (!$sousCompte || !$centre || !$type) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Vérification si l'affectation existe déjà
+                $exists = AffectationAnalytique::where('Id_Sous_compte', $sousCompte->Id_Sous_compte)
+                    ->where('id_centre', $centre->id_centre)
+                    ->exists();
+
+                if ($exists) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Création directe de l'affectation
+                AffectationAnalytique::create([
+                    'Id_Sous_compte' => $sousCompte->Id_Sous_compte,
+                    'id_centre'      => $centre->id_centre,
+                    'id_type'        => $type->id_type,
+                    'id_code'        => $codeAnalytique->id_code ?? null, // ← NOUVEAU CHAMP
+                    'taux'           => $taux,
+                    'description'    => $sousCompte->Libelle . ($desc ? ' - ' . $desc : ''),
+                ]);
+
+                $imported++;
             }
 
-            // Lecture directe du code sous-compte
-            $codeSousCompte = strtolower(trim($data['sous_compte'] ?? $row[0]));
-            $nomCentre      = strtolower(trim($data['centre'] ?? $row[1]));
-            $codeType       = strtolower(trim($data['code_type'] ?? $row[4]));
-            $taux           = floatval($data['taux'] ?? 100);
-            $desc           = $data['description'] ?? '';
-
-            // Recherche directe du sous-compte
-            $sousCompte = SousCompte::whereRaw('LOWER("Code_sous_compte") = ?', [$codeSousCompte])->first();
-            $centre = CentreAnalytique::whereRaw('LOWER(nom) = ?', [$nomCentre])->first();
-            $type = \App\Models\ParametresAnalytique\TypeCentre::whereRaw('LOWER(code) = ?', [$codeType])->first();
-
-            // Vérification que tous les éléments existent
-            if (!$sousCompte || !$centre || !$type) {
-                $skipped++;
-                continue;
-            }
-
-            // Vérification si l'affectation existe déjà
-            $exists = AffectationAnalytique::where('Id_Sous_compte', $sousCompte->Id_Sous_compte)
-                ->where('id_centre', $centre->id_centre)
-                ->exists();
-
-            if ($exists) {
-                $skipped++;
-                continue;
-            }
-
-            // Création directe de l'affectation
-            AffectationAnalytique::create([
-                'Id_Sous_compte' => $sousCompte->Id_Sous_compte,
-                'id_centre'      => $centre->id_centre,
-                'id_type'        => $type->id_type,
-                'taux'           => $taux,
-                'description'    => $sousCompte->Libelle . ($desc ? ' - ' . $desc : ''),
-            ]);
-
-            $imported++;
+            fclose($handle);
         }
 
-        fclose($handle);
-    }
-
-    return response()->json([
-        'success'  => true,
-        'imported' => $imported,
-        'skipped'  => $skipped,
-        'message'  => "Import terminé : $imported créés, $skipped ignorés."
-    ]);
-}
-
-
-
-/**
- * 🔹 Affiche les sous-comptes non affectés avec pagination (Code_compte 600-799)
- */
-public function sousComptesNonAffectesPagines(Request $request)
-{
-    $perPage = $request->get('per_page', 8);
-    
-    $sousComptesNonAffectes = SousCompte::whereNotIn('Id_Sous_compte', function($query) {
-        $query->select('Id_Sous_compte')
-              ->from('affectationanalytique');
-    })
-    ->whereHas('compte', function($query) {
-        $query->whereBetween('Code_compte', [600, 799]);
-    })
-    ->with(['compte'])
-    ->paginate($perPage);
-
-    return response()->json([
-        'success' => true,
-        'data' => $sousComptesNonAffectes
-    ]);
-}
-
-/**
- * 🔹 Crée une affectation pour un sous-compte spécifique
- */
-public function storeForSousCompte(Request $request)
-{
-    $request->validate([
-        'Id_Sous_compte' => 'required|exists:sous_comptes,Id_Sous_compte',
-        'ventilations' => 'required|array|min:1',
-        'ventilations.*.id_centre' => 'required|exists:centreanalytique,id_centre',
-        'ventilations.*.id_type' => 'required|exists:typecentre,id_type',
-        'ventilations.*.taux' => 'required|numeric|min:0|max:100',
-        'ventilations.*.description' => 'nullable|string|max:255',
-    ]);
-
-    // Vérifier que le total des taux = 100%
-    $totalTaux = collect($request->ventilations)->sum('taux');
-    if (abs($totalTaux - 100) > 0.01) {
         return response()->json([
-            'success' => false,
-            'message' => "Le total des taux doit être égal à 100% (actuellement: $totalTaux%)"
-        ], 422);
-    }
-
-    // Vérifier que le sous-compte existe
-    $sousCompte = SousCompte::find($request->Id_Sous_compte);
-    if (!$sousCompte) {
-        return response()->json([
-            'success' => false,
-            'message' => "Sous-compte non trouvé"
-        ], 422);
-    }
-
-    $affectations = [];
-    $doublons = [];
-
-    foreach ($request->ventilations as $ventilation) {
-        $existeDeja = AffectationAnalytique::where('Id_Sous_compte', $request->Id_Sous_compte)
-            ->where('id_centre', $ventilation['id_centre'])
-            ->exists();
-
-        if ($existeDeja) {
-            $centreNom = CentreAnalytique::find($ventilation['id_centre'])->nom ?? $ventilation['id_centre'];
-            $doublons[] = 'Centre ' . $centreNom;
-            continue;
-        }
-
-        $affectations[] = AffectationAnalytique::create([
-            'Id_Sous_compte' => $request->Id_Sous_compte,
-            'id_centre'      => $ventilation['id_centre'],
-            'id_type'        => $ventilation['id_type'],
-            'taux'           => $ventilation['taux'],
-            'description'    => $ventilation['description'] ?? $sousCompte->Libelle . ' - Ventilation',
+            'success'  => true,
+            'imported' => $imported,
+            'skipped'  => $skipped,
+            'message'  => "Import terminé : $imported créés, $skipped ignorés."
         ]);
     }
 
-    $message = count($affectations) . ' affectation(s) créée(s) avec succès pour le sous-compte ' . $sousCompte->Code_sous_compte;
-    
-    if (count($doublons) > 0) {
-        $message .= '. ' . count($doublons) . ' doublon(s) ignoré(s): ' . implode(', ', array_slice($doublons, 0, 5));
-        if (count($doublons) > 5) {
-            $message .= '...';
-        }
+    /**
+     * 🔹 Affiche les sous-comptes non affectés avec pagination (Code_compte 600-799)
+     */
+    public function sousComptesNonAffectesPagines(Request $request)
+    {
+        $perPage = $request->get('per_page', 8);
+        
+        $sousComptesNonAffectes = SousCompte::whereNotIn('Id_Sous_compte', function($query) {
+            $query->select('Id_Sous_compte')
+                  ->from('affectationanalytique');
+        })
+        ->whereHas('compte', function($query) {
+            $query->whereBetween('Code_compte', [600, 799]);
+        })
+        ->with(['compte'])
+        ->paginate($perPage);
+
+        return response()->json([
+            'success' => true,
+            'data' => $sousComptesNonAffectes
+        ]);
     }
 
-    return response()->json([
-        'success' => true,
-        'message' => $message,
-        'data'    => $affectations,
-        'doublons_ignores' => $doublons
-    ], 201);
-}
+    /**
+     * 🔹 Crée une affectation pour un sous-compte spécifique
+     */
+    public function storeForSousCompte(Request $request)
+    {
+        $request->validate([
+            'Id_Sous_compte' => 'required|exists:sous_comptes,Id_Sous_compte',
+            'ventilations' => 'required|array|min:1',
+            'ventilations.*.id_centre' => 'required|exists:centreanalytique,id_centre',
+            'ventilations.*.id_type' => 'required|exists:typecentre,id_type',
+            'ventilations.*.id_code' => 'nullable|exists:code_analytique,id_code', // ← NOUVEAU CHAMP
+            'ventilations.*.taux' => 'required|numeric|min:0|max:100',
+            'ventilations.*.description' => 'nullable|string|max:255',
+        ]);
+
+        // Vérifier que le total des taux = 100%
+        $totalTaux = collect($request->ventilations)->sum('taux');
+        if (abs($totalTaux - 100) > 0.01) {
+            return response()->json([
+                'success' => false,
+                'message' => "Le total des taux doit être égal à 100% (actuellement: $totalTaux%)"
+            ], 422);
+        }
+
+        // Vérifier que le sous-compte existe
+        $sousCompte = SousCompte::find($request->Id_Sous_compte);
+        if (!$sousCompte) {
+            return response()->json([
+                'success' => false,
+                'message' => "Sous-compte non trouvé"
+            ], 422);
+        }
+
+        $affectations = [];
+        $doublons = [];
+
+        foreach ($request->ventilations as $ventilation) {
+            $existeDeja = AffectationAnalytique::where('Id_Sous_compte', $request->Id_Sous_compte)
+                ->where('id_centre', $ventilation['id_centre'])
+                ->exists();
+
+            if ($existeDeja) {
+                $centreNom = CentreAnalytique::find($ventilation['id_centre'])->nom ?? $ventilation['id_centre'];
+                $doublons[] = 'Centre ' . $centreNom;
+                continue;
+            }
+
+            $affectations[] = AffectationAnalytique::create([
+                'Id_Sous_compte' => $request->Id_Sous_compte,
+                'id_centre'      => $ventilation['id_centre'],
+                'id_type'        => $ventilation['id_type'],
+                'id_code'        => $ventilation['id_code'] ?? null, // ← NOUVEAU CHAMP
+                'taux'           => $ventilation['taux'],
+                'description'    => $ventilation['description'] ?? $sousCompte->Libelle . ' - Ventilation',
+            ]);
+        }
+
+        $message = count($affectations) . ' affectation(s) créée(s) avec succès pour le sous-compte ' . $sousCompte->Code_sous_compte;
+        
+        if (count($doublons) > 0) {
+            $message .= '. ' . count($doublons) . ' doublon(s) ignoré(s): ' . implode(', ', array_slice($doublons, 0, 5));
+            if (count($doublons) > 5) {
+                $message .= '...';
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $message,
+            'data'    => $affectations,
+            'doublons_ignores' => $doublons
+        ], 201);
+    }
 }

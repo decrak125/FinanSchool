@@ -5,7 +5,7 @@ const API_URL = "http://127.0.0.1:8000/api";
 
 export function useCout(type) {
   const exercice = ref(null);
-  const exercicesList = ref([]); // 📌 Nouveau: liste de tous les exercices
+  const exercicesList = ref([]);
   const loading = ref(false);
   const idType = ref(type);
   
@@ -17,11 +17,14 @@ export function useCout(type) {
     idType: type,
     searchCentre: "",
     searchAffectation: "",
-    idExercice: "" // 📌 Nouveau: filtre par exercice
+    idExercice: "",
+    idCode: "" // ← NOUVEAU : filtre par code analytique
   });
 
   const centresList = ref([]);
+  const codesAnalytiques = ref([]);
   const centres = ref([]);
+  const centresFiltresParCode = ref([]); // ← NOUVEAU : centres filtrés par code
   const affectations = ref([]);
   const sousComptesVentiles = ref([]);
   const verificationVentilations = ref([]);
@@ -37,6 +40,7 @@ export function useCout(type) {
           date_end: formatDateForAPI(filters.value.dateEnd),
           id_centre: filters.value.idCentre || null,
           id_type: type,
+          id_code: filters.value.idCode || null,
         },
       });
       classement.value = response.data;
@@ -51,18 +55,15 @@ export function useCout(type) {
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     
-    // Si la date est déjà au format YYYY-MM-DD
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
       return dateString;
     }
     
-    // Si la date est au format avec timezone "2025-07-01T00:00:00.000000Z"
     if (dateString.includes('T')) {
       const date = new Date(dateString);
       return date.toISOString().split('T')[0];
     }
     
-    // Pour les autres formats, essayer de parser
     const date = new Date(dateString);
     if (!isNaN(date.getTime())) {
       return date.toISOString().split('T')[0];
@@ -77,13 +78,22 @@ export function useCout(type) {
     try {
       const response = await axios.get(`${API_URL}/exercices`);
       exercicesList.value = response.data;
-      
-      // Trier par année décroissante
       exercicesList.value.sort((a, b) => b.Annee_fiscale - a.Annee_fiscale);
-      
       return exercicesList.value;
     } catch (error) {
       console.error("Erreur fetchExercicesList:", error);
+      return [];
+    }
+  };
+
+  // 📌 Récupérer tous les codes analytiques
+  const fetchCodesAnalytiques = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/codes`);
+      codesAnalytiques.value = response.data;
+      return codesAnalytiques.value;
+    } catch (error) {
+      console.error("Erreur fetchCodesAnalytiques:", error);
       return [];
     }
   };
@@ -95,32 +105,22 @@ export function useCout(type) {
       
       let response;
       if (idExercice) {
-        // Récupérer un exercice spécifique
         response = await axios.get(`${API_URL}/exercices/${idExercice}`);
       } else {
-        // Récupérer l'exercice ouvert par défaut
         response = await axios.get(`${API_URL}/exercices/ouvert`);
       }
       
       exercice.value = response.data;
       
-      // Mettre à jour les dates des filtres avec le format correct pour les inputs
       if (exercice.value) {
         filters.value.dateStart = formatDateForInput(exercice.value.Date_debut);
         filters.value.dateEnd = formatDateForInput(exercice.value.Date_fin);
         filters.value.idExercice = exercice.value.Id_Exercice_comptable;
-        
-        console.log('Exercice chargé:', {
-          id: exercice.value.Id_Exercice_comptable,
-          annee: exercice.value.Annee_fiscale,
-          dates: `${filters.value.dateStart} à ${filters.value.dateEnd}`
-        });
       }
       
       return exercice.value;
     } catch (error) {
       console.error("Erreur fetchExercice:", error);
-      // Dates par défaut si l'exercice n'est pas trouvé
       const currentYear = new Date().getFullYear();
       filters.value.dateStart = `${currentYear}-01-01`;
       filters.value.dateEnd = `${currentYear}-12-31`;
@@ -135,18 +135,14 @@ export function useCout(type) {
   const changeExercice = async (idExercice) => {
     try {
       if (!idExercice) {
-        // Si aucun exercice sélectionné, charger l'exercice ouvert
         await fetchExercice();
       } else {
-        // Charger l'exercice spécifique
         await fetchExercice(idExercice);
       }
       
-      // Recharger toutes les données avec le nouvel exercice
       await fetchCentres();
       await fetchVerificationVentilations();
       
-      // Réinitialiser les données de détail
       selectedCentre.value = null;
       affectations.value = [];
       sousComptesVentiles.value = [];
@@ -156,7 +152,7 @@ export function useCout(type) {
     }
   };
 
-  // 📌 Fonction pour formater les dates pour l'API (si nécessaire)
+  // 📌 Fonction pour formater les dates pour l'API
   const formatDateForAPI = (dateString) => {
     if (!dateString) return '';
     return dateString;
@@ -172,12 +168,74 @@ export function useCout(type) {
     }
   };
 
+  // 📌 NOUVELLE FONCTION : Filtrer les centres par code analytique
+  const filterCentresByCode = async () => {
+    try {
+      loading.value = true;
+      
+      if (!filters.value.idCode) {
+        // Si aucun code sélectionné, utiliser les centres normaux
+        centresFiltresParCode.value = centres.value;
+        return;
+      }
+
+      // Récupérer les affectations filtrées par code
+      const response = await axios.get(`${API_URL}/analyse/affectation`, {
+        params: {
+          date_start: formatDateForAPI(filters.value.dateStart),
+          date_end: formatDateForAPI(filters.value.dateEnd),
+          id_type: idType.value,
+          id_code: filters.value.idCode,
+        },
+      });
+
+      // Regrouper les affectations par centre
+      const affectationsFiltrees = response.data;
+      const centresGroupes = {};
+
+      affectationsFiltrees.forEach(aff => {
+        const centreId = aff.id_centre;
+        if (!centresGroupes[centreId]) {
+          centresGroupes[centreId] = {
+            id_centre: centreId,
+            centre: aff.centre_nom,
+            montant_ventile: 0,
+            montant_brut: parseFloat(aff.montant_brut || 0), // Prendre le montant brut de la première affectation
+            pourcentage_ventile: 0,
+            affectations_count: 0
+          };
+        }
+        
+        centresGroupes[centreId].montant_ventile += parseFloat(aff.montant_ventile || 0);
+        centresGroupes[centreId].affectations_count += 1;
+      });
+
+      // Calculer les pourcentages
+      Object.values(centresGroupes).forEach(centre => {
+        if (centre.montant_brut > 0) {
+          centre.pourcentage_ventile = (centre.montant_ventile / centre.montant_brut) * 100;
+        } else {
+          centre.pourcentage_ventile = 0;
+        }
+      });
+
+      centresFiltresParCode.value = Object.values(centresGroupes);
+      
+      console.log('Centres filtrés par code:', centresFiltresParCode.value);
+      
+    } catch (error) {
+      console.error("Erreur filterCentresByCode:", error);
+      centresFiltresParCode.value = [];
+    } finally {
+      loading.value = false;
+    }
+  };
+
   // 📌 Analyse principale par centre avec ventilation
   const fetchCentres = async () => {
     try {
       loading.value = true;
       
-      // S'assurer que l'exercice est chargé
       if (!exercice.value) {
         await fetchExercice();
       }
@@ -191,6 +249,14 @@ export function useCout(type) {
         },
       });
       centres.value = response.data;
+      
+      // Appliquer le filtre par code si nécessaire
+      if (filters.value.idCode) {
+        await filterCentresByCode();
+      } else {
+        centresFiltresParCode.value = centres.value;
+      }
+      
     } catch (error) {
       console.error("Erreur fetchCentres:", error);
     } finally {
@@ -210,6 +276,7 @@ export function useCout(type) {
           date_end: formatDateForAPI(filters.value.dateEnd),
           id_centre: centre.id_centre,
           id_type: idType.value,
+          id_code: filters.value.idCode || null,
         },
       });
       affectations.value = response.data;
@@ -231,6 +298,7 @@ export function useCout(type) {
           date_end: formatDateForAPI(filters.value.dateEnd),
           id_centre: centre ? centre.id_centre : (filters.value.idCentre || null),
           id_type: idType.value,
+          id_code: filters.value.idCode || null,
         },
       });
       sousComptesVentiles.value = response.data;
@@ -250,6 +318,7 @@ export function useCout(type) {
         params: {
           date_start: formatDateForAPI(filters.value.dateStart),
           date_end: formatDateForAPI(filters.value.dateEnd),
+          id_code: filters.value.idCode || null,
         },
       });
       verificationVentilations.value = response.data;
@@ -264,8 +333,9 @@ export function useCout(type) {
   const initializeData = async () => {
     try {
       loading.value = true;
-      await fetchExercicesList(); // 📌 Charger la liste des exercices
-      await fetchExercice(); // Charge l'exercice ouvert et met à jour les dates
+      await fetchExercicesList();
+      await fetchCodesAnalytiques();
+      await fetchExercice();
       await fetchCentresList();
       await fetchCentres();
       await fetchVerificationVentilations();
@@ -290,14 +360,33 @@ export function useCout(type) {
     { immediate: false }
   );
 
+  // 🔥 NOUVEAU WATCH : Recharger quand le code change
+  watch(
+    () => filters.value.idCode,
+    async (newCode, oldCode) => {
+      if (filters.value.dateStart && filters.value.dateEnd) {
+        if (newCode) {
+          await filterCentresByCode();
+        } else {
+          centresFiltresParCode.value = centres.value;
+        }
+        await fetchVerificationVentilations();
+        await fetchClassement();
+      }
+    },
+    { immediate: false }
+  );
+
   // 🔥 COMPUTED POUR LES FILTRES EN TEMPS RÉEL
   const centresFiltres = computed(() => {
-    if (!centres.value.length) return [];
+    const centresSource = filters.value.idCode ? centresFiltresParCode.value : centres.value;
     
-    if (!filters.value.searchCentre) return centres.value;
+    if (!centresSource.length) return [];
+    
+    if (!filters.value.searchCentre) return centresSource;
     
     const searchTerm = filters.value.searchCentre.toLowerCase();
-    return centres.value.filter(centre => 
+    return centresSource.filter(centre => 
       centre.centre.toLowerCase().includes(searchTerm) ||
       centre.montant_ventile.toString().includes(searchTerm) ||
       centre.montant_brut.toString().includes(searchTerm)
@@ -328,26 +417,34 @@ export function useCout(type) {
       (affectation.affectation_description && affectation.affectation_description.toLowerCase().includes(searchTerm)) ||
       (affectation.centre_nom && affectation.centre_nom.toLowerCase().includes(searchTerm)) ||
       affectation.montant_ventile.toString().includes(searchTerm) ||
-      affectation.montant_brut.toString().includes(searchTerm)
+      affectation.montant_brut.toString().includes(searchTerm) || 
+      affectation.code.toLowerCase().includes(searchTerm)
     );
+  });
+
+  // 🔥 COMPUTED POUR LES OPTIONS DES CODES ANALYTIQUES
+  const codesAnalytiquesOptions = computed(() => {
+    return codesAnalytiques.value.map(code => ({
+      value: code.id_code,
+      label: `${code.code} - ${code.libelle}`,
+      code: code.code,
+      libelle: code.libelle
+    }));
   });
 
   // 🔥 RÉINITIALISATION AVEC EXERCICE COURANT
   const resetFilters = async () => {
     try {
-      // Recharger l'exercice pour réinitialiser aux dates de l'exercice courant
       await fetchExercice();
       
-      // Réinitialiser les autres filtres
       filters.value.idCentre = "";
+      filters.value.idCode = "";
       filters.value.searchCentre = "";
       filters.value.searchAffectation = "";
       
-      // Recharger les données
       await fetchCentres();
       await fetchVerificationVentilations();
       
-      // Réinitialiser les données de détail
       selectedCentre.value = null;
       affectations.value = [];
       sousComptesVentiles.value = [];
@@ -358,12 +455,14 @@ export function useCout(type) {
 
   // 🔥 STATS GLOBALES
   const statsGlobales = computed(() => {
-    if (!centresFiltres.value.length) return null;
+    const centresSource = filters.value.idCode ? centresFiltresParCode.value : centres.value;
     
-    const totalMontantVentile = centresFiltres.value.reduce((sum, centre) => 
+    if (!centresSource.length) return null;
+    
+    const totalMontantVentile = centresSource.reduce((sum, centre) => 
       sum + Number(centre.montant_ventile || 0), 0
     );
-    const totalMontantBrut = centresFiltres.value.reduce((sum, centre) => 
+    const totalMontantBrut = centresSource.reduce((sum, centre) => 
       sum + Number(centre.montant_brut || 0), 0
     );
 
@@ -371,10 +470,11 @@ export function useCout(type) {
       totalMontantVentile,
       totalMontantBrut,
       difference: totalMontantBrut - totalMontantVentile,
-      nombreCentres: centresFiltres.value.length,
+      nombreCentres: centresSource.length,
       nombreAffectations: affectations.value.length,
       exercice: exercice.value,
-      periode: `${filters.value.dateStart} à ${filters.value.dateEnd}`
+      periode: `${filters.value.dateStart} à ${filters.value.dateEnd}`,
+      codeAnalytique: filters.value.idCode ? codesAnalytiques.value.find(c => c.id_code == filters.value.idCode)?.libelle : null
     };
   });
 
@@ -412,7 +512,6 @@ export function useCout(type) {
     }).format(val);
   };
 
-  // Format pourcentage avec couleur selon la valeur
   const formatPourcentage = (val, type = 'ventile') => {
     const valeur = Number(val) || 0;
     let classe = '';
@@ -435,7 +534,9 @@ export function useCout(type) {
     exercicesList,
     filters,
     centresList,
+    codesAnalytiques,
     centres,
+    centresFiltresParCode,
     affectations,
     sousComptesVentiles,
     verificationVentilations,
@@ -448,8 +549,10 @@ export function useCout(type) {
     centresFiltres,
     affectationsFiltrees,
     exercicesOptions,
+    codesAnalytiquesOptions,
     classement,
     classementFiltrees,
+    
     // API
     fetchCentresList,
     fetchCentres,
@@ -457,12 +560,14 @@ export function useCout(type) {
     fetchClassement,
     fetchSousComptesVentiles,
     fetchVerificationVentilations,
+    filterCentresByCode,
 
     // 🔥 NOUVELLES FONCTIONS
     initializeData,
     changeExercice,
     resetFilters,
     fetchExercicesList,
+    fetchCodesAnalytiques,
     formatDateForInput,
     formatDateForAPI,
 

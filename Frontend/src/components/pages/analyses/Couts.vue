@@ -304,6 +304,7 @@ onMounted(async () => {
             <table class="table" id="axesTable">
               <thead class="">
                 <tr>
+                  <th class="col">Code</th>
                   <th class="col">Description</th>
                   <th class="col">Centre</th>
                   <th class="col">Montant Ventilé</th>
@@ -314,6 +315,7 @@ onMounted(async () => {
               <tbody>
                 <!-- 🔥 MODIFICATION : Utiliser affectationsFiltrees au lieu de affectations -->
                 <tr v-for="a in affectationsFiltrees" :key="a.affectation_description">
+                  <td class="col">{{ a.code || 'N/A' }}</td>
                   <td class="col">{{ a.libelle_sous_compte || 'N/A' }}</td>
                   <td class="col">{{ a.centre_nom }}</td>
                   <td class="col">{{ formatMontant(a.montant_ventile) }}</td>
