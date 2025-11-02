@@ -9,4 +9,6 @@ php artisan db:seed --class=ExerciceComptableSeeder
 php artisan db:seed --class=NiveauAlerteSeeder
 php artisan db:seed --class=IndicateursAnalytiqueSeeder
 php artisan db:seed --class=InterpretationIndicateurSeeder
+php artisan db:seed --class=NiveauxUrgenceSeeder
+
 
