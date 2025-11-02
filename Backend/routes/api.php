@@ -34,6 +34,9 @@ use App\Http\Controllers\tableau\DashboardController;
 use App\Http\Controllers\Saisie\AmortissementController;
 use App\Http\Controllers\ChatBot\ChatsController;
 use App\Http\Controllers\ChatBot\ChatController;
+use App\Http\Controllers\notifications\NotificationController;
+use App\Http\Controllers\notifications\EvenementController;
+
 
 Route::middleware('api')->group(function () {
     
@@ -200,5 +203,14 @@ Route::get('/amortissement/{id}', [AmortissementController::class, 'show']);
 
 // Liste des taux d'amortissement
 Route::get('/taux-amortissement', [AmortissementController::class, 'getTaux']);
+
+
+Route::apiResource('evenements', EvenementController::class);
+Route::apiResource('notifications', NotificationController::class);
+
+// Routes supplémentaires pour les notifications
+    Route::get('/non-lues', [NotificationController::class, 'nonLues']);
+    Route::post('/{notification}/marquer-lue', [NotificationController::class, 'marquerCommeLue']);
+    Route::post('/marquer-toutes-lues', [NotificationController::class, 'marquerToutesLues']);
 
 });
