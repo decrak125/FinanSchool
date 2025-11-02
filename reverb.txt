@@ -1,0 +1,11 @@
+composer require laravel/reverb
+
+# Publier la config
+php artisan vendor:publish --provider="Laravel\Reverb\ReverbServiceProvider" --tag="reverb-config"
+
+# Lancer Reverb
+php artisan reverb:start
+
+# dans vue js
+
+npm install --save laravel-echo

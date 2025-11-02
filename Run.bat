@@ -9,6 +9,7 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 start "Serveur Backend" cmd /k "php artisan serve"
+start "Serveur Backend" cmd /k "php artisan reverb:start"
 
 REM Démarrer le serveur Frontend
 cd ..
