@@ -1,3 +1,4 @@
+import './echo.js'
 import { createApp } from "vue";
 import './echo';
 import App from "./App.vue";

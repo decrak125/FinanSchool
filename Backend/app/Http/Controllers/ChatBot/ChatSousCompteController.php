@@ -105,7 +105,7 @@ class ChatSousCompteController extends Controller
                 return "Aucun sous-compte trouvé pour le compte {$codeCompte} ({$compte->Libelle}).";
             }
             
-            $response = "📋 Sous-comptes du compte **{$codeCompte}** :\n";
+            $response = "📋 Sous comptes du compte **{$codeCompte}** :\n";
             $response .= "{$compte->Libelle}\n\n";
             
             foreach ($sousComptes as $index => $sc) {
@@ -192,10 +192,11 @@ class ChatSousCompteController extends Controller
     private static function formatDetailSousCompte($sousCompte)
     {
         $response = "✅ Détails du sous-compte :\n\n";
-        $response .= "**Code** : {$sousCompte->Code_sous_compte}\n";
-        $response .= "**Libellé** : {$sousCompte->Libelle}\n";
-        $response .= "**Compte parent** : {$sousCompte->compte->Code_compte} - {$sousCompte->compte->Libelle}\n";
-        $response .= "**ID** : {$sousCompte->Id_Sous_compte}\n";
+        $response .= "**Code** : {$sousCompte->Code_sous_compte},\n";
+        $response .= "**Libellé** : {$sousCompte->Libelle},\n";
+        $response .= "**Compte parent** : {$sousCompte->compte->Code_compte} - {$sousCompte->compte->Libelle},\n";
+        $response .= "**ID** : {$sousCompte->Id_Sous_compte},\n";
+        $response .= "Avez-vous d'autres questions sur ce sous-compte ?";
         
         return $response;
     }

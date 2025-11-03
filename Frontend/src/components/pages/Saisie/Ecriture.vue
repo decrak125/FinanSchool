@@ -74,234 +74,217 @@
             <table class="table table-bordered table-striped w-full">
               <thead>
                 <tr>
-                  <th class="w-20">N° Pièce</th>
+                  <th class="w-20" style="width: 95px;">N° Pièce</th>
                   <th class="text-left">Sous-compte</th>
                   <th>Libellé</th>
                   <th class="text-right w-24">Débit</th>
                   <th class="text-right w-24">Crédit</th>
                   <th class="w-28">Référence</th>
-                  <th class="text-center w-20">Qté</th>
+                  <th class="text-center w-20" style="width: 15px;">Quantité</th>
                   <th class="w-32">Mode Paiement</th>
                   <th class="text-center w-16" style="width: 20px;">Actions</th>
                 </tr>
               </thead> 
-              <tbody>
-                <!-- Regroupement par numéro de pièce -->
-                <template v-for="m in mouvements" :key="m.Id_Mouvement_ecriture">
-                  <!-- En-tête du mouvement -->
-                  <tr class="bg-gray-100 font-semibold">
-                    <td colspan="9" class="p-3">
-                      <div class="flex items-center flex-wrap gap-2">
-                        <span>{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }} - {{ formatDate(m.Date_mouvement) }} - {{ getJournalLibelle(m.Id_Journal) }}</span>
-                        
-                        <span v-if="isEquilibre(m)" class="badge badge-success" style="margin-left: 10px; height: 28px;">
-                          <i class="bi bi-check-circle me-1" style="margin-right: 5px;"></i> Équilibré
-                        </span>
-                        <span v-else class="badge badge-error" style="margin-left: 10px; height: 28px;">
-                          <i class="bi bi-exclamation-triangle me-1" style="margin-right: 5px;"> </i> Non équilibré ({{ formatMontant(getDifference(m)) }})
-                        </span>
+<tbody>
+  <!-- Regroupement par numéro de pièce -->
+  <template v-for="m in mouvements" :key="m.Id_Mouvement_ecriture">
+    <!-- En-tête du mouvement -->
+    <tr class="bg-gray-100 font-semibold">
+      <td colspan="9" class="p-3">
+        <div class="flex items-center flex-wrap gap-2">
+          <span>{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }} - {{ formatDate(m.Date_mouvement) }} - {{ getJournalLibelle(m.Id_Journal) }}</span>
+          <span v-if="isEquilibre(m)" class="badge badge-success" style="margin-left: 10px; height: 28px;">
+            <i class="bi bi-check-circle me-1" style="margin-right: 5px;"></i> Équilibré
+          </span>
+          <span v-else class="badge badge-error" style="margin-left: 10px; height: 28px;">
+            <i class="bi bi-exclamation-triangle me-1" style="margin-right: 5px;"> </i> Non équilibré ({{ formatMontant(getDifference(m)) }})
+          </span>
+          <button 
+            v-if="isEquilibre(m) && !isMouvementValide(m)" 
+            @click="validerMouvement(m.Id_Mouvement_ecriture)"
+            :disabled="isValidating"
+            class="btn btn-sm btn-success"
+            style="margin-left: 10px;"
+          >
+            <i class="bi bi-check-lg me-1"></i>
+            {{ isValidating ? 'Validation...' : 'Valider' }}
+          </button>
+          <button
+            v-if="!isEquilibre(m)"
+            @click="solderMouvement(m.Id_Mouvement_ecriture)"
+            class="btn btn-sm btn-warning ml-2"
+            style="margin-left: 10px; height: 30px; text-align: center; padding-top: 4px; bottom: 4px; padding-right: 12px;"
+          >
+            <i class="bi bi-balance-scale me-1"></i> Solder
+          </button>
+          <span v-if="isMouvementValide(m)" class="badge badge-primary">
+            <i class="bi bi-lock me-1"></i> Validé
+          </span>
+          <button 
+            @click="deleteMouvement(m.Id_Mouvement_ecriture)"
+            :disabled="isMouvementValide(m) || isDeletingMouvement"
+            class="btn btn-sm btn-error"
+            style="margin-left: 10px;"
+          >
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+    <!-- Lignes d'écriture -->
+    <tr
+      v-for="(ligne, index) in m.lignes"
+      :key="ligne.Id_Ligne_ecriture || `new-${index}`"
+      class="ligne-table"
+      :class="!ligne.Id_Ligne_ecriture ? 'bg-warning-light' : ''"
+      style="height: 34px;"
+    >
+      <td>
+        <span class="text-sm" style="font-size: 10px; width: 100px;">{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }}</span>
+      </td>
+      <!-- Sous-compte avec recherche dynamique -->
+      <td>
+        <div class="input-group relative text-left">
+          <input
+            v-model="ligne.sousCompteSearch"
+            @input="searchSousCompte(m.Id_Mouvement_ecriture, index, $event.target.value)"
+            @focus="onSousCompteFocus(m.Id_Mouvement_ecriture, index)"
+            @blur="validateSousCompte(m.Id_Mouvement_ecriture, index)"
+            @keydown.enter.prevent="selectFirstSuggestion(m.Id_Mouvement_ecriture, index)"
+            @keydown.escape="closeSuggestions(m.Id_Mouvement_ecriture, index)"
+            @keydown.arrow-down.prevent="navigateSuggestions(m.Id_Mouvement_ecriture, index, 'down')"
+            @keydown.arrow-up.prevent="navigateSuggestions(m.Id_Mouvement_ecriture, index, 'up')"
+            class="form-input w-full input-compact"
+            :class="{ 'is-invalid': ligne.sousCompteError, 'is-valid': ligne.Id_Sous_compte }"
+            placeholder="Code ou libellé..."
+            style="width: 65px;"
+          />
+          <!-- Dropdown de suggestions -->
+          <div
+            v-if="ligne.showSuggestions && ligne.suggestions?.length"
+            class="absolute z-30 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto top-full mt-1 left-0"
+            style="background-color: white;">
+            <div
+              v-for="(suggestion, suggIndex) in ligne.suggestions"
+              :key="suggestion.Id_Sous_compte"
+              @mousedown="selectSousCompte(m.Id_Mouvement_ecriture, index, suggestion)"
+              :class="{'bg-secondary-light': suggIndex === ligne.selectedSuggestionIndex}"
+              class="p-2 cursor-pointer border-b border-gray-200 hover:bg-secondary-light"
+              @mouseover="ligne.selectedSuggestionIndex = suggIndex"
+            >
+              <div class="font-semibold text-xs">{{ suggestion.Code_sous_compte }}</div>
+              <div class="text-xs text-gray-600">{{ suggestion.Libelle }}</div>
+            </div>
+          </div>
+          <div v-if="ligne.sousCompteError" class="form-error">{{ ligne.sousCompteError }}</div>
+        </div>
+      </td>
+      <!-- Libellé -->
+      <td>
+        <input 
+          v-model="ligne.Libelle"
+          @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
+          class="form-input w-full input-compact"
+          placeholder="Libellé de l'opération..."
+          style="width: 100%; min-width: 150px;"
+        />
+      </td>
+      <!-- Débit -->
+      <td>
+        <input 
+          v-model.number="ligne.Debit"
+          @input="onMontantChange(m.Id_Mouvement_ecriture, index, 'debit')"
+          @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
+          type="number"
+          step="0.01"
+          min="0"
+          class="form-input w-full text-right input-compact"
+          placeholder="0,00"
+          style="width: 100%; min-width: 90px;"
+        />
+      </td>
+      <!-- Crédit -->
+      <td>
+        <input 
+          v-model.number="ligne.Credit"
+          @input="onMontantChange(m.Id_Mouvement_ecriture, index, 'credit')"
+          @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
+          type="number"
+          step="0.01"
+          min="0"
+          class="form-input w-full text-right input-compact"
+          placeholder="0,00"
+          style="width: 100%; min-width: 90px;"
+        />
+      </td>
+      <!-- Référence -->
+      <td>
+        <input 
+          v-model="ligne.Reference"
+          @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
+          class="form-input w-full input-compact"
+          placeholder="Réf..."
+          style="width: 100%; min-width: 90px;"
+        />
+      </td>
+      <!-- Quantité -->
+      <td>
+        <input 
+          v-model.number="ligne.Quantite"
+          @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
+          type="number"
+          min="1"
+          class="form-input w-full text-center input-compact"
+          style="width: 100%; min-width: 75px;"
+        />
+      </td>
+      <!-- Mode de paiement -->
+      <td>
+        <select 
+          v-model="ligne.Id_Mode_paiement"
+          @change="updateLigne(m.Id_Mouvement_ecriture, index)"
+          class="form-select w-full input-compact"
+          style="width: 100%; min-width: 85px;"
+        >
+          <option value="">-</option>
+          <option v-for="mode in modesPaiement" :key="mode.Id_Mode_paiement" :value="mode.Id_Mode_paiement">
+            {{ mode.Libelle }}
+          </option>
+        </select>
+      </td>
+      <!-- Actions -->
+      <td class="text-center" style="vertical-align: middle;">
+        <button
+          @click="deleteLigne(m.Id_Mouvement_ecriture, index)"
+          :disabled="isMouvementValide(m)"
+          class="btn btn-xs btn-ghost text-error"
+          title="Supprimer la ligne"
+          style="width: 28px; height: 32px; font-size: 16px;"
+        >
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
+    </tr>
+    <!-- Bouton pour ajouter une nouvelle ligne -->
+    <tr v-if="!isMouvementValide(m)" class="bg-secondary-light ligne-table">
+      <td>
+        <span class="text-sm" style="font-size: 10px;">{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }}</span>
+      </td>
+      <td colspan="7">
+        <button
+          @click="addNewLigne(m.Id_Mouvement_ecriture)"
+          class="btn btn-ghost w-full text-primary font-semibold"
+          style="height: 32px; font-size: 15px;"
+        >
+          <i class="bi bi-plus-circle me-2"></i>Ajouter une ligne d'écriture
+        </button>
+      </td>
+      <td></td>
+    </tr>
+  </template>
+</tbody>
 
-                        <!-- Dans la table de mouvements, pour chaque mouvement -->
-                       
 
-                        
-                        <button 
-                          v-if="isEquilibre(m) && !isMouvementValide(m)" 
-                          @click="validerMouvement(m.Id_Mouvement_ecriture)"
-                          :disabled="isValidating"
-                          class="btn btn-sm btn-success"
-                          style="margin-left: 10px;"
-                          >
-                          <i class="bi bi-check-lg me-1"></i>
-                          {{ isValidating ? 'Validation...' : 'Valider' }}
-                        </button>
-
-                         <button
-                          v-if="!isEquilibre(m)"
-                          @click="solderMouvement(m.Id_Mouvement_ecriture)"
-                          class="btn btn-sm btn-warning ml-2"
-                          style = "margin-left: 10px;
-                                    height: 30px;
-                                    text-align: center;
-                                    padding-top: 4px;
-                                    bottom: 4px;
-                                    padding-right: 12px;"
-                        >
-                          <i class="bi bi-balance-scale me-1"></i> Solder
-                        </button>
-                        
-                        <span v-if="isMouvementValide(m)" class="badge badge-primary">
-                          <i class="bi bi-lock me-1"></i> Validé
-                        </span>
-                        
-                        <button 
-                          @click="deleteMouvement(m.Id_Mouvement_ecriture)"
-                          :disabled="isMouvementValide(m) || isDeletingMouvement"
-                          class="btn btn-sm btn-error"
-                          style="margin-left: 10px;"
-                        >
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  
-                  <!-- Lignes d'écriture -->
-                  <tr v-for="(ligne, index) in m.lignes" 
-                      :key="ligne.Id_Ligne_ecriture || `new-${index}`"
-                      :class="!ligne.Id_Ligne_ecriture ? 'bg-warning-light' : ''">
-                    <td>
-                      <span class="text-sm" style="font-size: 10px;">{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }}</span>
-                    </td>
-                    
-                    <!-- Sous-compte avec recherche dynamique -->
-                    <td style="font-size: 12px;">
-                      <div class="input-group relative text-left" >
-                        <input
-                          v-model="ligne.sousCompteSearch"
-                          @input="searchSousCompte(m.Id_Mouvement_ecriture, index, $event.target.value)"
-                          @focus="onSousCompteFocus(m.Id_Mouvement_ecriture, index)"
-                          @blur="validateSousCompte(m.Id_Mouvement_ecriture, index)"
-                          @keydown.enter.prevent="selectFirstSuggestion(m.Id_Mouvement_ecriture, index)"
-                          @keydown.escape="closeSuggestions(m.Id_Mouvement_ecriture, index)"
-                          @keydown.arrow-down.prevent="navigateSuggestions(m.Id_Mouvement_ecriture, index, 'down')"
-                          @keydown.arrow-up.prevent="navigateSuggestions(m.Id_Mouvement_ecriture, index, 'up')"
-                          class="form-input form-input-max"
-                          :class="{ 'is-invalid': ligne.sousCompteError, 'is-valid': ligne.Id_Sous_compte }"
-                          placeholder="Code ou libellé..."
-                          style="padding-left: 10px; height: 20px; font-size: 12px; width: 68px;"
-                        />
-                        
-                        <!-- Dropdown de suggestions -->
-                        <div v-if="ligne.showSuggestions && ligne.suggestions?.length" 
-                             class="absolute z-30 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto top-full mt-1 left-0" style="background-color: white;">
-                          <div v-for="(suggestion, suggIndex) in ligne.suggestions" 
-                               :key="suggestion.Id_Sous_compte"
-                               @mousedown="selectSousCompte(m.Id_Mouvement_ecriture, index, suggestion)"
-                               :class="{
-                                 'bg-secondary-light': suggIndex === ligne.selectedSuggestionIndex
-                               }"
-                               class="p-2 cursor-pointer border-b border-gray-200 hover:bg-secondary-light"
-                               @mouseover="ligne.selectedSuggestionIndex = suggIndex">
-                            <div class="font-semibold text-xs">{{ suggestion.Code_sous_compte }}</div>
-                            <div class="text-xs text-gray-600">{{ suggestion.Libelle }}</div>
-                          </div>
-                        </div>
-                        
-                        <div v-if="ligne.sousCompteError" class="form-error">{{ ligne.sousCompteError }}</div>
-                      </div>
-                    </td>
-                    
-                    <!-- Libellé -->
-                    <td>
-                      <input 
-                        v-model="ligne.Libelle"
-                        @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
-                        class="form-input form-input-sm"
-                        placeholder="Libellé de l'opération..."
-                        style="width: 150px; font-size: 12px;"
-                      />
-                    </td>
-                    
-                    <!-- Débit -->
-                    <td>
-                      <input 
-                        v-model.number="ligne.Debit"
-                        @input="onMontantChange(m.Id_Mouvement_ecriture, index, 'debit')"
-                        @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
-                        type="number" 
-                        step="0.01"
-                        min="0"
-                        class="form-input form-input-sm text-right"
-                        placeholder="0,00"
-                        style="width: 120px; font-size: 12px;"
-                      />
-                    </td>
-                    
-                    <!-- Crédit -->
-                    <td>
-                      <input 
-                        v-model.number="ligne.Credit"
-                        @input="onMontantChange(m.Id_Mouvement_ecriture, index, 'credit')"
-                        @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
-                        type="number" 
-                        step="0.01"
-                        min="0"
-                        class="form-input form-input-sm text-right"
-                        placeholder="0,00"
-                        style="width: 120px; font-size: 12px;"
-                      />
-                    </td>
-                    
-                    <!-- Référence -->
-                    <td>
-                      <input 
-                        v-model="ligne.Reference"
-                        @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
-                        class="form-input form-input-sm"
-                        placeholder="Réf..."
-                        style="font-size: 12px;"
-                      />
-                    </td>
-                    
-                    <!-- Quantité -->
-                    <td>
-                      <input 
-                        v-model.number="ligne.Quantite"
-                        @blur="updateLigne(m.Id_Mouvement_ecriture, index)"
-                        type="number"
-                        min="1"
-                        style="width: 40px; font-size: 12px;"
-                        class="form-input form-input-sm text-center"
-                      />
-                    </td>
-                    
-                    <!-- Mode de paiement -->
-                    <td>
-                      <select 
-                        v-model="ligne.Id_Mode_paiement"
-                        @change="updateLigne(m.Id_Mouvement_ecriture, index)"
-                        class="form-select form-input-sm"
-                        style="width: 50px; font-size: 12px;"
-                      >
-                        <option value="">-</option>
-                        <option v-for="mode in modesPaiement" :key="mode.Id_Mode_paiement" :value="mode.Id_Mode_paiement">
-                          {{ mode.Libelle }}
-                        </option>
-                      </select>
-                    </td>
-                    
-                    <!-- Actions -->
-                    <td class="text-center">
-                      <button 
-                        @click="deleteLigne(m.Id_Mouvement_ecriture, index)"
-                        :disabled="isMouvementValide(m)"
-                        class="btn btn-xs btn-ghost text-error"
-                        title="Supprimer la ligne"
-                        style="width: 20px;"
-                      >
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </td>
-                  </tr>
-                  
-                  <!-- Bouton pour ajouter une nouvelle ligne -->
-                  <tr v-if="!isMouvementValide(m)" class="bg-secondary-light">
-                    <td>
-                      <span class="text-sm" style="font-size: 10px;">{{ m.Numero_piece || `#${m.Id_Mouvement_ecriture}` }}</span>
-                    </td>
-                    <td colspan="7">
-                      <button 
-                        @click="addNewLigne(m.Id_Mouvement_ecriture)"
-                        class="btn btn-ghost w-full text-primary font-semibold"
-                      >
-                        <i class="bi bi-plus-circle me-2"></i>Ajouter une ligne d'écriture
-                      </button>
-                    </td>
-                    <td></td>
-                  </tr>
-                </template>
-              </tbody>
               
               <!-- Totaux globaux -->
               <tfoot>
@@ -514,6 +497,38 @@ input, select {
   z-index: 20;
 }
 
+.ligne-table td,
+.ligne-table input,
+.ligne-table select {
+  height: 20px;
+  font-size: 11px !important;
+  padding: 8px 12px !important;
+  box-sizing: border-box;
+}
+.ligne-table td {
+  background: #fff;
+  vertical-align: middle;
+}
+.ligne-table input:focus,
+.ligne-table select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.18);
+}
+
+.input-compact {
+  border-radius: 5px !important;
+  border: 1px solid #cbd5e1;
+  height: 28px !important;
+  font-size: 15px !important;
+  padding: 2px 4px !important;
+  box-sizing: border-box;
+}
+.input-compact:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.16);
+}
+
+
 @media print {
   .no-print {
     display: none !important;
@@ -545,6 +560,14 @@ input, select {
   
   th, td {
     padding: 0.25rem !important;
+  }
+
+  .ligne-table td,
+  .ligne-table input,
+  .ligne-table select {
+    font-size: 15px !important;
+    min-width: 0 !important;
+    padding: 10px 8px !important;
   }
 }
 .dashboard-container {

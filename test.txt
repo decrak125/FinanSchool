@@ -3,3 +3,8 @@ npm install apexcharts vue3-apexcharts
 
 
 php artisan migrate --path=/database/migrations/nom_du_fichier.php
+
+php artisan cache:clear
+php artisan config:clear
+php artisan route:clear
+php artisan view:clear

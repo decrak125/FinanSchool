@@ -96,6 +96,7 @@ import Header from "../../molecules/Header.vue";
 import Sidebar from "../../molecules/Sidebar.vue";
 import AppFooter from "../../molecules/Footer.vue";
 import { getUser } from "../../../services/Auth";
+import logo from '@/assets/img/01Raitra kidz 300px.png';
 
 const route = useRoute();
 const user = ref(null);
@@ -177,117 +178,129 @@ const resetDateFilter = () => {
   fetchEcritures();
 };
 
+const getLogoBase64 = () => {
+  return logo; // Le logo est déjà en base64 grâce à l'import
+};
+
 const exportToPDF = () => {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-  doc.setFont('helvetica');
-  doc.setFontSize(10);
+  // Ajout du logo
+  const logoBase64 = getLogoBase64();
+  doc.addImage(logoBase64, 'PNG', 10, 8, 30, 20); // X=10, Y=6, largeur=20mm, hauteur=20mm
 
-  // Company name
-  doc.text('RAITRA KIDZ', 10, 10);
-
-  // Journal title
-  doc.setFontSize(16);
+  // Identité de la société
   doc.setFont('helvetica', 'bold');
-  doc.text('Journal ' + (journal.value ? journal.value.toUpperCase() : ''), 80, 10);
+  doc.setFontSize(14);
   
 
-  // Tenue de compte
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+
+  // Titre du document
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.text(`Journal ${(journal.value ? journal.value.toUpperCase() : '')}`, 105, 15, { align: 'center' });
+
+  // Détails à droite
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   const deviseText = `Tenue de compte : ${defaultDevise.value ? defaultDevise.value.Sigle : 'Ar'}`;
-  const deviseWidth = doc.getTextWidth(deviseText);
-  doc.text(deviseText, 200 - deviseWidth, 10);
+  doc.text(deviseText, 150, 15);
 
-  // Period (month and year)
+  // Période (mois et année)
   let period = '';
   if (dateFilter.value.date_debut) {
     const d = new Date(dateFilter.value.date_debut);
     period = d.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
   }
-  const periodWidth = doc.getTextWidth(period);
-  doc.text(period, 200 - periodWidth, 15);
+  doc.text(`Période : ${period}`, 150, 20);
 
-  // Date de tirage and page
+  // Date de tirage et page
   const now = new Date();
-  const dateTirage = `Date de tirage ${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
-  doc.text(dateTirage, 10, 20);
+  const dateTirage = `Date de tirage : ${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+  doc.text(dateTirage, 10, 38);
 
-  // Date range
-  doc.text(`du ${dateFilter.value.date_debut || ''} au ${dateFilter.value.date_fin || ''}`, 10, 15);
+  // Plage de dates
+  doc.text(`Du ${dateFilter.value.date_debut || '-'} au ${dateFilter.value.date_fin || '-'}`, 10, 43);
 
-  // Tableau
+  // Tableau des écritures
   autoTable(doc, {
-    startY: 25,
+    startY: 55,
     theme: 'grid',
-    head: [['Jour', 'N° pièce', 'N° compte', 'N° reference', 'Libellé écriture', 'Mvts débit', 'Mvts crédit']],
+    head: [[
+      'Jour', 'N° Pièce', 'N° Compte', 'Référence',
+      'Libellé Écriture', 'Débit', 'Crédit'
+    ]],
     body: ecritures.value.map(ecriture => {
       const dateMouvement = ecriture.mouvement ? ecriture.mouvement.Date_mouvement : null;
       let jour = '-';
       if (dateMouvement) {
         const d = new Date(dateMouvement);
-        const day = d.getDate().toString().padStart(2, '0');
-        const month = (d.getMonth() + 1).toString().padStart(2, '0');
-        const year = d.getFullYear().toString().slice(2);
-        jour = day + month + year;
+        jour = `${d.getDate().toString().padStart(2, '0')}${(d.getMonth() + 1).toString().padStart(2, '0')}${d.getFullYear().toString().slice(2)}`;
       }
       return [
         jour,
-        ecriture.mouvement ? ecriture.mouvement.Numero_piece : '-',
-        ecriture.sous_compte ? ecriture.sous_compte.Code_sous_compte : '-',
+        ecriture.mouvement?.Numero_piece || '-',
+        ecriture.sous_compte?.Code_sous_compte || '-',
         ecriture.Reference || '-',
         ecriture.Libelle || '-',
         ecriture.Debit ? formatNumber(ecriture.Debit) : '-',
         ecriture.Credit ? formatNumber(ecriture.Credit) : '-',
       ];
     }),
-    foot: [['', '', '', '', 'Totaux', formatNumber(totalDebit.value), formatNumber(totalCredit.value)]],
+    foot: [[
+      '', '', '', '', 'Totaux', formatNumber(totalDebit.value), formatNumber(totalCredit.value),
+    ]],
     styles: {
-      fontSize: 8,
+      fontSize: 9,
       cellPadding: 2,
-      textColor: [0, 0, 0],
-      lineColor: [0, 0, 0],
+      textColor: [35, 35, 35],
+      lineColor: [180, 180, 180],
       lineWidth: 0.1,
-      fillColor: [255, 255, 255],
+      fillColor: [250, 250, 250],
     },
     headStyles: {
-      fillColor: [255, 255, 255],
-      textColor: [0, 0, 0],
+      fillColor: [41, 128, 185],
+      textColor: [255, 255, 255],
       fontStyle: 'bold',
-      lineWidth: 0.1,
-      lineColor: [0, 0, 0],
+      lineWidth: 0.3,
+      lineColor: [41, 128, 185],
+      halign: 'center',
     },
     alternateRowStyles: {
-      fillColor: [255, 255, 255],
+      fillColor: [245, 245, 255],
     },
     footStyles: {
-      fillColor: [255, 255, 255],
-      textColor: [0, 0, 0],
+      fillColor: [41, 128, 185],
+      textColor: [255, 255, 255],
       fontStyle: 'bold',
-      lineWidth: 0.1,
-      lineColor: [0, 0, 0],
+      lineWidth: 0.3,
+      lineColor: [41, 128, 185],
     },
     columnStyles: {
       5: { halign: 'right' },
       6: { halign: 'right' },
     },
-    margin: { top: 25, left: 10, right: 10, bottom: 20 },
+    margin: { top: 55, left: 10, right: 10, bottom: 25 },
     didDrawPage: (data) => {
       const pageCount = doc.internal.getNumberOfPages();
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
+        doc.setTextColor(120, 120, 120);
         const pageStr = `Page : ${i}`;
-        const pageWidth = doc.getTextWidth(pageStr);
-        doc.text(pageStr, 200 - pageWidth, 20);
-        doc.text(`RAITRA KIDZ © ${new Date().getFullYear()}`, 10, 290);
-        doc.text('Impression provisoire', 150, 290);
+        doc.text(pageStr, 190, 20);
+
+        // Pied de page personnalisé
+        doc.setFontSize(9);
+        doc.text(`RAITRA KIDZ © ${now.getFullYear()} | Impression provisoire`, 10, 290);
       }
     },
   });
 
-  doc.save(`Ecriture_Journal_${journalId.value}_${new Date().toISOString().split('T')[0]}.pdf`);
+  // Sauvegarde du PDF
+  doc.save(`Journal_${journalId.value}_${now.toISOString().split('T')[0]}.pdf`);
 };
 
 const exportToExcel = () => {

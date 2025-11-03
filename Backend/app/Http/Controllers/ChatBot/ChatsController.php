@@ -135,12 +135,25 @@ if (str_contains($messagetext, 'sous-compte') ||
             return ChatSousCompteController::getStatistiques();
         }
         
+        
         // Par défaut
         return ChatSousCompteController::getAllSousComptes();
     } catch (\Exception $e) {
         return "Erreur lors du traitement de la question : " . $e->getMessage();
     }
 }
+
+if (str_contains($messagetext, 'journal') || str_contains($messagetext, 'journaux') || str_contains($messagetext, 'journals')) {
+    if (str_contains($messagetext, 'tous') || str_contains($messagetext, 'liste') || str_contains($messagetext, 'affiche')) {
+        return ChatJournalController::getAllJournaux();
+    }
+    if (preg_match('/journal\s+[A-Za-z0-9]+/', $messagetext)) {
+        return ChatJournalController::detailJournal($messagetext);
+    }
+    
+    return "Veuillez préciser votre demande concernant les journaux. Vous pouvez demander la liste des journaux ou le détail d'un journal spécifique en mentionnant son code.";
+            // Ajouter d'autres cas (par libellé, par type, ...)
+    }
 
         
     return "Bonjour {$userName}, Je suis votre assistant financier pour établissements scolaires. Actuellement en cours de configuration, je pourrai bientôt vous aider avec :\n\n• 📊 Analyse des budgets\n• 📈 Suivi des dépenses  \n• 🎓 Indicateurs par élève\n• ⚖️ Équilibre financier\n\nPosez-moi une question simple pour tester !";

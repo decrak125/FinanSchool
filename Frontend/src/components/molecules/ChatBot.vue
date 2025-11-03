@@ -149,7 +149,7 @@ export default {
         ''
       );
       // Garder seulement ce qui est utile
-      text = text.replace(/[^a-z0-9\s.,!%?=+À-ÿ]/gi, '');
+      text = text.replace(/[^a-z0-9\s.,!%?=+À-ÿ:']/gi, ' ');
       // Espaces multiples
       return text.replace(/\s{2,}/g, ' ').trim();
     },
@@ -199,16 +199,46 @@ export default {
     },
     // --- Synthèse vocale ---
     speakMessage(text) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Stop toute lecture en cours
-        const utterance = new window.SpeechSynthesisUtterance(text);
-        utterance.lang = 'fr-FR';
-        utterance.volume = 1;
-        utterance.rate = 1;
-        utterance.pitch = 1;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new window.SpeechSynthesisUtterance(text);
+      utterance.lang = 'fr-FR';
+      utterance.volume = 1;
+
+      // Chercher et sélectionner la meilleure voix française
+      const setVoice = () => {
+        const voices = window.speechSynthesis.getVoices();
+        const frenchVoices = voices.filter(v => v.lang.startsWith('fr'));
+        // Essaye de prioriser une voix de meilleure qualité par son nom
+        utterance.voice =
+          frenchVoices.find(v => v.name.toLowerCase().includes('julie')) ||
+          frenchVoices.find(v => v.name.toLowerCase().includes('thomas')) ||
+          frenchVoices.find(v => v.name.toLowerCase().includes('google')) ||
+          frenchVoices[0] ||
+          voices[0]; // Fallback
+
+        // Gère l'intonation simple selon la ponctuation
+        if (text.endsWith('?')) {
+          utterance.pitch = 1.5; utterance.rate = 1.2;
+        } else if (text.endsWith('!')) {
+          utterance.pitch = 1.2; utterance.rate = 0.9;
+        } else {
+          utterance.pitch = 1; utterance.rate = 1;
+        }
+
         window.speechSynthesis.speak(utterance);
+      };
+
+      // getVoices peut être vide au premier appel, donc on écoute l'event si nécessaire
+      if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.onvoiceschanged = setVoice;
+      } else {
+        setVoice();
       }
     }
+  }
+
+
   }
 }
 </script>

@@ -4,11 +4,7 @@
     <!-- Header avec logo -->
     <div class="sidebar-header">
       <div class="logo">
-        <div class="logo-icon">R</div>
-        <div class="logo-text">
-          <span class="logo-main">RAITRA</span>
-          <span class="logo-sub">Kidz</span>
-        </div>
+       <img src="../../assets/img/01300.png" style="height: 70px;padding-left: 52px;" alt="">
       </div>
     </div>
 

@@ -5,7 +5,7 @@ namespace App\Http\Controllers\notifications;
 use App\Models\notifications\Notification;
 use App\Events\NotificationCreee;
 use App\Http\Requests\StoreNotificationRequest;
-use App\Http\Requests\UpdateNotificationRequest;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
 class NotificationController extends Controller
@@ -48,7 +48,7 @@ class NotificationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateNotificationRequest $request, Notification $notification)
+    public function update(Request $request, Notification $notification)
     {
         $notification->update($request->validated());
 

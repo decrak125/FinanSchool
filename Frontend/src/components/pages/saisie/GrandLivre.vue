@@ -10,6 +10,9 @@ import Sidebar from '../../molecules/Sidebar.vue'
 import Header from '../../molecules/Header.vue'
 import AppFooter from '../../molecules/Footer.vue'
 import { getUser } from "../../../services/Auth";
+import logoImg from '../../../assets/img/01300.png';
+import { exportEtatPDF } from '../../../composables/pdfTemplates';
+
 
 const router = useRouter()
 const route = useRoute()
@@ -202,21 +205,29 @@ const goBack = () => {
   router.push('/liste-grand-livre')
 }
 
-const exportToPDF = () => {
-  const doc = new jsPDF()
-  doc.setFontSize(18)
-  doc.setTextColor(0, 51, 102)
-  doc.text(`Grand Livre - Compte ${currentCompte.value}`, 14, 20)
-  doc.setFontSize(10)
-  doc.setTextColor(0, 0, 0)
-  doc.text(`Période: ${filters.value.date_debut || 'Toutes'} à ${filters.value.date_fin || 'Toutes'}`, 14, 30)
-  doc.text(`Nombre d'écritures: ${filteredGrandLivres.value.length}`, 14, 38)
-  doc.text(`Exporté le: ${new Date().toLocaleDateString('fr-FR')}`, 14, 46)
+function getLogoBase64(callback) {
+  const img = new window.Image();
+  img.src = logoImg;
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+    callback(canvas.toDataURL('image/png'));
+  };
+}
 
-  autoTable(doc, {
-    startY: 50,
-    head: [['Date', 'N° Pièce', 'Libellé', 'Débit', 'Crédit', 'Solde Progressif']],
-    body: filteredGrandLivres.value.map((gl) => [
+function exportGrandLivre() {
+  getLogoBase64((logoBase64) => {
+  exportEtatPDF({
+    titre: `Grand Livre - Compte ${currentCompte.value}`,
+    periode: `${filters.value.date_debut || 'Toutes'} à ${filters.value.date_fin || 'Toutes'}`,
+    detailsDroite: [
+      `Nombre d'écritures: ${filteredGrandLivres.value.length}`,
+    ],
+    colonnes: ['Date', 'N° Pièce', 'Libellé', 'Débit', 'Crédit', 'Solde Progressif'],
+    lignes: filteredGrandLivres.value.map(gl => [
       formatDate(gl.date_mouvement),
       gl.numero_piece,
       gl.libelle_ecriture,
@@ -224,24 +235,11 @@ const exportToPDF = () => {
       formatNumber(gl.Credit),
       formatNumber(calculateSoldeProgressif(gl, filteredGrandLivres.value))
     ]),
-    foot: [['', '', 'TOTAUX:', formatNumber(summary.value.total_debit), formatNumber(summary.value.total_credit), formatNumber(summary.value.solde)]],
-    styles: {
-      fontSize: 8,
-      cellPadding: 2
-    },
-    headStyles: {
-      fillColor: [0, 51, 102],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold'
-    },
-    footStyles: {
-      fillColor: [200, 200, 200],
-      textColor: [0, 0, 0],
-      fontStyle: 'bold'
-    }
-  })
-
-  doc.save(`Grand_Livre_${currentCompte.value}_${new Date().toISOString().split('T')[0]}.pdf`)
+    totaux: ['', '', 'TOTAUX:', formatNumber(summary.value.total_debit), formatNumber(summary.value.total_credit), formatNumber(summary.value.solde)],
+    fileName: `Grand_Livre_${currentCompte.value}`,
+    getLogoBase64: () => logoBase64
+  });
+    });
 }
 
 const exportToExcel = () => {
@@ -375,7 +373,7 @@ watch(() => route.params.codeCompte, () => {
               {{ isSingleCompte ? `Grand Livre - Compte ${currentCompte}` : 'Liste des Grand Livres' }}
             </h1>
             <div class="d-flex gap-2">
-              <button v-if="isSingleCompte && filteredGrandLivres.length > 0" @click="exportToPDF" class="btn btn-primary">
+              <button v-if="isSingleCompte && filteredGrandLivres.length > 0" @click="exportGrandLivre" class="btn btn-primary">
                 <i class="bi bi-file-pdf"></i> Exporter PDF
               </button>
               <button v-if="isSingleCompte && filteredGrandLivres.length > 0" @click="exportToExcel" class="btn btn-success" style="height: 40px;margin-top: 10px;">
