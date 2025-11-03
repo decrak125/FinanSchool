@@ -10,3 +10,4 @@ php artisan reverb:start
 
 npm install laravel-echo
 npm install pusher-js
+npm install pinia

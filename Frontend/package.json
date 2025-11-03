@@ -21,6 +21,7 @@
     "jspdf-autotable": "^5.0.2",
     "laravel-echo": "^2.2.4",
     "lodash": "^4.17.21",
+    "pinia": "^3.0.3",
     "pusher-js": "^8.4.0",
     "vue": "^3.5.18",
     "vue-chartjs": "^5.3.2",

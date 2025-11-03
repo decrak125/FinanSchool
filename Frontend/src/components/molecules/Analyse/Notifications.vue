@@ -3,18 +3,18 @@
     <!-- Badge avec compteur -->
     <div @click="toggleNotifications" class="notification-btn">
       <i class="bi bi-bell-fill"></i>
-      <span v-if="unreadCount > 0" class="badge">{{ unreadCount }}</span>
+      <span v-if="store.unreadCount > 0" class="badge">{{ store.unreadCount }}</span>
     </div>
 
     <!-- Liste des notifications -->
     <div v-if="showNotifications" class="notifications-list">
-      <div v-for="notification in notifications" 
+      <div v-for="notification in store.notifications" 
            :key="notification.id"
-           :class="['notification-item', `level-${notification.niveau_urgence.code}`]"
-           @click="markAsRead(notification)">
+           :class="['notification-item', `level-${notification.niveau_urgence?.code || 'info'}`]"
+           @click="Read(notification)">
         
         <div class="notification-icon">
-          <i :class="notification.niveau_urgence.icone"></i>
+          <i :class="notification.niveau_urgence?.icone || 'bi bi-info-circle'"></i>
         </div>
         
         <div class="notification-content">
@@ -31,97 +31,37 @@
   </div>
 </template>
 
-<script>
-import { ref, onMounted, onUnmounted } from 'vue'
-import axios from 'axios'
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useNotificationStore } from '@/stores/notificationStore'
 
-export default {
-  name: 'Notifications',
-  setup() {
-    const notifications = ref([])
-    const showNotifications = ref(false)
-    const unreadCount = ref(0)
+const store = useNotificationStore()
+const showNotifications = ref(false)
 
-    // Écouter les nouvelles notifications en temps réel
-    const setupWebSocket = () => {
-      window.Echo.channel('notifications')
-        .listen('NotificationCreee', (e) => {
-          console.log('Nouvelle notification reçue!', e)
-          notifications.value.unshift(e.notification)
-          unreadCount.value++
-        })
-    }
-
-    // Charger les notifications existantes
-    const loadNotifications = async () => {
-      try {
-        const response = await axios.get('http://localhost:8000/api/notifications')
-        notifications.value = response.data
-        unreadCount.value = notifications.value.filter(n => n.statut === 'non_lu').length
-      } catch (error) {
-        console.error('Erreur chargement notifications:', error)
-      }
-    }
-
-    // Marquer comme lu
-    const markAsRead = async (notification) => {
-    try {
-      await axios.post(`http://localhost:8000/api/${notification.id}/marquer-lue`)
-      notification.statut = 'lu'
-      notification.lu_a = new Date().toISOString()
-      unreadCount.value = Math.max(0, unreadCount.value - 1)
-      
-      // REDIRECTION DYNAMIQUE
-      if (notification.evenement?.donnees_evenement?.lien_redirection) {
-        window.location.href = notification.evenement.donnees_evenement.lien_redirection
-      }
-      
-    } catch (error) {
-      console.error('Erreur marquer comme lu:', error)
-    }
-  }
-
-    // Supprimer une notification
-    const deleteNotification = async (notification) => {
-      try {
-        await axios.delete(`http://localhost:8000/api/notifications/${notification.id}`)
-        notifications.value = notifications.value.filter(n => n.id !== notification.id)
-        if (notification.statut === 'non_lu') {
-          unreadCount.value = Math.max(0, unreadCount.value - 1)
-        }
-      } catch (error) {
-        console.error('Erreur suppression:', error)
-      }
-    }
-
-    const toggleNotifications = () => {
-      showNotifications.value = !showNotifications.value
-    }
-
-    const formatDate = (dateString) => {
-      return new Date(dateString).toLocaleString('fr-FR')
-    }
-
-    onMounted(() => {
-      loadNotifications()
-      setupWebSocket()
-    })
-
-    onUnmounted(() => {
-      window.Echo.leave('notifications')
-    })
-
-    return {
-      notifications,
-      showNotifications,
-      unreadCount,
-      toggleNotifications,
-      markAsRead,
-      deleteNotification,
-      formatDate
-    }
-  }
+const toggleNotifications = () => {
+  showNotifications.value = !showNotifications.value
 }
+
+const Read = async (notification) => {
+  store.markAsRead(notification.id)
+  
+  // Redirection si lien disponible
+  // if (notification.evenement?.donnees_evenement?.lien_redirection) {
+  //   window.location.href = notification.evenement.donnees_evenement.lien_redirection
+  // }
+}
+
+const deleteNotification = (notification) => {
+  store.removeNotification(notification.id)
+}
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleString('fr-FR')
+}
+
+onMounted(() => {
+  store.loadNotifications()
+})
 </script>
 
 <style scoped>

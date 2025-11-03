@@ -9,7 +9,7 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 start "Serveur Backend" cmd /k "php artisan serve"
-start "Serveur Backend" cmd /k "php artisan reverb:start"
+@REM start "Serveur Backend" cmd /k "php artisan reverb:start"
 start "Serveur Backend" cmd /k "php artisan schedule:work"
 
 

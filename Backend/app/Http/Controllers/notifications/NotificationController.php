@@ -70,7 +70,10 @@ class NotificationController extends Controller
      */
     public function marquerCommeLue(Notification $notification)
     {
-        $notification->marquerCommeLu();
+        $notification->update([
+            'statut' => 'lu',
+            'lu_a' => now()
+        ]);
 
         return response()->json($notification);
     }

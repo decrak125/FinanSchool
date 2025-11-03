@@ -2,12 +2,29 @@
 import sidebar from '@/components/molecules/Analyse/Sidebar.vue';
 import Header from '@/components/molecules/Analyse/Header.vue';
 import Footer from '../molecules/Analyse/Footer.vue';
+import { useNotificationStore } from '@/stores/notificationStore'; // ← IMPORTANT
 
 const token = localStorage.getItem("token");
+const store = useNotificationStore(); // ← INITIALISATION DU STORE
 
 if (!token) {
   window.location.href = "/";
 }
+
+// Charger les notifications une seule fois quand la page s'affiche
+import { onMounted } from 'vue';
+onMounted(() => {
+  if (token) {
+    store.loadNotifications();
+    
+    // Écouter les nouvelles notifications en temps réel
+    window.Echo.channel('notifications')
+      .listen('NotificationCreee', (e) => {
+        console.log('Nouvelle notification reçue!', e);
+        store.addNotification(e.notification);
+      });
+  }
+});
 </script>
 
 <template>
@@ -23,9 +40,8 @@ if (!token) {
         <div class="content">
           <slot />
         </div>
-      <Footer/>
+        <Footer/>
       </div>
-      
     </div>
     <div class="redirection" v-else>
       <div class="loader">
@@ -37,6 +53,7 @@ if (!token) {
   </div>
 </template>
 
+<!-- Le reste de votre style reste inchangé -->
 <style lang="scss" scoped>
 html, body {
   height: 100%;
