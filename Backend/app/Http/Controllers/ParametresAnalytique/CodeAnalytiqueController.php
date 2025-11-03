@@ -58,4 +58,60 @@ class CodeAnalytiqueController extends Controller
 
         return response()->json(['message' => 'Code supprimé avec succès']);
     }
+
+        public function import(Request $request)
+{
+    // Validation simple
+    $request->validate([
+        'file' => 'required|mimes:csv,txt'
+    ]);
+
+    $imported = 0;
+    $skipped = 0;
+
+    $file = $request->file('file');
+    $path = $file->getRealPath();
+
+    if (($handle = fopen($path, "r")) !== false) {
+        $header = fgetcsv($handle, 1000, ";"); // lire la première ligne (header)
+
+        while (($row = fgetcsv($handle, 1000, ";")) !== false) {
+            $data = [];
+            foreach ($header as $i => $key) {
+                $data[$key] = $row[$i] ?? null;
+            }
+
+            $code = $data['code'] ?? $row[0];
+            $libelle = $data['libelle'] ?? $row[1];
+            $plage_de_extension = $data['plage_de_extension'] ?? $row[2];
+
+            // Vérifier si l'axe existe déjà (insensible à la casse)
+            $exists = CodeAnalytique::whereRaw('LOWER(code) = ?', [strtolower($code)])->first();
+
+            if ($exists) {
+                $skipped++; // doublon, on ignore
+                continue;
+            }
+
+            // Créer l'axe
+            CodeAnalytique::create([
+                'code' => $code,
+                'libelle' => $libelle,
+                'plage_de_extension' => $plage_de_extension,
+            ]);
+
+            $imported++;
+        }
+
+        fclose($handle);
+    }
+
+    return response()->json([
+        'success' => true,
+        'imported' => $imported,
+        'skipped' => $skipped,
+        'message' => "Import terminé : $imported importés, $skipped ignorés."
+    ]);
+}
+
 }

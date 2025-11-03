@@ -1,0 +1,177 @@
+Id_Sous_compte,Code_sous_compte,Libelle,Id_Compte
+1,601001,Papier, cahiers et copies,156
+2,601002,Encres, craies et peintures,156
+3,601003,Matériel scientifique et technique,156
+4,601004,Fournitures artistiques,156
+5,601005,Achat de riz,156
+6,601006,Achat de légumes,156
+7,601007,Achat de fruits,156
+8,601008,Achat de viande et poisson,156
+9,601009,Achat de gouters,156
+10,602001,Fournitures de bureau,157
+11,602002,Cartouches et toners,157
+12,602003,Stylos, crayons et gommes,157
+13,602004,Classeurs, dossiers et archives,157
+14,602005,Livres et manuels scolaires,157
+15,602006,Matériel pédagogique divers,157
+16,603001,Papeterie administrative,158
+17,603002,Cartouches et toners,158
+18,603003,Classeurs dossiers et archives,158
+19,604001,Conception pédagogique externe,159
+20,604002,Services de formation continue du personnel,159
+21,604003,Maintenance informatique,159
+22,604004,Achats études techniques,159
+23,605001,Tables et chaises scolaires,160
+24,605002,Tableaux et équipement pédagogiques,160
+25,605003,Matériel informatique de base,160
+26,605004,Factures électricité,160
+27,605005,Factures eau,160
+28,605006,Factures gaz,160
+29,606001,Produits de nettoyage classes,161
+30,606002,Produits hygiène toilettes,161
+31,606003,Matériel de nettoyage (balais, serpillières),161
+32,607001,Uniformes et tenues scolaires,162
+33,607002,Équipements sportifs,162
+34,607003,Matériel pour activités culturelles,162
+35,608001,Frais de transport des fournitures,163
+36,608002,Frais de douane,163
+37,609001,Remises fournisseurs de papeterie,164
+38,611001,Loyer des salles de classe,165
+39,611002,Loyer des bureaux administratifs,165
+40,611003,Charges eau et électricité bâtiments,165
+41,613001,Assurance responsabilité civile,166
+42,613002,Assurance scolaire élèves,166
+43,613003,Assurance du personnel,166
+44,614001,Charges copropriété écoles,167
+45,615001,Réparation bâtiments scolaires,168
+46,615002,Réparation matériel scolaire,168
+47,615003,Réparation bus scolaire,168
+48,616001,Assurance bâtiments,169
+49,616002,Assurance véhicules scolaires,169
+50,617001,Salaires agents sécurité,170
+51,617002,Fournitures pour gardiennage,170
+52,617003,Contrat entreprise de sécurité,170
+53,618001,Abonnement revues professionnelles,171
+54,619001,Remises sur entretien et gardiennage,172
+55,622001,Salaires personnel administratif,174
+56,622002,Indemnités personnel administratif,174
+57,623001,Publicité institutionnelle,175
+58,624001,Transport élèves et enseignants,176
+59,624002,Transport matériel scolaire,176
+60,625001,Cotisations CNAPS,177
+61,625002,Cotisations OSTIE,177
+62,625003,Autres charges sociales obligatoires,177
+63,625004,Déplacements professionnels,177
+64,625005,Réceptions et événements,177
+65,626001,Frais envois postaux,178
+66,626002,Abonnement téléphonique et internet,178
+67,627001,Commissions bancaires,179
+68,628001,Cotisation associations pédagogiques,180
+69,628002,Organisation de fetes,180
+70,629001,Remises prestations services,181
+71,631001,IRSA enseignants,182
+72,631002,IRSA personnel administratif,182
+73,635001,Taxe foncière,183
+74,635002,Taxe professionnelle,183
+75,635003,TVA non déductible,183
+76,641001,Vacations et contractuels,184
+77,641002,Salaires enseignants primaire,184
+78,641003,Salaires enseignants secondaire,184
+79,644001,Rémunération direction établissement,185
+80,645001,Cotisations retraites,186
+81,646001,Cotisations sociales dirigeants,187
+82,647001,Autres charges sociales,188
+83,648001,Primes et gratifications,189
+84,651001,Licences logiciels éducatifs,190
+85,651002,Abonnements plateformes pédagogiques,190
+86,652001,Moins-value mobilier scolaire,191
+87,653001,Jetons de présence AG,192
+88,654001,Pertes sur créances parents,193
+89,655001,Quote-part activités communes,194
+90,656001,Amendes administratives,195
+91,656002,Subventions accordées,195
+92,656003,Dons,195
+93,657001,Dépenses urgentes,196
+94,658001,Autres dépenses courantes,197
+95,661001,Intérêts prêt bancaire,198
+96,661002,Intérêts crédit bus scolaire,198
+97,664001,Pertes sur partenariats,199
+98,665001,Moins-value titres placements,200
+99,666001,Pertes de change opération bancaire,201
+100,667001,Moins-value financière,202
+101,668001,Frais bancaires divers,203
+102,681001,Amortissement mobilier scolaire,204
+103,681002,Amortissement matériel informatique,204
+104,681003,Amortissement bâtiments,204
+105,681004,Amortissement véhicules,204
+106,685001,Provisions pour risques,205
+107,692001,Impôts différés actifs,206
+108,693001,Impôts différés passifs,207
+109,695001,Impôts bénéfices courants,208
+110,698001,Autres impôts sur bénéfices,209
+116,211001,Terrains du campus,39
+117,213001,Constructions - Batiments administratifs,41
+118,213002,Constructions - Salles de classe,41
+119,213003,Constructions - Bibliotheque et laboratoires,41
+120,215001,Materiel informatique,42
+121,215002,Materiel pedagogique,42
+122,218001,Mobilier scolaire,43
+123,218002,Vehicules de transport scolaire,43
+166,701001,Ventes de manuels scolaires produits en interne,210
+167,701002,Ventes de cahiers personnalises ecole,210
+168,701003,Ventes de uniformes scolaires fabriques,210
+169,702001,Vente de polycopies,211
+170,702002,Vente de fascicules de cours,211
+171,703001,Vente de materiels scolaires usagers,212
+172,703002,Vente de livres anciens ou surplus,212
+173,704001,Travaux realises par eleves (expos, projets),213
+174,704002,Travaux pratiques vendus,213
+175,705001,Etudes ou recherches pedagogiques,214
+176,706001,Frais de scolarite,215
+177,706002,Frais dinscription,215
+178,706003,Frais de transport scolaire,215
+179,706004,Frais de cantine,215
+180,706005,Frais de garderie,215
+181,707001,Vente de fournitures scolaires,216
+182,707002,Vente de uniformes scolaires,216
+183,707003,Vente de articles divers (snack, boissons),216
+184,708001,Location salles ou materiels,217
+185,708002,Organisation fetes et evenements,217
+186,708003,Club parascolaire (sport musique art),217
+187,709001,Remises frais de scolarite,218
+188,709002,Rabais sur ventes de fournitures,218
+189,713001,Variation stock fournitures,219
+190,713002,Variation stock uniformes,219
+191,714001,Variation stock livres,220
+192,714002,Variation stock marchandises annexes,220
+193,721001,Developpement logiciel pedagogique,221
+194,722001,Amenagements classes ou laboratoires,222
+195,741001,Subvention de lEtat,223
+196,741002,Subvention dautorites locales,223
+197,748001,Subvention ONG et associations,224
+198,748002,Subvention entreprises privees,224
+199,751001,Location logiciels pedagogiques,225
+200,751002,Utilisation brevets pedagogiques,225
+201,752001,Cession anciens ordinateurs,226
+202,752002,Cession anciens vehicules scolaires,226
+203,753001,Remuneration conseil administration,227
+204,754001,Subventions constructions batiments,228
+205,756001,Dons de materiels scolaires,230
+206,756002,Dons financiers,230
+207,757001,Produits exceptionnels sur gestion,231
+208,758001,Revenus divers non specifies,232
+209,761001,Revenus participation associations scolaires,233
+210,763001,Revenus creances sur parents,235
+211,764001,Revenus placement court terme,236
+212,766001,Gains sur operations devises,237
+213,768001,Produits financiers divers,239
+214,781001,Reprise sur batiments,240
+215,781002,Reprise sur materiels,240
+216,785001,Reprise sur stocks,241
+217,786001,Reprise sur emprunts,242
+218,786002,Reprise sur creances douteuses,242
+219,531001,Caisse generale,243
+220,164001,Pret bancaire,23
+221,168001,Emprunt,26
+222,641004,Salaire du gardien,184
+223,641005,Salaire de la femme de ménage,184

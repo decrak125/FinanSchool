@@ -1,164 +1,177 @@
-sous_compte;centre;code_type;taux;description
-601001;Pédagogie;COUT;100;Papier, cahiers et copies
-601002;Pédagogie;COUT;100;Encres, craies et peintures
-601003;Pédagogie;COUT;100;Matériel scientifique et technique
-601004;Pédagogie;COUT;100;Fournitures artistiques
-601005;Cantine;COUT;100;Achat de riz
-601006;Cantine;COUT;100;Achat de légumes
-601007;Cantine;COUT;100;Achat de fruits
-601008;Cantine;COUT;100;Achat de viande et poisson
-601009;Cantine;COUT;100;Achat de gouters
-602001;Administration;COUT;100;Fournitures de bureau
-602002;Administration;COUT;100;Cartouches et toners
-602003;Pédagogie;COUT;100;Stylos, crayons et gommes
-602004;Administration;COUT;100;Classeurs, dossiers et archives
-602005;Pédagogie;COUT;100;Livres et manuels scolaires
-602006;Pédagogie;COUT;100;Matériel pédagogique divers
-603001;Administration;COUT;100;Papeterie administrative
-603002;Administration;COUT;100;Cartouches et toners
-603003;Administration;COUT;100;Classeurs dossiers et archives
-604001;Pédagogie;COUT;100;Conception pédagogique externe
-604002;RH;COUT;100;Services de formation continue du personnel
-604003;Infrastructure;COUT;100;Maintenance informatique
-604004;Infrastructure;COUT;100;Achats études techniques
-605001;Infrastructure;COUT;100;Tables et chaises scolaires
-605002;Pédagogie;COUT;100;Tableaux et équipement pédagogiques
-605003;Infrastructure;COUT;100;Matériel informatique de base
-605004;Infrastructure;COUT;100;Factures électricité
-605005;Infrastructure;COUT;100;Factures eau
-605006;Infrastructure;COUT;100;Factures gaz
-606001;Infrastructure;COUT;100;Produits de nettoyage classes
-606002;Infrastructure;COUT;100;Produits hygiène toilettes
-606003;Infrastructure;COUT;100;Matériel de nettoyage (balais, serpillières)
-607001;Pédagogie;COUT;100;Uniformes et tenues scolaires
-607002;Activités;COUT;100;Équipements sportifs
-607003;Activités;COUT;100;Matériel pour activités culturelles
-608001;Transport;COUT;100;Frais de transport des fournitures
-608002;Finances;COUT;100;Frais de douane
-609001;Finances;COUT;100;Remises fournisseurs de papeterie
-611001;Infrastructure;COUT;100;Loyer des salles de classe
-611002;Infrastructure;COUT;100;Loyer des bureaux administratifs
-611003;Infrastructure;COUT;100;Charges eau et électricité bâtiments
-613001;Sécurité;COUT;100;Assurance responsabilité civile
-613002;Sécurité;COUT;100;Assurance scolaire élèves
-613003;Sécurité;COUT;100;Assurance du personnel
-614001;Infrastructure;COUT;100;Charges copropriété écoles
-615001;Infrastructure;COUT;100;Réparation bâtiments scolaires
-615002;Infrastructure;COUT;100;Réparation matériel scolaire
-615003;Transport;COUT;100;Réparation bus scolaire
-616001;Sécurité;COUT;100;Assurance bâtiments
-616002;Sécurité;COUT;100;Assurance véhicules scolaires
-617001;Sécurité;COUT;100;Salaires agents sécurité
-617002;Sécurité;COUT;100;Fournitures pour gardiennage
-617003;Sécurité;COUT;100;Contrat entreprise de sécurité
-618001;Administration;COUT;100;Abonnement revues professionnelles
-619001;Sécurité;COUT;100;Remises sur entretien et gardiennage
-622001;RH;COUT;100;Salaires personnel administratif
-622002;RH;COUT;100;Indemnités personnel administratif
-623001;Communication;COUT;100;Publicité institutionnelle
-624001;Transport;COUT;100;Transport élèves et enseignants
-624002;Transport;COUT;100;Transport matériel scolaire
-625001;RH;COUT;100;Cotisations CNAPS
-625002;RH;COUT;100;Cotisations OSTIE
-625003;RH;COUT;100;Autres charges sociales obligatoires
-625004;Administration;COUT;100;Déplacements professionnels
-625005;Activités;COUT;100;Réceptions et événements
-626001;Administration;COUT;100;Frais envois postaux
-626002;Administration;COUT;100;Abonnement téléphonique et internet
-627001;Finances;COUT;100;Commissions bancaires
-628001;Administration;COUT;100;Cotisation associations pédagogiques
-628002;Activités;COUT;100;Organisation de fetes
-629001;Finances;COUT;100;Remises prestations services
-631001;RH;COUT;100;IRSA enseignants
-631002;RH;COUT;100;IRSA personnel administratif
-635001;Finances;COUT;100;Taxe foncière
-635002;Finances;COUT;100;Taxe professionnelle
-635003;Finances;COUT;100;TVA non déductible
-641001;RH;COUT;100;Vacations et contractuels
-641002;RH;COUT;100;Salaires enseignants primaire
-641003;RH;COUT;100;Salaires enseignants secondaire
-644001;RH;COUT;100;Rémunération direction établissement
-645001;RH;COUT;100;Cotisations retraites
-646001;RH;COUT;100;Cotisations sociales dirigeants
-647001;RH;COUT;100;Autres charges sociales
-648001;RH;COUT;100;Primes et gratifications
-651001;Pédagogie;COUT;100;Licences logiciels éducatifs
-651002;Pédagogie;COUT;100;Abonnements plateformes pédagogiques
-652001;Infrastructure;COUT;100;Moins-value mobilier scolaire
-653001;Administration;COUT;100;Jetons de présence AG
-654001;Finances;COUT;100;Pertes sur créances parents
-655001;Finances;COUT;100;Quote-part activités communes
-656001;Finances;COUT;100;Amendes administratives
-656002;Finances;COUT;100;Subventions accordées
-656003;Finances;COUT;100;Dons
-657001;Administration;COUT;100;Dépenses urgentes
-658001;Administration;COUT;100;Autres dépenses courantes
-661001;Finances;COUT;100;Intérêts prêt bancaire
-661002;Finances;COUT;100;Intérêts crédit bus scolaire
-664001;Finances;COUT;100;Pertes sur partenariats
-665001;Finances;COUT;100;Moins-value titres placements
-666001;Finances;COUT;100;Pertes de change opération bancaire
-667001;Finances;COUT;100;Moins-value financière
-668001;Finances;COUT;100;Frais bancaires divers
-681001;Infrastructure;COUT;100;Amortissement mobilier scolaire
-681002;Infrastructure;COUT;100;Amortissement matériel informatique
-681003;Infrastructure;COUT;100;Amortissement bâtiments
-681004;Transport;COUT;100;Amortissement véhicules
-685001;Finances;COUT;100;Provisions pour risques
-692001;Finances;COUT;100;Impôts différés actifs
-693001;Finances;COUT;100;Impôts différés passifs
-695001;Finances;COUT;100;Impôts bénéfices courants
-698001;Finances;COUT;100;Autres impôts sur bénéfices
-701001;Ventes;PROFIT;100;Ventes de manuels scolaires produits en interne
-701002;Ventes;PROFIT;100;Ventes de cahiers personnalises ecole
-701003;Ventes;PROFIT;100;Ventes de uniformes scolaires fabriques
-702001;Ventes;PROFIT;100;Vente de polycopies
-702002;Ventes;PROFIT;100;Vente de fascicules de cours
-703001;Ventes;PROFIT;100;Vente de materiels scolaires usagers
-703002;Ventes;PROFIT;100;Vente de livres anciens ou surplus
-704001;Ventes;PROFIT;100;Travaux realises par eleves (expos, projets)
-704002;Ventes;PROFIT;100;Travaux pratiques vendus
-705001;Ventes;PROFIT;100;Etudes ou recherches pedagogiques
-706001;Ventes;PROFIT;100;Frais de scolarite
-706002;Ventes;PROFIT;100;Frais dinscription
-706003;Ventes;PROFIT;100;Frais de transport scolaire
-706004;Ventes;PROFIT;100;Frais de cantine
-706005;Ventes;PROFIT;100;Frais de garderie
-707001;Ventes;PROFIT;100;Vente de fournitures scolaires
-707002;Ventes;PROFIT;100;Vente de uniformes scolaires
-707003;Ventes;PROFIT;100;Vente de articles divers (snack, boissons)
-708001;Ventes;PROFIT;100;Location salles ou materiels
-708002;Activités;PROFIT;100;Organisation fetes et evenements
-708003;Activités;PROFIT;100;Club parascolaire (sport musique art)
-709001;Ventes;PROFIT;100;Remises frais de scolarite
-709002;Ventes;PROFIT;100;Rabais sur ventes de fournitures
-713001;Ventes;PROFIT;100;Variation stock fournitures
-713002;Ventes;PROFIT;100;Variation stock uniformes
-714001;Ventes;PROFIT;100;Variation stock livres
-714002;Ventes;PROFIT;100;Variation stock marchandises annexes
-721001;Productions;PROFIT;100;Developpement logiciel pedagogique
-722001;Productions;PROFIT;100;Amenagements classes ou laboratoires
-741001;Finances;PROFIT;100;Subvention de lEtat
-741002;Finances;PROFIT;100;Subvention dautorites locales
-748001;Finances;PROFIT;100;Subvention ONG et associations
-748002;Finances;PROFIT;100;Subvention entreprises privees
-751001;Productions;PROFIT;100;Location logiciels pedagogiques
-751002;Productions;PROFIT;100;Utilisation brevets pedagogiques
-752001;Finances;PROFIT;100;Cession anciens ordinateurs
-752002;Finances;PROFIT;100;Cession anciens vehicules scolaires
-753001;Administration;PROFIT;100;Remuneration conseil administration
-754001;Finances;PROFIT;100;Subventions constructions batiments
-756001;Finances;PROFIT;100;Dons de materiels scolaires
-756002;Finances;PROFIT;100;Dons financiers
-757001;Finances;PROFIT;100;Produits exceptionnels sur gestion
-758001;Finances;PROFIT;100;Revenus divers non specifies
-761001;Finances;PROFIT;100;Revenus participation associations scolaires
-763001;Finances;PROFIT;100;Revenus creances sur parents
-764001;Finances;PROFIT;100;Revenus placement court terme
-766001;Finances;PROFIT;100;Gains sur operations devises
-768001;Finances;PROFIT;100;Produits financiers divers
-781001;Finances;PROFIT;100;Reprise sur batiments
-781002;Finances;PROFIT;100;Reprise sur materiels
-785001;Finances;PROFIT;100;Reprise sur stocks
-786001;Finances;PROFIT;100;Reprise sur emprunts
-786002;Finances;PROFIT;100;Reprise sur creances douteuses
+sous_compte;centre;code_type;taux;description;code_analytique
+601001;Pédagogie;COUT;100;Papier, cahiers et copies;PED02
+601002;Pédagogie;COUT;100;Encres, craies et peintures;PED02
+601003;Pédagogie;COUT;100;Matériel scientifique et technique;PED02
+601004;Pédagogie;COUT;100;Fournitures artistiques;PED02
+601005;Restauration;COUT;100;Achat de riz;CAN01
+601006;Restauration;COUT;100;Achat de légumes;CAN01
+601007;Restauration;COUT;100;Achat de fruits;CAN01
+601008;Restauration;COUT;100;Achat de viande et poisson;CAN01
+601009;Restauration;COUT;100;Achat de gouters;CAN01
+602001;Administratif;COUT;100;Fournitures de bureau;OFF01
+602002;Administratif;COUT;100;Cartouches et toners;OFF01
+602003;Administratif;COUT;100;Stylos, crayons et gommes;OFF01
+602004;Administratif;COUT;100;Classeurs, dossiers et archives;OFF01
+602005;Pédagogie;COUT;100;Livres et manuels scolaires;PED01
+602006;Pédagogie;COUT;100;Matériel pédagogique divers;PED02
+603001;Administratif;COUT;100;Papeterie administrative;OFF01
+603002;Administratif;COUT;100;Cartouches et toners;OFF01
+603003;Administratif;COUT;100;Classeurs dossiers et archives;OFF01
+604001;Pédagogie;COUT;100;Conception pédagogique externe;PED02
+604002;Personnel;COUT;100;Services de formation continue du personnel;TRN01
+604003;Fonctionnement;COUT;100;Maintenance informatique;REP01
+604004;Fonctionnement;COUT;100;Achats études techniques;REP01
+605001;Investissements;COUT;100;Tables et chaises scolaires;CAP02
+605002;Pédagogie;COUT;100;Tableaux et équipement pédagogiques;PED02
+605003;Pédagogie;COUT;100;Matériel informatique de base;ICT01
+605004;Fonctionnement;COUT;100;Factures électricité;UTI01
+605005;Fonctionnement;COUT;100;Factures eau;UTI02
+605006;Fonctionnement;COUT;100;Factures gaz;UTI01
+606001;Fonctionnement;COUT;100;Produits de nettoyage classes;CLEAN1
+606002;Fonctionnement;COUT;100;Produits hygiène toilettes;CLEAN1
+606003;Fonctionnement;COUT;100;Matériel de nettoyage (balais, serpillières);CLEAN1
+607001;Pédagogie;COUT;100;Uniformes et tenues scolaires;PED02
+607002;Pédagogie;COUT;100;Équipements sportifs;PED02
+607003;Pédagogie;COUT;100;Matériel pour activités culturelles;ACT01
+608001;Transport;COUT;100;Frais de transport des fournitures;TRA01
+608002;Transport;COUT;100;Frais de douane;TRA01
+609001;Pédagogie;COUT;100;Remises fournisseurs de papeterie;PED02
+611001;Fonctionnement;COUT;100;Loyer des salles de classe;ENT01
+611002;Fonctionnement;COUT;100;Loyer des bureaux administratifs;ENT01
+611003;Fonctionnement;COUT;100;Charges eau et électricité bâtiments;UTI01
+613001;Fonctionnement;COUT;100;Assurance responsabilité civile;ASS01
+613002;Fonctionnement;COUT;100;Assurance scolaire élèves;ASS01
+613003;Fonctionnement;COUT;100;Assurance du personnel;ASS01
+614001;Fonctionnement;COUT;100;Charges copropriété écoles;ENT01
+615001;Fonctionnement;COUT;100;Réparation bâtiments scolaires;ENT01
+615002;Fonctionnement;COUT;100;Réparation matériel scolaire;ENT01
+615003;Fonctionnement;COUT;100;Réparation bus scolaire;REP01
+616001;Fonctionnement;COUT;100;Assurance bâtiments;ASS01
+616002;Fonctionnement;COUT;100;Assurance véhicules scolaires;ASS01
+617001;Fonctionnement;COUT;100;Salaires agents sécurité;SEC01
+617002;Fonctionnement;COUT;100;Fournitures pour gardiennage;SEC01
+617003;Fonctionnement;COUT;100;Contrat entreprise de sécurité;SEC01
+618001;Administratif;COUT;100;Abonnement revues professionnelles;COM01
+619001;Fonctionnement;COUT;100;Remises sur entretien et gardiennage;CLEAN1
+622001;Personnel;COUT;100;Salaires personnel administratif;SAL02
+622002;Personnel;COUT;100;Indemnités personnel administratif;SAL02
+623001;Administratif;COUT;100;Publicité institutionnelle;COM01
+624001;Transport;COUT;100;Transport élèves et enseignants;TRA01
+624002;Transport;COUT;100;Transport matériel scolaire;TRA01
+625001;Personnel;COUT;100;Cotisations CNAPS;BEN01
+625002;Personnel;COUT;100;Cotisations OSTIE;BEN01
+625003;Personnel;COUT;100;Autres charges sociales obligatoires;BEN01
+625004;Administratif;COUT;100;Déplacements professionnels;LEG01
+625005;Administratif;COUT;100;Réceptions et événements;EVT01
+626001;Administratif;COUT;100;Frais envois postaux;POS01
+626002;Fonctionnement;COUT;100;Abonnement téléphonique et internet;UTI03
+627001;Financier;COUT;100;Commissions bancaires;BAN01
+628001;Administratif;COUT;100;Cotisation associations pédagogiques;COM01
+628002;Administratif;COUT;100;Organisation de fetes;EVT01
+629001;Pédagogie;COUT;100;Remises prestations services;PED02
+631001;Personnel;COUT;100;IRSA enseignants;BEN01
+631002;Personnel;COUT;100;IRSA personnel administratif;BEN01
+635001;Financier;COUT;100;Taxe foncière;BAN01
+635002;Financier;COUT;100;Taxe professionnelle;BAN01
+635003;Financier;COUT;100;TVA non déductible;BAN01
+641001;Personnel;COUT;100;Vacations et contractuels;SAL01
+641002;Personnel;COUT;100;Salaires enseignants primaire;SAL01
+641003;Personnel;COUT;100;Salaires enseignants secondaire;SAL01
+641004;Personnel;COUT;100;Salaire du gardien;SAL03
+641005;Personnel;COUT;100;Salaire de la femme de ménage;SAL03
+644001;Personnel;COUT;100;Rémunération direction établissement;SAL02
+645001;Personnel;COUT;100;Cotisations retraites;BEN01
+646001;Personnel;COUT;100;Cotisations sociales dirigeants;BEN01
+647001;Personnel;COUT;100;Autres charges sociales;BEN01
+648001;Personnel;COUT;100;Primes et gratifications;BON01
+651001;Pédagogie;COUT;100;Licences logiciels éducatifs;ICT02
+651002;Pédagogie;COUT;100;Abonnements plateformes pédagogiques;ICT02
+652001;Investissements;COUT;100;Moins-value mobilier scolaire;DEP01
+653001;Administratif;COUT;100;Jetons de présence AG;LEG01
+654001;Financier;COUT;100;Pertes sur créances parents;BAN01
+655001;Divers;COUT;100;Quote-part activités communes;MIS01
+656001;Divers;COUT;100;Amendes administratives;CON01
+656002;Divers;COUT;100;Subventions accordées;SUB01
+656003;Divers;COUT;100;Dons;DON01
+657001;Divers;COUT;100;Dépenses urgentes;MIS01
+658001;Divers;COUT;100;Autres dépenses courantes;MIS01
+661001;Financier;COUT;100;Intérêts prêt bancaire;INT01
+661002;Financier;COUT;100;Intérêts crédit bus scolaire;INT01
+664001;Financier;COUT;100;Pertes sur partenariats;BAN01
+665001;Financier;COUT;100;Moins-value titres placements;BAN01
+666001;Financier;COUT;100;Pertes de change opération bancaire;BAN01
+667001;Financier;COUT;100;Moins-value financière;BAN01
+668001;Financier;COUT;100;Frais bancaires divers;BAN01
+681001;Investissements;COUT;100;Amortissement mobilier scolaire;DEP01
+681002;Investissements;COUT;100;Amortissement matériel informatique;DEP01
+681003;Investissements;COUT;100;Amortissement bâtiments;DEP01
+681004;Investissements;COUT;100;Amortissement véhicules;DEP01
+685001;Investissements;COUT;100;Provisions pour risques;DEP01
+692001;Financier;COUT;100;Impôts différés actifs;BAN01
+693001;Financier;COUT;100;Impôts différés passifs;BAN01
+695001;Financier;COUT;100;Impôts bénéfices courants;BAN01
+698001;Financier;COUT;100;Autres impôts sur bénéfices;BAN01
+211001;Investissements;COUT;100;Terrains du campus;CAP01
+213001;Investissements;COUT;100;Constructions - Batiments administratifs;CAP01
+213002;Investissements;COUT;100;Constructions - Salles de classe;CAP01
+213003;Investissements;COUT;100;Constructions - Bibliotheque et laboratoires;CAP01
+215001;Investissements;COUT;100;Materiel informatique;CAP02
+215002;Investissements;COUT;100;Materiel pedagogique;CAP02
+218001;Investissements;COUT;100;Mobilier scolaire;CAP02
+218002;Investissements;COUT;100;Vehicules de transport scolaire;CAP02
+164001;Financier;COUT;100;Pret bancaire;INT01
+168001;Financier;COUT;100;Emprunt;INT01
+531001;Financier;COUT;100;Caisse générale;BAN01
+701001;Pédagogie;PROFIT;100;Ventes de manuels scolaires produits en interne;ACT01
+701002;Pédagogie;PROFIT;100;Ventes de cahiers personnalises ecole;ACT01
+701003;Pédagogie;PROFIT;100;Ventes de uniformes scolaires fabriques;ACT01
+702001;Pédagogie;PROFIT;100;Vente de polycopies;ACT01
+702002;Pédagogie;PROFIT;100;Vente de fascicules de cours;ACT01
+703001;Pédagogie;PROFIT;100;Vente de materiels scolaires usagers;ACT01
+703002;Pédagogie;PROFIT;100;Vente de livres anciens ou surplus;ACT01
+704001;Pédagogie;PROFIT;100;Travaux realises par eleves (expos, projets);ACT01
+704002;Pédagogie;PROFIT;100;Travaux pratiques vendus;ACT01
+705001;Pédagogie;PROFIT;100;Etudes ou recherches pedagogiques;ACT01
+706001;Pédagogie;PROFIT;100;Frais de scolarite;ACT01
+706002;Pédagogie;PROFIT;100;Frais dinscription;ACT01
+706003;Transport;PROFIT;100;Frais de transport scolaire;TRA01
+706004;Restauration;PROFIT;100;Frais de cantine;CAN01
+706005;Restauration;PROFIT;100;Frais de garderie;ACT01
+707001;Pédagogie;PROFIT;100;Vente de fournitures scolaires;ACT01
+707002;Pédagogie;PROFIT;100;Vente de uniformes scolaires;ACT01
+707003;Restauration;PROFIT;100;Vente de articles divers (snack, boissons);CAN01
+708001;Administratif;PROFIT;100;Location salles ou materiels;EVT01
+708002;Administratif;PROFIT;100;Organisation fetes et evenements;EVT01
+708003;Administratif;PROFIT;100;Club parascolaire (sport musique art);ACT01
+709001;Pédagogie;PROFIT;100;Remises frais de scolarite;ACT01
+709002;Pédagogie;PROFIT;100;Rabais sur ventes de fournitures;ACT01
+713001;Pédagogie;PROFIT;100;Variation stock fournitures;ACT01
+713002;Pédagogie;PROFIT;100;Variation stock uniformes;ACT01
+714001;Pédagogie;PROFIT;100;Variation stock livres;ACT01
+714002;Pédagogie;PROFIT;100;Variation stock marchandises annexes;ACT01
+721001;Pédagogie;PROFIT;100;Developpement logiciel pedagogique;ACT01
+722001;Investissements;PROFIT;100;Amenagements classes ou laboratoires;CAP01
+741001;Financier;PROFIT;100;Subvention de lEtat;SUB01
+741002;Financier;PROFIT;100;Subvention dautorites locales;SUB01
+748001;Financier;PROFIT;100;Subvention ONG et associations;SUB01
+748002;Financier;PROFIT;100;Subvention entreprises privees;SUB01
+751001;Pédagogie;PROFIT;100;Location logiciels pedagogiques;ICT02
+751002;Pédagogie;PROFIT;100;Utilisation brevets pedagogiques;ICT02
+752001;Investissements;PROFIT;100;Cession anciens ordinateurs;CAP02
+752002;Investissements;PROFIT;100;Cession anciens vehicules scolaires;CAP02
+753001;Personnel;PROFIT;100;Remuneration conseil administration;SAL02
+754001;Investissements;PROFIT;100;Subventions constructions batiments;CAP01
+756001;Pédagogie;PROFIT;100;Dons de materiels scolaires;DON01
+756002;Financier;PROFIT;100;Dons financiers;DON01
+757001;Financier;PROFIT;100;Produits exceptionnels sur gestion;MIS01
+758001;Divers;PROFIT;100;Revenus divers non specifies;MIS01
+761001;Administratif;PROFIT;100;Revenus participation associations scolaires;EVT01
+763001;Financier;PROFIT;100;Revenus creances sur parents;BAN01
+764001;Financier;PROFIT;100;Revenus placement court terme;BAN01
+766001;Financier;PROFIT;100;Gains sur operations devises;BAN01
+768001;Financier;PROFIT;100;Produits financiers divers;BAN01
+781001;Investissements;PROFIT;100;Reprise sur batiments;DEP01
+781002;Investissements;PROFIT;100;Reprise sur materiels;DEP01
+785001;Pédagogie;PROFIT;100;Reprise sur stocks;ACT01
+786001;Financier;PROFIT;100;Reprise sur emprunts;INT01
+786002;Financier;PROFIT;100;Reprise sur creances douteuses;BAN01

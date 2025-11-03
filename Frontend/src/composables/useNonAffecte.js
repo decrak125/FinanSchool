@@ -7,7 +7,7 @@ export function useNonAffecte() {
   const sousComptesNonAffectes = ref([]);
   const loading = ref(false);
   const searchTerm = ref("");
-  const perPage = ref(15);
+  const perPage = ref(null);
   const currentPage = ref(1);
   const total = ref(0);
 
@@ -16,13 +16,13 @@ export function useNonAffecte() {
     loading.value = true;
     try {
       const response = await axios.get(`${API_URL}/affectations/non-affectes/pagines`, {
-        params: {
-          per_page: perPage.value,
-          page: currentPage.value
-        }
+        // params: {
+        //   per_page: perPage.value,
+        //   page: currentPage.value
+        // }
       });
-      sousComptesNonAffectes.value = response.data.data.data;
-      total.value = response.data.data.total;
+      sousComptesNonAffectes.value = response.data.data;
+      total.value = response.data.total;
     } catch (error) {
       console.error('Erreur:', error);
     } finally {
@@ -34,7 +34,7 @@ export function useNonAffecte() {
     loading.value = true;
     try {
       const response = await axios.post(`${API_URL}/affectations/non-affectes/${id}`);
-      sousComptesNonAffectes.value = response.data.data.data;
+      sousComptesNonAffectes.value = response.data.data;
     } catch (error) {
       console.error('Erreur:', error);
     } finally {

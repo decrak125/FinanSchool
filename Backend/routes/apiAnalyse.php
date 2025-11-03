@@ -43,6 +43,7 @@ use App\Http\Controllers\Analyse\IndicateurPedagogiqueController;
     Route::post('/import/centres', [CentreAnalytiqueController::class, 'import']);
     Route::post('/import/affectations', [AffectationAnalytiqueController::class, 'importViaCompte']);
     Route::post('/import/affectations/direct', [AffectationAnalytiqueController::class, 'importDirecte']);
+    Route::post('/import/codes', [CodeAnalytiqueController::class, 'import']);
 
     // Analyse cout et profit
     Route::prefix('analyse')->group(function () {

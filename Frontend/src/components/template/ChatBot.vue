@@ -10,7 +10,9 @@ export default {
       messages: [],
       loading: false,
       sessionId: null,
-      suggestions: []
+      suggestions: [],
+      recording: false,
+      recognition: null,
     }
   },
   setup() {
@@ -19,7 +21,6 @@ export default {
       isOpen
     }
   },
-
   mounted() {
     this.generateSessionId();
     this.addWelcomeMessage();
@@ -31,7 +32,6 @@ export default {
     generateSessionId() {
       this.sessionId = 'chat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     },
-    
     addWelcomeMessage() {
       this.messages.push({
         content: "👋 Bonjour ! Je suis votre assistant financier pour établissements scolaires. Je suis actuellement en phase de configuration, mais je peux déjà répondre à vos questions basiques !",
@@ -39,24 +39,64 @@ export default {
         time: new Date().toLocaleTimeString()
       });
     },
-
+    toggleRecording() {
+      if (this.loading) return;
+      if (!this.recording) {
+        if (!('webkitSpeechRecognition' in window)) {
+          alert("Votre navigateur ne supporte pas la reconnaissance vocale.");
+          return;
+        }
+        this.recognition = new webkitSpeechRecognition();
+        this.recognition.lang = "fr-FR";
+        this.recognition.continuous = false;
+        this.recognition.interimResults = false;
+        this.recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          this.newMessage = transcript;
+        };
+        this.recognition.onend = () => {
+          this.recording = false;
+          this.recognition = null;
+        };
+        this.recognition.onerror = () => {
+          this.recording = false;
+          this.recognition = null;
+        };
+        this.recording = true;
+        this.recognition.start();
+      } else {
+        if (this.recognition) this.recognition.stop();
+        this.recording = false;
+      }
+    },
+    // Nettoie le texte (retire tout sauf . , ! % ? = + et lettres/chiffres/espaces)
+    sanitizeText(text) {
+      // Supprimer les emojis unicode
+      text = text.replace(
+        /([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|\u2011-\u26FF|\uD83E[\uDD00-\uDDFF])/g,
+        ''
+      );
+      // Garder seulement ce qui est utile
+      text = text.replace(/[^a-z0-9\s.,!%?=+À-ÿ]/gi, '');
+      // Espaces multiples
+      return text.replace(/\s{2,}/g, ' ').trim();
+    },
     async sendMessage() {
       if (!this.newMessage.trim() || this.loading) return;
-
       const userMessage = this.newMessage.trim();
       this.addMessage(userMessage, 'user');
       this.newMessage = '';
       this.loading = true;
       this.suggestions = [];
-
       try {
-        const response = await axios.post('http://localhost:8000/api/chat/send', {
+        const response = await axios.post('http://localhost:8000/api/chat/sending', {
           message: userMessage,
           session_id: this.sessionId
         });
-
         this.addMessage(response.data.response, 'bot');
         this.suggestions = response.data.suggestions || [];
+        // Synthèse vocale (réponse nettoyée, pas d'emoji ni de ponctuation bizarre)
+        this.speakMessage(this.sanitizeText(response.data.response));
       } catch (error) {
         console.error('Erreur:', error);
         this.addMessage('Désolé, une erreur est survenue. Veuillez réessayer.', 'bot');
@@ -64,31 +104,38 @@ export default {
         this.loading = false;
       }
     },
-
     selectSuggestion(suggestion) {
       this.newMessage = suggestion;
       this.sendMessage();
     },
-
     addMessage(content, type) {
       this.messages.push({
         content,
         type,
         time: new Date().toLocaleTimeString()
       });
-      
       this.$nextTick(() => {
         this.scrollToBottom();
       });
     },
-
     formatMessage(content) {
       return content.replace(/\n/g, '<br>');
     },
-
     scrollToBottom() {
       const container = this.$refs.messagesContainer;
       container.scrollTop = container.scrollHeight;
+    },
+    // --- Synthèse vocale ---
+    speakMessage(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Stop toute lecture en cours
+        const utterance = new window.SpeechSynthesisUtterance(text);
+        utterance.lang = 'fr-FR';
+        utterance.volume = 1;
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        window.speechSynthesis.speak(utterance);
+      }
     }
   }
 }
@@ -109,7 +156,16 @@ export default {
         :class="['message', message.type]"
       >
         <div class="message-content" v-html="formatMessage(message.content)"></div>
-        <div class="message-time">{{ message.time }}</div>
+        <div class="message-time">{{ message.time }}
+          <!-- Bouton écouter la réponse pour les réponses bot -->
+            <button
+              v-if="message.type === 'bot'"
+              class="listen-btn"
+              @click="speakMessage(sanitizeText(message.content))"
+              title="Écouter la réponse"
+              style="margin-left:8px;padding:2px 7px;"
+            >🔊</button>
+        </div>
       </div>
       
       <div v-if="loading" class="message bot">
@@ -145,6 +201,16 @@ export default {
         <span v-if="loading">⏳</span>
         <span v-else>📤</span>
       </button>
+      <button
+          @click="toggleRecording"
+          class="micro-btn"
+          :disabled="loading"
+          :title="recording ? 'Arrêter' : 'Dicter une question au micro'"
+          style="margin-left:8px"
+        >
+          <span v-if="!recording"><i class="bi bi-mic"></i></span>
+          <span v-else><i class="bi bi-record-circle-fill" style="color: red;"></i></span>
+        </button>
     </div>
   </div>
 

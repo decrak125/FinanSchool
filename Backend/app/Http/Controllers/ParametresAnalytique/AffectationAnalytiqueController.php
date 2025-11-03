@@ -477,7 +477,7 @@ class AffectationAnalytiqueController extends Controller
      */
     public function sousComptesNonAffectesPagines(Request $request)
     {
-        $perPage = $request->get('per_page', 8);
+        // $perPage = $request->get('per_page', 8);
         
         $sousComptesNonAffectes = SousCompte::whereNotIn('Id_Sous_compte', function($query) {
             $query->select('Id_Sous_compte')
@@ -486,12 +486,12 @@ class AffectationAnalytiqueController extends Controller
         ->whereHas('compte', function($query) {
             $query->whereBetween('Code_compte', [600, 799]);
         })
-        ->with(['compte'])
-        ->paginate($perPage);
+        ->with(['compte']);
+        // ->paginate($perPage);
 
         return response()->json([
             'success' => true,
-            'data' => $sousComptesNonAffectes
+            'data' => $sousComptesNonAffectes->get()
         ]);
     }
 
