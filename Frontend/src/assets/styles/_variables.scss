@@ -6,33 +6,33 @@ $small-mobile: 480px;
 
 // couleurs
 @font-face {
-    font-family: 'stara-medium';
-    src: url('/fonts/Stara-Medium.woff2') format('woff2'),
-         url('/fonts/Stara-Medium.woff') format('woff');
+    font-family: 'Ninetea-Medium';
+    src: url('/fonts/Ninetea-Medium.woff2') format('woff2'),
+         url('/fonts/Ninetea-Medium.woff') format('woff');
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
-    font-family: 'stara-bold';
-    src: url('/fonts/Stara-Bold.woff2') format('woff2'),
-         url('/fonts/Stara-Bold.woff') format('woff');
+    font-family: 'Ninetea-Bold';
+    src: url('/fonts/Ninetea-Bold.woff2') format('woff2'),
+         url('/fonts/Ninetea-Bold.woff') format('woff');
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
-    font-family: 'stara-black';
-    src: url('/fonts/Stara-Black.woff2') format('woff2'),
-         url('/fonts/Stara-Black.woff') format('woff');
+    font-family: 'Ninetea-Black';
+    src: url('/fonts/Ninetea-Black.woff2') format('woff2'),
+         url('/fonts/Ninetea-Black.woff') format('woff');
     font-style: normal;
     font-display: swap;
 }
 
 @font-face {
-    font-family: 'stara-semibold';
-    src: url('/fonts/Stara-SemiBold.woff2') format('woff2'),
-         url('/fonts/Stara-SemiBold.woff') format('woff');
+    font-family: 'Ninetea-SemiBold';
+    src: url('/fonts/Ninetea-SemiBold.woff2') format('woff2'),
+         url('/fonts/Ninetea-SemiBold.woff') format('woff');
     font-style: normal;
     font-display: swap;
 }
@@ -52,10 +52,10 @@ $radius-gm: 50px;
 $radius-sm: 16px; // Nouveau radius pour mobile
 
 // font
-$stara-medium: 'stara-medium', sans-serif;
-$stara-bold: 'stara-bold', sans-serif;
-$stara-black: 'stara-black', sans-serif;
-$stara-semibold: 'stara-semibold', sans-serif;
+$stara-medium: 'Ninetea-Medium';
+$stara-bold: 'Ninetea-Bold';
+$stara-black: 'Ninetea-Black';
+$stara-semibold: 'Ninetea-SemiBold';
 
 // Tailles de base
 $size-pm: 16px;

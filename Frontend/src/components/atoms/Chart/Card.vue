@@ -92,9 +92,9 @@ i {
   justify-content: center;
   display: block;
   background-color: #ffff;
-  font-family: Stara;
+  font-family: $stara-black;
   font-size: 32px;
-  font-style: normal;
+  // font-style: normal;
   line-height: normal;
   margin: 0;
   gap: 10px;
@@ -113,9 +113,9 @@ i {
   display: flex;
   flex-direction: column;
   background-color: #ffff;
-  font-family: Stara;
+  font-family: $stara-black;
   font-size: 32px;
-  font-style: normal;
+  // font-style: normal;
   line-height: normal;
   margin: 0;
   padding: 32px;

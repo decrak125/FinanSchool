@@ -8,7 +8,6 @@ export function useAffectationSousCompte() {
     Id_Sous_compte: null,
     ventilations: []
   });
-  
   const loading = ref(false);
   const message = ref({ text: "", type: "" });
 

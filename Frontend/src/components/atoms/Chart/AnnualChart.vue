@@ -157,7 +157,7 @@ const chartOptions = computed(() => {
       text: `Comparaison Annuelle ${props.annee1} vs ${props.annee2}`,
       align: 'center',
       style: {
-        fontFamily: 'stara',
+        fontFamily: $stara-medium,
         fontSize: '16px',
         fontWeight: 'bold',
         color: '#373d3f'
@@ -168,14 +168,14 @@ const chartOptions = computed(() => {
       title: {
         text: 'Centres',
         style: {
-          fontFamily: 'stara',
+          fontFamily: $stara-medium,
           fontWeight: '500',
           color: '#373d3f'
         }
       },
       labels: {
         style: {
-          fontFamily: 'stara',
+          fontFamily: $stara-medium,
           colors: '#6b7280',
           fontSize: '11px'
         }
@@ -185,7 +185,7 @@ const chartOptions = computed(() => {
       title: {
         text: 'Montant (Ar)',
         style: {
-          fontFamily: 'stara',
+          fontFamily: $stara-medium,
           fontWeight: '500',
           color: '#373d3f'
         }
@@ -200,7 +200,7 @@ const chartOptions = computed(() => {
           }).format(value);
         },
         style: {
-          fontFamily: 'stara',
+          fontFamily: $stara-medium,
           colors: '#6b7280'
         }
       }
@@ -210,7 +210,7 @@ const chartOptions = computed(() => {
       theme: 'dark',
       style: {
         fontSize: '12px',
-        fontFamily: 'stara'
+        fontFamily: $stara-medium
       },
       y: {
         formatter: function (value) {
@@ -227,7 +227,7 @@ const chartOptions = computed(() => {
       show: true,
       position: 'top',
       horizontalAlign: 'center',
-      fontFamily: 'stara',
+      fontFamily: $stara-medium,
       markers: {
         width: 12,
         height: 12,
@@ -367,7 +367,7 @@ watch(() => [props.annee1, props.annee2], () => {
 });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .loading,
 .error,
 .no-data {
@@ -377,7 +377,7 @@ watch(() => [props.annee1, props.annee2], () => {
   background: #f9f9f9;
   border-radius: 8px;
   margin: 20px 0;
-  font-family: 'stara';
+  font-family: $stara-medium;
 }
 
 .error {
@@ -415,7 +415,7 @@ watch(() => [props.annee1, props.annee2], () => {
   gap: 0.5rem;
   cursor: pointer;
   padding: 1rem;
-  font-family: 'stara';
+  font-family: $stara-medium;
   color: #017AFF;
 }
 
@@ -440,7 +440,7 @@ watch(() => [props.annee1, props.annee2], () => {
 }
 
 .legend-year-title {
-  font-family: 'stara';
+  font-family: $stara-medium;
   font-size: 14px;
   font-weight: 600;
   color: #017AFF;
@@ -481,7 +481,7 @@ watch(() => [props.annee1, props.annee2], () => {
 }
 
 .legend-label {
-  font-family: 'stara';
+  font-family: $stara-medium;
   font-size: 12px;
   font-weight: 500;
   color: #374151;

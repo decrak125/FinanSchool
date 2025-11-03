@@ -39,7 +39,7 @@ defineProps({
   h1{
     margin-bottom: 0;
     color: $dark;
-    font-family: Stara;
+    font-family: $stara-black;
     font-size: 32px;
     font-style: normal;
     font-weight: 600;

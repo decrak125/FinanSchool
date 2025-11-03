@@ -50,7 +50,7 @@ const {
 } = useAffectationSousCompte();
 
 // Composable pour les données communes (centres, types)
-const { centres, types, fetchData } = useAffectations();
+const { codesAnalytiques, centres, types, fetchData } = useAffectations();
 
 // Variables pour le formulaire d'affectation
 const openForm = ref(false);
@@ -144,6 +144,7 @@ onMounted(() => {
                 <tr>
                   <th class="col">Centre</th>
                   <th class="col">Type</th>
+                  <th class="col">Code Analytique</th> <!-- ← NOUVELLE COLONNE -->
                   <th class="col">Description</th>
                   <th class="col">Taux</th>
                   <th class="col">Actions</th>
@@ -167,6 +168,22 @@ onMounted(() => {
                       </option>
                     </SelectTable>
                   </td>
+                  <td class="col"> <!-- ← NOUVELLE COLONNE -->
+                <SelectTable 
+                  v-model="vent.id_code" 
+                  :label="''"
+                  class="compact-select"
+                >
+                  <option value="">Aucun code</option>
+                  <option 
+                    v-for="code in codesAnalytiques" 
+                    :key="code.id_code" 
+                    :value="code.id_code"
+                  >
+                    {{ code.code }} - {{ code.libelle }}
+                  </option>
+                </SelectTable>
+              </td>
                   <td class="col">
                     <TextareaTable v-model="vent.description" :label="''" placeholder="Description..." />
                   </td>
