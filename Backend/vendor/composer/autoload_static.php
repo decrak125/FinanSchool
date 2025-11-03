@@ -612,6 +612,8 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
     );
 
     public static $classMap = array (
+        'App\\Console\\Commands\\CheckComptesNonAffectes' => __DIR__ . '/../..' . '/app/Console/Commands/CheckComptesNonAffectes.php',
+        'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Events\\MouvementCreated' => __DIR__ . '/../..' . '/app/Events/MouvementCreated.php',
         'App\\Events\\NotificationCreee' => __DIR__ . '/../..' . '/app/Events/NotificationCreee.php',
         'App\\Helpers\\ErrorHelper' => __DIR__ . '/../..' . '/app/Helpers/ErrorHelper.php',
@@ -626,6 +628,7 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
         'App\\Http\\Controllers\\Auth\\ForgotPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ForgotPasswordController.php',
         'App\\Http\\Controllers\\Auth\\ResetPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ResetPasswordController.php',
         'App\\Http\\Controllers\\ChatBot\\ChatController' => __DIR__ . '/../..' . '/app/Http/Controllers/ChatBot/ChatController.php',
+        'App\\Http\\Controllers\\ChatBot\\ChatJournalController' => __DIR__ . '/../..' . '/app/Http/Controllers/ChatBot/ChatJournalController.php',
         'App\\Http\\Controllers\\ChatBot\\ChatSousCompteController' => __DIR__ . '/../..' . '/app/Http/Controllers/ChatBot/ChatSousCompteController.php',
         'App\\Http\\Controllers\\ChatBot\\ChatUtilesController' => __DIR__ . '/../..' . '/app/Http/Controllers/ChatBot/ChatUtilesController.php',
         'App\\Http\\Controllers\\ChatBot\\ChatsController' => __DIR__ . '/../..' . '/app/Http/Controllers/ChatBot/ChatsController.php',

@@ -6,6 +6,8 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Console\\Commands\\CheckComptesNonAffectes' => $baseDir . '/app/Console/Commands/CheckComptesNonAffectes.php',
+    'App\\Console\\Kernel' => $baseDir . '/app/Console/Kernel.php',
     'App\\Events\\MouvementCreated' => $baseDir . '/app/Events/MouvementCreated.php',
     'App\\Events\\NotificationCreee' => $baseDir . '/app/Events/NotificationCreee.php',
     'App\\Helpers\\ErrorHelper' => $baseDir . '/app/Helpers/ErrorHelper.php',
@@ -20,6 +22,7 @@ return array(
     'App\\Http\\Controllers\\Auth\\ForgotPasswordController' => $baseDir . '/app/Http/Controllers/Auth/ForgotPasswordController.php',
     'App\\Http\\Controllers\\Auth\\ResetPasswordController' => $baseDir . '/app/Http/Controllers/Auth/ResetPasswordController.php',
     'App\\Http\\Controllers\\ChatBot\\ChatController' => $baseDir . '/app/Http/Controllers/ChatBot/ChatController.php',
+    'App\\Http\\Controllers\\ChatBot\\ChatJournalController' => $baseDir . '/app/Http/Controllers/ChatBot/ChatJournalController.php',
     'App\\Http\\Controllers\\ChatBot\\ChatSousCompteController' => $baseDir . '/app/Http/Controllers/ChatBot/ChatSousCompteController.php',
     'App\\Http\\Controllers\\ChatBot\\ChatUtilesController' => $baseDir . '/app/Http/Controllers/ChatBot/ChatUtilesController.php',
     'App\\Http\\Controllers\\ChatBot\\ChatsController' => $baseDir . '/app/Http/Controllers/ChatBot/ChatsController.php',
