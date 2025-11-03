@@ -21,32 +21,35 @@
           <i class="bi bi-bell"></i>
           <span v-if="unreadCount > 0" class="notification-badge">{{ unreadCount }}</span>
         </div>
-        
+
         <!-- Dropdown Notifications -->
         <div v-show="showNotifications" class="notifications-dropdown">
           <div class="dropdown-header">
             <h3>Notifications</h3>
             <button @click="markAllAsRead" v-if="unreadCount > 0">Tout lire</button>
           </div>
-          
+
           <div class="notifications-list">
             <div v-if="notifications.length === 0" class="no-notifications">
               Aucune notification
             </div>
-            
             <div 
               v-for="notification in notifications" 
               :key="notification.id"
               class="notification-item"
-              :class="{ unread: !notification.read }"
-              @click="markAsRead(notification.id)"
+              :class="{ unread: notification.statut !== 'lu' }"
+              @click="handleNotificationClick(notification)"
             >
-              <div class="notification-icon-small" :class="notification.type">
-                <i :class="getNotificationIcon(notification.type)"></i>
+              <div
+                class="notification-icon-small"
+                :style="getNotificationStyle(notification)"
+              >
+                <i :class="getNotificationIcon(notification)"></i>
               </div>
               <div class="notification-content">
-                <p class="notification-title">{{ notification.title }}</p>
+                <p class="notification-title">{{ notification.titre || notification.title }}</p>
                 <p class="notification-message">{{ notification.message }}</p>
+                <p class="notification-date">{{ formatDate(notification.created_at) }}</p>
               </div>
             </div>
           </div>
@@ -76,11 +79,8 @@
               <p>{{ user.email || 'email@example.com' }}</p>
             </div>
           </div>
-          
+
           <div class="profile-menu">
-            
-            
-            
             <button @click="handleLogout" class="profile-menu-item logout">
               <i class="bi bi-box-arrow-right"></i>
               <span>Déconnexion</span>
@@ -93,6 +93,9 @@
 </template>
 
 <script>
+import axios from "axios"
+import { useRouter } from 'vue-router'
+
 export default {
   name: 'AppHeader',
   props: {
@@ -106,59 +109,84 @@ export default {
       searchQuery: '',
       showNotifications: false,
       showProfile: false,
-      notifications: [
-        {
-          id: 1,
-          type: 'success',
-          title: 'Import réussi',
-          message: 'Les données ont été importées',
-          read: false
-        },
-        {
-          id: 2,
-          type: 'warning',
-          title: 'Attention',
-          message: 'Vérifiez les écritures',
-          read: false
-        }
-      ]
-    };
+      notifications: []
+    }
   },
   computed: {
     unreadCount() {
-      return this.notifications.filter(n => !n.read).length;
+      return this.notifications.filter(n => n.statut !== 'lu').length
     }
+  },
+  mounted() {
+    this.fetchNotifications()
   },
   methods: {
     getInitials(name) {
       return name
         ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-        : 'U';
+        : 'U'
     },
-    getNotificationIcon(type) {
-      const icons = {
-        success: 'bi-check-circle-fill',
-        warning: 'bi-exclamation-triangle-fill',
-        info: 'bi-info-circle-fill'
-      };
-      return icons[type] || 'bi-info-circle-fill';
+    async fetchNotifications() {
+      try {
+        const { data } = await axios.get('http://localhost:8000/api/notifications')
+        this.notifications = data
+      } catch (err) {
+        // Optionnel : toasts ou erreur console
+      }
     },
-    markAsRead(id) {
-      const notif = this.notifications.find(n => n.id === id);
-      if (notif) notif.read = true;
+    getNotificationIcon(notification) {
+      return notification.niveau_urgence?.icone || 'bi-info-circle-fill'
     },
-    markAllAsRead() {
-      this.notifications.forEach(n => n.read = true);
+    getNotificationStyle(notification) {
+      return {
+        background: notification.niveau_urgence?.couleur || '#dbeafe',
+        color: '#233'
+      }
+    },
+    formatDate(dateString) {
+      return new Date(dateString).toLocaleString('fr-FR')
+    },
+    async markAsRead(id) {
+      const notif = this.notifications.find(n => n.id === id)
+      if (notif && notif.statut !== 'lu') {
+        try {
+          await axios.patch(`http://localhost:8000/api/notifications/${id}/read`)
+          notif.statut = 'lu'
+        } catch (err) {
+          // Optionnel : toast/alerte
+        }
+      }
+    },
+    async markAllAsRead() {
+      // Marque toutes comme lue en backend puis refetch la liste entière
+      const unreadIds = this.notifications.filter(n => n.statut !== 'lu').map(n => n.id)
+      await Promise.all(unreadIds.map(id => this.markAsRead(id)))
+      // Optionnel : re-fetch pour sync avec backend
+      // await this.fetchNotifications()
+    },
+    async handleNotificationClick(notification) {
+      await this.markAsRead(notification.id)
+      // Redirection SPA ou classique vers la cible
+      // Priorité : redirect_url, lien_redirection, données_evenement.lien_redirection
+      const url = notification.redirect_url ||
+                  notification.lien_redirection ||
+                  notification.evenement?.donnees_evenement?.lien_redirection
+      if (url) {
+        // SPA ? Remplace par $router.push si possible
+        if (this.$router && url.startsWith('/')) {
+          this.$router.push(url)
+        } else {
+          window.location.href = url
+        }
+      }
     },
     handleLogout() {
       localStorage.removeItem("token");
-      this.$router.push("/"); // Redirection vers la page d'accueil ou login
+      this.$router.push("/")
     }
   }
-};
+}
 </script>
-
-
 
 <style scoped>
 .app-header {
@@ -193,12 +221,10 @@ export default {
   outline: none;
   font-family: 'Stara', sans-serif;
 }
-
 .search-input:focus {
   border-color: #1e40af;
   box-shadow: 0 0 0 2px rgba(30, 64, 175, 0.2);
 }
-
 .bi-search {
   position: absolute;
   left: 12px;
@@ -213,7 +239,6 @@ export default {
   gap: 20px;
 }
 
-/* NOTIFICATIONS */
 .notifications-section {
   position: relative;
 }
@@ -230,7 +255,6 @@ export default {
   justify-content: center;
   cursor: pointer;
 }
-
 .notification-icon:hover {
   background: #1e40af;
   color: white;
@@ -248,7 +272,6 @@ export default {
   border-radius: 10px;
   min-width: 18px;
 }
-
 .notifications-dropdown {
   position: absolute;
   top: 50px;
@@ -260,7 +283,6 @@ export default {
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   z-index: 1000;
 }
-
 .dropdown-header {
   padding: 16px 20px;
   border-bottom: 1px solid #e2e8f0;
@@ -268,13 +290,11 @@ export default {
   justify-content: space-between;
   align-items: center;
 }
-
 .dropdown-header h3 {
   font-size: 1rem;
   font-weight: 600;
   margin: 0;
 }
-
 .dropdown-header button {
   background: none;
   border: none;
@@ -282,19 +302,16 @@ export default {
   font-size: 0.75rem;
   cursor: pointer;
 }
-
 .notifications-list {
   max-height: 350px;
   overflow-y: auto;
 }
-
 .no-notifications {
   padding: 40px 20px;
   text-align: center;
   color: #94a3b8;
   font-size: 0.875rem;
 }
-
 .notification-item {
   padding: 16px 20px;
   border-bottom: 1px solid #f1f5f9;
@@ -302,16 +319,13 @@ export default {
   display: flex;
   gap: 12px;
 }
-
 .notification-item:hover {
   background: #f8fafc;
 }
-
 .notification-item.unread {
   background: #eff6ff;
   border-left: 3px solid #1e40af;
 }
-
 .notification-icon-small {
   width: 32px;
   height: 32px;
@@ -321,43 +335,23 @@ export default {
   justify-content: center;
   flex-shrink: 0;
 }
-
-.notification-icon-small.success { 
-  background: #dcfce7; 
-  color: #16a34a;
-}
-
-.notification-icon-small.warning { 
-  background: #fef3c7; 
-  color: #d97706;
-}
-
-.notification-icon-small.info { 
-  background: #dbeafe; 
-  color: #2563eb;
-}
-
 .notification-content {
   flex: 1;
 }
-
 .notification-title {
   font-size: 0.875rem;
   font-weight: 600;
   margin: 0 0 4px 0;
 }
-
 .notification-message {
   font-size: 0.75rem;
   color: #64748b;
   margin: 0;
 }
 
-/* PROFIL */
 .profile-section {
   position: relative;
 }
-
 .profile-trigger {
   display: flex;
   align-items: center;
@@ -369,11 +363,9 @@ export default {
   height: 40px;
   font-family: 'Stara', sans-serif;
 }
-
 .profile-trigger:hover {
   background: #f8fafc;
 }
-
 .profile-avatar {
   width: 25px;
   height: 25px;
@@ -386,23 +378,19 @@ export default {
   font-weight: 600;
   font-family: 'Stara', sans-serif;
 }
-
 .profile-info {
   display: flex;
   flex-direction: column;
 }
-
 .profile-name {
   font-size: 0.875rem;
   font-weight: 600;
   color: #1e293b;
 }
-
 .bi-chevron-down {
   font-size: 0.75rem;
   color: #64748b;
 }
-
 .profile-dropdown {
   position: absolute;
   top: 40px;
@@ -415,7 +403,6 @@ export default {
   z-index: 1000;
   font-family: 'Stara', sans-serif;
 }
-
 .profile-dropdown-header {
   padding: 20px;
   background: #f8fafc;
@@ -423,7 +410,6 @@ export default {
   display: flex;
   gap: 12px;
 }
-
 .profile-avatar-large {
   width: 50px;
   height: 50px;
@@ -436,23 +422,19 @@ export default {
   font-weight: 600;
   font-size: 1rem;
 }
-
 .profile-details h3 {
   font-size: 1rem;
   font-weight: 600;
   margin: 0 0 4px 0;
 }
-
 .profile-details p {
   font-size: 0.75rem;
   color: #64748b;
   margin: 0;
 }
-
 .profile-menu {
   padding: 8px 0;
 }
-
 .profile-menu-item {
   width: 100%;
   display: flex;
@@ -466,35 +448,28 @@ export default {
   color: #374151;
   text-align: left;
 }
-
 .profile-menu-item:hover {
   background: #f9fafb;
 }
-
 .profile-menu-item i {
   width: 20px;
 }
-
 .profile-menu-item.logout {
   color: #dc2626;
 }
-
 .profile-menu-item.logout:hover {
   background: #fef2f2;
 }
-
 .menu-divider {
   height: 1px;
   background: #e5e7eb;
   margin: 8px 0;
 }
-
 @media (max-width: 768px) {
   .app-header {
     margin-left: 0;
     padding: 16px 20px;
   }
-  
   .profile-info {
     display: none;
   }

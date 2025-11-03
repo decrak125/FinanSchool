@@ -13,6 +13,7 @@ use App\Models\PlanCompte\SousCompte;
 use Illuminate\Support\Facades\Auth;
 use App\Models\import\ImportHistory;
 use Exception;
+use App\Console\Commands\NotificationImport;
 
 class ImportEcritureController extends Controller
 {
@@ -47,6 +48,12 @@ class ImportEcritureController extends Controller
                     'erreur'            => implode("\n", $stats['errors']),
                 ]);
 
+                 NotificationImport::notifyImportError(
+                    Auth::id(),
+                    $request->file('file_ecritures')->getClientOriginalName(),
+                    implode(', ', $stats['errors'])
+                );
+
                 return response()->json([
                     'error' => 'Erreurs détectées lors de l\'importation',
                     'errors' => $stats['errors'],
@@ -65,6 +72,13 @@ class ImportEcritureController extends Controller
                 'erreur'            => null,
             ]);
 
+            NotificationImport::notifyImportSuccess(
+                Auth::id(),
+                $request->file('file_ecritures')->getClientOriginalName(),
+                $stats['mouvements'],
+                $stats['lignes']
+            );
+
             return response()->json([
                 'message' => "Importation réussie : {$stats['mouvements']} mouvements et {$stats['lignes']} lignes importés.",
                 'data' => $stats
@@ -80,6 +94,12 @@ class ImportEcritureController extends Controller
                 'statut'            => 'échec',
                 'erreur'            => $e->getMessage(),
             ]);
+
+            NotificationImport::notifyImportError(
+                Auth::id(),
+                $request->file('file_ecritures')->getClientOriginalName(),
+                $e->getMessage()
+            );
             return response()->json([
                 'error' => 'Erreur lors de l\'importation',
                 'message' => config('app.debug') ? $e->getMessage() : 'Erreur serveur'
