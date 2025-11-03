@@ -134,7 +134,7 @@ class IndicateurPedagogiqueController extends Controller
 
         $dateDebut = $request->date_debut;
         $dateFin = $request->date_fin;
-        $masseSalarialeEnseignante = UtilesController::calculerTotalCategorieGroupe(['CHPERS'], $dateDebut, $dateFin);
+        $masseSalarialeEnseignante = UtilesController::SommeCodeAnalytique($dateDebut, $dateFin, 'SAL01');
 
         // TOTAL DES CHARGES
         $totalCharges = UtilesController::calculerTotalCategorieGroupe([

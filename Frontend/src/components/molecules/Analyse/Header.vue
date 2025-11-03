@@ -2,15 +2,15 @@
 import { ref, computed, onMounted } from "vue";
 import searchbar from '@/components/atoms/searchbar.vue';
 import profile from '@/components/atoms/profile.vue';
-
-
-
-
+import Notifications from '@/components/molecules/Analyse/Notifications.vue';
 </script>
 <template>
     <div class="header">
         <searchbar :placeholder="'Rechercher ou taper une commande...'" :name="'search'" />
+        <div class="droite">
+        <Notifications/>
         <profile/>
+        </div>
     </div>
 </template>
 
@@ -28,5 +28,10 @@ import profile from '@/components/atoms/profile.vue';
         gap: 12px;
         align-items: stretch;
     }
+}
+.droite {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 </style>

@@ -119,8 +119,6 @@ sous_compte;centre;code_type;taux;description;code_analytique
 215002;Investissements;COUT;100;Materiel pedagogique;CAP02
 218001;Investissements;COUT;100;Mobilier scolaire;CAP02
 218002;Investissements;COUT;100;Vehicules de transport scolaire;CAP02
-164001;Financier;COUT;100;Pret bancaire;INT01
-168001;Financier;COUT;100;Emprunt;INT01
 531001;Financier;COUT;100;Caisse générale;BAN01
 701001;Pédagogie;PROFIT;100;Ventes de manuels scolaires produits en interne;ACT01
 701002;Pédagogie;PROFIT;100;Ventes de cahiers personnalises ecole;ACT01

@@ -258,6 +258,7 @@ return array(
     'Database\\Seeders\\NiveauxUrgenceSeeder' => $baseDir . '/database/seeders/NiveauxUrgenceSeeder.php',
     'Database\\Seeders\\TauxAmortissementSeeder' => $baseDir . '/database/seeders/TauxAmortissementSeeder.php',
     'Database\\Seeders\\TypeCategoriesSeeder' => $baseDir . '/database/seeders/TypeCategoriesSeeder.php',
+    'Database\\Seeders\\TypesEvenementSeeder' => $baseDir . '/database/seeders/TypesEvenementSeeder.php',
     'DateError' => $vendorDir . '/symfony/polyfill-php83/Resources/stubs/DateError.php',
     'DateException' => $vendorDir . '/symfony/polyfill-php83/Resources/stubs/DateException.php',
     'DateInvalidOperationException' => $vendorDir . '/symfony/polyfill-php83/Resources/stubs/DateInvalidOperationException.php',

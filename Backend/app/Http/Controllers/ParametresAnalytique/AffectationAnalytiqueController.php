@@ -11,6 +11,9 @@ use App\Models\PlanCompte\SousCompte;
 use Illuminate\Support\Facades\DB;
 use App\Models\ParametresAnalytique\TypeCentre;
 use App\Models\ParametresAnalytique\CodeAnalytique;
+use App\Models\notifications\Evenement;
+use App\Models\notifications\Notification;
+use App\Events\NotificationCreee;
 
 class AffectationAnalytiqueController extends Controller
 {
@@ -477,22 +480,49 @@ class AffectationAnalytiqueController extends Controller
      */
     public function sousComptesNonAffectesPagines(Request $request)
     {
-        // $perPage = $request->get('per_page', 8);
-        
         $sousComptesNonAffectes = SousCompte::whereNotIn('Id_Sous_compte', function($query) {
             $query->select('Id_Sous_compte')
-                  ->from('affectationanalytique');
+                ->from('affectationanalytique');
         })
         ->whereHas('compte', function($query) {
             $query->whereBetween('Code_compte', [600, 799]);
         })
         ->with(['compte']);
-        // ->paginate($perPage);
+        
+        $count = $sousComptesNonAffectes->count();
+        
+        // Créer une notification si des comptes non affectés sont trouvés
+        if ($count > 0) {
+            $this->creerNotificationComptesNonAffectes($count);
+        }
 
         return response()->json([
             'success' => true,
-            'data' => $sousComptesNonAffectes->get()
+            'data' => $sousComptesNonAffectes->get(),
+            'count' => $count
         ]);
+    }
+
+    private function creerNotificationComptesNonAffectes($count)
+    {
+        $evenement = Evenement::create([
+            'type_evenement_id' => 4, // NOTIFICATION_METIER
+            'donnees_evenement' => [
+                'nombre_comptes' => $count,
+                'lien_redirection' => 'http://localhost:5173/non-affected',
+                'type_action' => 'redirection'
+            ]
+        ]);
+
+        $notification = Notification::create([
+            'evenement_id' => $evenement->id,
+            'niveau_urgence_id' => 2, // avertissement
+            'titre' => 'Comptes non affectés détectés',
+            'message' => "{$count} compte(s) non affecté(s) nécessitent votre attention",
+            'statut' => 'non_lu'
+        ]);
+
+        event(new NotificationCreee($notification));
     }
 
     /**

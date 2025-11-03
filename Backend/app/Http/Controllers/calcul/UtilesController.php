@@ -179,6 +179,23 @@ public static function calculerVariationCategorie($codeCategorie, $dateDebut, $d
     return $montantFin - $montantDebut; // Variation N - N-1
 }
 
+public static function SommeCodeAnalytique($dateStart, $dateEnd, $code)
+{
+    $query = DB::table('ligne_ecritures as le')
+        ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
+        ->join('code_analytique as co', 'aa.id_code', '=', 'co.id_code')
+        ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')
+        ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd]);
+
+    if (!empty($code)) {
+        $query->where('co.code', $code);
+    }
+    $sommeVentilee = $query->select(
+        DB::raw('ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) as total_ventile')
+    )->value('total_ventile');
+
+    return $sommeVentilee;
+}
 
 
 }
