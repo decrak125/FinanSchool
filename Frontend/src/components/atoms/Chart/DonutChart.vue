@@ -377,17 +377,16 @@ const legendItems = computed(() => {
 
 // Style pour la version séparée
 .chart-with-separate-legend {
-    min-width: none;
+    // min-width: none;
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
     @include position-contenus(flex, flex-start, flex-start);
-    
     @media (max-width: 1024px) {
-        gap: 20px;
+        gap: 10px;
     }
     
     @media (max-width: 768px) {
         flex-direction: column;
-        gap: 16px;
+        gap: 5px;
     }
 
     .chart-container {
@@ -399,11 +398,11 @@ const legendItems = computed(() => {
         }
 
         .graphic-wrapper {
-            padding: 1rem;
+            padding: 12px;
             border-radius: 8px;
             
             @media (max-width: 768px) {
-                padding: 0.5rem;
+                padding: 8px;
             }
         }
     }
@@ -417,7 +416,7 @@ const legendItems = computed(() => {
         }
         
         .legend-wrapper {
-            padding: 1.5rem;
+            padding: 12px;
             border-radius: 8px;
             max-height: v-bind('legendHeight + "px"');
             overflow-y: auto;
@@ -427,7 +426,7 @@ const legendItems = computed(() => {
             }
             
             @media (max-width: 768px) {
-                padding: 0.75rem;
+                padding: 8px;
                 max-height: 250px;
             }
 
@@ -447,6 +446,7 @@ const legendItems = computed(() => {
             }
 
             .legend-items {
+                width: 150px;
                 display: flex;
                 flex-direction: column;
             }

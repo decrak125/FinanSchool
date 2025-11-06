@@ -3,6 +3,7 @@ import sidebar from '@/components/molecules/Analyse/Sidebar.vue';
 import Header from '@/components/molecules/Analyse/Header.vue';
 import Footer from '../molecules/Analyse/Footer.vue';
 import { useNotificationStore } from '@/stores/notificationStore'; // ← IMPORTANT
+import ChatBot from '@/components/template/ChatBot.vue';
 
 const token = localStorage.getItem("token");
 const store = useNotificationStore(); // ← INITIALISATION DU STORE
@@ -39,6 +40,7 @@ onMounted(() => {
         </div>
         <div class="content">
           <slot />
+          <ChatBot />
         </div>
         <Footer/>
       </div>
