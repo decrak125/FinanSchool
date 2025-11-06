@@ -33,7 +33,7 @@ import FluxTresorerie from "@/components/pages/general/FluxTresorerie.vue";
 import VariationsCapitaux from "@/components/pages/general/VariationsCapitaux.vue";
 import Import from "@/components/pages/import/Import.vue";
 import Amortissement from "@/components/pages/configuration/Amortissement.vue";
-
+import ListeEcriture from "@/components/pages/saisie/ListeEcriture.vue";
 const routes = [
   {
     path: "/",
@@ -204,6 +204,11 @@ const routes = [
     path : "/amortissement",
     name : "Amortissement",
     component : Amortissement
+  },
+  {
+    path : "/liste-ecriture",
+    name : "ListeEcriture",
+    component : ListeEcriture
   }
 
 

@@ -76,7 +76,7 @@
               <div 
                 class="submenu-item"
                 :class="{ active: currentRoute === '/ecritures' }"
-                @click="navigateTo({ route: '/ecritures', name: 'Toutes les écritures' })"
+                @click="navigateTo({ route: '/liste-ecriture', name: 'Toutes les écritures' })"
               >
                 <i class="bi bi-list-check"></i>
                 <span>Toutes les écritures</span>
@@ -422,7 +422,7 @@ export default {
           route: '/ecriture',
           icon: 'bi bi-pencil-square',
           children: [
-            { name: 'Toutes les écritures', route: '/ecriture', icon: 'bi bi-list-check' },
+            { name: 'ListeEcriture', route: '/liste-ecriture', icon: 'bi bi-list-check' },
             { name: 'Saisie écriture', route: '/ecriture', icon: 'bi bi-pencil' },
             { name: 'Validation', route: '/validation-ecritures', icon: 'bi bi-check-circle' }
           ],
@@ -575,7 +575,7 @@ export default {
   z-index: 1000;
   overflow-y: auto;
   box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
-  
+
 }
 
 .sidebar-header {

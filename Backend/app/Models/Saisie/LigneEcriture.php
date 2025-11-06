@@ -7,6 +7,8 @@ use App\Models\Saisie\ModePaiement;
 use App\Models\Saisie\MouvementEcriture;
 use App\Models\Saisie\Journal;
 use App\Models\PlanCompte\SousCompte;
+use App\Models\PlanCompte\Rubrique;
+use App\Models\PlanCompte\Classe;
 
 class LigneEcriture extends Model
 {
@@ -49,4 +51,16 @@ class LigneEcriture extends Model
     public function sousCompte() {
         return $this->belongsTo(SousCompte::class, 'Id_Sous_compte');
     }
+
+    public function classe()
+{
+    return $this->hasOneThrough(
+        Classe::class,
+        Rubrique::class,
+        'Id_Classe',         // Foreign key on rubrique
+        'Id_Classe',         // Local key on classe
+        'Id_Sous_compte',    // Local key on ligne_ecritures
+        'Id_Rubrique'        // Foreign key on rubrique
+    );
+}
 }
