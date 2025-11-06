@@ -263,7 +263,7 @@ onMounted(() => {
         >
           <!-- Menu simple -->
           <SidebarMenu
-            v-if="menu.type === 'simple'"
+            v-if="menu.type == 'simple'"
             :icon="menu.icon"
             :texte="menu.texte"
             :redirection="menu.redirection"
@@ -415,9 +415,10 @@ onMounted(() => {
 <style lang="scss" scoped>
 .sidebar-desktop {
   display: flex;
-  width: 280px;
+  width: 245px;
   height: 100vh;
   padding: 32px 24px;
+  background-color: #f9f8f8;
   flex-direction: column;
   gap: 24px;
   align-items: center;
@@ -473,7 +474,9 @@ onMounted(() => {
   padding: 32px 24px;
   gap: 24px;
   align-items: center;
-  width: 100%;
+  justify-content: center;
+  margin: 0 auto;
+  width: 80%;
   
   @media (max-width: 1024px) {
     padding: 16px 0;
@@ -574,12 +577,12 @@ hr {
 .active {
   background-color: #e0e7ff !important;
   border-radius: $radius-pm;
-  color: #1e40af !important;
+  color: $secondary !important;
   transition: all 0.3s ease;
 }
 
 .active .bi {
-  color: #1e40af !important;
+  color: $secondary !important;
 }
 
 /* Responsive pour les éléments de menu */

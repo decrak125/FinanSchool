@@ -28,9 +28,9 @@ defineProps({
 <style lang="scss" scoped>
 li {
     border-radius: $radius-pm;
-    width: 232px;
+    width: 220px;
     @include position-contenus(flex, flex-start, center);
-    padding: 0px 12px;
+    padding: 0px 14px;
     gap: 8px;
     align-self: stretch;
     transition: all 0.5s ease-in-out;
@@ -69,7 +69,7 @@ p{
     font-family: Stara;
     font-size: 12px;
     font-style: normal;
-    font-weight: 600;
+    // font-weight: 600;
     line-height: normal;
     transition: all 0.5s ease-in-out;
     
