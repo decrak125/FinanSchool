@@ -15,6 +15,7 @@ const filters = ref({
   id_type: '1'
 });
 
+
 // Computed
 const totalMontantFormatted = computed(() => {
   const total = chartData.value.reduce((sum, item) => {
