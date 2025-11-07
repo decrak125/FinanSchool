@@ -91,7 +91,7 @@ const getTrendIcon = (comparison) => {
 </script>
 
 <template>
-  <PageAnalyse>
+  <PageAnalyse :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs généraux'">
     <PopUp v-if="detailsProduits">
       <div class="details-popup">
         <div class="popuphead">
@@ -327,8 +327,6 @@ const getTrendIcon = (comparison) => {
     </PopUp>
 
     <div class="main">
-      <ContentHeader :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs généraux'" />
-
       <!-- Filtres -->
       <div class="filtres">
         <Texte :type="'dark'" :texte="'Exercice comptable'" />

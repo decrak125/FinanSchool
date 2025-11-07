@@ -144,21 +144,14 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <PageAnalyse>
+  <PageAnalyse :menu="showGlobalView ? 'Analyse des couts' : selectedCentre" :sousmenu="'Répartition des couts'">
     <div class="main">
       <!-- Bouton retour vers la vue globale -->
-      <div v-if="!showGlobalView" class="info-lalina">
-        <div class="back-button">
-          <BoutonIcon @click="handleBackToGlobal" icon-name="arrow-left" :type="'cancel-stroke'"
-            :texte="'Retour à la vue globale'" />
-        </div>
-        <ContentHeader v-if="!showGlobalView && affectations.length > 0" :menu="selectedCentre"
-          :sousmenu="'Répartition des couts'" />
-      </div>
-      <ContentHeader v-else :menu="'Analyse des couts'" :sousmenu="'Répartition des couts'" />
 
       <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
       <div class="filtres">
+          <BoutonIcon v-if="!showGlobalView" @click="handleBackToGlobal" icon-name="arrow-left" :type="'cancel-stroke'"
+            :texte="'Retour à la vue globale'" />
         <Texte :type="'thin-dark'" :texte="'Du'"/>
         <div>
 
@@ -329,9 +322,9 @@ onMounted(async () => {
           </div>
 
         </div>
-        <div class="droite">
+        <!-- <div class="droite">
           <Leaderboard v-if="showGlobalView" :depenses="classementFiltrees" :texte="'Classement des couts'" />
-        </div>
+        </div> -->
       </div>
     </div>
   </PageAnalyse>
@@ -352,7 +345,7 @@ html, body {
   // max-height: 60vh;
   border-radius: $radius-pm;
   align-self: stretch;
-  gap: 32px;
+  gap: 18px;
 
   // @media (max-width: $mobile) {
   //   max-height: 50vh;
@@ -382,30 +375,30 @@ html, body {
   @include position-contenus(flex, flex-start, flex-start);
   padding: 10px 0;
   align-self: stretch;
-  gap: 32px;
+  gap: 18px;
 }
 
 .cartes {
   @include position-contenus(grid, center, center);
   padding: 0;
-  gap: 32px;
+  gap: 18px;
 }
 
 .hauteur {
   @include position-contenus(flex, center, center);
   padding: 0;
-  gap: 32px;
+  gap: 18px;
 }
 
 .gauche {
   @include position-contenus(grid, center, center);
-  gap: 10px;
+  gap: 18px;
 }
 .droite {
   padding: 10px 0;
   height: 100%;
   @include position-contenus(flex, center, center);
-  gap: 10px;
+  gap: 18px;
   
   @media (max-width: $tablet) {
     grid-template-columns: repeat(2, 1fr);
@@ -442,7 +435,7 @@ html, body {
 
 .main {
   @include position-contenus(flex, center, center);
-  padding: 0 32px;
+  // padding: 0 32px;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;

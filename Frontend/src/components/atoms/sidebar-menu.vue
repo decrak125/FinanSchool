@@ -83,7 +83,6 @@ a {
     width: 100%;
 }
 li:hover {
-    background-color: $light;
     cursor: pointer;
     transition: all 0.5s ease-in-out;
     p{

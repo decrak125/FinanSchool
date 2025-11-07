@@ -4,7 +4,10 @@ import Header from '@/components/molecules/Analyse/Header.vue';
 import Footer from '../molecules/Analyse/Footer.vue';
 import { useNotificationStore } from '@/stores/notificationStore'; // ← IMPORTANT
 import ChatBot from '@/components/template/ChatBot.vue';
-
+defineProps({
+  menu: String,
+  sousmenu : String,
+});
 const token = localStorage.getItem("token");
 const store = useNotificationStore(); // ← INITIALISATION DU STORE
 
@@ -36,13 +39,13 @@ onMounted(() => {
       </div>
       <div class="main">
         <div class="header">
-          <Header />
+          <Header :menu="menu" :sousmenu="sousmenu"/>
         </div>
         <div class="content">
           <slot />
           <ChatBot />
         </div>
-        <Footer/>
+        <!-- <Footer/> -->
       </div>
     </div>
     <div class="redirection" v-else>
@@ -62,6 +65,7 @@ html, body {
   margin: 0;
 }
 .container {
+  background-color: $light;
   display: flex;
   width: 100%;
   height: 100vh; // toute la hauteur visible de l’écran
@@ -77,9 +81,9 @@ html, body {
   margin-left: 260px; // espace égal à la largeur de la sidebar
   display: flex;
   flex-direction: column;
-  padding: 32px 24px 24px 24px;
+  padding: 32px 8px 0 0;
   flex: 1;
-  height: 100vh;
+  height: 100%;
   overflow-y: auto; // permet de scroller uniquement dans le contenu
   // background-color: $light;
   gap: 24px;
@@ -94,11 +98,12 @@ html, body {
 }
 .header {
   position: fixed;
+  padding: 8px;
   top: 0;
-  left: 260px; // démarre après la sidebar
+  left: 245px; // démarre après la sidebar
   right: 0;
-  height: 120px;
-  background-color: #fff; // ou ta couleur de fond du header
+  // height: 100px;
+  background-color: $light; // ou ta couleur de fond du header
   z-index: 999;
   display: flex;
   align-items: center;
@@ -114,7 +119,7 @@ html, body {
   }
 }
 .content {
-  margin-top: 75px;
+  margin-top: 80px;
   flex: 1;
   width: 100%;
   background-color: $light;
@@ -178,8 +183,13 @@ html, body {
   position: fixed; // position fixe sur l’écran
   top: 0;
   left: 0;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  padding: 12px;
   width: 260px; // largeur fixe
-  height: 100vh; // pleine hauteur
+  height: 100vh;
+  background-color: $light;
   z-index: 1000;
   // background-color: $light; // à adapter selon ta couleur
   // border-right: 1px solid rgba(0, 0, 0, 0.1);
