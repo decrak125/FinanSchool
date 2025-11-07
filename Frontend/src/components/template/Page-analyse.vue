@@ -60,32 +60,39 @@ onMounted(() => {
 
 <!-- Le reste de votre style reste inchangé -->
 <style lang="scss" scoped>
-html, body {
-  height: 100%;
-  margin: 0;
-}
+// html, body {
+//   background-color: $light;
+//   height: 100%;
+//   margin: 0;
+// }
+
 .container {
+  
   background-color: $light;
   display: flex;
   width: 100%;
-  height: 100vh; // toute la hauteur visible de l’écran
-  overflow: hidden;
-
+  height: 100%; // toute la hauteur visible de l’écran
+  // overflow: hidden;
   @media (max-width: 1024px) {
     flex-direction: column;
     height: auto;
+    
   }
 }
 
 .main {
-  margin-left: 260px; // espace égal à la largeur de la sidebar
+  left: 0;
+  top: 0;
+  margin-left: 265px; // espace égal à la largeur de la sidebar
   display: flex;
   flex-direction: column;
-  padding: 32px 8px 0 0;
+  padding: 32px 12px 32px 0;
   flex: 1;
-  height: 100%;
-  overflow-y: auto; // permet de scroller uniquement dans le contenu
-  // background-color: $light;
+  width:100vh;
+  height: fit-content;
+  background-color: $light;
+  // overflow-y: auto; // permet de scroller uniquement dans le contenu
+  scrollbar-width: thin;
   gap: 24px;
 
   @media (max-width: 1024px) {
@@ -100,7 +107,7 @@ html, body {
   position: fixed;
   padding: 8px;
   top: 0;
-  left: 245px; // démarre après la sidebar
+  left: 260px; // démarre après la sidebar
   right: 0;
   // height: 100px;
   background-color: $light; // ou ta couleur de fond du header
@@ -146,6 +153,7 @@ html, body {
   width: 100vh;
   height: 100vh;
   display: flex;
+  background-color: $light;
   @include position-contenus(flex, center, center);
   @include position-container();
 }
@@ -187,7 +195,7 @@ html, body {
   justify-content: center;
   display: flex;
   padding: 12px;
-  width: 260px; // largeur fixe
+  // width: 260px; // largeur fixe
   height: 100vh;
   background-color: $light;
   z-index: 1000;

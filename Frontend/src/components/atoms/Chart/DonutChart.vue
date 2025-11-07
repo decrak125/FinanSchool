@@ -269,11 +269,11 @@ const legendItems = computed(() => {
                             <apexchart :type="type" :height="height" :options="chartOptions" :series="series"
                                 :id="chartId" />
                         </div>
-                        <div class="voir" @click="showDetails = !showDetails">
+                        <!-- <div class="voir" @click="showDetails = !showDetails">
                             <i class="bi bi-eye"></i>
                             <p v-if="!showDetails">Voir les details</p>
                             <p v-if="showDetails">Masquer les details</p>
-                        </div>
+                        </div> -->
                     </div>
                 </transition>
                 <transition name="fade">
@@ -349,6 +349,7 @@ const legendItems = computed(() => {
 .donut-chart-wrapper:hover {
     transform: scale(1.02);
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
     
     @media (max-width: 768px) {
         transform: none; // Désactiver le scale sur mobile pour éviter les problèmes de layout
@@ -357,6 +358,9 @@ const legendItems = computed(() => {
 
 .donut-chart-wrapper {
     width: 100%;
+    height: 100%;
+    gap: 12px;
+    // padding: 24px;
     background-color: #fff;
     border-radius: $radius-pm;
     animation: appear 0.6s ease-out forwards;
@@ -378,6 +382,7 @@ const legendItems = computed(() => {
 // Style pour la version séparée
 .chart-with-separate-legend {
     // min-width: none;
+    
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
     @include position-contenus(flex, flex-start, flex-start);
     @media (max-width: 1024px) {
@@ -392,6 +397,8 @@ const legendItems = computed(() => {
     .chart-container {
         flex: 1;
         min-width: 0;
+        height: 100%;
+        padding: 24px;
         
         @media (max-width: 768px) {
             width: 100%;
@@ -409,8 +416,9 @@ const legendItems = computed(() => {
 
     .legend-container {
         width: auto;
-        height: auto;
+        height: auto;  
         
+        padding: 24px 0;      
         @media (max-width: 768px) {
             width: 100%;
         }
@@ -432,6 +440,7 @@ const legendItems = computed(() => {
 
             .legend-title {
                 font-family: 'stara';
+                
                 font-size: 16px;
                 font-weight: bold;
                 margin-bottom: 1rem;
@@ -446,9 +455,11 @@ const legendItems = computed(() => {
             }
 
             .legend-items {
-                width: 150px;
+                width: 200px;
+                height: 100%;
                 display: flex;
                 flex-direction: column;
+                justify-content: center;
             }
 
             .legend-item {
@@ -483,6 +494,7 @@ const legendItems = computed(() => {
                 .legend-content {
                     flex: 1;
                     min-width: 0;
+                    
 
                     .legend-label {
                         font-family: 'stara';

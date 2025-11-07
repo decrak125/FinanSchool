@@ -121,12 +121,15 @@ i {
   padding: 32px;
   gap: 5px;
   border-radius: $radius-pm;
-  transition: transform 0.3s ease, filter 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+
 }
 
 .Count-content:hover {
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
   transform: scale(1.02);
-  transition: transform 0.3s ease, filter 0.3s ease-in-out;
+  transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
+
 }
 
 .texte {

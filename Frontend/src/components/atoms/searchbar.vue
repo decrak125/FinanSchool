@@ -79,6 +79,6 @@ input{
     align-items: center;
     gap: 10px;
     border-radius: var(--Border-radius, 32px);
-    background: #EBEBEB;
+    background: #ffffff;
 }
 </style>

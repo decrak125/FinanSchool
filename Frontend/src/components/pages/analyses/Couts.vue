@@ -13,44 +13,44 @@ import FilterSelect from "@/components/atoms/Filter-select.vue";
 import Leaderboard from "@/components/atoms/Chart/Leaderboard.vue";
 
 const {
-    exercice,
-    exercicesList,
-    filters,
-    centresList,
-    centres,
-    affectations,
-    sousComptesVentiles,
-    verificationVentilations,
-    selectedCentre,
-    loading,
-    classement,
-    // Computed
-    statsGlobales,
-    infoExercice,
-    centresFiltres,
-    affectationsFiltrees,
-    classementFiltrees,
-    exercicesOptions,
+  exercice,
+  exercicesList,
+  filters,
+  centresList,
+  centres,
+  affectations,
+  sousComptesVentiles,
+  verificationVentilations,
+  selectedCentre,
+  loading,
+  classement,
+  // Computed
+  statsGlobales,
+  infoExercice,
+  centresFiltres,
+  affectationsFiltrees,
+  classementFiltrees,
+  exercicesOptions,
 
-    // API
-    fetchCentresList,
-    fetchCentres,
-    fetchAffectations,
-    fetchClassement,
-    fetchSousComptesVentiles,
-    fetchVerificationVentilations,
+  // API
+  fetchCentresList,
+  fetchCentres,
+  fetchAffectations,
+  fetchClassement,
+  fetchSousComptesVentiles,
+  fetchVerificationVentilations,
 
-    // 🔥 NOUVELLES FONCTIONS
-    initializeData,
-    changeExercice,
-    resetFilters,
-    fetchExercicesList,
-    formatDateForInput,
-    formatDateForAPI,
+  // 🔥 NOUVELLES FONCTIONS
+  initializeData,
+  changeExercice,
+  resetFilters,
+  fetchExercicesList,
+  formatDateForInput,
+  formatDateForAPI,
 
-    // Utils
-    formatMontant,
-    formatPourcentage,
+  // Utils
+  formatMontant,
+  formatPourcentage,
 
 } = useCout(1);
 
@@ -150,14 +150,14 @@ onMounted(async () => {
 
       <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
       <div class="filtres">
-          <BoutonIcon v-if="!showGlobalView" @click="handleBackToGlobal" icon-name="arrow-left" :type="'cancel-stroke'"
-            :texte="'Retour à la vue globale'" />
-        <Texte :type="'thin-dark'" :texte="'Du'"/>
+        <BoutonIcon v-if="!showGlobalView" @click="handleBackToGlobal" icon-name="arrow-left" :type="'cancel-stroke'"
+          :texte="'Retour à la vue globale'" />
+        <Texte :type="'thin-dark'" :texte="'Du'" />
         <div>
 
           <FilterInput type="date" v-model="filters.dateStart" />
         </div>
-        <Texte :type="'thin-dark'" :texte="'au'"/>
+        <Texte :type="'thin-dark'" :texte="'au'" />
         <div>
           <FilterInput type="date" v-model="filters.dateEnd" />
           <!-- <input type="date" v-model="filters.dateEnd" class="border rounded p-1" /> -->
@@ -170,18 +170,10 @@ onMounted(async () => {
             {{ centresFiltres.length }} centre(s) trouvé(s)
           </div> -->
         </div>
-        <FilterSelect 
-        v-if="showGlobalView"
-          v-model="filters.idExercice"
-          @change="handleExerciceChange"
-        >
+        <FilterSelect v-if="showGlobalView" v-model="filters.idExercice" @change="handleExerciceChange">
           <option value="">Exercice ouvert (actuel)</option>
-          <option 
-            v-for="exo in exercicesOptions" 
-            :key="exo.value" 
-            :value="exo.value"
-            :selected="exo.value === filters.idExercice"
-          >
+          <option v-for="exo in exercicesOptions" :key="exo.value" :value="exo.value"
+            :selected="exo.value === filters.idExercice">
             {{ exo.label }}
           </option>
         </FilterSelect>
@@ -212,12 +204,10 @@ onMounted(async () => {
           <div class="graphic">
             <div class="cartes" v-if="statsGlobales != null">
               <div class="hauteur">
-                <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantVentile"
-                  :texte="'Total des couts.'" :icon="'bi bi-currency-dollar'" :icon-color="'orange'"
-                  :format="'money'" />
-                <Card v-else :chiffre="statsGlobales.totalMontantVentile"
-                  :texte="'Total des couts.'" :icon="'bi bi-currency-dollar'" :icon-color="'orange'"
-                  :format="'money'" />
+                <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantVentile" :texte="'Total des couts.'"
+                  :icon="'bi bi-currency-dollar'" :icon-color="'orange'" :format="'money'" />
+                <Card v-else :chiffre="statsGlobales.totalMontantVentile" :texte="'Total des couts.'"
+                  :icon="'bi bi-currency-dollar'" :icon-color="'orange'" :format="'money'" />
 
                 <Card v-if="showGlobalView" :chiffre="classement.length" :texte="'Total des affectations.'"
                   :icon="'bi bi-cash'" :icon-color="'green'" :format="'number'" />
@@ -233,7 +223,7 @@ onMounted(async () => {
 
                 <Card v-if="showGlobalView" :chiffre="statsGlobales.nombreCentres" :texte="'Centres des couts actifs.'"
                   :icon="'bi bi-activity'" :icon-color="'green'" />
-                <Card v-else :chiffre="affectationsFiltrees?.length" :texte="`Affectations ${selectedCentre} actifs` "
+                <Card v-else :chiffre="affectationsFiltrees?.length" :texte="`Affectations ${selectedCentre} actifs`"
                   :icon="'bi bi-activity'" :icon-color="'green'" :format="'number'" />
               </div>
             </div>
@@ -263,68 +253,73 @@ onMounted(async () => {
             </div>
           </div>
 
-          <!-- Tableau global des centres (visible seulement en vue globale) -->
-          <div v-if="showGlobalView" class="mb-8">
-            <Texte :type="'bold-dark'" :texte="'Coûts ventilés par centre'" />
-            <table class="table" id="axesTable">
-              <thead class="">
-                <tr>
-                  <th class="col">Centre</th>
-                  <th class="col">Montant Ventilé</th>
-                  <th class="col">% Ventilé</th>
-                  <th class="col">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- 🔥 MODIFICATION : Utiliser centresFiltres au lieu de centres -->
-                <tr v-for="centre in centresFiltres" :key="centre.id_centre" class="cursor-pointer hover:bg-gray-100">
-                  <td class="col">{{ centre.centre }}</td>
-                  <td class="col">{{ formatMontant(centre.montant_ventile) }}</td>
-                  <td class="col" :class="formatPourcentage(centre.pourcentage_ventile).classe">
-                    {{ formatPourcentage(centre.pourcentage_ventile).valeur }}
-                  </td>
-                  <td class="col">
-                    <BoutonIcon @click="handleFetchAffectations(centre)" icon-name="eye" :type="'edit'" />
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <div class="milieu">
+            <!-- Tableau global des centres (visible seulement en vue globale) -->
+            <div v-if="showGlobalView" class="table-div">
+              <div class="table-title">
+                <Texte :type="'bold-dark'" :texte="'Coûts ventilés par centre'" />
+              </div>
+              <table class="table" id="axesTable">
+                <thead class="">
+                  <tr>
+                    <th class="col">Centre</th>
+                    <th class="col">Montant Ventilé</th>
+                    <th class="col">% Ventilé</th>
+                    <th class="col">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- 🔥 MODIFICATION : Utiliser centresFiltres au lieu de centres -->
+                  <tr v-for="centre in centresFiltres" :key="centre.id_centre" class="cursor-pointer hover:bg-gray-100">
+                    <td class="col">{{ centre.centre }}</td>
+                    <td class="col">{{ formatMontant(centre.montant_ventile) }}</td>
+                    <td class="col" :class="formatPourcentage(centre.pourcentage_ventile).classe">
+                      {{ formatPourcentage(centre.pourcentage_ventile).valeur }}
+                    </td>
+                    <td class="col">
+                      <BoutonIcon @click="handleFetchAffectations(centre)" icon-name="eye" :type="'edit'" />
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-          <!-- Détails des affectations (visible seulement en vue détaillée) -->
-          <div v-if="!showGlobalView && affectationsFiltrees.length > 0" class="mt-8">
-            <Texte :type="'bold-dark'" :texte="`Détails ventilés du centre : ${selectedCentre}`" />
-            <table class="table" id="axesTable">
-              <thead class="">
-                <tr>
-                  <th class="col">Code</th>
-                  <th class="col">Description</th>
-                  <th class="col">Centre</th>
-                  <th class="col">Montant Ventilé</th>
-                  <th class="col">Taux Ventilation</th>
-                  <th class="col">% Ventilé</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- 🔥 MODIFICATION : Utiliser affectationsFiltrees au lieu de affectations -->
-                <tr v-for="a in affectationsFiltrees" :key="a.affectation_description">
-                  <td class="col">{{ a.code || 'N/A' }}</td>
-                  <td class="col">{{ a.libelle_sous_compte || 'N/A' }}</td>
-                  <td class="col">{{ a.centre_nom }}</td>
-                  <td class="col">{{ formatMontant(a.montant_ventile) }}</td>
-                  <td class="col">{{ a.taux_ventilation }}%</td>
-                  <td class="col" :class="formatPourcentage(a.pourcentage_ventile).classe">
-                    {{ formatPourcentage(a.pourcentage_ventile).valeur }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <!-- Détails des affectations (visible seulement en vue détaillée) -->
+            <div v-if="!showGlobalView && affectationsFiltrees.length > 0" class="table-div">
+              <div class="table-title">
+                <Texte :type="'bold-dark'" :texte="`Détails ventilés du centre : ${selectedCentre}`" />
+              </div>
+              <table class="table" id="axesTable">
+                <thead class="">
+                  <tr>
+                    <th class="col">Code</th>
+                    <th class="col">Description</th>
+                    <th class="col">Centre</th>
+                    <th class="col">Montant Ventilé</th>
+                    <th class="col">Taux Ventilation</th>
+                    <th class="col">% Ventilé</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- 🔥 MODIFICATION : Utiliser affectationsFiltrees au lieu de affectations -->
+                  <tr v-for="a in affectationsFiltrees" :key="a.affectation_description">
+                    <td class="col">{{ a.code || 'N/A' }}</td>
+                    <td class="col">{{ a.libelle_sous_compte || 'N/A' }}</td>
+                    <td class="col">{{ a.centre_nom }}</td>
+                    <td class="col">{{ formatMontant(a.montant_ventile) }}</td>
+                    <td class="col">{{ a.taux_ventilation }}%</td>
+                    <td class="col" :class="formatPourcentage(a.pourcentage_ventile).classe">
+                      {{ formatPourcentage(a.pourcentage_ventile).valeur }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <Leaderboard v-if="showGlobalView" :depenses="classementFiltrees" :texte="'Classement des couts'" />
+
           </div>
 
         </div>
-        <!-- <div class="droite">
-          <Leaderboard v-if="showGlobalView" :depenses="classementFiltrees" :texte="'Classement des couts'" />
-        </div> -->
       </div>
     </div>
   </PageAnalyse>
@@ -332,11 +327,29 @@ onMounted(async () => {
 
 
 <style lang="scss" scoped>
-
-html, body {
+html,
+body {
   height: 100%;
   margin: 0;
 }
+.milieu{
+  display: flex;
+  // flex-direction: column;
+  gap: 18px;
+}
+.table-div {
+  width: 100%;
+  height: 100%;
+  background-color: #ffffff;
+  border-radius: $radius-pm;
+  padding: 18px;
+  gap: 8px;
+}
+
+.table-title {
+  padding: 12px
+}
+
 .content {
   @include position-contenus(flex, flex-start, flex-start);
   // overflow-y: auto;
@@ -392,25 +405,29 @@ html, body {
 
 .gauche {
   @include position-contenus(grid, center, center);
-  gap: 18px;
+  gap: 9px;
 }
+
 .droite {
   padding: 10px 0;
   height: 100%;
   @include position-contenus(flex, center, center);
   gap: 18px;
-  
+
   @media (max-width: $tablet) {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   @media (max-width: $mobile) {
     grid-template-columns: 1fr;
     gap: 8px;
   }
 }
+
 #axesTable {
-  @include table(#f5f5f5);
+  @include table(#ffff);
+  background-color: #fff;
+  border-radius: $radius-pm;
 }
 
 .chart-container {
@@ -435,7 +452,7 @@ html, body {
 
 .main {
   @include position-contenus(flex, center, center);
-  // padding: 0 32px;
+  padding: 0 12px;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;

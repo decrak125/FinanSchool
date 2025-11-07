@@ -407,7 +407,7 @@ onMounted(() => {
   width: 245px;
   height: 100%;
   padding: 32px 24px;
-  margin: 8px;
+  // margin: 8px;
   border-radius: $radius-pm;
   flex-direction: column;
   gap: 24px;
