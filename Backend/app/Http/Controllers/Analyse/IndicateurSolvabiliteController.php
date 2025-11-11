@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\calcul\UtilesController;
 use App\Models\ParametresAnalytique\IndicateurAnalytique;
 use App\Models\ParametresAnalytique\InterpretationIndicateur;
+use App\Http\Controllers\general\CompteResultatNatureController;
+use App\Http\Controllers\Analyse\IndicateurLiquiditeController;
+use App\Http\Controllers\general\BilanPassifController;
 
 class IndicateurSolvabiliteController extends Controller
 {
@@ -24,22 +27,23 @@ class IndicateurSolvabiliteController extends Controller
 
         $dateDebut = $request->date_debut;
         $dateFin = $request->date_fin;
-
+        $resultatNet = CompteResultatNatureController::calculerCompteResultat($dateDebut, $dateFin);
+        $bilanPassif = BilanPassifController::getBilanPassif($dateDebut, $dateFin);
+        // RÉSULTAT NET
+        $resultatNet = $resultatNet['structure'][29]['montant'];
         // DETTES FINANCIÈRES
         $dettesFinancieres = UtilesController::calculerTotalCategorieGroupe([
             'EMPRUNT'   // Emprunts et dettes financières (160-169)
         ], $dateDebut, $dateFin);
 
         // CAPITAUX PROPRES
-        $capitauxPropres = UtilesController::calculerTotalCategorieGroupe([
-            'CAPITAL', 'PRIME', 'EVAL', 'EQUIV', 'RESULT'
-        ], $dateDebut, $dateFin);
+        $capitauxPropres = $bilanPassif['structure'][7]['montant'];
 
         // CALCUL DU RATIO D'ENDETTEMENT
         $ratio = 0;
 
         if ($capitauxPropres > 0) {
-            $ratio = $dettesFinancieres / $capitauxPropres;
+            $ratio = ($dettesFinancieres / $capitauxPropres) * 100;
         }
 
         // Récupérer l'interprétation depuis la table
@@ -79,17 +83,12 @@ class IndicateurSolvabiliteController extends Controller
 
         $dateDebut = $request->date_debut;
         $dateFin = $request->date_fin;
-
         // CAPITAUX PROPRES
-        $capitauxPropres = UtilesController::calculerTotalCategorieGroupe([
-            'CAPITAL', 'PRIME', 'EVAL', 'EQUIV', 'RESULT'
-        ], $dateDebut, $dateFin);
+        $bilanPassif = BilanPassifController::getBilanPassif($dateDebut, $dateFin);
+        $capitauxPropres = $bilanPassif['structure'][7]['montant'];
 
         // TOTAL BILAN (Actif total ou Passif total)
-        $totalBilan = UtilesController::calculerTotalCategorieGroupe([
-            'IMMOINC', 'IMMOCO', 'IMMOCOURS', 'IMMOFIN',
-            'STOCKS', 'CLIENTS', 'AUTCREANCES', 'TRESO'
-        ], $dateDebut, $dateFin);
+        $totalBilan = $bilanPassif['structure'][18]['montant'];
 
         // CALCUL DE L'AUTONOMIE FINANCIÈRE
         $autonomie = 0;
@@ -136,11 +135,11 @@ class IndicateurSolvabiliteController extends Controller
 
         $dateDebut = $request->date_debut;
         $dateFin = $request->date_fin;
-
+        $tresorerieNette = IndicateurLiquiditeController::getTresorerieNette($dateDebut, $dateFin);
         // ENDETTEMENT NET (Dettes financières)
         $endettementNet = UtilesController::calculerTotalCategorieGroupe([
             'EMPRUNT'   // Emprunts et dettes financières (160-169)
-        ], $dateDebut, $dateFin);
+        ], $dateDebut, $dateFin) - $tresorerieNette;
 
         // CAF (Cash Flow) - Approximation par le résultat net + dotations
         $caf = $this->calculerCAF($dateDebut, $dateFin);
@@ -184,7 +183,10 @@ class IndicateurSolvabiliteController extends Controller
     private function calculerCAF($dateDebut, $dateFin)
     {
         // RÉSULTAT NET
-        $resultatNet = 0; // À compléter selon votre logique
+        $CR = CompteResultatNatureController::calculerCompteResultat($dateDebut, $dateFin);
+        
+        // RÉSULTAT NET
+        $resultatNet = $CR['structure'][29]['montant'];
         
         // DOTATIONS AUX AMORTISSEMENTS ET PROVISIONS
         $dotationsAmortissements = UtilesController::calculerTotalCategorieGroupe(['AMORTPROV'], $dateDebut, $dateFin);

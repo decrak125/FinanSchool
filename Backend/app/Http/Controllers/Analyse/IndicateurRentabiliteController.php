@@ -9,6 +9,8 @@ use App\Http\Controllers\calcul\UtilesController;
 use App\Http\Controllers\general\CompteResultatNatureController;
 use App\Models\ParametresAnalytique\IndicateurAnalytique;
 use App\Models\ParametresAnalytique\InterpretationIndicateur;
+use App\Http\Controllers\general\BilanActifController;
+use App\Http\Controllers\general\BilanPassifController;
 
 
 class IndicateurRentabiliteController extends Controller
@@ -64,7 +66,7 @@ class IndicateurRentabiliteController extends Controller
         $coutVentes = calculerTotalCategorieGroupe(['ACHATCONSOM'], $dateDebut, $dateFin);
 
         if ($chiffreAffaires > 0) {
-            return (($chiffreAffaires - $coutVentes) / $chiffreAffaires) * 100;
+            return (($chiffreAffaires - $coutVentes) / $chiffreAffaires);
         }
 
         return 0;
@@ -278,15 +280,14 @@ class IndicateurRentabiliteController extends Controller
 
         $dateDebut = $request->date_debut;
         $dateFin = $request->date_fin;
+        $bilanPassif = BilanPassifController::getBilanPassif($dateDebut, $dateFin);
         $resultatNet = CompteResultatNatureController::calculerCompteResultat($dateDebut, $dateFin);
         
         // RÉSULTAT NET
         $resultatNet = $resultatNet['structure'][29]['montant'];
 
         // CAPITAUX PROPRES (Comptes 100-149)
-        $capitauxPropres = UtilesController::calculerTotalCategorieGroupe([
-            'CAPITAL', 'PRIME', 'EVAL', 'EQUIV', 'RESULT'
-        ], $dateDebut, $dateFin);
+        $capitauxPropres = $bilanPassif['structure'][7]['montant'];
 
         // CALCUL DU ROE
         $roe = 0;
@@ -330,6 +331,8 @@ class IndicateurRentabiliteController extends Controller
             'date_fin' => 'required|date|after_or_equal:date_debut'
         ]);
 
+        $bilanActif = BilanActifController::getBilanActif($request->date_debut, $request->date_fin);
+
         $dateDebut = $request->date_debut;
         $dateFin = $request->date_fin;
         $resultatNet = CompteResultatNatureController::calculerCompteResultat($dateDebut, $dateFin);
@@ -338,10 +341,7 @@ class IndicateurRentabiliteController extends Controller
         $resultatNet = $resultatNet['structure'][29]['montant'];
 
         // TOTAL ACTIF (Somme de tous les actifs)
-        $totalActif = UtilesController::calculerTotalCategorieGroupe([
-            'IMMOINC', 'IMMOCO', 'IMMOCOURS', 'IMMOFIN',
-            'STOCKS', 'CLIENTS', 'AUTCREANCES', 'TRESO'
-        ], $dateDebut, $dateFin);
+        $totalActif = $bilanActif['structure'][21]['brut'];
 
         // CALCUL DU ROA
         $roa = 0;

@@ -121,7 +121,7 @@ const getTrendIcon = (comparison) => {
             <tfoot id="footable">
               <tr>
                 <td id="detailTitle">Marge Nette</td>
-                <td id="detail">{{ CapaciteRemboursement?.capacite_remboursement?.valeur }}</td>
+                <td id="detail">{{ formatPercentage(AutonomieFinanciere?.autonomie_financiere?.valeur) }}</td>
                 <td id="detail">{{ formatPercentage(previousYearData.AutonomieFinanciere?.autonomie_financiere?.valeur) }}</td>
               </tr>
               <tr>
@@ -271,6 +271,7 @@ const getTrendIcon = (comparison) => {
               :icon-color="'orange'" 
               :variation="getTrendIcon(comparisons.Remboursement) + ' ' + comparisons.Remboursement.percentage"
               :colorVariation="getTrendClass(comparisons.Remboursement)"
+              :negative="true"
             />
           </div>
           <div class="hauteur">
@@ -323,7 +324,7 @@ const getTrendIcon = (comparison) => {
                   Autonomie financière
                 </td>
                 <td class="col">
-                  {{ CapaciteRemboursement?.capacite_remboursement?.valeur }}
+                  {{ formatPercentage(AutonomieFinanciere?.autonomie_financiere?.valeur) }}
                 </td>
                 <td class="col">
                   {{ formatPercentage(previousYearData.AutonomieFinanciere?.autonomie_financiere?.valeur) }}

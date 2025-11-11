@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\calcul\UtilesController;
 use App\Models\ParametresAnalytique\IndicateurAnalytique;
 use App\Models\ParametresAnalytique\InterpretationIndicateur;
+use App\Http\Controllers\general\BilanActifController;
+use App\Http\Controllers\general\BilanPassifController;
+
 
 class IndicateurLiquiditeController extends Controller
 {
@@ -24,24 +27,13 @@ class IndicateurLiquiditeController extends Controller
 
         $dateDebut = $request->date_debut;
         $dateFin = $request->date_fin;
-
+        $bilanActif = BilanActifController::getBilanActif($dateDebut, $dateFin);
+        $bilanPassif = BilanPassifController::getBilanPassif($dateDebut, $dateFin);
         // ACTIF CIRCULANT
-        $actifCirculant = UtilesController::calculerTotalCategorieGroupe([
-            'STOCKS',       // Stocks (310-399)
-            'CLIENTS',      // Clients (410-419)
-            'AUTCREANCES',  // Autres créances (420-499)
-            'TRESO'         // Trésorerie (512)
-        ], $dateDebut, $dateFin);
+        $actifCirculant = $bilanActif['structure'][19]['net'] + $bilanActif['structure'][18]['net'];
 
         // PASSIF À COURT TERME
-        $passifCourtTerme = UtilesController::calculerTotalCategorieGroupe([
-            'FOURN',        // Fournisseurs (400-409)
-            'DETTECT',      // Dettes court terme (420-449)
-            'PROVC',        // Provisions court terme (480-489)
-            'AUTDETTE',     // Autres dettes (450-499)
-            'DECOUV'        // Découverts bancaires (519)
-        ], $dateDebut, $dateFin);
-
+        $passifCourtTerme = $bilanPassif['structure'][17]['montant'];
         // CALCUL DU RATIO
         $ratio = 0;
         $interpretation = "Non définie";
@@ -93,9 +85,10 @@ class IndicateurLiquiditeController extends Controller
 
         $dateDebut = $request->date_debut;
         $dateFin = $request->date_fin;
-
+        $bilanActif = BilanActifController::getBilanActif($dateDebut, $dateFin);
+        $encaissement = $bilanActif['structure'][19]['net'] + $bilanActif['structure'][18]['net'];
         // SOLDE DES COMPTES DE TRÉSORERIE (Comptes 512 et 519)
-        $tresorerieNette = $this->calculerSoldeTresorerie($dateDebut, $dateFin);
+        $tresorerieNette = $encaissement - UtilesController::calculerTotalCategorieGroupe(['DETTECT', 'DECOUV'], $dateDebut, $dateFin);
         
         // Récupérer l'interprétation depuis la table
         $interpretationData = $this->getInterpretation('Trésorerie Nette', $tresorerieNette);
@@ -109,8 +102,8 @@ class IndicateurLiquiditeController extends Controller
             ],
             'details_calcul' => [
                 'comptes_tresorerie' => [
-                    'banque' => UtilesController::calculerTotalCategorieGroupe(['TRESO'], $dateDebut, $dateFin),
-                    'decouverts' => UtilesController::calculerTotalCategorieGroupe(['DECOUV'], $dateDebut, $dateFin)
+                    'banque' => $encaissement,
+                    'decouverts' => UtilesController::calculerTotalCategorieGroupe(['DETTECT', 'DECOUV'], $dateDebut, $dateFin)
                 ]
             ],
             'periode' => [
@@ -122,6 +115,16 @@ class IndicateurLiquiditeController extends Controller
         ]);
     }
 
+    public static function getTresorerieNette($dateDebut, $dateFin)
+    {
+        
+        $bilanActif = BilanActifController::getBilanActif($dateDebut, $dateFin);
+        $encaissement = $bilanActif['structure'][19]['net'] + $bilanActif['structure'][18]['net'];
+        // SOLDE DES COMPTES DE TRÉSORERIE (Comptes 512 et 519)
+        $tresorerieNette = $encaissement - UtilesController::calculerTotalCategorieGroupe(['DETTECT', 'DECOUV'], $dateDebut, $dateFin);
+        return  $tresorerieNette;
+    }
+
     /**
      * Calcule le solde net des comptes de trésorerie
      */
@@ -129,7 +132,7 @@ class IndicateurLiquiditeController extends Controller
     {
         // Solde des comptes banque (positif = avoir, négatif = découvert)
         $soldeBanque = UtilesController::calculerTotalCategorieGroupe(['TRESO'], $dateDebut, $dateFin);
-        $soldeDecouverts = UtilesController::calculerTotalCategorieGroupe(['DECOUV'], $dateDebut, $dateFin);
+        $soldeDecouverts = UtilesController::calculerTotalCategorieGroupe(['DETTECT'], $dateDebut, $dateFin);
 
         return $soldeBanque + $soldeDecouverts;
     }

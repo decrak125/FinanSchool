@@ -44,7 +44,7 @@ class IndicateursAnalytiqueSeeder extends Seeder
             [
                 'libelle' => 'Marge brute',
                 'description' => 'Mesure la rentabilité opérationnelle de base',
-                'formule' => '(Chiffre d\'affaires – Coût des ventes) / Chiffre d\'affaires'
+                'formule' => '(Chiffre d\'affaires – Coût des ventes) / Chiffre d\'affaires × 100'
             ],
             [
                 'libelle' => 'Marge d\'exploitation (EBIT)',
@@ -54,17 +54,17 @@ class IndicateursAnalytiqueSeeder extends Seeder
             [
                 'libelle' => 'Marge nette',
                 'description' => 'Montre le bénéfice final par euro de ventes',
-                'formule' => 'Résultat net / Chiffre d\'affaires'
+                'formule' => 'Résultat net / Chiffre d\'affaires × 100'
             ],
             [
                 'libelle' => 'ROE (Return on Equity)',
                 'description' => 'Rendement des fonds propres',
-                'formule' => 'Résultat net / Capitaux propres'
+                'formule' => 'Résultat net / Capitaux propres × 100'
             ],
             [
                 'libelle' => 'ROA (Return on Assets)',
                 'description' => 'Efficacité globale des actifs',
-                'formule' => 'Résultat net / Total actif'
+                'formule' => 'Résultat net / Total actif × 100'
             ],
 
             // 2. Indicateurs de liquidité
@@ -88,17 +88,17 @@ class IndicateursAnalytiqueSeeder extends Seeder
             [
                 'libelle' => 'Ratio d\'endettement',
                 'description' => 'Plus il est faible, plus la structure est solide',
-                'formule' => 'Dettes financières / Capitaux propres'
+                'formule' => 'Dettes financières / Capitaux propres × 100'
             ],
             [
                 'libelle' => 'Autonomie financière',
                 'description' => '> 30% = bonne autonomie financière',
-                'formule' => 'Capitaux propres / Total bilan'
+                'formule' => 'Capitaux propres / Total bilan × 100'
             ],
             [
                 'libelle' => 'Capacité de remboursement',
                 'description' => 'Nombre d\'années nécessaires pour rembourser la dette',
-                'formule' => 'Endettement net / CAF (Cash Flow)'
+                'formule' => 'Endettement net / CAF (Cash Flow) × 100'
             ],
             [
                 'libelle' => 'Coût de Fonctionnement par élève',

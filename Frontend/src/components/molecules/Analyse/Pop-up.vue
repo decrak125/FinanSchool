@@ -14,7 +14,7 @@
     // top: 0;
     // left: 0;
     @include position-contenus(flex, center, center);
-    margin-top: 0%;
+    margin-top: -1%;
     width: 82%;
     height: 85%;
     // box-shadow: 0px 4px 75px 1000px rgba(0, 0, 0, 0.75) inset;
@@ -32,5 +32,6 @@
     // gap: 10px;
     border-radius: $radius-pm;
     background-color: #fff;
+    box-shadow: 0px 4px 75px 1000px rgba(0, 0, 0, 0.25) ;
     }
 </style>
