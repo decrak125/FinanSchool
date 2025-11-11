@@ -56,7 +56,7 @@ const {
 </script>
 
 <template>
-  <PageAnalyse>
+  <PageAnalyse :menu="'Saisie Analytique'" :sousmenu="'Codes Analytiques'">
     <transition name="fade">
       <PopUp v-if="opendelete">
         <Icon :color="'primary'" :icon="'bi bi-envelope'" />
@@ -97,7 +97,6 @@ const {
       </PopUp>
     </transition>
     <div class="main">
-      <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Codes Analytiques'" />
       <div class="informations">
         <p class="Count-content">
           <Counter v-if="codes.length > 0" :number="codes.length" />
@@ -164,17 +163,19 @@ const {
 
 <style lang="scss" scoped>
 .main {
-  @include position-contenus(flex, center, center);
-  padding: 0 32px;
+  @include position-contenus(flex, baseline, center);
+  padding: 0 12px;
+  height: 100%;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;
   align-self: stretch;
   animation: appear 0.6s ease-out forwards;
+
 }
 
 #codesTable {
-  @include table(#f5f5f5);
+  @include table($light);
 }
 
 .informations {
@@ -248,30 +249,30 @@ const {
 }
 
 .content {
-  overflow-y: auto;
+  // overflow-y: auto;
   width: 100%;
-  max-height: 53vh;
+  // max-height: 53vh;
   border-radius: $radius-pm;
 }
 
 /* Personnalisation de la scrollbar */
-.content::-webkit-scrollbar {
-  width: 10px;
-}
+// .content::-webkit-scrollbar {
+//   width: 10px;
+// }
 
-.content::-webkit-scrollbar-track {
-  background: #ffffff;
-  border-radius: 10px;
-}
+// .content::-webkit-scrollbar-track {
+//   background: #ffffff;
+//   border-radius: 10px;
+// }
 
-.content::-webkit-scrollbar-thumb {
-  background: $light;
-  border-radius: 10px;
-}
+// .content::-webkit-scrollbar-thumb {
+//   background: $light;
+//   border-radius: 10px;
+// }
 
-.content::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
+// .content::-webkit-scrollbar-thumb:hover {
+//   background: #a8a8a8;
+// }
 
 .popupContent {
   @include position-contenus(flex, center, flex-start);

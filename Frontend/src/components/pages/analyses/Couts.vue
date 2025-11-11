@@ -73,7 +73,7 @@ const showGlobalView = ref(true);
 const centresChartData = computed(() => ({
   data: centresFiltres.value.map(c => parseFloat(c.montant_ventile) || 0),
   labels: centresFiltres.value.map(c => c.centre),
-  title: 'Coûts ventilés par centres'
+  title: 'Répartition des centres'
 }));
 
 const affectationsChartData = computed(() => ({
@@ -144,7 +144,7 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <PageAnalyse :menu="showGlobalView ? 'Analyse des couts' : selectedCentre" :sousmenu="'Répartition des couts'">
+  <PageAnalyse :menu="showGlobalView ? 'Analyse des charges' : selectedCentre" :sousmenu="'Répartition des charges'">
     <div class="main">
       <!-- Bouton retour vers la vue globale -->
 
@@ -204,13 +204,13 @@ onMounted(async () => {
           <div class="graphic">
             <div class="cartes" v-if="statsGlobales != null">
               <div class="hauteur">
-                <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantVentile" :texte="'Total des couts.'"
+                <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantVentile" :texte="'Total des charges.'"
                   :icon="'bi bi-currency-dollar'" :icon-color="'orange'" :format="'money'" />
-                <Card v-else :chiffre="statsGlobales.totalMontantVentile" :texte="'Total des couts.'"
+                <Card v-else :chiffre="statsGlobales.totalMontantVentile" :texte="'Total des charges.'"
                   :icon="'bi bi-currency-dollar'" :icon-color="'orange'" :format="'money'" />
 
-                <Card v-if="showGlobalView" :chiffre="classement.length" :texte="'Total des affectations.'"
-                  :icon="'bi bi-cash'" :icon-color="'green'" :format="'number'" />
+                <Card v-if="showGlobalView" :chiffre="filters.dateEnd" :texte="'Année d\'exercice.'"
+                  :icon="'bi-calendar-week-fill'" :icon-color="'red'" :format="'year'" />
 
                 <Card v-else :chiffre="selectedCentreStats?.montantVentile" :texte="`Coût ventilé - ${selectedCentre}`"
                   :icon="'bi bi-cash'" :icon-color="'green'" :format="'money'" />
@@ -221,7 +221,7 @@ onMounted(async () => {
                 <Card v-else :chiffre="selectedCentreStats?.pourcentageVentile" :texte="`% Ventilé - ${selectedCentre}`"
                   :icon="'bi bi-percent'" :icon-color="'blue'" :format="'percentage'" />
 
-                <Card v-if="showGlobalView" :chiffre="statsGlobales.nombreCentres" :texte="'Centres des couts actifs.'"
+                <Card v-if="showGlobalView" :chiffre="statsGlobales.nombreCentres" :texte="'Centres actifs.'"
                   :icon="'bi bi-activity'" :icon-color="'green'" />
                 <Card v-else :chiffre="affectationsFiltrees?.length" :texte="`Affectations ${selectedCentre} actifs`"
                   :icon="'bi bi-activity'" :icon-color="'green'" :format="'number'" />
@@ -234,14 +234,14 @@ onMounted(async () => {
               <div v-if="showGlobalView" class="chart-container">
                 <DonutChart :data="centresChartData.data" :labels="centresChartData.labels"
                   :title="centresChartData.title" chart-id="chartCentres" :formatter="formatMontant"
-                  :separate-legend="true" :legend-height="'500px'" :height="350" />
+                  :separate-legend="true" :legend-height="'500px'" :height="293" />
               </div>
 
               <!-- Vue Détail Centre : Donut des affectations du centre sélectionné -->
               <div v-if="!showGlobalView && affectationsFiltrees.length > 0" class="chart-container">
                 <DonutChart :data="affectationsChartData.data" :labels="affectationsChartData.labels"
                   :title="affectationsChartData.title" chart-id="chartAffectations" :formatter="formatMontant"
-                  :separate-legend="true" :legend-height="'500px'" :height="350" />
+                  :separate-legend="true" :legend-height="'500px'" :height="293" />
               </div>
 
               <!-- Vue Détail Centre : Donut des sous-comptes du centre sélectionné -->
@@ -257,7 +257,7 @@ onMounted(async () => {
             <!-- Tableau global des centres (visible seulement en vue globale) -->
             <div v-if="showGlobalView" class="table-div">
               <div class="table-title">
-                <Texte :type="'bold-dark'" :texte="'Coûts ventilés par centre'" />
+                <Texte :type="'bold-dark'" :texte="'Charges ventilés par centre'" />
               </div>
               <table class="table" id="axesTable">
                 <thead class="">
@@ -315,7 +315,7 @@ onMounted(async () => {
                 </tbody>
               </table>
             </div>
-            <Leaderboard v-if="showGlobalView" :depenses="classementFiltrees" :texte="'Classement des couts'" />
+            <Leaderboard v-if="showGlobalView" :depenses="classementFiltrees" :texte="'Top 5 des charges'" />
 
           </div>
 
@@ -340,7 +340,7 @@ body {
 .table-div {
   width: 100%;
   height: 100%;
-  background-color: #ffffff;
+  @include glass();
   border-radius: $radius-pm;
   padding: 18px;
   gap: 8px;
@@ -425,8 +425,8 @@ body {
 }
 
 #axesTable {
-  @include table(#ffff);
-  background-color: #fff;
+  @include table();
+  // @include glass();
   border-radius: $radius-pm;
 }
 

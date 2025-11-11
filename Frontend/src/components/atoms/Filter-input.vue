@@ -73,11 +73,12 @@ input{
 }
 .container{
     display: flex;
+    @include glass();
     // width: 320px;
     padding: 12px 18px;
     align-items: center;
     gap: 10px;
-    border-radius: var(--Border-radius, 32px);
-    background: #ffffff;
+    border-radius: $radius-pm;
+    
 }
 </style>

@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from "vue";
 import LoadingText from "../Loading-text.vue";
+import Texte from "../Texte.vue";
 
 const props = defineProps({
   depenses: {
@@ -18,7 +19,7 @@ const props = defineProps({
 });
 const first = computed(() => props.depenses[0]);
 const topThree = computed(() => props.depenses.slice(0, 3));
-const others = computed(() => props.depenses.slice(3));
+const others = computed(() => props.depenses.slice(3,5));
 // Formateur de montants
 const formatMontant = (val) => {
     return new Intl.NumberFormat("mg-MG", {
@@ -31,27 +32,22 @@ const formatMontant = (val) => {
 <template>
     <div class="leaderboard-card" v-if="ready">
       <!-- Titre -->
-      <h2 class="leaderboard-title">{{ texte }}</h2>
-      <!-- Top 3 -->
-      <div class="top-three">
-        <div
-          v-for="(item, index) in topThree"
-          :key="index"
-          class="top-item"
-          :class="'rank-' + index"
-        >
-          <div class="bar">
-            <span class="rank-number">{{ index +1 }}</span>
-          </div>
-          <div class="info">
-            <!-- <div class="icon">💰</div> -->
-            <div class="name">{{ item.libelle_sous_compte }}</div>
-            <div class="amount">{{ formatMontant(item.montant_ventile) }}</div>
-          </div>
-        </div>
+      <div class="table-title">
+      <Texte :type="'bold-dark'" :texte="texte" />
       </div>
+      <!-- Top 3 -->
       <!-- Autres classements -->
       <ul class="ranking-list">
+        <li v-for="(item, index) in topThree"
+          :key="index" class="ranking-item">
+          <div class="ranking-left">
+            <span class="rank-number">{{ index + 1 }}</span>
+            <div>
+              <div class="name">{{ item.libelle_sous_compte }}</div>
+              <div class="amount">{{ formatMontant(item.montant_ventile) }}</div>
+            </div>
+          </div>
+        </li>
         <li v-for="(item, index) in others" :key="index" class="ranking-item">
           <div class="ranking-left">
             <span class="rank-number">{{ index + 4 }}</span>
@@ -80,14 +76,6 @@ const formatMontant = (val) => {
           class="top-item"
           :class="'rank-' + index"
         >
-          <div class="bar">
-            <span class="rank-number">{{ index +1 }}</span>
-          </div>
-          <div class="info">
-            <!-- <div class="icon">💰</div> -->
-            <div class="name"><LoadingText :type="'line-1'" /></div>
-            <div class="amount"><LoadingText :type="'line-3'" /></div>
-          </div>
         </div>
       </div>
       <!-- Autres classements -->
@@ -112,12 +100,14 @@ const formatMontant = (val) => {
 <style lang="scss" scoped>
 /* --- Layout global --- */
 
-
+.table-title {
+  padding: 12px
+}
 .leaderboard-card {
-  background: #fff;
+  @include glass();
   border-radius: $radius-pm;
-  padding: 0px 30px;
-  width: 320px;
+    padding: 18px;
+  width: 520px;
   // width: 100%;
   height: 100%;
   transition: transform 0.3s ease, filter 0.3s ease-in-out;
@@ -126,17 +116,10 @@ const formatMontant = (val) => {
 .leaderboard-card:hover {
     transform: scale(1.02);
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
+        box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
+
 }
 
-/* --- Titre --- */
-.leaderboard-title {
-  text-align: left;
-  font-size: 1.5em;
-  font-weight: 600;
-  font-family: $stara-bold;
-  color: #222;
-  margin-bottom: 25px;
-}
 
 /* --- Top 3 --- */
 .top-three {
@@ -192,10 +175,10 @@ const formatMontant = (val) => {
   font-size: 1.5em;
 }
 .info .name {
-  font-weight: 600;
+  // font-weight: 600;
   font-size: 14px;
   color: #333;
-  width: 80px;
+  width: 100%;
 }
 .info .amount {
   font-size: 0.9em;
@@ -252,13 +235,14 @@ const formatMontant = (val) => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
+  height: 68px;
   border-bottom: 1px solid #eee;
 }
 
 .ranking-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 24px;
 }
 
 .ranking-left .rank-number {
@@ -271,7 +255,7 @@ const formatMontant = (val) => {
   color: #222;
     font-family: $stara-bold;
     font-size: 14px;
-    width: 200px;
+    // width: 200px;
 
 }
 

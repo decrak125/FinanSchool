@@ -186,7 +186,7 @@ const showAllVentilations = (group) => {
 </script>
 
 <template>
-  <PageAnalyse>
+  <PageAnalyse :menu="'Saisie Analytique'" :sousmenu="'Affectation Analytique'">
     <transition name="fade">
   <PopUp v-if="openForm">
     <div class="creation-popup">
@@ -633,7 +633,6 @@ const showAllVentilations = (group) => {
       </transition>
 
     <div class="main">
-      <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Affectation Analytique'" />
       <div class="informations">
         <p class="Count-content">
           <Counter v-if="filteredAffectationsGrouped.length > 0" :number="filteredAffectationsGrouped.length" :format="'number'" />
@@ -738,17 +737,19 @@ const showAllVentilations = (group) => {
 <!-- Le CSS reste identique -->
 <style lang="scss" scoped>
 .main {
-  @include position-contenus(flex, center, center);
-  padding: 0 32px;
+  @include position-contenus(flex, baseline, center);
+  padding: 0 12px;
+  height: 100%;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;
   align-self: stretch;
   animation: appear 0.6s ease-out forwards;
+
 }
 
 #axesTable {
-  @include table(#f5f5f5);
+  @include table($light);
 }
 
 .informations {
@@ -827,29 +828,29 @@ const showAllVentilations = (group) => {
 }
 
 .content {
-  overflow-y: auto;
+  // overflow-y: auto;
   width: 100%;
-  max-height: 53vh;
+  // max-height: 53vh;
   border-radius: $radius-pm;
 }
 
-.content::-webkit-scrollbar {
-  width: 10px;
-}
+// .content::-webkit-scrollbar {
+//   width: 10px;
+// }
 
-.content::-webkit-scrollbar-track {
-  background: #ffffff;
-  border-radius: 10px;
-}
+// .content::-webkit-scrollbar-track {
+//   background: #ffffff;
+//   border-radius: 10px;
+// }
 
-.content::-webkit-scrollbar-thumb {
-  background: $light;
-  border-radius: 10px;
-}
+// .content::-webkit-scrollbar-thumb {
+//   background: $light;
+//   border-radius: 10px;
+// }
 
-.content::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
+// .content::-webkit-scrollbar-thumb:hover {
+//   background: #a8a8a8;
+// }
 
 .popupContent {
   @include position-contenus(flex, center, flex-start);

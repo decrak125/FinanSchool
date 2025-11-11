@@ -34,6 +34,8 @@ onMounted(() => {
 <template>
   <div class="all">
     <div class="container" v-if="token">
+          <div class="bc"></div>
+
       <div class="sidebar">
         <sidebar />
       </div>
@@ -68,10 +70,10 @@ onMounted(() => {
 
 .container {
   
-  background-color: $light;
+  // background-color: $light;
   display: flex;
   width: 100%;
-  height: 100%; // toute la hauteur visible de l’écran
+  height: 100vh; // toute la hauteur visible de l’écran
   // overflow: hidden;
   @media (max-width: 1024px) {
     flex-direction: column;
@@ -90,7 +92,7 @@ onMounted(() => {
   flex: 1;
   width:100vh;
   height: fit-content;
-  background-color: $light;
+  // background-color: $light;
   // overflow-y: auto; // permet de scroller uniquement dans le contenu
   scrollbar-width: thin;
   gap: 24px;
@@ -110,7 +112,7 @@ onMounted(() => {
   left: 260px; // démarre après la sidebar
   right: 0;
   // height: 100px;
-  background-color: $light; // ou ta couleur de fond du header
+  // background-color: $light; // ou ta couleur de fond du header
   z-index: 999;
   display: flex;
   align-items: center;
@@ -129,7 +131,7 @@ onMounted(() => {
   margin-top: 80px;
   flex: 1;
   width: 100%;
-  background-color: $light;
+  // background-color: $light;
   // border-radius: $radius-pm;
   @include position-contenus(block, center, center);
 }
@@ -197,7 +199,7 @@ onMounted(() => {
   padding: 12px;
   // width: 260px; // largeur fixe
   height: 100vh;
-  background-color: $light;
+  // background-color: $light;
   z-index: 1000;
   // background-color: $light; // à adapter selon ta couleur
   // border-right: 1px solid rgba(0, 0, 0, 0.1);
@@ -207,5 +209,32 @@ onMounted(() => {
     width: 100%;
     height: auto;
   }
+}
+.all{
+  height: 100vh;
+}
+.bc{
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(
+    -45deg,
+    #f2c6b8, 
+    #ffffff, 
+    #b7e3f3, 
+    #ffffff,
+    #bdf2e2, 
+    #ffffff, 
+    #f3f2b7, 
+    #ffffff);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+  
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 </style>

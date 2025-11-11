@@ -61,25 +61,26 @@ const cliqued = ref(false);
     flex-direction: column;
     top: 100px;
     right: 24px;
-    background: $light;
+    @include glass();
     padding: 12px 32px;
-    border: 1px solid #dbdbdb;
+    // border: 1px solid #dbdbdb;
     border-radius: $radius-pm;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     z-index: 1000;
 }
 
 .containersolo {
+    @include glass();
     cursor: pointer;
     display: inline-flex;
     // height: 54px;
     padding: 0 12px;
-    background-color: $light;
+    // background-color: #ffff;
     justify-content: flex-end;
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
-    border: 1px solid #dbdbdb;
+    // border: 1px solid #dbdbdb;
     border-radius: $radius-pm;
 
 }

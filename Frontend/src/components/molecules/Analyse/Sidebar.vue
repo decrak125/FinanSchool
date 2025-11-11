@@ -402,7 +402,9 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .sidebar-desktop {
-  background-color: #fff;
+  @include glass();
+  // -----------------------
+  // background-color: #fff;
   display: flex;
   width: 245px;
   height: 100%;
@@ -565,14 +567,17 @@ hr {
 
 /* Style du menu actif */
 .active {
-  background-color: #e0e7ff !important;
+  background: rgba(255, 255, 255, 0.25);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+  inset 0 1px 0 rgba(255, 255, 255, 0.2);
   border-radius: $radius-pm;
   color: $secondary !important;
   transition: all 0.3s ease;
 }
 
 .actif {
-  background-color: #e0e7ff !important;
+  @include glass();
   border-radius: $radius-pm;
   color: $secondary !important;
   transition: all 0.3s ease;

@@ -22,6 +22,8 @@ defineProps({
 
 <style lang="scss" scoped>
 .header {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     display: flex;
     // height: 48px;
     justify-content: space-between;

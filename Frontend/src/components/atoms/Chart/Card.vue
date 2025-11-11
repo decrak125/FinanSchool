@@ -91,7 +91,7 @@ i {
   align-items: center;
   justify-content: center;
   display: block;
-  background-color: #ffff;
+  @include glass();
   font-family: $stara-black;
   font-size: 32px;
   // font-style: normal;
@@ -112,7 +112,7 @@ i {
   align-self: flex-start;
   display: flex;
   flex-direction: column;
-  background-color: #ffff;
+  @include glass();
   font-family: $stara-black;
   font-size: 32px;
   // font-style: normal;

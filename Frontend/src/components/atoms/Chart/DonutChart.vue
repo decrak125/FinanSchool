@@ -2,6 +2,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import BoutonIcon from '../Bouton-icon.vue';
+import Texte from '../Texte.vue';
 
 const showDetails = ref(true);
 const props = defineProps({
@@ -155,16 +156,16 @@ const chartOptions = computed(() => {
                 }
             }
         }],
-        title: {
-            text: props.title,
-            align: 'center',
-            style: {
-                fontFamily: 'stara',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                color: '#373d3f'
-            }
-        }
+        // title: {
+        //     text: props.title,
+        //     align: 'center',
+        //     style: {
+        //         fontFamily: 'stara',
+        //         fontSize: '16px',
+        //         fontWeight: 'bold',
+        //         color: '#373d3f'
+        //     }
+        // }
     };
 
     if (props.type === 'donut') {
@@ -265,6 +266,10 @@ const legendItems = computed(() => {
             <div v-if="separateLegend" class="chart-with-separate-legend">
                 <transition name="fade">
                     <div class="chart-container">
+                                        <div class="table-title">
+                    <Texte :type="'bold-dark'" :texte="title" />
+                </div>
+
                         <div class="graphic-wrapper">
                             <apexchart :type="type" :height="height" :options="chartOptions" :series="series"
                                 :id="chartId" />
@@ -307,6 +312,9 @@ const legendItems = computed(() => {
 </template>
 
 <style lang="scss" scoped>
+// .table-title {
+// padding: 12px
+// }
 .voir {
     @include position-contenus(flex, center, center);
     gap: 0.5rem;
@@ -357,11 +365,11 @@ const legendItems = computed(() => {
 }
 
 .donut-chart-wrapper {
+    @include glass();
     width: 100%;
     height: 100%;
     gap: 12px;
     // padding: 24px;
-    background-color: #fff;
     border-radius: $radius-pm;
     animation: appear 0.6s ease-out forwards;
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
