@@ -134,7 +134,7 @@ const props = defineProps({
   format: {
     type: String,
     default: 'number',
-    validator: (value) => ['number', 'percentage', 'money'].includes(value)
+    validator: (value) => ['number', 'percentage', 'money', 'year'].includes(value)
   },
   showCurrency: {
     type: Boolean,
@@ -180,6 +180,8 @@ const formattedNumber = computed(() => {
     case 'money':
       // Formater avec séparateurs de milliers
       return formatNumberWithSpaces(num, props.decimalPlaces);
+    case 'year':
+      return num.toFixed(0);
     default:
       if (num % 1 === 0) {
         return formatNumberWithSpaces(Math.round(num), 0);
@@ -227,6 +229,7 @@ const calculateDelay = (index) => {
 // Computed pour déterminer le type d'affichage
 const isPercentage = computed(() => props.format === 'percentage')
 const isMoney = computed(() => props.format === 'money')
+const isYear = computed(() => props.format === 'year')
 </script>
 
 <style scoped>

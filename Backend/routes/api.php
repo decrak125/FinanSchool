@@ -97,6 +97,15 @@ Route::middleware('api')->group(function () {
     Route::apiResource('lignes', LigneEcritureController::class);
     Route::post('lignes/{id}/valider', [LigneEcritureController::class, 'valider']);
     Route::apiResource('devises', DeviseController::class);
+    // Validation globale
+    Route::post('/lignes/valider-toutes', [LigneEcritureController::class, 'validerToutesLesEcritures']);
+
+    // Validation par période
+    Route::post('/lignes/valider-periode', [LigneEcritureController::class, 'validerEcrituresPeriode']);
+
+    // Rapport avant validation
+    Route::get('/lignes/rapport-validation', [LigneEcritureController::class, 'getRapportValidation']);
+
 
     Route::post('/mouvements/{id}/solder', [LigneEcritureController::class, 'solderMouvement']);
 
@@ -109,8 +118,11 @@ Route::middleware('api')->group(function () {
 
 
     // Routes pour les performances améliorées {Ecritures et Mouvements}
- Route::get('/mouvements-complets', [LigneEcritureController::class, 'getMouvementsComplets']);
+    // routes/api.php
+    Route::get('/ecritures', [LigneEcritureController::class, 'indexWithRelations']);
+    Route::get('/mouvements-complets', [LigneEcritureController::class, 'getMouvementsComplets']);
     Route::get('/search-sous-comptes', [LigneEcritureController::class, 'searchSousComptes']);
+    Route::put('/lignes/batch-update', [LigneEcritureController::class, 'batchUpdate']);
     Route::post('/lignes-batch', [LigneEcritureController::class, 'saveLignesBatch']);
     Route::post('/mouvements/{id}/valider-complet', [LigneEcritureController::class, 'validerMouvementComplet']);
     Route::get('/options-formulaires', [LigneEcritureController::class, 'getOptions']);

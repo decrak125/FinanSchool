@@ -198,45 +198,111 @@ export default {
       container.scrollTop = container.scrollHeight;
     },
     // --- Synthèse vocale ---
-    speakMessage(text) {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const utterance = new window.SpeechSynthesisUtterance(text);
-      utterance.lang = 'fr-FR';
-      utterance.volume = 1;
+    
+speakMessage(text) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new window.SpeechSynthesisUtterance(text);
+    utterance.lang = 'fr-FR';
+    utterance.volume = 1;
 
-      // Chercher et sélectionner la meilleure voix française
-      const setVoice = () => {
-        const voices = window.speechSynthesis.getVoices();
-        const frenchVoices = voices.filter(v => v.lang.startsWith('fr'));
-        // Essaye de prioriser une voix de meilleure qualité par son nom
-        utterance.voice =
-          frenchVoices.find(v => v.name.toLowerCase().includes('julie')) ||
-          frenchVoices.find(v => v.name.toLowerCase().includes('thomas')) ||
-          frenchVoices.find(v => v.name.toLowerCase().includes('google')) ||
-          frenchVoices[0] ||
-          voices[0]; // Fallback
+    // Chercher et sélectionner la meilleure voix française
+    const setVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      const frenchVoices = voices.filter(v => v.lang.startsWith('fr'));
+      
+      // Prioriser les meilleures voix
+      utterance.voice =
+        frenchVoices.find(v => v.name.toLowerCase().includes('julie')) ||
+        frenchVoices.find(v => v.name.toLowerCase().includes('thomas')) ||
+        frenchVoices.find(v => v.name.toLowerCase().includes('google')) ||
+        frenchVoices.find(v => v.name.toLowerCase().includes('natural')) ||
+        frenchVoices[0] ||
+        voices[0];
 
-        // Gère l'intonation simple selon la ponctuation
-        if (text.endsWith('?')) {
-          utterance.pitch = 1.5; utterance.rate = 1.2;
-        } else if (text.endsWith('!')) {
-          utterance.pitch = 1.2; utterance.rate = 0.9;
+      // ✅ MEILLEURE INTONATION - Analyse approfondie
+      const cleanText = text.trim();
+      
+      // Compter la ponctuation
+      const questionMarks = (cleanText.match(/\?/g) || []).length;
+      const exclamations = (cleanText.match(/!/g) || []).length;
+      const ellipsis = cleanText.includes('...');
+      
+      // Intonation pour QUESTIONS
+      if (questionMarks > 0) {
+        if (questionMarks >= 2) {
+          // Plusieurs questions = très enthousiaste
+          utterance.pitch = 1.8;
+          utterance.rate = 1.3;
         } else {
-          utterance.pitch = 1; utterance.rate = 1;
+          // Une question = montée naturelle en fin
+          utterance.pitch = 1.6;
+          utterance.rate = 1.1;
         }
+      }
+      // Intonation pour EXCLAMATIONS
+      else if (exclamations > 0) {
+        if (exclamations >= 2) {
+          // Plusieurs exclamations = emphase forte
+          utterance.pitch = 1.4;
+          utterance.rate = 0.8;
+          utterance.volume = 1;
+        } else {
+          // Une exclamation = emphase modérée
+          utterance.pitch = 1.25;
+          utterance.rate = 0.95;
+        }
+      }
+      // Intonation pour POINTS DE SUSPENSION
+      else if (ellipsis) {
+        // Ralenti pour créer du suspense
+        utterance.pitch = 0.95;
+        utterance.rate = 0.7;
+      }
+      // Intonation pour TEXTE NORMAL
+      else {
+        // Neutre et naturel
+        utterance.pitch = 1.0;
+        utterance.rate = 1.0;
+      }
 
-        window.speechSynthesis.speak(utterance);
+      // Bonus : améliorer l'intonation selon la longueur du texte
+      const words = cleanText.split(' ').length;
+      
+      // Texte court = un peu plus rapide (plus naturel)
+      if (words < 5 && exclamations === 0 && questionMarks === 0) {
+        utterance.rate = utterance.rate * 1.1;
+      }
+      // Texte long = un peu plus lent (pour mieux comprendre)
+      else if (words > 20) {
+        utterance.rate = utterance.rate * 0.95;
+      }
+
+      // Ajouter des événements pour un meilleur contrôle
+      utterance.onstart = () => {
+        console.log('🔊 Début de la lecture avec intonation');
+      };
+      
+      utterance.onend = () => {
+        console.log('✅ Lecture terminée');
+      };
+      
+      utterance.onerror = (event) => {
+        console.error('❌ Erreur de synthèse vocale:', event.error);
       };
 
-      // getVoices peut être vide au premier appel, donc on écoute l'event si nécessaire
-      if (window.speechSynthesis.getVoices().length === 0) {
-        window.speechSynthesis.onvoiceschanged = setVoice;
-      } else {
-        setVoice();
-      }
+      window.speechSynthesis.speak(utterance);
+    };
+
+    // Charger les voix si pas disponibles
+    if (window.speechSynthesis.getVoices().length === 0) {
+      window.speechSynthesis.onvoiceschanged = setVoice;
+    } else {
+      setVoice();
     }
   }
+}
+    
 
 
   }

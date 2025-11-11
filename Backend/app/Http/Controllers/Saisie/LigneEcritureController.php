@@ -14,6 +14,51 @@ use Illuminate\Support\Facades\DB;
 
 class LigneEcritureController extends Controller
 {
+
+
+    public function indexWithRelations(Request $request)
+{
+    $query = LigneEcriture::with([
+        'sousCompte.compte.rubrique.classe',
+        'modePaiement',
+        'mouvement',
+        'journal'
+    ]);
+
+    // Filtre recherche globale
+    if ($request->q)
+        $query->where('Libelle', 'LIKE', '%'.$request->q.'%')
+              ->orWhere('Reference', 'LIKE', '%'.$request->q.'%');
+
+    // Filtre par date
+    if ($request->date_debut)
+        $query->whereHas('mouvement', fn($q) => $q->where('Date_mouvement', '>=', $request->date_debut));
+    if ($request->date_fin)
+        $query->whereHas('mouvement', fn($q) => $q->where('Date_mouvement', '<=', $request->date_fin));
+
+    // Paginer
+    $results = $query->orderByDesc('Id_Ligne_ecriture')->paginate(50);
+    return response()->json($results);
+}
+
+public function batchUpdate(Request $request)
+{
+    $request->validate([
+        'ids' => 'required|array|min:1',
+        'ids.*' => 'integer|exists:ligne_ecritures,Id_Ligne_ecriture',
+        'data.Libelle' => 'nullable|string|max:255',
+        'data.Debit' => 'nullable|numeric',
+        'data.Credit' => 'nullable|numeric',
+        'data.Reference' => 'nullable|string|max:50',
+    ]);
+    // On ne modifie que les écritures non validées
+    $query = LigneEcriture::whereIn('Id_Ligne_ecriture', $request->ids)
+        ->where('statut', '!=', 'valide');
+    $query->update(array_filter($request->data));
+    return response()->json(['message' => 'Écritures modifiées']);
+}
+
+    
     // ========== Mouvements ==========
 
     public function getMouvementsComplets(Request $request)
@@ -22,10 +67,12 @@ class LigneEcritureController extends Controller
 
         try {
             $mouvements = MouvementEcriture::with([
-            'lignes.sousCompte',
-            'lignes.modePaiement',
-            'journal'
-        ])
+    'lignes.sousCompte.compte.rubrique.classe', // chaîne imbriquée complète
+    'lignes.modePaiement',
+    'journal'
+])
+
+        
         // ✅ CORRECTION : Inclure les mouvements sans lignes OU avec lignes non validées
         ->where(function ($query) {
             $query->whereHas('lignes', function ($q) {
@@ -79,12 +126,17 @@ class LigneEcritureController extends Controller
     // Dans app/Http/Controllers/MouvementController.php
 public function index()
 {
-    $mouvements = MouvementEcriture::with(['lignes.sousCompte', 'journal'])
-        ->orderBy('Date_mouvement', 'desc')
-        ->get();
+    $mouvements = MouvementEcriture::with([
+        'lignes.sousCompte.compte.rubrique.classe', // toute la hiérarchie !
+        'lignes.modePaiement',
+        'journal'
+    ])
+    ->orderBy('Date_mouvement', 'desc')
+    ->get();
     
     return response()->json($mouvements);
 }
+
 
 
     public function createMouvement(Request $request)
@@ -359,6 +411,235 @@ public function index()
             ], 500);
         }
     }
+
+    /**
+ * Valide TOUTES les écritures non validées en une seule action
+ * Recommandé pour validation globale/périodique
+ */
+public function validerToutesLesEcritures()
+{
+    DB::beginTransaction();
+    
+    try {
+        $userId = Auth::id();
+        $dateValidation = now();
+        
+        // 📊 Comptage des écritures à valider
+        $countNonValidees = LigneEcriture::where(function($query) {
+                $query->where('statut', '!=', 'valide')
+                      ->orWhereNull('statut');
+            })
+            ->where(function($query) {
+                // Exclure les lignes invalides (sans montant ou avec débit ET crédit)
+                $query->where(function($q) {
+                    $q->where('Debit', '>', 0)->where('Credit', '=', 0);
+                })
+                ->orWhere(function($q) {
+                    $q->where('Credit', '>', 0)->where('Debit', '=', 0);
+                });
+            })
+            ->count();
+        
+        if ($countNonValidees === 0) {
+            return response()->json([
+                'message' => 'Aucune écriture à valider',
+                'validated' => 0
+            ]);
+        }
+        
+        // ✅ Validation en masse (optimisée pour < 10 000 lignes)
+        if ($countNonValidees < 10000) {
+            $affected = LigneEcriture::where(function($query) {
+                    $query->where('statut', '!=', 'valide')
+                          ->orWhereNull('statut');
+                })
+                ->where(function($query) {
+                    $query->where(function($q) {
+                        $q->where('Debit', '>', 0)->where('Credit', '=', 0);
+                    })
+                    ->orWhere(function($q) {
+                        $q->where('Credit', '>', 0)->where('Debit', '=', 0);
+                    });
+                })
+                ->update([
+                    'statut'          => 'valide',
+                    'date_validation' => $dateValidation,
+                    'valide_par'      => $userId,
+                ]);
+            
+            DB::commit();
+            
+            return response()->json([
+                'message' => "{$affected} écriture(s) validée(s) avec succès",
+                'validated' => $affected,
+                'method' => 'bulk_update'
+            ]);
+        }
+        
+        // 🔄 Validation par lots (pour > 10 000 lignes)
+        $totalValidated = 0;
+        $chunkSize = 500;
+        
+        LigneEcriture::where(function($query) {
+                $query->where('statut', '!=', 'valide')
+                      ->orWhereNull('statut');
+            })
+            ->where(function($query) {
+                $query->where(function($q) {
+                    $q->where('Debit', '>', 0)->where('Credit', '=', 0);
+                })
+                ->orWhere(function($q) {
+                    $q->where('Credit', '>', 0)->where('Debit', '=', 0);
+                });
+            })
+            ->chunkById($chunkSize, function ($lignes) use ($userId, $dateValidation, &$totalValidated) {
+                foreach ($lignes as $ligne) {
+                    $ligne->update([
+                        'statut'          => 'valide',
+                        'date_validation' => $dateValidation,
+                        'valide_par'      => $userId,
+                    ]);
+                    $totalValidated++;
+                }
+            });
+        
+        DB::commit();
+        
+        return response()->json([
+            'message' => "{$totalValidated} écriture(s) validée(s) avec succès",
+            'validated' => $totalValidated,
+            'method' => 'chunked_update'
+        ]);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'error'   => 'Erreur lors de la validation globale des écritures',
+            'message' => config('app.debug') ? $e->getMessage() : 'Erreur serveur'
+        ], 500);
+    }
+}
+
+/**
+ * Valide toutes les écritures d'une période donnée
+ * Utile pour clôture mensuelle/annuelle
+ */
+public function validerEcrituresPeriode(Request $request)
+{
+    $request->validate([
+        'date_debut' => 'required|date',
+        'date_fin'   => 'required|date|after_or_equal:date_debut',
+        'journal_id' => 'nullable|exists:journals,Id_Journal'
+    ]);
+    
+    DB::beginTransaction();
+    
+    try {
+        $query = LigneEcriture::with('mouvementEcriture')
+            ->where(function($q) {
+                $q->where('statut', '!=', 'valide')
+                  ->orWhereNull('statut');
+            })
+            ->whereHas('mouvementEcriture', function($q) use ($request) {
+                $q->whereBetween('Date_mouvement', [
+                    $request->date_debut,
+                    $request->date_fin
+                ]);
+            });
+        
+        // Filtre optionnel par journal
+        if ($request->has('journal_id')) {
+            $query->where('Id_Journal', $request->journal_id);
+        }
+        
+        // Exclure lignes invalides
+        $query->where(function($q) {
+            $q->where(function($subQ) {
+                $subQ->where('Debit', '>', 0)->where('Credit', '=', 0);
+            })
+            ->orWhere(function($subQ) {
+                $subQ->where('Credit', '>', 0)->where('Debit', '=', 0);
+            });
+        });
+        
+        $affected = $query->update([
+            'statut'          => 'valide',
+            'date_validation' => now(),
+            'valide_par'      => Auth::id(),
+        ]);
+        
+        DB::commit();
+        
+        $periode = \Carbon\Carbon::parse($request->date_debut)->format('d/m/Y') 
+                 . ' - ' 
+                 . \Carbon\Carbon::parse($request->date_fin)->format('d/m/Y');
+        
+        return response()->json([
+            'message' => "{$affected} écriture(s) validée(s) pour la période {$periode}",
+            'validated' => $affected,
+            'periode' => $periode
+        ]);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'error'   => 'Erreur lors de la validation des écritures',
+            'message' => config('app.debug') ? $e->getMessage() : 'Erreur serveur'
+        ], 500);
+    }
+}
+
+/**
+ * Obtient un rapport des écritures à valider
+ * Utile avant validation globale
+ */
+public function getRapportValidation()
+{
+    try {
+        $stats = [
+            'total_non_validees' => LigneEcriture::where('statut', '!=', 'valide')
+                ->orWhereNull('statut')
+                ->count(),
+            
+            'valides' => LigneEcriture::where('statut', 'valide')->count(),
+            
+            'invalides' => LigneEcriture::where(function($q) {
+                    $q->where('statut', '!=', 'valide')
+                      ->orWhereNull('statut');
+                })
+                ->where(function($q) {
+                    // Lignes avec débit ET crédit, ou sans montant
+                    $q->where(function($subQ) {
+                        $subQ->where('Debit', '>', 0)->where('Credit', '>', 0);
+                    })
+                    ->orWhere(function($subQ) {
+                        $subQ->where('Debit', '=', 0)->where('Credit', '=', 0);
+                    });
+                })
+                ->count(),
+            
+            'mouvements_non_equilibres' => MouvementEcriture::with('lignes')
+                ->get()
+                ->filter(function($mouvement) {
+                    $debit = $mouvement->lignes->sum('Debit');
+                    $credit = $mouvement->lignes->sum('Credit');
+                    return abs($debit - $credit) >= 0.01;
+                })
+                ->count(),
+        ];
+        
+        $stats['validables'] = $stats['total_non_validees'] - $stats['invalides'];
+        
+        return response()->json($stats);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'error'   => 'Erreur lors de la génération du rapport',
+            'message' => config('app.debug') ? $e->getMessage() : 'Erreur serveur'
+        ], 500);
+    }
+}
+
 
     public function getOptions()
     {

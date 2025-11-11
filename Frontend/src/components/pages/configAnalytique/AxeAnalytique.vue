@@ -55,7 +55,7 @@ const {
 </script>
 
 <template>
-  <PageAnalyse>
+  <PageAnalyse :menu="'Saisie Analytique'" :sousmenu="'Axe Analytique'">
     <transition name="fade">
       <PopUp v-if="opendelete">
         <Icon :color="'primary'" :icon="'bi bi-envelope'" />
@@ -95,7 +95,6 @@ const {
       </PopUp>
     </transition>
     <div class="main">
-      <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Axe Analytique'" />
       <div class="informations">
         <p class="Count-content">
           <Counter v-if="axes.length > 0" :number="axes.length" />
@@ -156,20 +155,25 @@ const {
   </PageAnalyse>
 </template>
 <style lang="scss" scoped>
+
 .main {
-  @include position-contenus(flex, center, center);
-  padding: 0 32px;
+  @include glass();
+  border-radius: $radius-pm;
+  @include position-contenus(flex, baseline, center);
+  padding: 0 24px;
+  margin: 12px;
+  height: 100%;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;
   align-self: stretch;
   animation: appear 0.6s ease-out forwards;
-
 }
 
 #axesTable {
-  @include table(#f5f5f5);
+  @include table();
 }
+
 
 .informations {
   @include position-contenus(flex, space-between, center);

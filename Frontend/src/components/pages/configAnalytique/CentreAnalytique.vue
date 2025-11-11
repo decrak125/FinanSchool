@@ -90,7 +90,7 @@ const filteredCount = computed(() => {
 </script>
 
 <template>
-  <PageAnalyse>
+  <PageAnalyse :menu="'Saisie Analytique'" :sousmenu="'Centre Analytique'">
       <transition name="fade">
       <PopUp v-if="opendelete">
         <Icon :color="'primary'" :icon="'bi bi-envelope'" />
@@ -148,7 +148,6 @@ const filteredCount = computed(() => {
       </PopUp>
     </transition>
     <div class="main">
-      <ContentHeader :menu="'Saisie Analytique'" :sousmenu="'Centre Analytique'" />
       <div class="informations">
         <p class="Count-content">
           <Counter v-if="centres.length>0" :number="filteredCentres.length" />
@@ -261,8 +260,9 @@ const filteredCount = computed(() => {
   </PageAnalyse>
 </template><style lang="scss" scoped>
 .main {
-  @include position-contenus(flex, center, center);
-  padding: 0 32px;
+  @include position-contenus(flex, baseline, center);
+  padding: 0 12px;
+  height: 100%;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;
@@ -272,7 +272,7 @@ const filteredCount = computed(() => {
 }
 
 #axesTable {
-   @include table(#f5f5f5);
+  @include table($light);
 }
 
 .informations {
@@ -339,34 +339,34 @@ const filteredCount = computed(() => {
   transform: scale(0.9);
 }
 .content {
-  overflow-y: auto;
+  // overflow-y: auto;
   /* Scroll vertical */
   // background-color: #fff;
   width: 100%;
-  max-height: 53vh;
+  height: 100%;
   /* Ajuste selon tes besoins */
   border-radius: $radius-pm;
 }
 
 /* Personnalisation de la scrollbar */
-.content::-webkit-scrollbar {
-  width: 10px;
-}
+// .content::-webkit-scrollbar {
+//   width: 10px;
+// }
 
-.content::-webkit-scrollbar-track {
-  background: #ffffff;
-  border-radius: 10px;
-}
+// .content::-webkit-scrollbar-track {
+//   background: $light;
+//   border-radius: 10px;
+// }
 
-.content::-webkit-scrollbar-thumb {
-  background: $light;
-  border-radius: 10px;
+// .content::-webkit-scrollbar-thumb {
+//   background: $light;
+//   border-radius: 10px;
 
-}
+// }
 
-.content::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
+// .content::-webkit-scrollbar-thumb:hover {
+//   background: #a8a8a8;
+// }
 
 .fade-enter-to,
 .fade-leave-from {

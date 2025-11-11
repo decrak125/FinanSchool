@@ -1,12 +1,18 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import searchbar from '@/components/atoms/searchbar.vue';
 import profile from '@/components/atoms/profile.vue';
 import Notifications from '@/components/molecules/Analyse/Notifications.vue';
+import ContentHeader from "./Content-header.vue";
+defineProps({
+  menu: String,
+  sousmenu : String,
+});
 </script>
 <template>
     <div class="header">
-        <searchbar :placeholder="'Rechercher ou taper une commande...'" :name="'search'" />
+        <div class="gauche">
+            <ContentHeader :menu="menu" :sousmenu="sousmenu"/>
+        </div>
         <div class="droite">
         <Notifications/>
         <profile/>
@@ -16,8 +22,10 @@ import Notifications from '@/components/molecules/Analyse/Notifications.vue';
 
 <style lang="scss" scoped>
 .header {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     display: flex;
-    height: 48px;
+    // height: 48px;
     justify-content: space-between;
     align-items: center;
     align-self: stretch;
@@ -30,6 +38,11 @@ import Notifications from '@/components/molecules/Analyse/Notifications.vue';
     }
 }
 .droite {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.gauche {
     display: flex;
     gap: 10px;
     align-items: center;

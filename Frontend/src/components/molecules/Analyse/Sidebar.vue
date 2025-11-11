@@ -12,7 +12,7 @@ const menuConfig = [
     icon: 'bi bi-house-fill',
     texte: 'Accueil',
     redirection: '/analyse',
-    type: 'simple'
+    type: 'simple',
   },
   {
     id: 'analyse',
@@ -106,13 +106,6 @@ const menuConfig = [
         redirection: '/non-affected'
       }
     ]
-  },
-  {
-    id: 'conseils',
-    icon: 'bi bi-lightbulb-fill',
-    texte: 'Conseils',
-    redirection: '#',
-    type: 'simple'
   }
 ];
 
@@ -215,9 +208,9 @@ function handleMenuClick(menu) {
     openMenu.value = openMenu.value === menu.id ? null : menu.id;
     
     // Si c'est un menu dropdown sans enfant actif, le marquer comme actif
-    if (!menu.children.some(child => child.id === activeMenu.value)) {
-      activeMenu.value = menu.id;
-    }
+    // if (!menu.children.some(child => child.id === activeMenu.value)) {
+    //   activeMenu.value = menu.id;
+    // }
   }
 }
 
@@ -262,14 +255,14 @@ onMounted(() => {
           :class="{ 'has-dropdown': menu.type === 'dropdown' }"
         >
           <!-- Menu simple -->
-          <SidebarMenu
-            v-if="menu.type == 'simple'"
+          <div :class="activeMenu === menu.id ? 'actif' : ''" v-if="menu.type == 'simple'">
+            <SidebarMenu         
             :icon="menu.icon"
             :texte="menu.texte"
             :redirection="menu.redirection"
-            :class="{ active: isMenuActive(menu) }"
             @click="handleMenuClick(menu)"
           />
+          </div>
 
           <!-- Menu avec dropdown -->
           <div v-else-if="menu.type === 'dropdown'" class="dropdown-menu">
@@ -318,12 +311,7 @@ onMounted(() => {
         @click="handleMenuClick(menu)"
       />
       <!-- LOG OUT -->
-      <SidebarMenu
-        :texte="'Déconnexion'"
-        :icon="'bi bi-door-closed-fill'"
-        :redirection="'/'"
-        @click="logout"
-      />
+      
     </div>
   </aside>
 
@@ -414,11 +402,15 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .sidebar-desktop {
+  @include glass();
+  // -----------------------
+  // background-color: #fff;
   display: flex;
   width: 245px;
-  height: 100vh;
+  height: 100%;
   padding: 32px 24px;
-  background-color: #f9f8f8;
+  // margin: 8px;
+  border-radius: $radius-pm;
   flex-direction: column;
   gap: 24px;
   align-items: center;
@@ -575,7 +567,17 @@ hr {
 
 /* Style du menu actif */
 .active {
-  background-color: #e0e7ff !important;
+  background: rgba(255, 255, 255, 0.25);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1),
+  inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-radius: $radius-pm;
+  color: $secondary !important;
+  transition: all 0.3s ease;
+}
+
+.actif {
+  @include glass();
   border-radius: $radius-pm;
   color: $secondary !important;
   transition: all 0.3s ease;

@@ -4,7 +4,10 @@ import Header from '@/components/molecules/Analyse/Header.vue';
 import Footer from '../molecules/Analyse/Footer.vue';
 import { useNotificationStore } from '@/stores/notificationStore'; // ← IMPORTANT
 import ChatBot from '@/components/template/ChatBot.vue';
-
+defineProps({
+  menu: String,
+  sousmenu : String,
+});
 const token = localStorage.getItem("token");
 const store = useNotificationStore(); // ← INITIALISATION DU STORE
 
@@ -31,18 +34,20 @@ onMounted(() => {
 <template>
   <div class="all">
     <div class="container" v-if="token">
+          <div class="bc"></div>
+
       <div class="sidebar">
         <sidebar />
       </div>
       <div class="main">
         <div class="header">
-          <Header />
+          <Header :menu="menu" :sousmenu="sousmenu"/>
         </div>
         <div class="content">
           <slot />
           <ChatBot />
         </div>
-        <Footer/>
+        <!-- <Footer/> -->
       </div>
     </div>
     <div class="redirection" v-else>
@@ -57,31 +62,39 @@ onMounted(() => {
 
 <!-- Le reste de votre style reste inchangé -->
 <style lang="scss" scoped>
-html, body {
-  height: 100%;
-  margin: 0;
-}
+// html, body {
+//   background-color: $light;
+//   height: 100%;
+//   margin: 0;
+// }
+
 .container {
+  
+  // background-color: $light;
   display: flex;
   width: 100%;
   height: 100vh; // toute la hauteur visible de l’écran
-  overflow: hidden;
-
+  // overflow: hidden;
   @media (max-width: 1024px) {
     flex-direction: column;
     height: auto;
+    
   }
 }
 
 .main {
-  margin-left: 260px; // espace égal à la largeur de la sidebar
+  left: 0;
+  top: 0;
+  margin-left: 265px; // espace égal à la largeur de la sidebar
   display: flex;
   flex-direction: column;
-  padding: 32px 24px 24px 24px;
+  padding: 32px 12px 32px 0;
   flex: 1;
-  height: 100vh;
-  overflow-y: auto; // permet de scroller uniquement dans le contenu
+  width:100vh;
+  height: fit-content;
   // background-color: $light;
+  // overflow-y: auto; // permet de scroller uniquement dans le contenu
+  scrollbar-width: thin;
   gap: 24px;
 
   @media (max-width: 1024px) {
@@ -94,11 +107,12 @@ html, body {
 }
 .header {
   position: fixed;
+  padding: 8px;
   top: 0;
   left: 260px; // démarre après la sidebar
   right: 0;
-  height: 120px;
-  background-color: #fff; // ou ta couleur de fond du header
+  // height: 100px;
+  // background-color: $light; // ou ta couleur de fond du header
   z-index: 999;
   display: flex;
   align-items: center;
@@ -114,10 +128,10 @@ html, body {
   }
 }
 .content {
-  margin-top: 75px;
+  margin-top: 80px;
   flex: 1;
   width: 100%;
-  background-color: $light;
+  // background-color: $light;
   // border-radius: $radius-pm;
   @include position-contenus(block, center, center);
 }
@@ -141,6 +155,7 @@ html, body {
   width: 100vh;
   height: 100vh;
   display: flex;
+  background-color: $light;
   @include position-contenus(flex, center, center);
   @include position-container();
 }
@@ -178,8 +193,13 @@ html, body {
   position: fixed; // position fixe sur l’écran
   top: 0;
   left: 0;
-  width: 260px; // largeur fixe
-  height: 100vh; // pleine hauteur
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  padding: 12px;
+  // width: 260px; // largeur fixe
+  height: 100vh;
+  // background-color: $light;
   z-index: 1000;
   // background-color: $light; // à adapter selon ta couleur
   // border-right: 1px solid rgba(0, 0, 0, 0.1);
@@ -189,5 +209,32 @@ html, body {
     width: 100%;
     height: auto;
   }
+}
+.all{
+  height: 100vh;
+}
+.bc{
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(
+    -45deg,
+    #f2c6b8, 
+    #ffffff, 
+    #b7e3f3, 
+    #ffffff,
+    #bdf2e2, 
+    #ffffff, 
+    #f3f2b7, 
+    #ffffff);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+  
+}
+
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 </style>

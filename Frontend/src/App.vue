@@ -7,6 +7,7 @@ import { RouterLink, RouterView } from "vue-router";
 </template>
 
 <style scoped>
+
       @font-face {
       font-family: "Stara";
       src: url("/fonts/Stara-Medium.woff2") format("woff2"),

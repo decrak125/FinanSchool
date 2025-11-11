@@ -35,8 +35,8 @@ import Texte from './Texte.vue';
     padding: 12px 18px;
     align-items: center;
     gap: 10px;
-    border-radius: var(--Border-radius, 32px);
-    background: #EBEBEB;
+    border-radius: $radius-pm;
+    @include glass();
 }
 option{
     @include input($dark, $dark, $radius-pm, $stara-medium);

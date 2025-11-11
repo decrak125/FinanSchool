@@ -226,8 +226,8 @@ export default {
 
 .bouton-open {
   position: fixed;
-  bottom: 64px;
-  right: 64px;
+  bottom: 32px;
+  right: 32px;
   z-index: 9999999999;
   width: 64px;
   height: 64px;
@@ -246,13 +246,13 @@ export default {
     font-family: $stara-medium;
     font-size: 14px;
     position: fixed;
-  bottom: 136px;
-  right: 64px;
+  bottom: 116px;
+  right: 32px;
 
   width: 360px;
   height: 500px;
   border: 1px solid #ddd;
-  border-radius: 10px;
+  border-radius: $radius-pm;
   display: flex;
   flex-direction: column;
   background: white;
@@ -274,7 +274,7 @@ export default {
   color: white;
   padding: 15px;
   text-align: center;
-  border-radius: 10px 10px 0 0;
+  border-radius: $radius-pm $radius-pm 0 0;
 }
 
 .chat-header h3 {
@@ -384,7 +384,7 @@ export default {
   padding: 15px;
   border-top: 1px solid #ddd;
   background: white;
-  border-radius: 0 0 10px 10px;
+  border-radius: 0 0 $radius-pm $radius-pm;
 }
 
 .chat-input input {

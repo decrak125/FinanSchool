@@ -10,7 +10,7 @@
 </template>
 <style lang="scss" scoped>
     .popup {
-    position: absolute;
+    position: fixed;
     // top: 0;
     // left: 0;
     @include position-contenus(flex, center, center);

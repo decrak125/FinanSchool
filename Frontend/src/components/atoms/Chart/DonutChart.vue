@@ -2,6 +2,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import BoutonIcon from '../Bouton-icon.vue';
+import Texte from '../Texte.vue';
 
 const showDetails = ref(true);
 const props = defineProps({
@@ -155,16 +156,16 @@ const chartOptions = computed(() => {
                 }
             }
         }],
-        title: {
-            text: props.title,
-            align: 'center',
-            style: {
-                fontFamily: 'stara',
-                fontSize: '16px',
-                fontWeight: 'bold',
-                color: '#373d3f'
-            }
-        }
+        // title: {
+        //     text: props.title,
+        //     align: 'center',
+        //     style: {
+        //         fontFamily: 'stara',
+        //         fontSize: '16px',
+        //         fontWeight: 'bold',
+        //         color: '#373d3f'
+        //     }
+        // }
     };
 
     if (props.type === 'donut') {
@@ -265,15 +266,19 @@ const legendItems = computed(() => {
             <div v-if="separateLegend" class="chart-with-separate-legend">
                 <transition name="fade">
                     <div class="chart-container">
+                                        <div class="table-title">
+                    <Texte :type="'bold-dark'" :texte="title" />
+                </div>
+
                         <div class="graphic-wrapper">
                             <apexchart :type="type" :height="height" :options="chartOptions" :series="series"
                                 :id="chartId" />
                         </div>
-                        <div class="voir" @click="showDetails = !showDetails">
+                        <!-- <div class="voir" @click="showDetails = !showDetails">
                             <i class="bi bi-eye"></i>
                             <p v-if="!showDetails">Voir les details</p>
                             <p v-if="showDetails">Masquer les details</p>
-                        </div>
+                        </div> -->
                     </div>
                 </transition>
                 <transition name="fade">
@@ -307,6 +312,9 @@ const legendItems = computed(() => {
 </template>
 
 <style lang="scss" scoped>
+// .table-title {
+// padding: 12px
+// }
 .voir {
     @include position-contenus(flex, center, center);
     gap: 0.5rem;
@@ -349,6 +357,7 @@ const legendItems = computed(() => {
 .donut-chart-wrapper:hover {
     transform: scale(1.02);
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
     
     @media (max-width: 768px) {
         transform: none; // Désactiver le scale sur mobile pour éviter les problèmes de layout
@@ -356,8 +365,11 @@ const legendItems = computed(() => {
 }
 
 .donut-chart-wrapper {
+    @include glass();
     width: 100%;
-    background-color: #fff;
+    height: 100%;
+    gap: 12px;
+    // padding: 24px;
     border-radius: $radius-pm;
     animation: appear 0.6s ease-out forwards;
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
@@ -378,6 +390,7 @@ const legendItems = computed(() => {
 // Style pour la version séparée
 .chart-with-separate-legend {
     // min-width: none;
+    
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
     @include position-contenus(flex, flex-start, flex-start);
     @media (max-width: 1024px) {
@@ -392,6 +405,8 @@ const legendItems = computed(() => {
     .chart-container {
         flex: 1;
         min-width: 0;
+        height: 100%;
+        padding: 24px;
         
         @media (max-width: 768px) {
             width: 100%;
@@ -409,8 +424,9 @@ const legendItems = computed(() => {
 
     .legend-container {
         width: auto;
-        height: auto;
+        height: auto;  
         
+        padding: 24px 0;      
         @media (max-width: 768px) {
             width: 100%;
         }
@@ -432,6 +448,7 @@ const legendItems = computed(() => {
 
             .legend-title {
                 font-family: 'stara';
+                
                 font-size: 16px;
                 font-weight: bold;
                 margin-bottom: 1rem;
@@ -446,9 +463,11 @@ const legendItems = computed(() => {
             }
 
             .legend-items {
-                width: 150px;
+                width: 200px;
+                height: 100%;
                 display: flex;
                 flex-direction: column;
+                justify-content: center;
             }
 
             .legend-item {
@@ -483,6 +502,7 @@ const legendItems = computed(() => {
                 .legend-content {
                     flex: 1;
                     min-width: 0;
+                    
 
                     .legend-label {
                         font-family: 'stara';
