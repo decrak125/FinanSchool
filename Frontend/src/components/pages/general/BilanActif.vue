@@ -2,6 +2,7 @@
   <div class="dashboard-container w-full">
     <Header v-if="user" :user="user" />
     <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
+
     <div class="main-content p-6">
       <div class="card card-form">
         <div class="p-6">
@@ -15,6 +16,23 @@
             <button @click="goBack" class="btn btn-outline">Retour</button>
           </div>
           <br>
+
+          <!-- FILTRE EXERCICE -->
+          <div class="filter-section" v-if="exercices.length">
+            <label>
+              <strong>Sélectionner un exercice :</strong>
+              <select v-model="selectedExercice" @change="onExerciceChange" class="form-select">
+                <option 
+                  v-for="ex in exercices"
+                  :key="ex.Id_Exercice_comptable" 
+                  :value="ex.Id_Exercice_comptable">
+                  {{ ex.Annee_fiscale }} - Du {{ formatDate(ex.Date_debut) }} au {{ formatDate(ex.Date_fin) }}
+                </option>
+              </select>
+            </label>
+          </div>
+          <br>
+
           <div class="info-container mb-6" v-if="exerciceInfo.date_debut">
             <h2 class="text-xl mb-3 font-bold">Informations du bilan</h2>
             <div class="info-grid">
@@ -38,7 +56,9 @@
               </div>
             </div>
           </div>
+
           <br>
+
           <div class="export-container mb-6 d-flex gap-4">
             <button @click="exportToPDF" class="btn btn-primary">Exporter en PDF</button>
             <button @click="exportToExcel" class="btn btn-primary">Exporter en Excel</button>
@@ -135,75 +155,104 @@ const exerciceInfo = ref({
   statut: ""
 });
 
-  const token = localStorage.getItem("token"); // Récupérer le token
+// --- FILTRE EXERCICE ---
+const exercices = ref([]);
+const selectedExercice = ref("");
+const exerciceCourantId = ref("");
 
+// Récupère l'exercice courant depuis l'API dédiée
+const fetchExerciceCourant = async () => {
+  try {
+    const { data } = await axios.get("http://localhost:8000/api/exercices/courant");
+    exerciceCourantId.value = data.Id_Exercice_comptable ?? (data.exercice?.Id_Exercice_comptable) ?? "";
+  } catch (e) {
+    exerciceCourantId.value = "";
+  }
+};
+
+// Charge tous les exercices
+const loadExercices = async () => {
+  try {
+    const { data } = await axios.get("http://localhost:8000/api/exercices");
+    exercices.value = Array.isArray(data) ? data : (data.exercices || []);
+  } catch (error) {
+    exercices.value = [];
+  }
+};
+
+// Gère le changement d'exercice et remplit les infos
+const onExerciceChange = () => {
+  const ex = exercices.value.find(e => e.Id_Exercice_comptable == selectedExercice.value);
+  if (!ex) return;
+  exerciceInfo.value.date_debut    = ex.Date_debut;
+  exerciceInfo.value.date_fin      = ex.Date_fin;
+  exerciceInfo.value.annee_fiscale = ex.Annee_fiscale;
+  exerciceInfo.value.statut        = ex.Statut;
+  // Cherche le suivant (N-1)
+  const idx = exercices.value.findIndex(e => e.Id_Exercice_comptable == ex.Id_Exercice_comptable);
+  const exN1 = exercices.value[idx + 1];
+  if (exN1) {
+    exerciceInfo.value.date_debut_n1 = exN1.Date_debut;
+    exerciceInfo.value.date_fin_n1   = exN1.Date_fin;
+  } else {
+    exerciceInfo.value.date_debut_n1 = "";
+    exerciceInfo.value.date_fin_n1   = "";
+  }
+  fetchBilanActif();
+};
+
+const token = localStorage.getItem("token");
 if (!token) {
-  // Redirection vers login si pas de token
   window.location.href = "/";
 } else {
-  // Configurer Axios pour inclure le token dans toutes les requêtes
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
 
 onMounted(async () => {
-  console.log("Token récupéré :", token); // Vérifie si le token existe
-  
   if (!token) {
-    console.log("Pas de token → Redirection vers /");
     window.location.href = "/";
   } else {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     try {
-      console.log("Appel getUser en cours...");
       const res = await getUser(token);
       user.value = res.data;
-      console.log("User récupéré :", user.value);
     } catch (err) {
-      console.error("Erreur lors de getUser :", err);
       localStorage.removeItem("token");
       window.location.href = "/";
-      return; // Important : arrête l'exécution
+      return;
     }
-    await loadExerciceOuvert();
-    await fetchBilanActif();
+    await fetchExerciceCourant();
+    await loadExercices();
+    if (exercices.value.length) {
+      const courant = exercices.value.find(e => e.Id_Exercice_comptable == exerciceCourantId.value);
+      selectedExercice.value = courant
+        ? courant.Id_Exercice_comptable
+        : exercices.value[0].Id_Exercice_comptable;
+      onExerciceChange();
+    }
   }
 });
 
-const loadExerciceOuvert = async () => {
-  try {
-    const { data: exercices } = await axios.get("http://localhost:8000/api/exercices");
-    const exerciceN = exercices.find(ex => ex.Statut === 'OUVERT');
-    if (exerciceN) {
-      exerciceInfo.value.date_debut = exerciceN.Date_debut;
-      exerciceInfo.value.date_fin = exerciceN.Date_fin;
-      exerciceInfo.value.annee_fiscale = exerciceN.Annee_fiscale;
-      exerciceInfo.value.statut = exerciceN.Statut;
-      const indexN = exercices.findIndex(ex => ex.Statut === 'OUVERT');
-      if (exercices[indexN + 1]) {
-        const exerciceN1 = exercices[indexN + 1];
-        exerciceInfo.value.date_debut_n1 = exerciceN1.Date_debut;
-        exerciceInfo.value.date_fin_n1 = exerciceN1.Date_fin;
-      }
-    }
-  } catch (error) {
-    console.error("Erreur chargement exercice:", error);
-    alert("Impossible de charger l'exercice ouvert");
-  }
-};
-
+// Récupère les lignes du bilan actif
 const fetchBilanActif = async () => {
   loading.value = true;
   let resN = [], resN1 = [];
   try {
     if (exerciceInfo.value.date_debut && exerciceInfo.value.date_fin) {
       const { data } = await axios.get("http://localhost:8000/api/bilan/actif", {
-        params: { date_debut: exerciceInfo.value.date_debut, date_fin: exerciceInfo.value.date_fin }
+        params: {
+          date_debut: exerciceInfo.value.date_debut,
+          date_fin: exerciceInfo.value.date_fin
+        }
       });
       resN = data;
     }
     if (exerciceInfo.value.date_debut_n1 && exerciceInfo.value.date_fin_n1) {
       const { data } = await axios.get("http://localhost:8000/api/bilan/actif", {
-        params: { date_debut: exerciceInfo.value.date_debut_n1, date_fin: exerciceInfo.value.date_fin_n1 }
+        params: {
+          date_debut: exerciceInfo.value.date_debut_n1,
+          date_fin: exerciceInfo.value.date_fin_n1
+        }
       });
       resN1 = data;
     }
@@ -232,13 +281,11 @@ const formatMontant = n => {
   if (n === null || n === undefined) return "";
   return Math.abs(Number(n)).toLocaleString("fr-FR", { minimumFractionDigits: 2 });
 };
-
 const formatDate = d => {
   if (!d) return "";
   const date = new Date(d);
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 };
-
 const exportToPDF = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
   const doc = new jsPDF('l', 'mm', 'a4');
@@ -273,7 +320,6 @@ const exportToPDF = () => {
   });
   doc.save("bilan_actif.pdf");
 };
-
 const exportToExcel = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
   const dataForExcel = listeComplete.value.map(l => ({
@@ -291,6 +337,7 @@ const exportToExcel = () => {
 };
 </script>
 
+
 <style scoped>
 .dashboard-container { display: flex; min-height: 100vh; flex-direction: column; }
 .main-content { margin-left: 278px; padding: 32px; flex: 1; background: #f8fafb; min-height: calc(100vh - 80px);}
@@ -302,26 +349,19 @@ const exportToExcel = () => {
 .badge { display: inline-block; width: fit-content; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600;}
 .badge-success { background-color: #d1fae5; color: #065f46;}
 .badge-secondary { background-color: #e5e7eb; color: #374151;}
-
 .bilan-table thead th { background-color: #1e40af; color: white; font-weight: 600; text-transform: uppercase; font-size: 0.875rem; padding: 0.75rem; border: 1px solid #ddd;}
 .vertical-middle { vertical-align: middle !important;}
-
 .title-row { background-color: #dbeafe !important; font-weight: bold; font-size: 1.05rem;}
 .title-row td { padding: 0.75rem 1rem; color: #1e40af; font-weight: 700; border-top: 2px solid #3b82f6;}
-
 .subtitle-row { background-color: #f0f9ff !important; font-weight: 600; font-style: italic;}
 .subtitle-row td { padding: 0.6rem 1rem; color: #0369a1;}
-
 .total-row { background-color: #e0e7ff !important; font-weight: bold; border-top: 2px solid #3b82f6; border-bottom: 2px solid #3b82f6;}
 .total-row td { padding: 0.75rem 1rem; color: #1e40af; font-weight: 700;}
-
 .subtotal-row { background-color: #ede9fe !important; font-weight: 600;}
 .subtotal-row td { padding: 0.65rem 1rem; color: #5b21b6;}
-
 .detail-row { background-color: #ffffff;}
 .detail-row:hover { background-color: #f9fafb; transition: background-color 0.2s ease;}
 .detail-row td { padding: 0.6rem 1rem; color: #374151;}
-
 .pl-4 { padding-left: 1.5rem !important;}
 .pl-8 { padding-left: 3rem !important;}
 .font-bold { font-weight: 700;}

@@ -5,6 +5,7 @@
     <div class="main-content p-6">
       <div class="card card-form">
         <div class="p-6">
+
           <!-- Titre -->
           <div class="card-header">
             <h1 class="text-3xl mb-4">
@@ -12,11 +13,29 @@
             </h1>
           </div>
           <br>
+
           <!-- Bouton Retour -->
           <div class="mb-4">
             <button @click="goBack" class="btn btn-outline">Retour</button>
           </div>
           <br>
+
+          <!-- FILTRE EXERCICE -->
+          <div class="filter-section mb-6" v-if="exercices.length">
+            <label>
+              <strong>Sélectionner un exercice :</strong>
+              <select v-model="selectedExercice" @change="onExerciceChange" class="form-select">
+                <option 
+                  v-for="ex in exercices"
+                  :key="ex.Id_Exercice_comptable" 
+                  :value="ex.Id_Exercice_comptable">
+                  {{ ex.Annee_fiscale }} - Du {{ formatDate(ex.Date_debut) }} au {{ formatDate(ex.Date_fin) }}
+                </option>
+              </select>
+            </label>
+          </div>
+          <br>
+
           <!-- Informations de l'exercice -->
           <div class="info-container mb-6" v-if="exerciceInfo.date_debut">
             <h2 class="text-xl mb-3 font-bold">Informations du compte de résultat</h2>
@@ -42,12 +61,14 @@
             </div>
           </div>
           <br>
+
           <!-- Export -->
           <div class="export-container mb-6 d-flex gap-4">
             <button @click="exportToPDF" class="btn btn-primary">Exporter en PDF</button>
             <button @click="exportToExcel" class="btn btn-primary">Exporter en Excel</button>
           </div>
           <br>
+
           <!-- Tableau -->
           <div class="table-container mt-6">
             <table v-if="loading" class="table table-bordered table-striped w-full">
@@ -138,91 +159,97 @@ const exerciceInfo = ref({
   statut: ""
 });
 
-// Chargement automatique au montage
-const token = localStorage.getItem("token"); // Récupérer le token
+const exercices = ref([]);
+const selectedExercice = ref("");
+const exerciceCourantId = ref("");
+
+const token = localStorage.getItem("token");
 
 if (!token) {
-  // Redirection vers login si pas de token
   window.location.href = "/";
 } else {
-  // Configurer Axios pour inclure le token dans toutes les requêtes
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
 
+const fetchExerciceCourant = async () => {
+  try {
+    const { data } = await axios.get("http://localhost:8000/api/exercices/courant");
+    exerciceCourantId.value = data.Id_Exercice_comptable ?? (data.exercice?.Id_Exercice_comptable) ?? "";
+  } catch (e) {
+    exerciceCourantId.value = "";
+  }
+};
+
+const loadExercices = async () => {
+  try {
+    const { data } = await axios.get("http://localhost:8000/api/exercices");
+    exercices.value = Array.isArray(data) ? data : (data.exercices || []);
+  } catch (error) {
+    exercices.value = [];
+  }
+};
+
+const onExerciceChange = () => {
+  const ex = exercices.value.find(e => e.Id_Exercice_comptable == selectedExercice.value);
+  if (!ex) return;
+  exerciceInfo.value.date_debut    = ex.Date_debut;
+  exerciceInfo.value.date_fin      = ex.Date_fin;
+  exerciceInfo.value.annee_fiscale = ex.Annee_fiscale;
+  exerciceInfo.value.statut        = ex.Statut;
+  // Cherche le suivant (N-1)
+  const idx = exercices.value.findIndex(e => e.Id_Exercice_comptable == ex.Id_Exercice_comptable);
+  const exN1 = exercices.value[idx + 1];
+  if (exN1) {
+    exerciceInfo.value.date_debut_n1 = exN1.Date_debut;
+    exerciceInfo.value.date_fin_n1   = exN1.Date_fin;
+  } else {
+    exerciceInfo.value.date_debut_n1 = "";
+    exerciceInfo.value.date_fin_n1   = "";
+  }
+  fetchResultats();
+};
+
 onMounted(async () => {
-  console.log("Token récupéré :", token); // Vérifie si le token existe
-  
   if (!token) {
-    console.log("Pas de token → Redirection vers /");
     window.location.href = "/";
   } else {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     try {
-      console.log("Appel getUser en cours...");
       const res = await getUser(token);
       user.value = res.data;
-      console.log("User récupéré :", user.value);
     } catch (err) {
-      console.error("Erreur lors de getUser :", err);
       localStorage.removeItem("token");
       window.location.href = "/";
-      return; // Important : arrête l'exécution
+      return;
     }
-    await loadExerciceOuvert();
-    await fetchResultats();
+    await fetchExerciceCourant();
+    await loadExercices();
+    if (exercices.value.length) {
+      const courant = exercices.value.find(e => e.Id_Exercice_comptable == exerciceCourantId.value);
+      selectedExercice.value = courant
+        ? courant.Id_Exercice_comptable
+        : exercices.value[0].Id_Exercice_comptable;
+      onExerciceChange();
+    }
   }
 });
-
-
-// Récupérer l'exercice ouvert et N-1
-const loadExerciceOuvert = async () => {
-  try {
-    const { data: exercices } = await axios.get("http://localhost:8000/api/exercices");
-    const exerciceN = exercices.find(ex => ex.Statut === 'OUVERT');
-    if (exerciceN) {
-      exerciceInfo.value.date_debut = exerciceN.Date_debut;
-      exerciceInfo.value.date_fin = exerciceN.Date_fin;
-      exerciceInfo.value.annee_fiscale = exerciceN.Annee_fiscale;
-      exerciceInfo.value.statut = exerciceN.Statut;
-
-      const indexN = exercices.findIndex(ex => ex.Statut === 'OUVERT');
-      if (exercices[indexN + 1]) {
-        const exerciceN1 = exercices[indexN + 1];
-        exerciceInfo.value.date_debut_n1 = exerciceN1.Date_debut;
-        exerciceInfo.value.date_fin_n1 = exerciceN1.Date_fin;
-      }
-    }
-  } catch (error) {
-    console.error("Erreur chargement exercice:", error);
-    alert("Impossible de charger l'exercice ouvert");
-  }
-};
 
 const fetchResultats = async () => {
   loading.value = true;
   let resN = [], resN1 = [];
-
   try {
     if (exerciceInfo.value.date_debut && exerciceInfo.value.date_fin) {
       const { data } = await axios.get("http://localhost:8000/api/compte-resultat/fonction", {
-        params: {
-          date_debut: exerciceInfo.value.date_debut,
-          date_fin: exerciceInfo.value.date_fin
-        }
+        params: { date_debut: exerciceInfo.value.date_debut, date_fin: exerciceInfo.value.date_fin }
       });
       resN = data;
     }
-    
     if (exerciceInfo.value.date_debut_n1 && exerciceInfo.value.date_fin_n1) {
       const { data } = await axios.get("http://localhost:8000/api/compte-resultat/fonction", {
-        params: {
-          date_debut: exerciceInfo.value.date_debut_n1,
-          date_fin: exerciceInfo.value.date_fin_n1
-        }
+        params: { date_debut: exerciceInfo.value.date_debut_n1, date_fin: exerciceInfo.value.date_fin_n1 }
       });
       resN1 = data;
     }
-
     listeComplete.value = resN.map((ligneN, idx) => ({
       label: ligneN.label,
       note: ligneN.note || "",
@@ -238,7 +265,6 @@ const fetchResultats = async () => {
   }
 };
 
-// Formatage avec valeur absolue
 const formatMontantAbsolu = n => {
   if (!n && n !== 0) return "";
   return Math.abs(Number(n)).toLocaleString("fr-FR", { minimumFractionDigits: 2 });
@@ -250,19 +276,16 @@ const formatDate = d => {
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 };
 
-// Export PDF
 const exportToPDF = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
   const doc = new jsPDF();
-  
   doc.setFontSize(16);
   doc.text("Compte de Résultat par Fonction", 14, 14);
-  
   doc.setFontSize(10);
   doc.text(`Exercice : ${exerciceInfo.value.annee_fiscale}`, 14, 22);
   doc.text(`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`, 14, 28);
   doc.text(`Unité monétaire : Ariary (Ar)`, 14, 34);
-  
+
   autoTable(doc, {
     head: [["POSTE", "NOTE", "N", "N-1"]],
     body: listeComplete.value.map(l =>
@@ -290,6 +313,7 @@ const exportToExcel = () => {
   XLSX.writeFile(wb, "compte_resultat_fonction.xlsx");
 };
 </script>
+
 
 <style scoped>
 .dashboard-container { display: flex; min-height: 100vh; flex-direction: column; }
