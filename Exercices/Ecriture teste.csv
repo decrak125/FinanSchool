@@ -26,7 +26,7 @@ Date;Sous-compte;Libelle;Debit;Credit;Reference;CODE
 08/08/2025;531001;Ecolage Illan TPS;150000;0;ECOL-20250808;BNI
 08/08/2025;605004;Jirama;32500;0;Jirama-080825;BNI
 08/08/2025;531001;Jirama;0;32500;Jirama-080825;BNI
-08/08/2025;168001;Echeancier pret bancaire;1200000;0;Pret;BNI
+08/08/2025;164001;Echeancier pret bancaire;1200000;0;Pret;BNI
 08/08/2025;531001;Echeancier pret bancaire;0;1200000;Pret;BNI
 08/08/2025;581001;Versement en banque BMOI;100000;0;VERS080825;BNI
 08/08/2025;531001;Versement en banque BMOI;0;100000;VERS080825;BNI
