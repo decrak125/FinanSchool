@@ -146,11 +146,13 @@ onMounted(() => {
 const handleExerciceChange = async (event) => {
   const idExercice = event.target.value;
   await changeExercice(idExercice);
+  updateInterpretationCards();
 };
 
 // Fonction pour rafraîchir les données manuellement
 const handleRefresh = () => {
   refreshAllData();
+  updateInterpretationCards();
 };
 
 </script>
@@ -445,7 +447,6 @@ const handleRefresh = () => {
           <Texte :type="'bold-dark'" :texte="'Vue et évolution des indicateurs'" />
         </div>
 
-        <div class="comparison-table-container">
           <table class="table" id="axesTable">
             <thead>
               <tr>
@@ -600,7 +601,6 @@ const handleRefresh = () => {
               </tr>
             </tbody>
           </table>
-        </div>
       </div>
     </div>
   </PageAnalyse>
@@ -608,12 +608,13 @@ const handleRefresh = () => {
 
 <style lang="scss" scoped>
 #axesTable {
-  @include table(#f5f5f5);
+  @include table();
+  border-radius: $radius-pm;
   cursor: pointer;
 
-  @media (max-width: $mobile) {
-    font-size: 0.875rem;
-  }
+  // @media (max-width: $mobile) {
+  //   font-size: 0.875rem;
+  // }
 }
 
 .details-popup {
@@ -645,7 +646,7 @@ const handleRefresh = () => {
 .cartes {
   @include position-contenus(grid, center, center);
   padding: 0;
-  gap: 32px;
+  gap: 24px;
 
   @media (max-width: $tablet) {
     gap: 24px;
@@ -660,7 +661,7 @@ const handleRefresh = () => {
 
 .main {
   @include position-contenus(flex, center, center);
-  padding: 0 32px;
+  padding: 0 18px;
   flex-direction: column;
   gap: 20px;
   flex: 1 0 0;
@@ -681,7 +682,7 @@ const handleRefresh = () => {
 .hauteur {
   @include position-contenus(flex, center, center);
   padding: 0;
-  gap: 32px;
+  gap: 24px;
 
   @media (max-width: $tablet) {
     gap: 24px;
@@ -697,10 +698,10 @@ const handleRefresh = () => {
   @include position-contenus(flex, flex-start, flex-start);
   padding: 10px 0;
   align-self: stretch;
-  gap: 32px;
+  gap: 24px;
 
   @media (max-width: $tablet) {
-    gap: 24px;
+    gap: 18px;
     flex-direction: column;
   }
 
@@ -772,12 +773,16 @@ const handleRefresh = () => {
 /* Section de comparaison */
 .comparison-section {
   width: 100%;
-  margin-top: 20px;
+  height: 100%;
+  @include glass();
+  border-radius: $radius-pm;
+  padding: 18px;
+  gap: 8px;
 }
 
 .section-header {
   margin-bottom: 16px;
-
+  padding: 12px;
   h3 {
     margin: 0;
     color: #2c3e50;

@@ -20,10 +20,11 @@ defineProps({
             <p class="indicator">Vue globale sur l'évolution de cet indicateur.</p>
         </div>
         <div class="data">
+          <Texte v-if="parseFloat(chiffre) > 0" :texte="'+'" :type="'title-dark'"/>
+          <Texte :texte="chiffre" :type="'title-dark'"/>
             <p :class="colorVariation">{{ icon }}</p>
-            <Texte :texte="chiffre" :type="'title-dark'"/>
-            <p class="indicator">d'évolution.</p>
         </div>
+        
         <Texte :texte="interpretation+
         '. Une évolution de '+chiffre+' et une variation de '+variation+'% '
         " :type="'dark'"/>
@@ -53,12 +54,12 @@ defineProps({
   display: flex;
   align-items: center;
   margin-top: -10px;
-  gap: 12px;
+  gap: 10px;
 
 }
 .container{
     width: 100%;
-    height: 392px;
+    height: 370px;
     align-items: flex-start;
     justify-content: space-between;
     align-content: flex-start;
@@ -80,7 +81,7 @@ defineProps({
 .trend-neutral {
   color: $gris;
   font-family: $stara-bold;
-  font-size: 24px;
+  font-size: 48px;
   font-style: normal;
   line-height: normal;
   margin: 5px 0px;
@@ -89,7 +90,7 @@ defineProps({
 .trend-stable {
   color: $gris;
   font-family: $stara-bold;
-  font-size: 24px;
+  font-size: 48px;
   font-style: normal;
   line-height: normal;
   margin: 5px 0px;
@@ -98,7 +99,7 @@ defineProps({
 .trend {
   color: $gris;
   font-family: $stara-bold;
-  font-size: 24px;
+  font-size: 48px;
   font-style: normal;
   line-height: normal;
   margin: 5px;
@@ -107,7 +108,7 @@ defineProps({
 .trend-up {
   color: $vert;
   font-family: $stara-bold;
-  font-size: 24px;
+  font-size: 48px;
   font-style: normal;
   line-height: normal;
   margin: 5px 0px;
@@ -118,7 +119,7 @@ defineProps({
 .trend-down {
   color: $rouge;
   font-family: $stara-bold;
-  font-size: 24px;
+  font-size: 48px;
   font-style: normal;
   line-height: normal;
   margin: 5px 0px;

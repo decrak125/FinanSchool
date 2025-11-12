@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import PageAnalyse from '@/components/template/Page-analyse.vue';
 import { useIndicateurSolvabilite } from "@/composables/useIndicateurSolvabilite";
 import Card from "@/components/atoms/Chart/Card.vue";
@@ -9,6 +9,7 @@ import FilterSelect from "@/components/atoms/Filter-select.vue";
 import LoadingText from "@/components/atoms/Loading-text.vue";
 import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
+import InterpretationCarousel from "@/components/molecules/Analyse/InterpretationCarousel.vue";
 
 
 const nombreLignesLoader = ref(3);
@@ -39,22 +40,6 @@ const {
     changeExercice,
 } = useIndicateurSolvabilite(filters);
 
-// Chargement initial
-onMounted(() => {
-  initializeData();
-});
-
-// Gestion du changement d'exercice
-const handleExerciceChange = async (event) => {
-  const idExercice = event.target.value;
-  await changeExercice(idExercice);
-};
-
-// Fonction pour rafraîchir les données manuellement
-const handleRefresh = () => {
-  refreshAllData();
-};
-
 // Formater les valeurs monétaires
 const formatMoney = (value) => {
   if (value === null || value === undefined) return 'N/A';
@@ -84,10 +69,93 @@ const getTrendIcon = (comparison) => {
   return comparison.trend === 'up' ? '↗' : 
          comparison.trend === 'down' ? '↘' : '→';
 };
+
+const interpretationCardsData = ref([]);
+
+// Fonction sécurisée pour mettre à jour les données du carousel
+const updateInterpretationCards = () => {
+  console.log('Updating carousel data:', {
+    AutonomieFinanciere: AutonomieFinanciere.value,
+    CapaciteRemboursement: CapaciteRemboursement.value,
+    RatioEndettement: RatioEndettement.value,
+    comparisons: comparisons.value
+  });
+
+  interpretationCardsData.value = [
+    {
+      texte: "Autonomie financière",
+      chiffre: formatPercentage(comparisons.value.Autonomie.evolution),
+      icon: getTrendIcon(comparisons.value?.Autonomie),
+      variation: comparisons.value?.Autonomie?.percentage || '0',
+      colorVariation: getTrendClass(comparisons.value?.Autonomie),
+      interpretation: AutonomieFinanciere.value?.autonomie_financiere?.interpretation || "Évolution des revenus totaux",
+      format: 'percentage'
+    },
+    {
+      texte: "Capacité de remboursement",
+      chiffre: formatMoney(comparisons.value.Remboursement.evolution),
+      icon: getTrendIcon(comparisons.value?.Remboursement),
+      variation: comparisons.value?.Remboursement?.percentage || '0',
+      colorVariation: getTrendClass(comparisons.value?.Remboursement),
+      interpretation: CapaciteRemboursement.value?.capacite_remboursement?.interpretation || "Évolution des dépenses totales",
+      format: 'number'
+    },
+    {
+      texte: "Ratio d'endettement",
+      chiffre: formatPercentage(comparisons.value.Endettement.evolution),
+      icon: getTrendIcon(comparisons.value?.Endettement),
+      variation: comparisons.value?.Endettement?.percentage || '0',
+      colorVariation: getTrendClass(comparisons.value?.Endettement),
+      interpretation: RatioEndettement.value?.ratio_endettement?.interpretation || "Évolution du résultat net",
+      format: 'percentage',
+      negative: true
+    }
+    // ,
+    // {
+    //   texte: "ROA",
+    //   chiffre: formatPercentage(comparisons.value.ROA.evolution),
+    //   icon: getTrendIcon(comparisons.value?.ROA),
+    //   variation: comparisons.value?.ROA?.percentage || '0',
+    //   colorVariation: getTrendClass(comparisons.value?.ROA),
+    //   interpretation: ROA.value?.roa?.interpretation || "Évolution de la marge d'exploitation",
+    //   format: 'percentage'
+    // }
+  ].filter(card => card.chiffre !== undefined && card.chiffre !== null);
+  
+  console.log('Carousel data updated:', interpretationCardsData.value);
+};
+
+// Watcher pour mettre à jour automatiquement le carousel quand les données changent
+watch([() => AutonomieFinanciere.value, () => CapaciteRemboursement.value, () => RatioEndettement.value, () => comparisons.value], () => {
+  if (!loading.value) {
+    updateInterpretationCards();
+  }
+}, { deep: true, immediate: true });
+// Chargement initial
+onMounted(() => {
+  initializeData().then(() => {
+    console.log('Data initialized, updating carousel');
+    updateInterpretationCards();
+  });
+});
+
+// Gestion du changement d'exercice
+const handleExerciceChange = async (event) => {
+  const idExercice = event.target.value;
+  await changeExercice(idExercice);
+  updateInterpretationCards();
+};
+
+// Fonction pour rafraîchir les données manuellement
+const handleRefresh = () => {
+  refreshAllData();
+  updateInterpretationCards();
+};
+
 </script>
 
 <template>
-  <PageAnalyse>
+  <PageAnalyse :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs de solvabilité'">
     <PopUp v-if="detailsAutonomie">
       <div class="details-popup">
         <div class="popuphead">
@@ -226,8 +294,6 @@ const getTrendIcon = (comparison) => {
 
 
     <div class="main">
-      <ContentHeader :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs de solvabilité'" />
-      
       <!-- Filtres -->
       <div class="filtres">
         <Texte :type="'dark'" :texte="'Exercice comptable'" />
@@ -286,16 +352,22 @@ const getTrendIcon = (comparison) => {
               :variation="getTrendIcon(comparisons.Endettement) + ' ' + comparisons.Endettement.percentage"
               :colorVariation="getTrendClass(comparisons.Endettement)"
             />
-            <Card 
+            <!-- <Card 
               :texte="'No data'" 
               :chiffre="0"
               :format="'number'" 
               :icon="'bi bi-question-lg'" 
               :icon-color="'purple'" 
               :negative="true" 
-            />
+            /> -->
           </div>
         </div>
+        <InterpretationCarousel 
+          :cards="interpretationCardsData"
+          :autoPlay="true"
+          :autoPlayInterval="5000"
+          :showNavigation="true"
+        />
       </div>
 
       <!-- Tableau de comparaison N vs N-1 -->
@@ -304,7 +376,6 @@ const getTrendIcon = (comparison) => {
           <Texte :type="'bold-dark'" :texte="'Vue et évolution des indicateurs'" />
         </div>
         
-        <div class="comparison-table-container">
           <table class="table" id="axesTable">
             <thead>
               <tr>
@@ -405,21 +476,22 @@ const getTrendIcon = (comparison) => {
           </table>
         </div>
       </div>
-    </div>
   </PageAnalyse>
 </template>
 
 <style lang="scss" scoped>
-
-.details-popup{
-  min-width: 75vh;
-}
 #axesTable {
-  @include table(#f5f5f5);
+  @include table();
+  border-radius: $radius-pm;
   cursor: pointer;
-  @media (max-width: $mobile) {
-    font-size: 0.875rem;
-  }
+
+  // @media (max-width: $mobile) {
+  //   font-size: 0.875rem;
+  // }
+}
+
+.details-popup {
+  min-width: 75vh;
 }
 
 #footable {
@@ -444,11 +516,10 @@ const getTrendIcon = (comparison) => {
   cursor: default;
 }
 
-
 .cartes {
   @include position-contenus(grid, center, center);
   padding: 0;
-  gap: 32px;
+  gap: 24px;
 
   @media (max-width: $tablet) {
     gap: 24px;
@@ -463,7 +534,7 @@ const getTrendIcon = (comparison) => {
 
 .main {
   @include position-contenus(flex, center, center);
-  padding: 0 32px;
+  padding: 0 18px;
   flex-direction: column;
   gap: 20px;
   flex: 1 0 0;
@@ -482,9 +553,9 @@ const getTrendIcon = (comparison) => {
 }
 
 .hauteur {
-  @include position-contenus(flex, center, center);
+  @include position-contenus(flex, baseline, center);
   padding: 0;
-  gap: 32px;
+  gap: 24px;
 
   @media (max-width: $tablet) {
     gap: 24px;
@@ -500,10 +571,10 @@ const getTrendIcon = (comparison) => {
   @include position-contenus(flex, flex-start, flex-start);
   padding: 10px 0;
   align-self: stretch;
-  gap: 32px;
+  gap: 24px;
 
   @media (max-width: $tablet) {
-    gap: 24px;
+    gap: 18px;
     flex-direction: column;
   }
 
@@ -519,12 +590,12 @@ const getTrendIcon = (comparison) => {
   align-self: self-start;
   gap: 16px;
   flex-wrap: wrap;
-  
+
   @media (max-width: $tablet) {
     align-self: stretch;
     justify-content: flex-start;
   }
-  
+
   @media (max-width: $mobile) {
     gap: 12px;
     justify-content: center;
@@ -534,7 +605,7 @@ const getTrendIcon = (comparison) => {
 // .exercice-header {
 //   @include position-contenus(flex, space-between, center);
 //   margin-bottom: 8px;
-  
+
 //   @media (max-width: $mobile) {
 //     flex-direction: column;
 //     align-items: flex-start;
@@ -575,12 +646,16 @@ const getTrendIcon = (comparison) => {
 /* Section de comparaison */
 .comparison-section {
   width: 100%;
-  margin-top: 20px;
+  height: 100%;
+  @include glass();
+  border-radius: $radius-pm;
+  padding: 18px;
+  gap: 8px;
 }
 
 .section-header {
   margin-bottom: 16px;
-  
+  padding: 12px;
   h3 {
     margin: 0;
     color: #2c3e50;
@@ -592,28 +667,29 @@ const getTrendIcon = (comparison) => {
 .comparison-table-container {
   background: white;
   border-radius: 8px;
-//   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-//   overflow: hidden;
+  //   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  //   overflow: hidden;
 }
 
 .comparison-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  
-  th, td {
+
+  th,
+  td {
     padding: 12px 16px;
     text-align: left;
     border-bottom: 1px solid #e9ecef;
   }
-  
+
   th {
     background-color: #f8f9fa;
     font-weight: 600;
     color: #495057;
     border-bottom: 2px solid #dee2e6;
   }
-  
+
   tbody tr:hover {
     background-color: #f8f9fa;
   }
@@ -648,12 +724,26 @@ const getTrendIcon = (comparison) => {
 
 .trend-icon {
   font-size: 16px;
-  
-  &.green { color: #28a745; }
-  &.red { color: #dc3545; }
-  &.orange { color: #fd7e14; }
-  &.purple { color: #6f42c1; }
-  &.blue { color: #007bff; }
+
+  &.green {
+    color: #28a745;
+  }
+
+  &.red {
+    color: #dc3545;
+  }
+
+  &.orange {
+    color: #fd7e14;
+  }
+
+  &.purple {
+    color: #6f42c1;
+  }
+
+  &.blue {
+    color: #007bff;
+  }
 }
 
 .value-current {
@@ -665,9 +755,10 @@ const getTrendIcon = (comparison) => {
   color: #6c757d;
 }
 
-.evolution, .percentage {
+.evolution,
+.percentage {
   font-weight: 600;
-  
+
   .trend-icon {
     margin-right: 4px;
     font-weight: bold;
@@ -676,15 +767,16 @@ const getTrendIcon = (comparison) => {
 
 .trend-up {
   color: #28a745;
-//   background-color: rgba(40, 167, 69, 0.1);
+  //   background-color: rgba(40, 167, 69, 0.1);
 }
 
 .trend-down {
   color: #dc3545;
-//   background-color: rgba(220, 53, 69, 0.1);
+  //   background-color: rgba(220, 53, 69, 0.1);
 }
 
-.trend-stable, .trend-neutral {
+.trend-stable,
+.trend-neutral {
   color: #6c757d;
   // background-color: rgba(108, 117, 125, 0.1);
 }
@@ -693,21 +785,23 @@ const getTrendIcon = (comparison) => {
 @media (max-width: $tablet) {
   .comparison-table {
     font-size: 13px;
-    
-    th, td {
+
+    th,
+    td {
       padding: 10px 12px;
     }
   }
-  
+
   .indicateur-col {
     width: 30%;
   }
-  
+
   .value-col {
     width: 18%;
   }
-  
-  .evolution-col, .percentage-col {
+
+  .evolution-col,
+  .percentage-col {
     width: 17%;
   }
 }
@@ -716,16 +810,17 @@ const getTrendIcon = (comparison) => {
   .comparison-table-container {
     overflow-x: auto;
   }
-  
+
   .comparison-table {
     min-width: 600px;
     font-size: 12px;
-    
-    th, td {
+
+    th,
+    td {
       padding: 8px 10px;
     }
   }
-  
+
   .indicateur-name {
     flex-direction: column;
     align-items: flex-start;

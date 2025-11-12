@@ -335,7 +335,7 @@ body {
 .milieu{
   display: flex;
   // flex-direction: column;
-  gap: 18px;
+  gap: 24px;
 }
 .table-div {
   width: 100%;
@@ -358,7 +358,7 @@ body {
   // max-height: 60vh;
   border-radius: $radius-pm;
   align-self: stretch;
-  gap: 18px;
+  gap: 24px;
 
   // @media (max-width: $mobile) {
   //   max-height: 50vh;
@@ -386,21 +386,21 @@ body {
 
 .graphic {
   @include position-contenus(flex, flex-start, flex-start);
-  padding: 10px 0;
+  padding: 18px 0;
   align-self: stretch;
-  gap: 18px;
+  gap: 24px;
 }
 
 .cartes {
   @include position-contenus(grid, center, center);
   padding: 0;
-  gap: 18px;
+  gap: 24px;
 }
 
 .hauteur {
   @include position-contenus(flex, center, center);
   padding: 0;
-  gap: 18px;
+  gap: 24px;
 }
 
 .gauche {
@@ -412,7 +412,7 @@ body {
   padding: 10px 0;
   height: 100%;
   @include position-contenus(flex, center, center);
-  gap: 18px;
+  gap: 24px;
 
   @media (max-width: $tablet) {
     grid-template-columns: repeat(2, 1fr);
@@ -452,7 +452,7 @@ body {
 
 .main {
   @include position-contenus(flex, center, center);
-  padding: 0 12px;
+  padding: 0 18px;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;

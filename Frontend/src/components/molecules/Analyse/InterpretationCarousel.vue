@@ -40,13 +40,13 @@
     </div>
     
     <!-- Boutons de navigation -->
-    <!-- <button 
+    <button 
       v-if="cards.length > 1 && showNavigation"
       class="nav-button prev"
       @click="prevSlide"
       :disabled="currentIndex === 0"
     >
-      ‹
+      <i class="bi bi-chevron-left"></i>
     </button>
     <button 
       v-if="cards.length > 1 && showNavigation"
@@ -54,8 +54,8 @@
       @click="nextSlide"
       :disabled="currentIndex === cards.length - 1"
     >
-      ›
-    </button> -->
+      <i class="bi bi-chevron-right"></i>
+    </button>
         <div class="indicators" v-if="cards.length > 1">
       <span 
         v-for="(card, index) in cards" 
@@ -313,7 +313,7 @@ onUnmounted(() => {
     display: flex;
     justify-content: center;
     gap: 8px;
-    margin-bottom: 16px;
+    padding-bottom: 32px;
     // padding-top: 16px;
     
     .indicator {
@@ -380,26 +380,27 @@ onUnmounted(() => {
   
   .nav-button {
     position: absolute;
-    top: 50%;
+    top: 90%;
     transform: translateY(-50%) scale(1);
-    background: rgba(255, 255, 255, 0.95);
+    @include glass();
     border: none;
     border-radius: 50%;
-    width: 48px;
-    height: 48px;
-    font-size: 20px;
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+    color: $gris;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    // box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 10;
     backdrop-filter: blur(10px);
     
     &:hover:not(:disabled) {
-      background: white;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+      // background: white;
+      // box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
       transform: translateY(-50%) scale(1.1);
     }
     
@@ -408,7 +409,7 @@ onUnmounted(() => {
     }
     
     &:disabled {
-      opacity: 0.3;
+      opacity: 0;
       cursor: not-allowed;
       transform: translateY(-50%) scale(1);
     }
