@@ -13,23 +13,19 @@
           </div>
           <br>
 
-          <!-- Bouton Retour -->
           <div class="mb-4">
             <button @click="goBack" class="btn btn-outline">Retour aux Journaux</button>
           </div>
           <br>
 
-          <!-- Filtres -->
           <div class="filter-container mb-6">
             <h2 class="text-xl mb-4">Filtrer la balance</h2>
             <form @submit.prevent="applyFilters" class="d-flex gap-4 flex-column flex-md-row">
-              <div class="form-group">
-                <label class="form-label">Date de début</label>
-                <input v-model="filters.date_debut" type="date" class="form-input" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Date de fin</label>
-                <input v-model="filters.date_fin" type="date" class="form-input" />
+              <div class="form-group" style="display: flex;">
+                <label class="form-label">Exercice comptable</label>
+                <select v-model="selectedExercice" class="form-select" @change="onExerciceChange">
+                  <option v-for="ex in exercices" :key="ex.id" :value="ex.id">{{ ex.nom }}</option>
+                </select>
               </div>
               <div class="form-group">
                 <label class="form-label">Classe de compte</label>
@@ -45,11 +41,12 @@
                 </select>
               </div>
               <div class="form-group">
-                <label class="form-label">Exercice comptable</label>
-                <select v-model="filters.exercice_comptable" class="form-select">
-                  <option value="">Tous</option>
-                  <option v-for="ex in exercices" :key="ex.id" :value="ex.id">{{ ex.nom }}</option>
-                </select>
+                <label class="form-label">Date début</label>
+                <input type="date" v-model="filters.date_debut" class="form-input" readonly />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Date fin</label>
+                <input type="date" v-model="filters.date_fin" class="form-input" readonly />
               </div>
               <div class="d-flex gap-2 align-center">
                 <button type="submit" class="btn btn-primary" style="height: 40px;">Appliquer</button>
@@ -58,13 +55,11 @@
             </form>
           </div>
 
-          <!-- Boutons d'exportation -->
           <div class="export-container mb-6 d-flex gap-4">
             <button @click="exportToPDF" class="btn btn-primary">Exporter en PDF</button>
             <button @click="exportToExcel" class="btn btn-primary">Exporter en Excel</button>
           </div>
 
-          <!-- Tableau de la balance générale -->
           <div class="table-container mt-6">
             <table v-if="loading" class="table table-bordered table-striped w-full">
               <tbody>
@@ -85,20 +80,14 @@
               </thead>
               <tbody>
                 <template v-for="(mainAccount, mainCode) in groupedComptes" :key="mainCode">
-                  <!-- Compte principal -->
                   <tr class="main-account-row">
                     <td class="p-4 text-base font-bold cursor-pointer" @click="toggleAccount(mainCode)">
                       <i :class="mainAccount.expanded ? 'bi bi-chevron-down' : 'bi bi-chevron-right'" class="me-2"></i>
                       {{ mainCode }} - {{ mainAccount.libelle }}
                     </td>
-                    <td class="p-4 text-base font-bold">
-                      {{ formatNumber(Math.abs(mainAccount.total_debit)) }}
-                    </td>
-                    <td class="p-4 text-base font-bold">
-                      {{ formatNumber(Math.abs(mainAccount.total_credit)) }}
-                    </td>
+                    <td class="p-4 text-base font-bold">{{ formatNumber(Math.abs(mainAccount.total_debit)) }}</td>
+                    <td class="p-4 text-base font-bold">{{ formatNumber(Math.abs(mainAccount.total_credit)) }}</td>
                   </tr>
-                  <!-- Sous-comptes -->
                   <template v-if="mainAccount.expanded">
                     <tr v-for="(subAccount, index) in mainAccount.subAccounts" :key="`${mainCode}-${index}`" class="sub-account-row">
                       <td class="p-4 text-base pl-8">{{ subAccount.code_sous_compte }} - {{ subAccount.libelle_sous_compte }}</td>
@@ -114,7 +103,6 @@
                 <tr v-if="!Object.keys(groupedComptes).length">
                   <td colspan="3" class="p-4 text-center text-base">Aucune donnée disponible</td>
                 </tr>
-                <!-- Ligne des totaux -->
                 <tr v-if="Object.keys(groupedComptes).length" class="total-row">
                   <td class="p-4 text-base font-bold">Totaux</td>
                   <td class="p-4 text-base font-bold">{{ formatNumber(totalDebit) }}</td>
@@ -123,14 +111,12 @@
               </tbody>
             </table>
           </div>
-
           <AppFooter />
         </div>
       </div>
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
@@ -141,7 +127,7 @@ import * as XLSX from "xlsx";
 import Header from "../../molecules/Header.vue";
 import Sidebar from "../../molecules/Sidebar.vue";
 import AppFooter from "../../molecules/Footer.vue";
-import { getUser } from "../../../services/Auth"; 
+import { getUser } from "../../../services/Auth";
 
 const router = useRouter();
 const user = ref(null);
@@ -149,8 +135,7 @@ const comptes = ref([]);
 const loading = ref(false);
 const expandedAccounts = ref(new Set());
 const exercices = ref([]);
-
-// Filtre
+const selectedExercice = ref(""); // Ajout clé
 const filters = ref({
   date_debut: "",
   date_fin: "",
@@ -158,7 +143,7 @@ const filters = ref({
   exercice_comptable: "",
 });
 
-// Groupement des comptes (classe ➔ sous-comptes)
+// Groupement des comptes (inchangé)
 const groupedComptes = computed(() => {
   const grouped = {};
   comptes.value.forEach((compte) => {
@@ -177,8 +162,6 @@ const groupedComptes = computed(() => {
       libelle_sous_compte: compte.libelle_sous_compte,
       solde_final: parseFloat(compte.solde_final) || 0
     });
-
-    // Accumulateur pour les totaux, selon signe du solde_final
     if ((parseFloat(compte.solde_final) || 0) >= 0) {
       grouped[mainCode].total_debit += parseFloat(compte.solde_final) || 0;
     } else {
@@ -187,7 +170,6 @@ const groupedComptes = computed(() => {
   });
   return grouped;
 });
-
 const getClasseLibelle = (classe) => {
   const classes = {
     '1': 'Capitaux',
@@ -200,19 +182,12 @@ const getClasseLibelle = (classe) => {
   };
   return classes[classe] || 'Classe inconnue';
 };
-
 const totalDebit = computed(() => {
-  return Object.values(groupedComptes.value).reduce(
-    (sum, acc) => sum + (acc.total_debit || 0), 0
-  );
+  return Object.values(groupedComptes.value).reduce((sum, acc) => sum + (acc.total_debit || 0), 0);
 });
-
 const totalCredit = computed(() => {
-  return Object.values(groupedComptes.value).reduce(
-    (sum, acc) => sum + (acc.total_credit || 0), 0
-  );
+  return Object.values(groupedComptes.value).reduce((sum, acc) => sum + (acc.total_credit || 0), 0);
 });
-
 const toggleAccount = (accountCode) => {
   if (expandedAccounts.value.has(accountCode)) {
     expandedAccounts.value.delete(accountCode);
@@ -220,7 +195,6 @@ const toggleAccount = (accountCode) => {
     expandedAccounts.value.add(accountCode);
   }
 };
-
 const handleNavigation = (item) => {
   router.push(item.route);
 };
@@ -231,7 +205,6 @@ if (!token) {
 } else {
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
-
 const formatNumber = (number) => {
   return Number(number).toLocaleString('fr-FR', {
     minimumFractionDigits: 2,
@@ -239,16 +212,19 @@ const formatNumber = (number) => {
     useGrouping: true
   });
 };
-
+// FETCH Balance
 const fetchBalanceGenerale = async () => {
   try {
     loading.value = true;
     const queryParams = new URLSearchParams({
-      ...(filters.value.date_debut && { date_debut: filters.value.date_debut }),
-      ...(filters.value.date_fin && { date_fin: filters.value.date_fin }),
+      ...(filters.value.date_debut && { date_debut: filters.value.date_debut.slice(0, 10) }),
+      ...(filters.value.date_fin && { date_fin: filters.value.date_fin.slice(0, 10) }),
       ...(filters.value.classe_compte && { classe_compte: filters.value.classe_compte }),
       ...(filters.value.exercice_comptable && { exercice_comptable: filters.value.exercice_comptable }),
     }).toString();
+    // DEBUG
+    console.log("Filtres à l'API:", filters.value);
+    console.log("URL API:", `http://127.0.0.1:8000/api/balance-generale?${queryParams}`);
     const res = await axios.get(`http://127.0.0.1:8000/api/balance-generale?${queryParams}`);
     comptes.value = res.data;
   } catch (error) {
@@ -258,52 +234,51 @@ const fetchBalanceGenerale = async () => {
     loading.value = false;
   }
 };
-
+// FETCH Exercices
 const fetchExercices = async () => {
   try {
     const res = await axios.get('http://127.0.0.1:8000/api/exercices');
-    exercices.value = res.data;
-  } catch (e) { 
-    exercices.value = []; 
+    exercices.value = res.data.map(e => ({
+      id: e.Id_Exercice_comptable,
+      nom: `${e.Annee_fiscale} | Du ${e.Date_debut.slice(0, 10)} au ${e.Date_fin.slice(0, 10)} | ${e.Statut}`,
+      ...e
+    }));
+    // Init sélection sur le 1e exercice dans la liste
+    if (exercices.value.length) {
+      selectedExercice.value = exercices.value[0].id;
+      onExerciceChange();
+    }
+  } catch (e) {
+    exercices.value = [];
   }
 };
-
-// NOUVELLE FONCTION : Charger l'exercice courant et initialiser les filtres
-const fetchExerciceCourant = async () => {
-  try {
-    const { data } = await axios.get('http://127.0.0.1:8000/api/exercices/courant');
-    const exercice = data.exercice || data;
-    
-    // Initialiser les filtres avec l'exercice courant
-    filters.value.date_debut = exercice.Date_debut;
-    filters.value.date_fin = exercice.Date_fin;
-    filters.value.exercice_comptable = exercice.Id_Exercice_comptable ?? exercice.id ?? "";
-    
-    // Charger la balance avec ces dates
-    await fetchBalanceGenerale();
-  } catch (err) {
-    console.error('Erreur chargement exercice courant:', err);
-    // Fallback : charger sans filtre
-    filters.value.date_debut = "";
-    filters.value.date_fin = "";
-    filters.value.exercice_comptable = "";
-    await fetchBalanceGenerale();
+// Exercice / période synchronisée
+const onExerciceChange = () => {
+  const exercice = exercices.value.find(ex => ex.id == selectedExercice.value);
+  if (exercice) {
+    filters.value.exercice_comptable = exercice.id;
+    filters.value.date_debut = exercice.Date_debut.slice(0, 10);
+    filters.value.date_fin = exercice.Date_fin.slice(0, 10);
+    fetchBalanceGenerale();
   }
 };
-
-const applyFilters = () => { 
-  fetchBalanceGenerale(); 
-};
-
+// Appliquer les filtres (garde la logique d’export…)
+const applyFilters = () => { fetchBalanceGenerale(); };
 const resetFilters = () => {
-  filters.value = {
-    date_debut: "",
-    date_fin: "",
-    classe_compte: "",
-    exercice_comptable: "",
-  };
-  fetchBalanceGenerale();
+  if (exercices.value.length) {
+    selectedExercice.value = exercices.value[0].id;
+    onExerciceChange();
+  } else {
+    filters.value = {
+      date_debut: "",
+      date_fin: "",
+      classe_compte: "",
+      exercice_comptable: "",
+    };
+    fetchBalanceGenerale();
+  }
 };
+
 
 const societeNom = "RAITRA KIDZ";
 
@@ -402,7 +377,6 @@ const exportToPDF = () => {
     14,
     doc.internal.pageSize.getHeight() - 10
   );
-
   doc.save(`Balance_Generale_${new Date().toISOString().split("T")[0]}.pdf`);
 };
 
@@ -425,131 +399,53 @@ const exportToExcel = () => {
   const today = new Date().toLocaleDateString('fr-FR');
   const title = [["💼 BALANCE GÉNÉRALE"]];
   const details = [
-    [`Date d'export : ${today}`],
-    [""]
+    [`Date d'export : ${today}`],[]
   ];
-  const dataSheet = XLSX.utils.json_to_sheet(data, { origin: -1 });
   const ws = XLSX.utils.aoa_to_sheet([...title, ...details]);
   XLSX.utils.sheet_add_json(ws, data, { origin: -1, skipHeader: false });
-  const colWidths = [
-    { wch: 15 }, { wch: 35 }, { wch: 15 }, { wch: 15 },
-  ];
-  ws['!cols'] = colWidths;
-  ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }
-  ];
+  ws['!cols'] = [ { wch: 15 }, { wch: 35 }, { wch: 15 }, { wch: 15 } ];
+  ws['!merges'] = [ { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } } ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Balance_Generale");
-  XLSX.writeFile(
-    wb,
-    `balance_generale_${new Date().toISOString().split("T")[0]}.xlsx`
-  );
+  XLSX.writeFile(wb, `balance_generale_${new Date().toISOString().split("T")[0]}.xlsx`);
 };
 
-const goBack = () => { 
-  router.push("/journal"); 
-};
+const goBack = () => { router.push("/journal"); };
 
 onMounted(async () => {
+  // DEBUG
   console.log("Token récupéré :", token);
-  
   if (!token) {
-    console.log("Pas de token → Redirection vers /");
     window.location.href = "/";
   } else {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     try {
-      console.log("Appel getUser en cours...");
       const res = await getUser(token);
       user.value = res.data;
-      console.log("User récupéré :", user.value);
     } catch (err) {
-      console.error("Erreur lors de getUser :", err);
       localStorage.removeItem("token");
       window.location.href = "/";
       return;
     }
-    
-    // Charger la liste des exercices (pour le select)
     await fetchExercices();
-    
-    // Charger l'exercice courant et afficher la balance par défaut
     await fetchExerciceCourant();
+    await fetchBalanceGenerale();
   }
 });
 </script>
 
-
+<!-- Style identique à l'original, tu peux garder tel quel -->
 <style scoped>
-.dashboard-container {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: column;
-}
-
-.main-content {
-  margin-left: 278px;
-  padding: 32px;
-  flex: 1;
-  background: #f9fafb;
-  min-height: calc(100vh - 80px);
-}
-
-.filter-container,
-.export-container {
-  background: white;
-  padding: 1rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.bi-table {
-  font-size: 1.125rem;
-  color: #142c6c;
-  vertical-align: middle;
-}
-
-.main-account-row {
-  background-color: #f0f4f8;
-  cursor: pointer;
-}
-
-.main-account-row:hover {
-  background-color: #e1e8f0;
-}
-
-.sub-account-row {
-  background-color: #fafafa;
-}
-
-.total-row {
-  background-color: #e6e6e6;
-  font-weight: bold;
-}
-
-@media (max-width: 768px) {
-  .main-content {
-    margin-left: 0;
-    padding: 1rem;
-  }
-}
-
-.table-container {
-  overflow-x: auto;
-}
-
-.spinner {
-  display: inline-block;
-  width: 2rem;
-  height: 2rem;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #3498db;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+.dashboard-container { display: flex; min-height: 100vh; flex-direction: column; }
+.main-content { margin-left: 278px; padding: 32px; flex: 1; background: #f9fafb; min-height: calc(100vh - 80px); }
+.filter-container, .export-container { background: white; padding: 1rem; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+.bi-table { font-size: 1.125rem; color: #142c6c; vertical-align: middle; }
+.main-account-row { background-color: #f0f4f8; cursor: pointer; }
+.main-account-row:hover { background-color: #e1e8f0; }
+.sub-account-row { background-color: #fafafa; }
+.total-row { background-color: #e6e6e6; font-weight: bold; }
+@media (max-width: 768px) { .main-content { margin-left: 0; padding: 1rem; } }
+.table-container { overflow-x: auto; }
+.spinner { display: inline-block; width: 2rem; height: 2rem; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
