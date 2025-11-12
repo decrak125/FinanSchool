@@ -8,3 +8,5 @@ php artisan cache:clear
 php artisan config:clear
 php artisan route:clear
 php artisan view:clear
+
+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

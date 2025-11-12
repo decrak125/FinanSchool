@@ -91,8 +91,8 @@
               </div>
               <div 
                 class="submenu-item"
-                :class="{ active: currentRoute === '/validation-ecritures' }"
-                @click="navigateTo({ route: '/validation-ecritures', name: 'Validation' })"
+                :class="{ active: currentRoute === '/validation' }"
+                @click="navigateTo({ route: '/validation', name: 'Validation' })"
               >
                 <i class="bi bi-check-circle"></i>
                 <span>Validation</span>

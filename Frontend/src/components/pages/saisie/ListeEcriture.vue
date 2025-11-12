@@ -3,7 +3,7 @@
     <Header v-if="user" :user="user" />
     <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
 
-    <div class="main-content p-6">
+    <div class="main-content p-6" :class="{ 'blurred-overlay': showEditModal || showGroupModal }">
       <!-- Carte Filtres -->
       <div class="card card-form mb-6">
         <div class="card-header">
@@ -63,7 +63,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="ligne in ecritures.data" :key="ligne.Id_Ligne_ecriture">
+            <tr v-for="ligne in filteredEcritures" :key="ligne.Id_Ligne_ecriture">
               <td>
                 <input v-if="ligne.statut !== 'valide'" type="checkbox" :value="ligne.Id_Ligne_ecriture" v-model="selectedRows" />
               </td>
@@ -94,6 +94,9 @@
         <button @click="changePage(ecritures.current_page+1)" :disabled="ecritures.current_page === ecritures.last_page" class="btn btn-xs btn-ghost">Suivant</button>
       </div>
 
+      <!-- Modals avec overlay flou -->
+      <div v-if="showEditModal || showGroupModal" class="modal-overlay"></div>
+
       <!-- Modal modif individuelle -->
       <div v-if="showEditModal" class="modal">
         <div class="modal-content">
@@ -103,10 +106,11 @@
             <input v-model.number="ligneEdit.Debit" type="number" class="form-input mb-2" placeholder="Débit" />
             <input v-model.number="ligneEdit.Credit" type="number" class="form-input mb-2" placeholder="Crédit" />
             <input v-model="ligneEdit.Reference" class="form-input mb-2" placeholder="Référence" />
-            <select v-model="ligneEdit.Id_Compte" class="form-input mb-2">
-              <option value="">Compte...</option>
-              <option v-for="cp in comptes" :value="cp.Id_Compte" :key="cp.Id_Compte">
-                {{ cp.Code_compte }} - {{ cp.Libelle }}
+            <!-- Sous-compte SEULEMENT, PAS compte global -->
+            <select v-model="ligneEdit.Id_Sous_compte" class="form-input mb-2">
+              <option value="">Sous-compte...</option>
+              <option v-for="sc in sousComptes" :value="sc.Id_Sous_compte" :key="sc.Id_Sous_compte">
+                {{ sc.Code_sous_compte }} - {{ sc.Libelle }}
               </option>
             </select>
             <button class="btn btn-success">Enregistrer</button>
@@ -123,6 +127,12 @@
             <input v-model.number="groupEdit.Debit" type="number" class="form-input mb-2" placeholder="Débit (optionnel)" />
             <input v-model.number="groupEdit.Credit" type="number" class="form-input mb-2" placeholder="Crédit (optionnel)" />
             <input v-model="groupEdit.Reference" class="form-input mb-2" placeholder="Référence (optionnel)" />
+            <select v-model="groupEdit.Id_Sous_compte" class="form-input mb-2">
+              <option value="">Sous-compte...</option>
+              <option v-for="sc in sousComptes" :value="sc.Id_Sous_compte" :key="sc.Id_Sous_compte">
+                {{ sc.Code_sous_compte }} - {{ sc.Libelle }}
+              </option>
+            </select>
             <button class="btn btn-success">Modifier {{ selectedRows.length }} écritures</button>
             <button @click="showGroupModal=false" type="button" class="btn btn-ghost ml-2">Annuler</button>
           </form>
@@ -134,22 +144,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import axios from "axios";
 import Header from "../../molecules/Header.vue";
 import Sidebar from "../../molecules/Sidebar.vue";
 import AppFooter from "../../molecules/Footer.vue";
 
-// Auth
 const user = ref(null);
 const token = localStorage.getItem("token");
 if (!token) window.location.href = "/";
 axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
-// Routing
 const handleNavigation = (item) => { window.location.href = item.route; };
 
-// Filtres et listes de référence
 const filters = ref({
   q: "",
   date_debut: "",
@@ -162,20 +169,18 @@ const filters = ref({
 const classes = ref([]);
 const comptes = ref([]);
 const journaux = ref([]);
+const sousComptes = ref([]);
 
-// Table, sélection et états
 const ecritures = ref({ data: [], current_page: 1, last_page: 1 });
 const isLoading = ref(false);
 const selectedRows = ref([]);
 const allChecked = ref(false);
 
-// Modals
 const showEditModal = ref(false);
 const ligneEdit = ref({});
 const showGroupModal = ref(false);
-const groupEdit = ref({ Libelle: "", Debit: null, Credit: null, Reference: "" });
+const groupEdit = ref({ Libelle: "", Debit: null, Credit: null, Reference: "", Id_Sous_compte: "" });
 
-// Format helpers
 function formatDate(d) {
   return d ? new Date(d).toLocaleDateString("fr-FR") : "";
 }
@@ -183,7 +188,6 @@ function formatMontant(m) {
   return Number(m || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2 });
 }
 
-// API: chargement et filtres
 async function fetchEcritures() {
   isLoading.value = true;
   try {
@@ -197,6 +201,27 @@ async function fetchEcritures() {
   }
   isLoading.value = false;
 }
+
+// Filtrage côté front pour classes/comptes/journaux
+const filteredEcritures = computed(() => {
+  let result = ecritures.value.data;
+  if(filters.value.Id_Classe) {
+    result = result.filter(ligne =>
+      ligne.sous_compte?.compte?.rubrique?.classe?.Id_Classe == filters.value.Id_Classe
+    );
+  }
+  if(filters.value.Id_Compte) {
+    result = result.filter(ligne =>
+      ligne.sous_compte?.compte?.Id_Compte == filters.value.Id_Compte
+    );
+  }
+  if(filters.value.Id_Journal) {
+    result = result.filter(ligne =>
+      ligne.Id_Journal == filters.value.Id_Journal
+    );
+  }
+  return result;
+});
 
 function resetFilters() {
   filters.value = {
@@ -224,9 +249,10 @@ function toggleAllRows() {
   }
 }
 
-// Edition individuelle
 function editLigne(ligne) {
   ligneEdit.value = { ...ligne };
+  // par défaut le sous-compte sélectionné de la ligne
+  ligneEdit.value.Id_Sous_compte = ligne.sous_compte?.Id_Sous_compte;
   showEditModal.value = true;
 }
 async function updateLigneEdit() {
@@ -235,9 +261,8 @@ async function updateLigneEdit() {
   fetchEcritures();
 }
 
-// Edition groupée
 function editGroup() {
-  groupEdit.value = { Libelle: "", Debit: null, Credit: null, Reference: "" };
+  groupEdit.value = { Libelle: "", Debit: null, Credit: null, Reference: "", Id_Sous_compte: "" };
   showGroupModal.value = true;
 }
 async function updateGroup() {
@@ -248,7 +273,6 @@ async function updateGroup() {
   allChecked.value = false;
 }
 
-// Initialisation: chargement user, classes, comptes, journaux, écritures
 onMounted(async () => {
   try {
     const resUser = await axios.get("http://localhost:8000/api/user");
@@ -259,6 +283,8 @@ onMounted(async () => {
     comptes.value = resComptes.data;
     const resJournaux = await axios.get("http://localhost:8000/api/journals");
     journaux.value = resJournaux.data;
+    const resSousComptes = await axios.get("http://localhost:8000/api/sous-comptes");
+    sousComptes.value = resSousComptes.data;
   } catch {}
   await fetchEcritures();
 });
@@ -276,6 +302,33 @@ onMounted(async () => {
   flex: 1;
   background: #f8fafc;
   min-height: calc(100vh - 80px);
+  transition: filter 0.3s;
+}
+.blurred-overlay {
+  filter: blur(4px);
+  pointer-events: none;
+  user-select: none;
+}
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(38,48,80,0.23);
+  backdrop-filter: blur(5px);
+  z-index: 1001;
+}
+.modal {
+  position: fixed;
+  left: 0; top: 0; width: 100vw; height: 100vh; z-index: 1010;
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-content {
+  background-color: #fff;
+  padding: 2.2rem 2rem;
+  border-radius: 12px;
+  min-width: 350px;
+  min-height: 200px;
+  box-shadow: 0 4px 24px 4px rgba(30,64,175,.08);
+  z-index: 1020;
 }
 @media (max-width: 768px) {
   .main-content {
@@ -283,5 +336,4 @@ onMounted(async () => {
     padding: 16px;
   }
 }
-/* Style les .card, .modal, .badge selon ton framework/utilisation */
 </style>

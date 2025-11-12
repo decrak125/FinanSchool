@@ -34,6 +34,7 @@ import VariationsCapitaux from "@/components/pages/general/VariationsCapitaux.vu
 import Import from "@/components/pages/import/Import.vue";
 import Amortissement from "@/components/pages/configuration/Amortissement.vue";
 import ListeEcriture from "@/components/pages/saisie/ListeEcriture.vue";
+import Validation from "@/components/pages/saisie/Validation.vue";
 const routes = [
   {
     path: "/",
@@ -209,6 +210,11 @@ const routes = [
     path : "/liste-ecriture",
     name : "ListeEcriture",
     component : ListeEcriture
+  },
+  {
+    path: "/validation",
+    name : "Validation",
+    component : Validation
   }
 
 

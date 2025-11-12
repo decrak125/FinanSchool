@@ -94,9 +94,7 @@ Route::middleware('api')->group(function () {
     Route::apiResource('journals', JournalController::class);
     Route::apiResource('mouvements', MouvementEcritureController::class);
     // Route::post('mouvements/{id}/valider', [MouvementEcritureController::class, 'valider']);
-    Route::apiResource('lignes', LigneEcritureController::class);
-    Route::post('lignes/{id}/valider', [LigneEcritureController::class, 'valider']);
-    Route::apiResource('devises', DeviseController::class);
+Route::apiResource('devises', DeviseController::class);
     // Validation globale
     Route::post('/lignes/valider-toutes', [LigneEcritureController::class, 'validerToutesLesEcritures']);
 
@@ -106,6 +104,8 @@ Route::middleware('api')->group(function () {
     // Rapport avant validation
     Route::get('/lignes/rapport-validation', [LigneEcritureController::class, 'getRapportValidation']);
 
+        Route::apiResource('lignes', LigneEcritureController::class);
+    Route::post('lignes/{id}/valider', [LigneEcritureController::class, 'valider']);
 
     Route::post('/mouvements/{id}/solder', [LigneEcritureController::class, 'solderMouvement']);
 
