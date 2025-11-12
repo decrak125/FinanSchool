@@ -65,7 +65,7 @@ defineProps({
     align-self: flex-start;
     display: flex;
     flex-direction: column;
-    background-color: #ffff;
+    @include glass();
     font-family: Stara;
     font-size: 32px;
     font-style: normal;
@@ -75,6 +75,10 @@ defineProps({
     gap: 5px;
     border-radius: $radius-pm;
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
+}
+.container:hover{
+    transform: scale(1.01);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .trend-neutral {

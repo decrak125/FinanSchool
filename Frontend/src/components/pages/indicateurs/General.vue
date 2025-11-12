@@ -9,8 +9,7 @@ import FilterSelect from "@/components/atoms/Filter-select.vue";
 import LoadingText from "@/components/atoms/Loading-text.vue";
 import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
-import InterpretationCard from "@/components/atoms/Chart/InterpretationCard.vue";
-
+import InterpretationCarousel from "@/components/molecules/Analyse/InterpretationCarousel.vue";
 
 const filters = ref({
   dateStart: "",
@@ -43,15 +42,21 @@ const {
   changeExercice
 } = useIndicateurGeneral(filters);
 
-// Chargement initial
+const interpretationCardsData = ref([]);
+
+// Mettre à jour les données du carousel lorsque les données changent
+
 onMounted(() => {
-  initializeData();
+  initializeData().then(() => {
+    updateInterpretationCards();
+  });
 });
 
-// Gestion du changement d'exercice
+// Mettre à jour aussi lors du changement d'exercice
 const handleExerciceChange = async (event) => {
   const idExercice = event.target.value;
   await changeExercice(idExercice);
+  updateInterpretationCards();
 };
 
 // Fonction pour rafraîchir les données manuellement
@@ -88,6 +93,44 @@ const getTrendIcon = (comparison) => {
   return comparison.trend === 'up' ? '↗' :
     comparison.trend === 'down' ? '↘' : '→';
 };
+
+const updateInterpretationCards = () => {
+  interpretationCardsData.value = [
+    {
+      texte: "Total les revenus",
+      chiffre: parseInt(totalProduits?.total_produits?.valeur),
+      icon: getTrendIcon(comparisons.produits),
+      variation: comparisons.produits.percentage,
+      colorVariation: getTrendClass(comparisons.produits),
+      interpretation: totalProduits?.total_produits?.interpretation || "Évolution des revenus totaux"
+    },
+    {
+      texte: "Total des dépenses",
+      chiffre: parseInt(totalCharges?.total_charges?.valeur),
+      icon: getTrendIcon(comparisons.charges),
+      variation: comparisons.charges.percentage,
+      colorVariation: getTrendClass(comparisons.charges),
+      interpretation: totalCharges?.total_charges?.interpretation || "Évolution des dépenses totales"
+    },
+    {
+      texte: "Bénéfices/Pertes",
+      chiffre: parseInt(resultatNet?.resultat_net?.valeur),
+      icon: getTrendIcon(comparisons.resultatNet),
+      variation: comparisons.resultatNet.percentage,
+      colorVariation: getTrendClass(comparisons.resultatNet),
+      interpretation: resultatNet?.resultat_net?.interpretation || "Évolution du résultat net"
+    },
+    {
+      texte: "Marge d'exploitation",
+      chiffre: comparisons.margeExploitation?.hasData ? formatPercentage(comparisons.margeExploitation.evolution) : 'N/A',
+      icon: getTrendIcon(comparisons.margeExploitation),
+      variation: comparisons.margeExploitation.percentage,
+      colorVariation: getTrendClass(comparisons.margeExploitation),
+      interpretation: margeExploitation?.marge_exploitation?.interpretation || "Évolution de la marge d'exploitation"
+    }
+  ];
+};
+
 </script>
 
 <template>
@@ -366,13 +409,11 @@ const getTrendIcon = (comparison) => {
               :colorVariation="getTrendClass(comparisons.margeExploitation)" />
           </div>
         </div>
-        <InterpretationCard 
-        :chiffre="comparisons.margeExploitation?.hasData ? formatPercentage(comparisons.margeExploitation.evolution) : 'N/A'" 
-        :texte="'Marge d\'exploitation'"
-        :interpretation="margeExploitation?.marge_exploitation?.interpretation" 
-        :icon="getTrendIcon(comparisons.margeExploitation)"
-        :variation="comparisons.margeExploitation.percentage"
-        :colorVariation="getTrendClass(comparisons.margeExploitation)"
+        <InterpretationCarousel 
+          :cards="interpretationCardsData"
+          :autoPlay="true"
+          :autoPlayInterval="5000"
+          :showNavigation="true"
         />
       </div>
 
