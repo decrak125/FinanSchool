@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import PageAnalyse from '@/components/template/Page-analyse.vue';
 import { useIndicateurGeneral } from "@/composables/useIndicateurGeneral";
 import Card from "@/components/atoms/Chart/Card.vue";
@@ -9,6 +9,7 @@ import FilterSelect from "@/components/atoms/Filter-select.vue";
 import LoadingText from "@/components/atoms/Loading-text.vue";
 import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
+// Correction du chemin d'importation
 import InterpretationCarousel from "@/components/molecules/Analyse/InterpretationCarousel.vue";
 
 const filters = ref({
@@ -41,35 +42,10 @@ const {
   initializeData,
   changeExercice
 } = useIndicateurGeneral(filters);
-
-const interpretationCardsData = ref([]);
-
-// Mettre à jour les données du carousel lorsque les données changent
-
-onMounted(() => {
-  initializeData().then(() => {
-    updateInterpretationCards();
-  });
-});
-
-// Mettre à jour aussi lors du changement d'exercice
-const handleExerciceChange = async (event) => {
-  const idExercice = event.target.value;
-  await changeExercice(idExercice);
-  updateInterpretationCards();
-};
-
-// Fonction pour rafraîchir les données manuellement
-const handleRefresh = () => {
-  refreshAllData();
-};
-
 // Formater les valeurs monétaires
 const formatMoney = (value) => {
   if (value === null || value === undefined) return '';
   return new Intl.NumberFormat('mg-MG', {
-    // style: 'currency',
-    // currency: 'MGA',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(value);
@@ -94,45 +70,90 @@ const getTrendIcon = (comparison) => {
     comparison.trend === 'down' ? '↘' : '→';
 };
 
+// Préparer les données pour le carousel
+const interpretationCardsData = ref([]);
+
+// Fonction sécurisée pour mettre à jour les données du carousel
 const updateInterpretationCards = () => {
+  console.log('Updating carousel data:', {
+    totalProduits: totalProduits.value,
+    totalCharges: totalCharges.value,
+    resultatNet: resultatNet.value,
+    margeExploitation: margeExploitation.value,
+    comparisons: comparisons.value
+  });
+
   interpretationCardsData.value = [
     {
-      texte: "Total les revenus",
-      chiffre: parseInt(totalProduits?.total_produits?.valeur),
-      icon: getTrendIcon(comparisons.produits),
-      variation: comparisons.produits.percentage,
-      colorVariation: getTrendClass(comparisons.produits),
-      interpretation: totalProduits?.total_produits?.interpretation || "Évolution des revenus totaux"
+      texte: "Revenus",
+      chiffre: formatMoney(comparisons.value.produits.evolution),
+      icon: getTrendIcon(comparisons.value?.produits),
+      variation: comparisons.value?.produits?.percentage || '0',
+      colorVariation: getTrendClass(comparisons.value?.produits),
+      interpretation: totalProduits.value?.total_produits?.interpretation || "Évolution des revenus totaux",
+      format: 'money'
     },
     {
-      texte: "Total des dépenses",
-      chiffre: parseInt(totalCharges?.total_charges?.valeur),
-      icon: getTrendIcon(comparisons.charges),
-      variation: comparisons.charges.percentage,
-      colorVariation: getTrendClass(comparisons.charges),
-      interpretation: totalCharges?.total_charges?.interpretation || "Évolution des dépenses totales"
+      texte: "Dépenses",
+      chiffre: formatMoney(comparisons.value.charges.evolution),
+      icon: getTrendIcon(comparisons.value?.charges),
+      variation: comparisons.value?.charges?.percentage || '0',
+      colorVariation: getTrendClass(comparisons.value?.charges),
+      interpretation: totalCharges.value?.total_charges?.interpretation || "Évolution des dépenses totales",
+      format: 'money'
     },
     {
       texte: "Bénéfices/Pertes",
-      chiffre: parseInt(resultatNet?.resultat_net?.valeur),
-      icon: getTrendIcon(comparisons.resultatNet),
-      variation: comparisons.resultatNet.percentage,
-      colorVariation: getTrendClass(comparisons.resultatNet),
-      interpretation: resultatNet?.resultat_net?.interpretation || "Évolution du résultat net"
+      chiffre: formatMoney(comparisons.value.resultatNet.evolution),
+      icon: getTrendIcon(comparisons.value?.resultatNet),
+      variation: comparisons.value?.resultatNet?.percentage || '0',
+      colorVariation: getTrendClass(comparisons.value?.resultatNet),
+      interpretation: resultatNet.value?.resultat_net?.interpretation || "Évolution du résultat net",
+      format: 'money',
+      negative: true
     },
     {
       texte: "Marge d'exploitation",
-      chiffre: comparisons.margeExploitation?.hasData ? formatPercentage(comparisons.margeExploitation.evolution) : 'N/A',
-      icon: getTrendIcon(comparisons.margeExploitation),
-      variation: comparisons.margeExploitation.percentage,
-      colorVariation: getTrendClass(comparisons.margeExploitation),
-      interpretation: margeExploitation?.marge_exploitation?.interpretation || "Évolution de la marge d'exploitation"
+      chiffre: comparisons.value?.margeExploitation?.hasData ? 
+        formatPercentage(comparisons.value.margeExploitation.evolution) : 'N/A',
+      icon: getTrendIcon(comparisons.value?.margeExploitation),
+      variation: comparisons.value?.margeExploitation?.percentage || '0',
+      colorVariation: getTrendClass(comparisons.value?.margeExploitation),
+      interpretation: margeExploitation.value?.marge_exploitation?.interpretation || "Évolution de la marge d'exploitation",
+      format: 'percentage'
     }
-  ];
+  ].filter(card => card.chiffre !== undefined && card.chiffre !== null);
+  
+  console.log('Carousel data updated:', interpretationCardsData.value);
+};
+
+// Watcher pour mettre à jour automatiquement le carousel quand les données changent
+watch([() => totalProduits.value, () => totalCharges.value, () => resultatNet.value, () => margeExploitation.value, () => comparisons.value], () => {
+  if (!loading.value) {
+    updateInterpretationCards();
+  }
+}, { deep: true, immediate: true });
+
+// Chargement initial
+onMounted(() => {
+  initializeData().then(() => {
+    console.log('Data initialized, updating carousel');
+    updateInterpretationCards();
+  });
+});
+
+// Gestion du changement d'exercice
+const handleExerciceChange = async (event) => {
+  const idExercice = event.target.value;
+  await changeExercice(idExercice);
+};
+
+// Fonction pour rafraîchir les données manuellement
+const handleRefresh = () => {
+  refreshAllData();
 };
 
 </script>
-
 <template>
   <PageAnalyse :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs généraux'">
     <PopUp v-if="detailsProduits">

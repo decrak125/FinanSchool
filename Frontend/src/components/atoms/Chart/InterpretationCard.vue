@@ -58,14 +58,13 @@ defineProps({
 }
 .container{
     width: 100%;
-    height: 422px;
+    height: 392px;
     align-items: flex-start;
     justify-content: space-between;
     align-content: flex-start;
     align-self: flex-start;
     display: flex;
     flex-direction: column;
-    @include glass();
     font-family: Stara;
     font-size: 32px;
     font-style: normal;
@@ -76,10 +75,7 @@ defineProps({
     border-radius: $radius-pm;
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
 }
-.container:hover{
-    transform: scale(1.01);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
+
 
 .trend-neutral {
   color: $gris;
