@@ -88,7 +88,7 @@ onMounted(() => {
   margin-left: 265px; // espace égal à la largeur de la sidebar
   display: flex;
   flex-direction: column;
-  padding: 32px 12px 32px 0;
+  padding: 32px 12px 12px 0;
   flex: 1;
   width:100vh;
   height: fit-content;
@@ -221,12 +221,9 @@ onMounted(() => {
     -45deg,
     #f2c6b8, 
     #ffffff, 
-    #b7e3f3, 
-    #ffffff,
-    #bdf2e2, 
-    #ffffff, 
-    #f3f2b7, 
+    #ffe0e0, 
     #ffffff);
+  background-color: $light;
   background-size: 400% 400%;
   animation: gradient 15s ease infinite;
   

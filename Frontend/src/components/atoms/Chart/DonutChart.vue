@@ -393,6 +393,7 @@ const legendItems = computed(() => {
     
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
     @include position-contenus(flex, flex-start, flex-start);
+    
     @media (max-width: 1024px) {
         gap: 10px;
     }
@@ -425,7 +426,6 @@ const legendItems = computed(() => {
     .legend-container {
         width: auto;
         height: auto;  
-        
         padding: 24px 0;      
         @media (max-width: 768px) {
             width: 100%;

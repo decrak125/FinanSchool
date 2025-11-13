@@ -194,19 +194,33 @@
     opacity: 0;
     transform: translateY(-1px);
     animation: slideInDown 0.5s ease-out forwards;
-    
+    thead tr:first-child{
+        background: rgba(255, 255, 255, 0.70);
+        backdrop-filter: blur(50px);
+        position: sticky;
+        top: 0;
+        z-index: 99;
+    }
     th{
-        background: fixed $headColor;
+        background: fixed #fffcfc;
         color: $primary;
         font-family: $stara-black;
         font-size: 16px;
         text-align:start;
-        z-index: 99;
+        // z-index: 99;
         
         @media (max-width: $mobile) {
             font-size: 14px;
             padding: 12px 8px;
         }
+    }
+    tr:hover{
+        background-color: transparent;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+    }
+    tr{
+        transition: all 0.3s ease-in-out;
     }
     
     tr td:last-child,

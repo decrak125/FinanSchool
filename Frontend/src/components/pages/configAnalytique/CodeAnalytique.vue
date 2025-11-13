@@ -119,7 +119,6 @@ const {
                 <th class="col">#</th>
                 <th class="col">Code</th>
                 <th class="col">Libellé</th>
-                <th class="col">Plage d'extension</th>
                 <th class="col">Actions</th>
               </tr>
             </thead>
@@ -128,7 +127,6 @@ const {
                 <td class="col">{{ code.id_code }}</td>
                 <td class="col">{{ code.code }}</td>
                 <td class="col">{{ code.libelle }}</td>
-                <td class="col">{{ code.plage_de_extension }}</td>
                 <td class="col text-center">
                   <BoutonIcon @click="editCode(code), openForm = true" icon-name="pen" :type="'edit'" />
                   <BoutonIcon @click="id_to_delete = code.id_code, opendelete = true" icon-name="trash" :type="'cancel'" />
@@ -163,11 +161,15 @@ const {
 
 <style lang="scss" scoped>
 .main {
+  @include glass();
+  border-radius: $radius-pm;
   @include position-contenus(flex, baseline, center);
-  padding: 0 12px;
+  padding: 0 24px 24px 24px;
+  margin: 12px;
   height: 100%;
   flex-direction: column;
   gap: 10px;
+  min-height: 82vh;
   flex: 1 0 0;
   align-self: stretch;
   animation: appear 0.6s ease-out forwards;
@@ -175,8 +177,9 @@ const {
 }
 
 #codesTable {
-  @include table($light);
+  @include table();
 }
+
 
 .informations {
   @include position-contenus(flex, space-between, center);
@@ -249,30 +252,31 @@ const {
 }
 
 .content {
-  // overflow-y: auto;
+  overflow-y: auto;
+  /* Scroll vertical */
+  // background-color: #fff;
   width: 100%;
-  // max-height: 53vh;
+  height: 60vh;
+  /* Ajuste selon tes besoins */
   border-radius: $radius-pm;
 }
 
 /* Personnalisation de la scrollbar */
-// .content::-webkit-scrollbar {
-//   width: 10px;
-// }
+.content::-webkit-scrollbar {
+  width: 10px;
+}
 
-// .content::-webkit-scrollbar-track {
-//   background: #ffffff;
-//   border-radius: 10px;
-// }
+.content::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+  
+}
 
-// .content::-webkit-scrollbar-thumb {
-//   background: $light;
-//   border-radius: 10px;
-// }
+.content::-webkit-scrollbar-thumb {
+  background: #C5C5C5;
+  border-radius: 10px;
 
-// .content::-webkit-scrollbar-thumb:hover {
-//   background: #a8a8a8;
-// }
+}
 
 .popupContent {
   @include position-contenus(flex, center, flex-start);
