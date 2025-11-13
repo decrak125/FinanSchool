@@ -32,6 +32,12 @@ const props = defineProps({
         type: Array,
         default: () => ['#017AFF', '#F34971', '#FF9382', '#F5C900', '#6C47FF', '#39C0C8', '#00D4AA', '#FF6B8B', '#9C27B0', '#3F51B5']
     },
+    // Nouvelle prop pour synchroniser les couleurs avec AreaChart
+    centreColors: {
+        type: Object,
+        default: () => ({})
+    },
+
     type: {
         type: String,
         default: 'donut',
@@ -59,6 +65,28 @@ const props = defineProps({
     }
 });
 
+const legendItems = computed(() => {
+    const total = props.data.reduce((sum, value) => sum + parseFloat(value || 0), 0);
+
+    return props.labels.map((label, index) => {
+        const value = parseFloat(props.data[index] || 0);
+        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+
+        // Obtenir la couleur synchronisée
+        const color = props.centreColors && props.centreColors[label] 
+            ? props.centreColors[label] 
+            : props.colors[index % props.colors.length];
+
+        return {
+            label,
+            value,
+            percentage,
+            color: color,
+            formattedValue: props.formatter(value)
+        };
+    });
+});
+
 // Options pour le graphique SANS légende
 const chartOptions = computed(() => {
     const baseOptions = {
@@ -80,7 +108,12 @@ const chartOptions = computed(() => {
                 show: false
             }
         },
-        colors: props.colors,
+        // Couleurs synchronisées avec les centres
+        colors: props.labels.map((label, index) => 
+            props.centreColors && props.centreColors[label] 
+                ? props.centreColors[label] 
+                : props.colors[index % props.colors.length]
+        ),
         labels: props.labels,
         // ⭐⭐ IMPORTANT : Désactiver la légende dans le chart
         legend: {
@@ -240,22 +273,6 @@ watch(() => props.data, (newData) => {
 }, { immediate: true, deep: true });
 
 // Calculer les pourcentages pour la légende personnalisée
-const legendItems = computed(() => {
-    const total = props.data.reduce((sum, value) => sum + parseFloat(value || 0), 0);
-
-    return props.labels.map((label, index) => {
-        const value = parseFloat(props.data[index] || 0);
-        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
-
-        return {
-            label,
-            value,
-            percentage,
-            color: props.colors[index % props.colors.length],
-            formattedValue: props.formatter(value)
-        };
-    });
-});
 </script>
 
 <template>

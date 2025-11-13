@@ -2,18 +2,26 @@
 import PageAnalyse from '@/components/template/Page-analyse.vue';
 import CoutsEtProfit from '@/components/molecules/Dashboard/CoutsEtProfit.vue';
 import Cards from '@/components/molecules/Dashboard/Cards.vue';
-import AnalyseMensuelle from '@/components/pages/analyses/AnalyseMensuelle.vue';
+import CoutsEtProfitcourbe from '@/components/molecules/Dashboard/CoutsEtProfitcourbe.vue';
+import Classement from '@/components/molecules/Dashboard/Classement.vue';
+import SwipingCard from '@/components/molecules/Dashboard/SwipingCard.vue';
 </script>
 <template>
-<PageAnalyse :menu="'Accueil'" :sousmenu="'Tableau de bord'">
+  <PageAnalyse :menu="'Accueil'" :sousmenu="'Tableau de bord'">
     <div class="main">
-        <div class="cards">
-            <Cards />
-        </div>
-    <CoutsEtProfit />
-    <AnalyseMensuelle />
+      <div class="cards">
+        <Cards />
+      </div>
+      <div class="coutProfit">
+        <CoutsEtProfit />
+        <SwipingCard />
+      </div>
+      <div class="coutProfit">
+        <CoutsEtProfitcourbe />
+        <Classement />
+      </div>
     </div>
-</PageAnalyse>
+  </PageAnalyse>
 </template>
 <style lang="scss" scoped>
 .main {
@@ -35,7 +43,20 @@ import AnalyseMensuelle from '@/components/pages/analyses/AnalyseMensuelle.vue';
     gap: 12px;
   }
 }
-.cards{
-    display: flex;
+
+.cards {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+}
+
+.coutProfit {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  gap: 24px;
 }
 </style>

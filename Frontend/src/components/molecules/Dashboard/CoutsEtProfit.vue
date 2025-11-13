@@ -77,7 +77,6 @@ onMounted(async () => {
 });
 </script>
 <template>
-    <div class="main">
       <!-- Bouton retour vers la vue globale -->
 
       <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
@@ -123,7 +122,6 @@ onMounted(async () => {
                   :separate-legend="true" :legend-height="'500px'" :height="293" />
               </div>
             </div>
-          </div>
 </template>
 
 

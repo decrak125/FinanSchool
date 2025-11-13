@@ -70,10 +70,6 @@ const handleRefresh = () => {
 </script>
 
 <template>
-  <div class="main">
-    <!-- Indicateurs en cartes -->
-    <div class="graphic">
-      <!-- Indicateurs Généraux -->
       <div class="cartes">
 <Card 
           :texte="'Total les revenus'" 
@@ -254,15 +250,14 @@ const handleRefresh = () => {
           :variation="getTrendIcon(comparisons.margeParEleve) + ' ' + comparisons.margeParEleve.percentage"
           :colorVariation="getTrendClass(comparisons.margeParEleve)" />
         </div> -->
-    </div>
-  </div>
 </template>
 
 <style lang="scss" scoped>
 // Vos styles existants restent les mêmes
 .cartes {
-  @include position-contenus(flex, center, center);
+  @include position-contenus(flex, space-between, flex-start);
   padding: 0;
+  width: 100%;
   gap: 24px;
   flex-wrap: wrap;
 
@@ -277,42 +272,6 @@ const handleRefresh = () => {
   }
 }
 
-.main {
-  @include position-contenus(flex, center, center);
-  padding: 0 18px;
-  flex-direction: column;
-  gap: 20px;
-  flex: 1 0 0;
-  align-self: stretch;
-  animation: appear 0.6s ease-out forwards;
-
-  @media (max-width: $tablet) {
-    padding: 0 24px;
-    gap: 16px;
-  }
-
-  @media (max-width: $mobile) {
-    padding: 0 16px;
-    gap: 12px;
-  }
-}
-
-.graphic {
-  @include position-contenus(flex, flex-start, flex-start);
-  padding: 10px 0;
-  align-self: stretch;
-  gap: 24px;
-  flex-direction: column;
-
-  @media (max-width: $tablet) {
-    gap: 18px;
-  }
-
-  @media (max-width: $mobile) {
-    gap: 16px;
-    padding: 5px 0;
-  }
-}
 
 h3 {
   color: #2c3e50;
