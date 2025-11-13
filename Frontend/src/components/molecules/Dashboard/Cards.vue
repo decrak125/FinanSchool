@@ -13,26 +13,9 @@ const {
   // Indicateurs généraux
   totalProduits,
   totalCharges,
-  resultatNet,
-  margeExploitation,
-  
+  resultatNet,  
   // Indicateurs de liquidité
-  LiquiditeGenerale,
   TresorerieNette,
-  BFR,
-  
-  // Indicateurs de rentabilité
-  MargeBrute,
-  MargeNette,
-  ROE,
-  ROA,
-  
-  // Indicateurs de solvabilité
-  RatioEndettement,
-  CapaciteRemboursement,
-  AutonomieFinanciere,
-  
-  loading,
   comparisons,
   refreshAllData,
   initializeData,
@@ -91,9 +74,8 @@ const handleRefresh = () => {
     <!-- Indicateurs en cartes -->
     <div class="graphic">
       <!-- Indicateurs Généraux -->
-      <h3>Indicateurs Généraux</h3>
       <div class="cartes">
-        <Card 
+<Card 
           :texte="'Total les revenus'" 
           :chiffre="parseInt(totalProduits?.total_produits?.valeur)"
           :format="'money'" 
@@ -120,10 +102,19 @@ const handleRefresh = () => {
           :negative="true"
           :variation="getTrendIcon(comparisons.resultatNet) + ' ' + comparisons.resultatNet.percentage"
           :colorVariation="getTrendClass(comparisons.resultatNet)" />
+        <Card 
+          :texte="'Trésorerie Nette'" 
+          :chiffre="parseInt(TresorerieNette?.tresorerie_nette?.valeur)"
+          :format="'money'" 
+          :icon="'bi bi-cash-coin'" 
+          :icon-color="'green'"
+          :variation="getTrendIcon(comparisons.Tresorerie) + ' ' + comparisons.Tresorerie.percentage"
+          :colorVariation="getTrendClass(comparisons.Tresorerie)" />
+        
       </div>
 
       <!-- Indicateurs de Liquidité -->
-      <h3>Indicateurs de Liquidité</h3>
+      <!-- <h3>Indicateurs de Liquidité</h3>
       <div class="cartes">
         <Card 
           :texte="'Liquidité Générale'" 
@@ -135,17 +126,26 @@ const handleRefresh = () => {
           :colorVariation="getTrendClass(comparisons.Liquidite)" />
         
         <Card 
-          :texte="'Trésorerie Nette'" 
-          :chiffre="parseInt(TresorerieNette?.tresorerie_nette?.valeur)"
+          :texte="'Marge d\'Exploitation'" 
+          :chiffre="parseFloat(margeExploitation?.marge_exploitation?.valeur)"
+          :format="'percentage'" 
+          :icon="'bi bi-graph-up'" 
+          :icon-color="'blue'"
+          :variation="getTrendIcon(comparisons.margeExploitation) + ' ' + comparisons.margeExploitation.percentage"
+          :colorVariation="getTrendClass(comparisons.margeExploitation)" />
+
+        <Card 
+          :texte="'Besoin en Fonds de Roulement (BFR)'" 
+          :chiffre="parseInt(BFR?.bfr?.valeur)"
           :format="'money'" 
-          :icon="'bi bi-cash-coin'" 
-          :icon-color="'green'"
-          :variation="getTrendIcon(comparisons.Tresorerie) + ' ' + comparisons.Tresorerie.percentage"
-          :colorVariation="getTrendClass(comparisons.Tresorerie)" />
-      </div>
+          :icon="'bi bi-arrow-left-right'" 
+          :icon-color="'orange'"
+          :variation="getTrendIcon(comparisons.fondRoulement) + ' ' + comparisons.fondRoulement.percentage"
+          :colorVariation="getTrendClass(comparisons.fondRoulement)" />
+      </div> -->
 
       <!-- Indicateurs de Rentabilité -->
-      <h3>Indicateurs de Rentabilité</h3>
+      <!-- <h3>Indicateurs de Rentabilité</h3>
       <div class="cartes">
         <Card 
           :texte="'Marge Brute'" 
@@ -166,17 +166,26 @@ const handleRefresh = () => {
           :colorVariation="getTrendClass(comparisons.nette)" />
         
         <Card 
-          :texte="'ROE'" 
+          :texte="'Return on Equity (ROE)'" 
           :chiffre="parseFloat(ROE?.roe?.valeur)"
           :format="'percentage'" 
           :icon="'bi bi-graph-up-arrow'" 
           :icon-color="'purple'"
           :variation="getTrendIcon(comparisons.ROE) + ' ' + comparisons.ROE.percentage"
           :colorVariation="getTrendClass(comparisons.ROE)" />
-      </div>
+
+        <Card 
+          :texte="'Return on Assets (ROA)'" 
+          :chiffre="parseFloat(ROA?.roa?.valeur)"
+          :format="'percentage'" 
+          :icon="'bi bi-building'" 
+          :icon-color="'teal'"
+          :variation="getTrendIcon(comparisons.ROA) + ' ' + comparisons.ROA.percentage"
+          :colorVariation="getTrendClass(comparisons.ROA)" />
+      </div> -->
 
       <!-- Indicateurs de Solvabilité -->
-      <h3>Indicateurs de Solvabilité</h3>
+      <!-- <h3>Indicateurs de Solvabilité</h3>
       <div class="cartes">
         <Card 
           :texte="'Ratio d\'Endettement'" 
@@ -188,6 +197,15 @@ const handleRefresh = () => {
           :colorVariation="getTrendClass(comparisons.Endettement)" />
         
         <Card 
+          :texte="'Capacité de Remboursement'" 
+          :chiffre="parseFloat(CapaciteRemboursement?.capacite_remboursement?.valeur)"
+          :format="'percentage'" 
+          :icon="'bi bi-currency-exchange'" 
+          :icon-color="'red'"
+          :variation="getTrendIcon(comparisons.Remboursement) + ' ' + comparisons.Remboursement.percentage"
+          :colorVariation="getTrendClass(comparisons.Remboursement)" />
+
+        <Card 
           :texte="'Autonomie Financière'" 
           :chiffre="parseFloat(AutonomieFinanciere?.autonomie_financiere?.valeur)"
           :format="'percentage'" 
@@ -196,6 +214,46 @@ const handleRefresh = () => {
           :variation="getTrendIcon(comparisons.Autonomie) + ' ' + comparisons.Autonomie.percentage"
           :colorVariation="getTrendClass(comparisons.Autonomie)" />
       </div>
+ -->
+      <!-- Indicateurs Pédagogiques (si disponibles) -->
+      <!-- <h3>Indicateurs Pédagogiques</h3>
+      <div class="cartes">
+        <Card 
+          :texte="'Coût de Fonctionnement par Élève'" 
+          :chiffre="parseInt(coutFonctionnement?.cout_fonctionnement_par_eleve?.valeur)"
+          :format="'money'" 
+          :icon="'bi bi-person'" 
+          :icon-color="'indigo'"
+          :variation="getTrendIcon(comparisons.coutFonctionnement) + ' ' + comparisons.coutFonctionnement.percentage"
+          :colorVariation="getTrendClass(comparisons.coutFonctionnement)" />
+        
+        <Card 
+          :texte="'Chiffre d\'Affaires par Élève'" 
+          :chiffre="parseInt(chiffreAffaires?.chiffre_affaires_par_eleve?.valeur)"
+          :format="'money'" 
+          :icon="'bi bi-currency-dollar'" 
+          :icon-color="'success'"
+          :variation="getTrendIcon(comparisons.chiffreAffaires) + ' ' + comparisons.chiffreAffaires.percentage"
+          :colorVariation="getTrendClass(comparisons.chiffreAffaires)" />
+
+        <Card 
+          :texte="'Part Masse Salariale Enseignante'" 
+          :chiffre="parseFloat(partMasseSalariale?.part_masse_salariale_enseignante?.valeur)"
+          :format="'percentage'" 
+          :icon="'bi bi-people'" 
+          :icon-color="'warning'"
+          :variation="getTrendIcon(comparisons.partMasseSalariale) + ' ' + comparisons.partMasseSalariale.percentage"
+          :colorVariation="getTrendClass(comparisons.partMasseSalariale)" />
+
+        <Card 
+          :texte="'Marge par Élève'" 
+          :chiffre="parseInt(margeParEleve?.marge_par_eleve?.valeur)"
+          :format="'money'" 
+          :icon="'bi bi-graph-up'" 
+          :icon-color="'success'"
+          :variation="getTrendIcon(comparisons.margeParEleve) + ' ' + comparisons.margeParEleve.percentage"
+          :colorVariation="getTrendClass(comparisons.margeParEleve)" />
+        </div> -->
     </div>
   </div>
 </template>

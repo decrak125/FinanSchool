@@ -2,7 +2,7 @@
 import PageAnalyse from '@/components/template/Page-analyse.vue';
 import CoutsEtProfit from '@/components/molecules/Dashboard/CoutsEtProfit.vue';
 import Cards from '@/components/molecules/Dashboard/Cards.vue';
-
+import AnalyseMensuelle from '@/components/pages/analyses/AnalyseMensuelle.vue';
 </script>
 <template>
 <PageAnalyse :menu="'Accueil'" :sousmenu="'Tableau de bord'">
@@ -11,6 +11,7 @@ import Cards from '@/components/molecules/Dashboard/Cards.vue';
             <Cards />
         </div>
     <CoutsEtProfit />
+    <AnalyseMensuelle />
     </div>
 </PageAnalyse>
 </template>

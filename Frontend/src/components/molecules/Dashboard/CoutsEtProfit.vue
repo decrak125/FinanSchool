@@ -45,7 +45,7 @@ const showGlobalView = ref(true);
 const centresChartData = computed(() => ({
   data: centresFiltres.value.map(c => parseFloat(c.montant_ventile) || 0),
   labels: centresFiltres.value.map(c => c.centre),
-  title: 'Répartition des centres'
+  title: 'Répartition des charges'
 }));
 
 
