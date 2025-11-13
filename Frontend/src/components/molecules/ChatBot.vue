@@ -149,7 +149,7 @@ export default {
         ''
       );
       // Garder seulement ce qui est utile
-      text = text.replace(/[^a-z0-9\s.,!%?=+À-ÿ:']/gi, ' ');
+      text = text.replace(/[^a-z0-9\s.,!%?=+À-ÿ:'-]/gi, ' ');
       // Espaces multiples
       return text.replace(/\s{2,}/g, ' ').trim();
     },

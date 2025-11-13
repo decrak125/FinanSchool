@@ -117,6 +117,8 @@
     </div>
   </div>
 </template>
+
+
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
@@ -135,7 +137,7 @@ const comptes = ref([]);
 const loading = ref(false);
 const expandedAccounts = ref(new Set());
 const exercices = ref([]);
-const selectedExercice = ref(""); // Ajout clé
+const selectedExercice = ref("");
 const filters = ref({
   date_debut: "",
   date_fin: "",
@@ -143,11 +145,33 @@ const filters = ref({
   exercice_comptable: "",
 });
 
-// Groupement des comptes (inchangé)
+// LOGO EN BASE64
+const logoBase64 = ref(null);
+async function fetchImageAsBase64(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+const getClasseLibelle = (classe) => ({
+  '1': 'Capitaux',
+  '2': 'Immobilisations',
+  '3': 'Stocks',
+  '4': 'Tiers',
+  '5': 'Finances',
+  '6': 'Charges',
+  '7': 'Produits'
+})[classe] || 'Classe inconnue';
+
 const groupedComptes = computed(() => {
   const grouped = {};
   comptes.value.forEach((compte) => {
-    const mainCode = compte.code_compte.substring(0, 1); // Classe
+    const mainCode = compte.code_compte.substring(0, 1);
     if (!grouped[mainCode]) {
       grouped[mainCode] = {
         libelle: getClasseLibelle(mainCode),
@@ -170,24 +194,15 @@ const groupedComptes = computed(() => {
   });
   return grouped;
 });
-const getClasseLibelle = (classe) => {
-  const classes = {
-    '1': 'Capitaux',
-    '2': 'Immobilisations',
-    '3': 'Stocks',
-    '4': 'Tiers',
-    '5': 'Finances',
-    '6': 'Charges',
-    '7': 'Produits'
-  };
-  return classes[classe] || 'Classe inconnue';
-};
-const totalDebit = computed(() => {
-  return Object.values(groupedComptes.value).reduce((sum, acc) => sum + (acc.total_debit || 0), 0);
-});
-const totalCredit = computed(() => {
-  return Object.values(groupedComptes.value).reduce((sum, acc) => sum + (acc.total_credit || 0), 0);
-});
+
+const totalDebit = computed(() =>
+  Object.values(groupedComptes.value).reduce((sum, acc) => sum + (acc.total_debit || 0), 0)
+);
+
+const totalCredit = computed(() =>
+  Object.values(groupedComptes.value).reduce((sum, acc) => sum + (acc.total_credit || 0), 0)
+);
+
 const toggleAccount = (accountCode) => {
   if (expandedAccounts.value.has(accountCode)) {
     expandedAccounts.value.delete(accountCode);
@@ -195,9 +210,8 @@ const toggleAccount = (accountCode) => {
     expandedAccounts.value.add(accountCode);
   }
 };
-const handleNavigation = (item) => {
-  router.push(item.route);
-};
+const handleNavigation = (item) => { router.push(item.route); };
+const goBack = () => { router.push("/journal"); };
 
 const token = localStorage.getItem("token");
 if (!token) {
@@ -205,14 +219,14 @@ if (!token) {
 } else {
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
-const formatNumber = (number) => {
-  return Number(number).toLocaleString('fr-FR', {
+
+const formatNumber = (number) =>
+  Number(number).toLocaleString('fr-FR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
     useGrouping: true
   });
-};
-// FETCH Balance
+
 const fetchBalanceGenerale = async () => {
   try {
     loading.value = true;
@@ -222,37 +236,37 @@ const fetchBalanceGenerale = async () => {
       ...(filters.value.classe_compte && { classe_compte: filters.value.classe_compte }),
       ...(filters.value.exercice_comptable && { exercice_comptable: filters.value.exercice_comptable }),
     }).toString();
-    // DEBUG
-    console.log("Filtres à l'API:", filters.value);
-    console.log("URL API:", `http://127.0.0.1:8000/api/balance-generale?${queryParams}`);
     const res = await axios.get(`http://127.0.0.1:8000/api/balance-generale?${queryParams}`);
     comptes.value = res.data;
   } catch (error) {
-    console.error("Erreur lors du chargement de la balance générale:", error);
     comptes.value = [];
   } finally {
     loading.value = false;
   }
 };
-// FETCH Exercices
+
 const fetchExercices = async () => {
   try {
     const res = await axios.get('http://127.0.0.1:8000/api/exercices');
     exercices.value = res.data.map(e => ({
       id: e.Id_Exercice_comptable,
       nom: `${e.Annee_fiscale} | Du ${e.Date_debut.slice(0, 10)} au ${e.Date_fin.slice(0, 10)} | ${e.Statut}`,
+      Statut: e.Statut,
+      Date_debut: e.Date_debut,
+      Date_fin: e.Date_fin,
       ...e
     }));
-    // Init sélection sur le 1e exercice dans la liste
-    if (exercices.value.length) {
-      selectedExercice.value = exercices.value[0].id;
+    // Sélectionne exercice courant (statut OUVERT), sinon le premier
+    const courant = exercices.value.find(ex => ex.Statut === 'OUVERT') || exercices.value[0];
+    if (courant) {
+      selectedExercice.value = courant.id;
       onExerciceChange();
     }
   } catch (e) {
     exercices.value = [];
   }
 };
-// Exercice / période synchronisée
+
 const onExerciceChange = () => {
   const exercice = exercices.value.find(ex => ex.id == selectedExercice.value);
   if (exercice) {
@@ -262,11 +276,12 @@ const onExerciceChange = () => {
     fetchBalanceGenerale();
   }
 };
-// Appliquer les filtres (garde la logique d’export…)
+
 const applyFilters = () => { fetchBalanceGenerale(); };
 const resetFilters = () => {
   if (exercices.value.length) {
-    selectedExercice.value = exercices.value[0].id;
+    const courant = exercices.value.find(ex => ex.Statut === 'OUVERT') || exercices.value[0];
+    selectedExercice.value = courant.id;
     onExerciceChange();
   } else {
     filters.value = {
@@ -279,14 +294,97 @@ const resetFilters = () => {
   }
 };
 
+const exportToExcel = () => {
+  if (!Object.keys(groupedComptes.value).length) {
+    alert("Aucune donnée à exporter");
+    return;
+  }
+  const today = new Date().toLocaleDateString('fr-FR');
+  const titleRow = ["💼 RAITRA KIDZ"];
+  const infoRow = [`Date édition : ${today}`];
+  const periodRow = [`Période : ${filters.value.date_debut || "N/A"} à ${filters.value.date_fin || "N/A"}`];
+  const exerciceRow = [`Exercice : ${filters.value.exercice_comptable || "Tous"}`];
+  const classeRow = [`Classe de compte : ${filters.value.classe_compte || "Toutes"}`];
+  const emptyRow = [""];
+  const headerRow = ["Compte", "Libellé", "Débit", "Crédit"];
 
-const societeNom = "RAITRA KIDZ";
-
-const formatNumberSage = (number) => {
-  if (isNaN(number)) return '0,00';
-  let parts = Number(number).toFixed(2).split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return parts.join(',');
+  const dataRows = [];
+  Object.entries(groupedComptes.value).forEach(([mainCode, mainAccount]) => {
+    dataRows.push([
+      `${mainCode} - ${mainAccount.libelle}`,
+      "",
+      formatNumber(mainAccount.total_debit),
+      formatNumber(mainAccount.total_credit),
+    ]);
+    mainAccount.subAccounts.forEach(subAccount => {
+      dataRows.push([
+        subAccount.code_sous_compte,
+        subAccount.libelle_sous_compte,
+        subAccount.solde_final >= 0 ? formatNumber(subAccount.solde_final) : "",
+        subAccount.solde_final < 0 ? formatNumber(Math.abs(subAccount.solde_final)) : ""
+      ]);
+    });
+  });
+  dataRows.push([
+    "TOTAUX", "", formatNumber(totalDebit.value), formatNumber(totalCredit.value)
+  ]);
+  const wsData = [
+    titleRow, infoRow, periodRow, exerciceRow, classeRow, emptyRow, headerRow, ...dataRows
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [
+    { wch: 25 }, { wch: 40 }, { wch: 18 }, { wch: 18 }
+  ];
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: 3 } },
+    { s: { r: 3, c: 0 }, e: { r: 3, c: 3 } },
+    { s: { r: 4, c: 0 }, e: { r: 4, c: 3 } },
+  ];
+  ["A7", "B7", "C7", "D7"].forEach(cell => {
+    ws[cell].s = {
+      font: { bold: true, sz: 13, color: { rgb: "222831" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      fill: { fgColor: { rgb: "e3edfc" } },
+      border: {
+        top:    { style: "medium", color: { rgb: "1976d2" } },
+        left:   { style: "medium", color: { rgb: "1976d2" } },
+        right:  { style: "medium", color: { rgb: "1976d2" } },
+        bottom: { style: "medium", color: { rgb: "1976d2" } }
+      }
+    }
+  });
+  const startRow = 7;
+  for (let r = startRow; r < wsData.length; ++r) {
+    for (let c = 0; c < 4; ++c) {
+      const cellAddr = XLSX.utils.encode_cell({ r, c });
+      if (!ws[cellAddr]) continue;
+      ws[cellAddr].s = {
+        font: { sz: 12 },
+        alignment: { horizontal: "center", vertical: "center" },
+        border: {
+          top:    { style: "thin", color: { rgb: "142c6c" } },
+          left:   { style: "thin", color: { rgb: "142c6c" } },
+          right:  { style: "thin", color: { rgb: "142c6c" } },
+          bottom: { style: "thin", color: { rgb: "142c6c" } }
+        }
+      };
+      if (
+        wsData[r][0] &&
+        (
+          wsData[r][0].startsWith("TOTAUX") ||
+          wsData[r][0].match(/^\d - /)
+        )
+      ) {
+        ws[cellAddr].s.font.bold = true;
+        ws[cellAddr].s.fill = { fgColor: { rgb: "dbeafe" } };
+      }
+    }
+  }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Balance_Generale");
+  XLSX.writeFile(wb, `balance_generale_${new Date().toISOString().split("T")[0]}.xlsx`);
 };
 
 const exportToPDF = () => {
@@ -295,11 +393,14 @@ const exportToPDF = () => {
     return;
   }
   const doc = new jsPDF();
-
+  // --- Ajout du logo ---
+  if (logoBase64.value) {
+    doc.addImage(logoBase64.value, "PNG", 14, 4, 24, 16);
+  }
   doc.setFontSize(12);
   doc.setTextColor(44, 62, 80);
   doc.setFont("helvetica", "bold");
-  doc.text(societeNom, 14, 14);
+  doc.text("RAITRA KIDZ", 44, 14);
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
@@ -308,38 +409,38 @@ const exportToPDF = () => {
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(51, 122, 183);
-  doc.text("BALANCE GÉNÉRALE", doc.internal.pageSize.getWidth() / 2, 30, {align:"center"});
+  doc.text("BALANCE GÉNÉRALE", doc.internal.pageSize.getWidth() / 2, 32, {align:"center"});
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.setTextColor(44, 62, 80);
-  doc.text(`Période : ${filters.value.date_debut || "N/A"} à ${filters.value.date_fin || "N/A"}`, 14, 38);
-  doc.text(`Exercice : ${filters.value.exercice_comptable || "Tous"}`, 120, 38);
-  doc.text(`Classe de compte : ${filters.value.classe_compte || "Toutes"}`, 14, 44);
+  doc.text(`Période : ${filters.value.date_debut || "N/A"} à ${filters.value.date_fin || "N/A"}`, 14, 40);
+  doc.text(`Exercice : ${filters.value.exercice_comptable || "Tous"}`, 120, 40);
+  doc.text(`Classe de compte : ${filters.value.classe_compte || "Toutes"}`, 14, 46);
 
   const tableData = [];
   Object.entries(groupedComptes.value).forEach(([mainCode, mainAccount]) => {
     tableData.push([
       `${mainCode} - ${mainAccount.libelle}`,
-      formatNumberSage(mainAccount.total_debit),
-      formatNumberSage(mainAccount.total_credit),
+      formatNumber(mainAccount.total_debit),
+      formatNumber(mainAccount.total_credit),
     ]);
     mainAccount.subAccounts.forEach(subAccount => {
       tableData.push([
-        `  ${subAccount.code_sous_compte} - ${subAccount.libelle_sous_compte}`,
-        subAccount.solde_final >= 0 ? formatNumberSage(subAccount.solde_final) : "",
-        subAccount.solde_final < 0 ? formatNumberSage(Math.abs(subAccount.solde_final)) : ""
+        `${subAccount.code_sous_compte} - ${subAccount.libelle_sous_compte}`,
+        subAccount.solde_final >= 0 ? formatNumber(subAccount.solde_final) : "",
+        subAccount.solde_final < 0 ? formatNumber(Math.abs(subAccount.solde_final)) : ""
       ]);
     });
   });
   tableData.push([
     'TOTAUX',
-    formatNumberSage(totalDebit.value),
-    formatNumberSage(totalCredit.value),
+    formatNumber(totalDebit.value),
+    formatNumber(totalCredit.value),
   ]);
 
   autoTable(doc, {
-    startY: 48,
+    startY: 52,
     head: [['Compte', 'Débit', 'Crédit']],
     body: tableData,
     theme: 'grid',
@@ -367,7 +468,7 @@ const exportToPDF = () => {
       1: { halign: 'right' },
       2: { halign: 'right' }
     },
-    margin: { top: 48 }
+    margin: { top: 52 }
   });
 
   doc.setFontSize(8);
@@ -380,41 +481,8 @@ const exportToPDF = () => {
   doc.save(`Balance_Generale_${new Date().toISOString().split("T")[0]}.pdf`);
 };
 
-const exportToExcel = () => {
-  if (!Object.keys(groupedComptes.value).length) {
-    alert("Aucune donnée à exporter");
-    return;
-  }
-  const data = [];
-  Object.entries(groupedComptes.value).forEach(([mainCode, mainAccount]) => {
-    mainAccount.subAccounts.forEach(subAccount => {
-      data.push({
-        'Compte': subAccount.code_sous_compte,
-        'Libellé': subAccount.libelle_sous_compte,
-        'Débit': subAccount.solde_final >= 0 ? formatNumber(subAccount.solde_final) : "",
-        'Crédit': subAccount.solde_final < 0 ? formatNumber(Math.abs(subAccount.solde_final)) : "",
-      });
-    });
-  });
-  const today = new Date().toLocaleDateString('fr-FR');
-  const title = [["💼 BALANCE GÉNÉRALE"]];
-  const details = [
-    [`Date d'export : ${today}`],[]
-  ];
-  const ws = XLSX.utils.aoa_to_sheet([...title, ...details]);
-  XLSX.utils.sheet_add_json(ws, data, { origin: -1, skipHeader: false });
-  ws['!cols'] = [ { wch: 15 }, { wch: 35 }, { wch: 15 }, { wch: 15 } ];
-  ws['!merges'] = [ { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } } ];
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Balance_Generale");
-  XLSX.writeFile(wb, `balance_generale_${new Date().toISOString().split("T")[0]}.xlsx`);
-};
-
-const goBack = () => { router.push("/journal"); };
-
 onMounted(async () => {
-  // DEBUG
-  console.log("Token récupéré :", token);
+  logoBase64.value = await fetchImageAsBase64("/01Raitra kidz 300px.png");
   if (!token) {
     window.location.href = "/";
   } else {
@@ -428,11 +496,13 @@ onMounted(async () => {
       return;
     }
     await fetchExercices();
-    await fetchExerciceCourant();
-    await fetchBalanceGenerale();
+    // La balance sur exercice courant sera affichée par défaut automatiquement
   }
 });
 </script>
+
+
+
 
 <!-- Style identique à l'original, tu peux garder tel quel -->
 <style scoped>

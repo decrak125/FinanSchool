@@ -147,8 +147,20 @@ const exercices = ref([]);
 const selectedExercice = ref("");
 const exerciceCourantId = ref("");
 
-const token = localStorage.getItem("token");
+// ------------ LOGO PDF ------------
+const logoBase64 = ref(null);
+async function fetchImageAsBase64(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
 
+const token = localStorage.getItem("token");
 if (!token) {
   window.location.href = "/";
 } else {
@@ -193,6 +205,7 @@ const onExerciceChange = () => {
 };
 
 onMounted(async () => {
+  logoBase64.value = await fetchImageAsBase64("/01Raitra kidz 300px.png");
   if (!token) {
     window.location.href = "/";
   } else {
@@ -265,8 +278,11 @@ const formatDate = d => {
 const exportToPDF = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
   const doc = new jsPDF();
+  if (logoBase64.value) {
+    doc.addImage(logoBase64.value, 'PNG', 14, 4, 24, 16);
+  }
   doc.setFontSize(16);
-  doc.text("Tableau des Flux de Trésorerie", 14, 14);
+  doc.text("Tableau des Flux de Trésorerie", 44, 14);
   doc.setFontSize(10);
   doc.text("Méthode Indirecte", 14, 20);
   doc.text(`Exercice : ${exerciceInfo.value.annee_fiscale}`, 14, 26);
@@ -290,16 +306,59 @@ const exportToPDF = () => {
 
 const exportToExcel = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
-  const dataForExcel = listeComplete.value.map(l => ({
-    'FLUX DE TRÉSORERIE': l.label,
-    'NOTE': l.note || "",
-    'N': l.montantN || "",
-    'N-1': l.montantN1 || ""
-  }));
-  const dataSheet = XLSX.utils.json_to_sheet(dataForExcel);
+  const wsData = [
+    ["TABLEAU DES FLUX DE TRÉSORERIE"],
+    [""],
+    ["Méthode : Indirecte"],
+    [`Exercice : ${exerciceInfo.value.annee_fiscale}`],
+    [`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`],
+    [""],
+    ["FLUX DE TRÉSORERIE", "NOTE", "N", "N-1"],
+    ...listeComplete.value.map(l => [
+      l.label,
+      l.note || "",
+      formatMontant(l.montantN),
+      formatMontant(l.montantN1)
+    ])
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [
+    { wch: 40 }, { wch: 12 }, { wch: 20 }, { wch: 20 }
+  ];
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }];
+  ["A7", "B7", "C7", "D7"].forEach(cell => {
+    ws[cell].s = {
+      font: { bold: true, sz: 13 },
+      alignment: { horizontal: "center", vertical: "center" },
+      fill: { fgColor: { rgb: "e3edfc" } },
+      border: {
+        top:    { style: "medium", color: { rgb: "1976d2" } },
+        left:   { style: "medium", color: { rgb: "1976d2" } },
+        right:  { style: "medium", color: { rgb: "1976d2" } },
+        bottom: { style: "medium", color: { rgb: "1976d2" } }
+      }
+    }
+  });
+  for (let r = 7; r < wsData.length; ++r) {
+    for (let c = 0; c < 4; ++c) {
+      const cellAddr = XLSX.utils.encode_cell({ r, c });
+      if (ws[cellAddr]) {
+        ws[cellAddr].s = {
+          font: { sz: 12 },
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top:    { style: "thin", color: { rgb: "142c6c" } },
+            left:   { style: "thin", color: { rgb: "142c6c" } },
+            right:  { style: "thin", color: { rgb: "142c6c" } },
+            bottom: { style: "thin", color: { rgb: "142c6c" } }
+          }
+        }
+      }
+    }
+  }
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, dataSheet, "FluxTrésorerie");
-  XLSX.writeFile(wb, "flux_tresorerie.xlsx");
+  XLSX.utils.book_append_sheet(wb, ws, "Flux_Tresorerie");
+  XLSX.writeFile(wb, `flux_tresorerie_${new Date().toISOString().split("T")[0]}.xlsx`);
 };
 </script>
 
