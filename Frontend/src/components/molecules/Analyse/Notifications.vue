@@ -1,7 +1,7 @@
 <template>
   <div class="notifications">
     <!-- Badge avec compteur -->
-    <div @click="toggleNotifications" class="notification-btn">
+    <div  @click="toggleNotifications" :class="store.unreadCount > 0 ? 'notification-btn-new' : 'notification-btn'">
       <i class="bi bi-bell-fill"></i>
       <span v-if="store.unreadCount > 0" class="badge">{{ store.unreadCount }}</span>
     </div>
@@ -14,7 +14,7 @@
            @click="Read(notification)">
         
         <div class="notification-icon">
-          <i :class="notification.niveau_urgence?.icone || 'bi bi-info-circle'"></i>
+          <i :class="notification.niveau_urgence?.icone || 'bi bi-info-circle'" :style="{color: notification.niveau_urgence?.couleur}"></i>
         </div>
         
         <div class="notification-content">
@@ -64,15 +64,30 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .notifications {
+  @include glass();
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
   position: relative;
 }
 
 .notification-btn {
   position: relative;
   padding: 10px 15px;
-  color: rgb(235, 215, 41);
+  color: $primary;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.notification-btn-new {
+  position: relative;
+  padding: 10px 15px;
+  color: #e6d053;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -86,29 +101,35 @@ onMounted(() => {
   color: white;
   border-radius: 50%;
   padding: 2px 6px;
-  font-size: 12px;
+  font-size: 8px;
+    font-family: $stara-medium;
+
 }
 
 .notifications-list {
   position: absolute;
-  top: 100%;
+  top: 72px;
   right: 0;
   width: 400px;
   max-height: 500px;
   overflow-y: auto;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  @include glass();
+  border-radius: $radius-pm;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   z-index: 1000;
+  scrollbar-width: none;
 }
 
 .notification-item {
   display: flex;
   padding: 15px;
+  @include glass();
+  background-color: #fff;
   border-bottom: 1px solid #eee;
   cursor: pointer;
   transition: background 0.2s;
+  font-family: $stara-medium;
+  font-size: 12px;
 }
 
 .notification-item:hover {
@@ -116,6 +137,7 @@ onMounted(() => {
 }
 
 .notification-icon {
+  margin-top: 12px;
   margin-right: 10px;
   font-size: 20px;
 }
@@ -124,9 +146,9 @@ onMounted(() => {
   flex: 1;
 }
 
-.level-info { border-left: 4px solid #17a2b8; }
-.level-avertissement { border-left: 4px solid #ffc107; }
-.level-urgent { border-left: 4px solid #dc3545; }
+// .level-info { border-left: 4px solid #17a2b8; }
+// .level-avertissement { border-left: 4px solid #ffc107; }
+// .level-urgent { border-left: 4px solid #dc3545; }
 
 .delete-btn {
   background: none;

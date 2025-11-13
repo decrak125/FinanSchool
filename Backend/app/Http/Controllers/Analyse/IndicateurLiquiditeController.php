@@ -85,8 +85,7 @@ class IndicateurLiquiditeController extends Controller
 
         $dateDebut = $request->date_debut;
         $dateFin = $request->date_fin;
-        $bilanActif = BilanActifController::getBilanActif($dateDebut, $dateFin);
-        $encaissement = $bilanActif['structure'][19]['net'] + $bilanActif['structure'][18]['net'];
+        $encaissement = IndicateurLiquiditeController::getTresorerieNette($dateDebut, $dateFin);
         // SOLDE DES COMPTES DE TRÉSORERIE (Comptes 512 et 519)
         $tresorerieNette = $encaissement - UtilesController::calculerTotalCategorieGroupe(['DETTECT', 'DECOUV'], $dateDebut, $dateFin);
         
@@ -116,15 +115,13 @@ class IndicateurLiquiditeController extends Controller
     }
 
     public static function getTresorerieNette($dateDebut, $dateFin)
-    {
-        
-        $bilanActif = BilanActifController::getBilanActif($dateDebut, $dateFin);
-        $encaissement = $bilanActif['structure'][19]['net'] + $bilanActif['structure'][18]['net'];
-        // SOLDE DES COMPTES DE TRÉSORERIE (Comptes 512 et 519)
-        $tresorerieNette = $encaissement - UtilesController::calculerTotalCategorieGroupe(['DETTECT', 'DECOUV'], $dateDebut, $dateFin);
-        return  $tresorerieNette;
-    }
-
+{
+    return DB::table('vue_balance_generale')
+        ->whereRaw('code_sous_compte::NUMERIC BETWEEN 500000 AND 599999')
+        ->whereBetween('date_mouvement', [$dateDebut, $dateFin])
+        ->selectRaw('SUM(total_debit - total_credit) as tresorerie_nette')
+        ->value('tresorerie_nette') ?? 0;
+}
     /**
      * Calcule le solde net des comptes de trésorerie
      */

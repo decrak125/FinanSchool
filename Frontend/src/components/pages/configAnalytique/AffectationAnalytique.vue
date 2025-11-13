@@ -737,9 +737,13 @@ const showAllVentilations = (group) => {
 <!-- Le CSS reste identique -->
 <style lang="scss" scoped>
 .main {
+  @include glass();
+  border-radius: $radius-pm;
   @include position-contenus(flex, baseline, center);
-  padding: 0 12px;
-  height: 100%;
+  padding: 0 24px 24px 24px;
+  margin: 12px;
+  // height: 100%;
+  height: 82vh;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;
@@ -749,7 +753,7 @@ const showAllVentilations = (group) => {
 }
 
 #axesTable {
-  @include table($light);
+  @include table();
 }
 
 .informations {
@@ -828,29 +832,31 @@ const showAllVentilations = (group) => {
 }
 
 .content {
-  // overflow-y: auto;
+  overflow-y: auto;
+  /* Scroll vertical */
+  // background-color: #fff;
   width: 100%;
-  // max-height: 53vh;
+  height: 60vh;
+  /* Ajuste selon tes besoins */
   border-radius: $radius-pm;
 }
 
-// .content::-webkit-scrollbar {
-//   width: 10px;
-// }
+/* Personnalisation de la scrollbar */
+.content::-webkit-scrollbar {
+  width: 10px;
+}
 
-// .content::-webkit-scrollbar-track {
-//   background: #ffffff;
-//   border-radius: 10px;
-// }
+.content::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+  
+}
 
-// .content::-webkit-scrollbar-thumb {
-//   background: $light;
-//   border-radius: 10px;
-// }
+.content::-webkit-scrollbar-thumb {
+  background: #C5C5C5;
+  border-radius: 10px;
 
-// .content::-webkit-scrollbar-thumb:hover {
-//   background: #a8a8a8;
-// }
+}
 
 .popupContent {
   @include position-contenus(flex, center, flex-start);

@@ -158,11 +158,12 @@ const {
 
 .main {
   @include glass();
+  min-height: 82vh;
   border-radius: $radius-pm;
   @include position-contenus(flex, baseline, center);
-  padding: 0 24px;
+  padding: 0 24px 24px 24px;
   margin: 12px;
-  height: 100%;
+  // height: 100%;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;
@@ -250,29 +251,25 @@ const {
   /* Scroll vertical */
   // background-color: #fff;
   width: 100%;
-  max-height: 53vh;
+  height: 60vh;
   /* Ajuste selon tes besoins */
   border-radius: $radius-pm;
 }
 
-/* Personnalisation de la scrollbar */
 .content::-webkit-scrollbar {
   width: 10px;
 }
 
 .content::-webkit-scrollbar-track {
-  background: #ffffff;
+  background: transparent;
   border-radius: 10px;
+  
 }
 
 .content::-webkit-scrollbar-thumb {
-  background: $light;
+  background: #C5C5C5;
   border-radius: 10px;
 
-}
-
-.content::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
 }
 
 .popupContent {
