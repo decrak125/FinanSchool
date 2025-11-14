@@ -51,7 +51,7 @@ class IntervalleCompteCategoriesSeeder extends Seeder
             ['compte_debut' => '100', 'compte_fin' => '119', 'code_cat' => 'CAPITAL'],       // Capital
             ['compte_debut' => '110', 'compte_fin' => '119', 'code_cat' => 'AUTCPRO'],       // Autres capitaux propres - Report à nouveau
             ['compte_debut' => '104', 'compte_fin' => '104', 'code_cat' => 'PRIME'],         // Primes/Réserves
-            ['compte_debut' => '106', 'compte_fin' => '106', 'code_cat' => 'PRIMES'],         // Primes/Réserves
+            ['compte_debut' => '106', 'compte_fin' => '106', 'code_cat' => 'PRIME'],         // Primes/Réserves
             ['compte_debut' => '120', 'compte_fin' => '129', 'code_cat' => 'RESULT'],         
             ['compte_debut' => '130', 'compte_fin' => '139', 'code_cat' => 'EVAL'],          // Ecarts d’évaluation
             ['compte_debut' => '140', 'compte_fin' => '149', 'code_cat' => 'EQUIV'],         // Ecart d’équivalence

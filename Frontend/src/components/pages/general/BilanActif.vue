@@ -104,13 +104,13 @@
                     {{ ligne.label }}
                   </td>
                   <td class="text-center">{{ ligne.note || "" }}</td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
+                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal}">
                     {{ formatMontant(ligne.brutN) }}
                   </td>
                   <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
                     {{ formatMontant(ligne.amortN) }}
                   </td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
+                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal, 'negative-value': ligne.netN < 0 }">
                     {{ formatMontant(ligne.netN) }}
                   </td>
                   <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
@@ -432,6 +432,10 @@ const exportToExcel = () => {
 .pl-4 { padding-left: 1.5rem !important;}
 .pl-8 { padding-left: 3rem !important;}
 .font-bold { font-weight: 700;}
+.negative-value {
+  color: #e11d48 !important; /* rouge */
+}
+
 .table-container { overflow-x: auto; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); border-radius: 0.5rem; background: white;}
 .table tbody tr { border-bottom: 1px solid #e5e7eb;}
 .spinner { display: inline-block; width: 2rem; height: 2rem; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;}
