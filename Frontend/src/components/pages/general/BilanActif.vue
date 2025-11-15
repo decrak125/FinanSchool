@@ -104,13 +104,13 @@
                     {{ ligne.label }}
                   </td>
                   <td class="text-center">{{ ligne.note || "" }}</td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
+                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal}">
                     {{ formatMontant(ligne.brutN) }}
                   </td>
                   <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
                     {{ formatMontant(ligne.amortN) }}
                   </td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
+                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal, 'negative-value': ligne.netN < 0 }">
                     {{ formatMontant(ligne.netN) }}
                   </td>
                   <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
@@ -124,6 +124,15 @@
         </div>
       </div>
     </div>
+    <button class="chatbot-float-btn" @click="showChat = !showChat">
+    <span v-if="!showChat">💬</span>
+    <span v-else>✖</span>
+  </button>
+  <transition name="chatbot-fade">
+    <div v-if="showChat">
+      <ChatBot />
+    </div>
+  </transition>
   </div>
 </template>
 
@@ -134,6 +143,7 @@ import axios from "axios";
 import Header from "../../molecules/Header.vue";
 import Sidebar from "../../molecules/Sidebar.vue";
 import AppFooter from "../../molecules/Footer.vue";
+import ChatBot from "../../molecules/ChatBot.vue";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -145,6 +155,7 @@ const goBack = () => { router.push("/journal"); };
 const handleNavigation = item => { router.push(item.route); };
 
 const loading = ref(false);
+const showChat = ref(false);
 const listeComplete = ref([]);
 const exerciceInfo = ref({
   date_debut: "",
@@ -154,6 +165,19 @@ const exerciceInfo = ref({
   annee_fiscale: "",
   statut: ""
 });
+
+// ------ LOGO PDF ------
+const logoBase64 = ref(null);
+async function fetchImageAsBase64(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
 
 // --- FILTRE EXERCICE ---
 const exercices = ref([]);
@@ -208,7 +232,9 @@ if (!token) {
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
 
+// Chargement initial : logo, user, exercices, bilan sur l'exercice courant
 onMounted(async () => {
+  logoBase64.value = await fetchImageAsBase64("/01Raitra kidz 300px.png");
   if (!token) {
     window.location.href = "/";
   } else {
@@ -286,13 +312,19 @@ const formatDate = d => {
   const date = new Date(d);
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 };
+
+// EXPORT PDF avec logo et style pro
 const exportToPDF = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
   const doc = new jsPDF('l', 'mm', 'a4');
+  if (logoBase64.value) {
+    doc.addImage(logoBase64.value, "PNG", 16, 6, 24, 16);
+  }
   doc.setFontSize(16);
-  doc.text("Bilan - Actif", 14, 14);
+  doc.text("Bilan - Actif", 48, 14);
   doc.setFontSize(10);
   doc.text(`Exercice : ${exerciceInfo.value.annee_fiscale}`, 14, 22);
+  doc.text(`Statut : ${exerciceInfo.value.statut || "-"}`, 140, 22);
   doc.text(`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`, 14, 28);
   
   autoTable(doc, {
@@ -317,23 +349,69 @@ const exportToPDF = () => {
     startY: 35,
     styles: { fontSize: 8 },
     headStyles: { fillColor: [51, 122, 183], textColor: [255, 255, 255], fontStyle: 'bold' },
+    bodyStyles: { valign: 'middle' }
   });
   doc.save("bilan_actif.pdf");
 };
+
+// EXPORT EXCEL avec titre fusionné, infos période, style pro
 const exportToExcel = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
-  const dataForExcel = listeComplete.value.map(l => ({
-    'ACTIF': l.label,
-    'NOTE': l.note || "",
-    'Brut N': l.brutN || "",
-    'Amort/Prov N': l.amortN || "",
-    'Net N': l.netN || "",
-    'Net N-1': l.netN1 || ""
-  }));
-  const dataSheet = XLSX.utils.json_to_sheet(dataForExcel);
+  const wsData = [
+    ["BILAN ACTIF"],
+    [""],
+    [`Exercice : ${exerciceInfo.value.annee_fiscale}`],
+    [`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`],
+    [`Statut : ${exerciceInfo.value.statut || "-"}`],
+    [""],
+    ["ACTIF", "NOTE", "Brut N", "Amort/Prov N", "Net N", "Net N-1"],
+    ...listeComplete.value.map(l => [
+      l.label,
+      l.note || "",
+      formatMontant(l.brutN),
+      formatMontant(l.amortN),
+      formatMontant(l.netN),
+      formatMontant(l.netN1)
+    ])
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [
+    { wch: 40 }, { wch: 12 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }
+  ];
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
+  ["A7","B7","C7","D7","E7","F7"].forEach(cell => {
+    ws[cell].s = {
+      font: { bold: true, sz: 13 },
+      alignment: { horizontal: "center", vertical: "center" },
+      fill: { fgColor: { rgb: "e3edfc" } },
+      border: {
+        top:    { style: "medium", color: { rgb: "1976d2" } },
+        left:   { style: "medium", color: { rgb: "1976d2" } },
+        right:  { style: "medium", color: { rgb: "1976d2" } },
+        bottom: { style: "medium", color: { rgb: "1976d2" } }
+      }
+    }
+  });
+  for (let r = 7; r < wsData.length; ++r) {
+    for (let c = 0; c < 6; ++c) {
+      const cellAddr = XLSX.utils.encode_cell({ r, c });
+      if (ws[cellAddr]) {
+        ws[cellAddr].s = {
+          font: { sz: 12 },
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top:    { style: "thin", color: { rgb: "142c6c" } },
+            left:   { style: "thin", color: { rgb: "142c6c" } },
+            right:  { style: "thin", color: { rgb: "142c6c" } },
+            bottom: { style: "thin", color: { rgb: "142c6c" } }
+          }
+        }
+      }
+    }
+  }
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, dataSheet, "BilanActif");
-  XLSX.writeFile(wb, "bilan_actif.xlsx");
+  XLSX.utils.book_append_sheet(wb, ws, "Bilan_Actif");
+  XLSX.writeFile(wb, `bilan_actif_${new Date().toISOString().split("T")[0]}.xlsx`);
 };
 </script>
 
@@ -365,9 +443,73 @@ const exportToExcel = () => {
 .pl-4 { padding-left: 1.5rem !important;}
 .pl-8 { padding-left: 3rem !important;}
 .font-bold { font-weight: 700;}
+.negative-value {
+  color: #e11d48 !important; /* rouge */
+}
+.chatbot-float-btn {
+  position: fixed;
+  bottom: 55px;
+  right: 45px;
+  width: 54px;
+  height: 54px;
+  background: linear-gradient(135deg,#1c45bd 0%,#011244 100%);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 101;
+  border: none;
+  box-shadow: 0 6px 16px rgba(102,126,234,0.22);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.chatbot-float-btn:hover {
+  box-shadow: 0 10px 22px rgba(102,126,234,0.32);
+  background: linear-gradient(135deg,#011244 0%,#1c45bd 100%);
+}
+
+.dashboard-chatbot-chatbox {
+  position: fixed;
+  bottom: 100px;
+  right: 40px;
+  width: 380px;
+  max-width: 99vw;
+  height: 520px;
+  max-height: 80vh;
+  z-index: 100;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 8px 36px rgba(90,60,130,0.14);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Animation d'apparition */
+.chatbot-fade-enter-active, .chatbot-fade-leave-active {
+  transition: opacity 0.25s;
+}
+.chatbot-fade-enter, .chatbot-fade-leave-to {
+  opacity: 0;
+}
 .table-container { overflow-x: auto; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); border-radius: 0.5rem; background: white;}
 .table tbody tr { border-bottom: 1px solid #e5e7eb;}
 .spinner { display: inline-block; width: 2rem; height: 2rem; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;}
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); }}
-@media (max-width: 768px) { .main-content { margin-left: 0; padding: 1rem;} .info-grid { grid-template-columns: 1fr;} .export-container { flex-direction: column !important;}}
+@media (max-width: 768px) { .main-content { margin-left: 0; padding: 1rem;} .info-grid { grid-template-columns: 1fr;} .export-container { flex-direction: column !important;}.dashboard-chatbot-chatbox {
+    right: 5vw;
+    bottom: 80px;
+    width: 98vw;
+    height: 90vh;
+    border-radius: 8px;
+  }
+  .chatbot-float-btn {
+    right: 8vw;
+    bottom: 18px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.3em;
+  }}
 </style>

@@ -118,6 +118,15 @@
         </div>
       </div>
     </div>
+    <button class="chatbot-float-btn" @click="showChat = !showChat">
+    <span v-if="!showChat">💬</span>
+    <span v-else>✖</span>
+  </button>
+  <transition name="chatbot-fade">
+    <div v-if="showChat">
+      <ChatBot />
+    </div>
+  </transition>
   </div>
 </template>
 
@@ -129,6 +138,7 @@ import axios from "axios";
 import Header from "../../molecules/Header.vue";
 import Sidebar from "../../molecules/Sidebar.vue";
 import AppFooter from "../../molecules/Footer.vue";
+import ChatBot from "../../molecules/ChatBot.vue";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -136,6 +146,7 @@ import { getUser } from "../../../services/Auth";
 
 const router = useRouter();
 const user = ref(null);
+const showChat = ref(false);
 const goBack = () => { router.push("/journal"); };
 const handleNavigation = item => { router.push(item.route); };
 
@@ -152,8 +163,20 @@ const exercices = ref([]);
 const selectedExercice = ref("");
 const exerciceCourantId = ref("");
 
-const token = localStorage.getItem("token");
+// ------------ LOGO PDF ------------
+const logoBase64 = ref(null);
+async function fetchImageAsBase64(url) {
+  const response = await fetch(url);
+  const blob = await response.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
 
+const token = localStorage.getItem("token");
 if (!token) {
   window.location.href = "/";
 } else {
@@ -189,6 +212,7 @@ const onExerciceChange = () => {
 };
 
 onMounted(async () => {
+  logoBase64.value = await fetchImageAsBase64("/01Raitra kidz 300px.png");
   if (!token) {
     window.location.href = "/";
   } else {
@@ -244,10 +268,14 @@ const formatDate = d => {
 const exportToPDF = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
   const doc = new jsPDF('l', 'mm', 'a4');
+  if (logoBase64.value) {
+    doc.addImage(logoBase64.value, 'PNG', 14, 4, 24, 16);
+  }
   doc.setFontSize(14);
-  doc.text("Tableau des Variations des Capitaux Propres", 14, 14);
+  doc.text("Tableau des Variations des Capitaux Propres", 44, 14);
   doc.setFontSize(10);
   doc.text(`Exercice : ${exerciceInfo.value.annee_fiscale}`, 14, 20);
+  doc.text(`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`, 14, 26);
 
   autoTable(doc, {
     head: [["CAPITAUX PROPRES", "Capital", "Primes & Réserves", "Écarts évaluation", "Écart équivalence", "Résultat", "Report à nouveau", "Total"]],
@@ -262,31 +290,74 @@ const exportToPDF = () => {
       formatMontant(l.total)
     ]),
     theme: "grid",
-    startY: 26,
+    startY: 32,
     styles: { fontSize: 8 },
-    headStyles: { fillColor: [51, 122, 183], textColor: [255, 255, 255], fontStyle: 'bold' },
+    headStyles: { fillColor: [51, 122, 183], textColor: [255, 255, 255], fontStyle: 'bold' }
   });
   doc.save("variations_capitaux_propres.pdf");
 };
 
 const exportToExcel = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
-  const dataForExcel = listeComplete.value.map(l => ({
-    'CAPITAUX PROPRES': l.label,
-    'Capital': l.capital || "",
-    'Primes & Réserves': l.prime || "",
-    'Écarts évaluation': l.eval || "",
-    'Écart équivalence': l.equiv || "",
-    'Résultat': l.result || "",
-    'Report à nouveau': l.autcpro || "",
-    'Total': l.total || ""
-  }));
-  const dataSheet = XLSX.utils.json_to_sheet(dataForExcel);
+  const wsData = [
+    ["TABLEAU DES VARIATIONS DES CAPITAUX PROPRES"],
+    [""],
+    [`Exercice : ${exerciceInfo.value.annee_fiscale}`],
+    [`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`],
+    [""],
+    ["CAPITAUX PROPRES", "Capital", "Primes & Réserves", "Écarts évaluation", "Écart équivalence", "Résultat", "Report à nouveau", "Total"],
+    ...listeComplete.value.map(l => [
+      l.label,
+      formatMontant(l.capital),
+      formatMontant(l.prime),
+      formatMontant(l.eval),
+      formatMontant(l.equiv),
+      formatMontant(l.result),
+      formatMontant(l.autcpro),
+      formatMontant(l.total)
+    ])
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols'] = [
+    { wch: 30 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 22 }
+  ];
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }];
+  ["A6","B6","C6","D6","E6","F6","G6","H6"].forEach(cell => {
+    ws[cell].s = {
+      font: { bold: true, sz: 13 },
+      alignment: { horizontal: "center", vertical: "center" },
+      fill: { fgColor: { rgb: "e3edfc" } },
+      border: {
+        top:    { style: "medium", color: { rgb: "1976d2" } },
+        left:   { style: "medium", color: { rgb: "1976d2" } },
+        right:  { style: "medium", color: { rgb: "1976d2" } },
+        bottom: { style: "medium", color: { rgb: "1976d2" } }
+      }
+    }
+  });
+  for (let r = 6; r < wsData.length; ++r) {
+    for (let c = 0; c < 8; ++c) {
+      const cellAddr = XLSX.utils.encode_cell({ r, c });
+      if (ws[cellAddr]) {
+        ws[cellAddr].s = {
+          font: { sz: 12 },
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top:    { style: "thin", color: { rgb: "142c6c" } },
+            left:   { style: "thin", color: { rgb: "142c6c" } },
+            right:  { style: "thin", color: { rgb: "142c6c" } },
+            bottom: { style: "thin", color: { rgb: "142c6c" } }
+          }
+        }
+      }
+    }
+  }
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, dataSheet, "VariationsCapitaux");
-  XLSX.writeFile(wb, "variations_capitaux_propres.xlsx");
+  XLSX.utils.book_append_sheet(wb, ws, "Variations_Capitaux");
+  XLSX.writeFile(wb, `variations_capitaux_propres_${new Date().toISOString().split("T")[0]}.xlsx`);
 };
 </script>
+
 
 <style scoped>
 .dashboard-container { display: flex; min-height: 100vh; flex-direction: column; }
@@ -308,11 +379,71 @@ const exportToExcel = () => {
 
 .detail-row { background-color: #f0f9ff;}
 .detail-row td { padding: 0.6rem 1rem; color: #374151;}
+.chatbot-float-btn {
+  position: fixed;
+  bottom: 55px;
+  right: 45px;
+  width: 54px;
+  height: 54px;
+  background: linear-gradient(135deg,#1c45bd 0%,#011244 100%);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 101;
+  border: none;
+  box-shadow: 0 6px 16px rgba(102,126,234,0.22);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.chatbot-float-btn:hover {
+  box-shadow: 0 10px 22px rgba(102,126,234,0.32);
+  background: linear-gradient(135deg,#011244 0%,#1c45bd 100%);
+}
 
+.dashboard-chatbot-chatbox {
+  position: fixed;
+  bottom: 100px;
+  right: 40px;
+  width: 380px;
+  max-width: 99vw;
+  height: 520px;
+  max-height: 80vh;
+  z-index: 100;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 8px 36px rgba(90,60,130,0.14);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Animation d'apparition */
+.chatbot-fade-enter-active, .chatbot-fade-leave-active {
+  transition: opacity 0.25s;
+}
+.chatbot-fade-enter, .chatbot-fade-leave-to {
+  opacity: 0;
+}
 .font-bold { font-weight: 700;}
 .table-container { overflow-x: auto; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); border-radius: 0.5rem; background: white;}
 .table tbody tr { border-bottom: 1px solid #e5e7eb;}
 .spinner { display: inline-block; width: 2rem; height: 2rem; border: 3px solid #f3f3f3; border-top: 3px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;}
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); }}
-@media (max-width: 768px) { .main-content { margin-left: 0; padding: 1rem;} .info-grid { grid-template-columns: 1fr;} .export-container { flex-direction: column !important;}}
+@media (max-width: 768px) { .main-content { margin-left: 0; padding: 1rem;} .info-grid { grid-template-columns: 1fr;} .export-container { flex-direction: column !important;}.dashboard-chatbot-chatbox {
+    right: 5vw;
+    bottom: 80px;
+    width: 98vw;
+    height: 90vh;
+    border-radius: 8px;
+  }
+  .chatbot-float-btn {
+    right: 8vw;
+    bottom: 18px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.3em;
+  }}
 </style>

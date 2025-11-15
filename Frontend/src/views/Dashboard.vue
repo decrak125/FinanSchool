@@ -614,7 +614,7 @@ button:hover {
 
 .chatbot-float-btn {
   position: fixed;
-  bottom: 28px;
+  bottom: 35px;
   right: 32px;
   width: 54px;
   height: 54px;

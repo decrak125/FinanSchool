@@ -217,7 +217,7 @@ public function index()
 
             foreach ($mouvement->lignes as $ligne) {
                 $ligne->update([
-                    'statut'         => 'valide',
+                    'statut'         => 'brouillon',
                     'date_validation'=> now(),
                     'valide_par'     => Auth::id(),
                 ]);

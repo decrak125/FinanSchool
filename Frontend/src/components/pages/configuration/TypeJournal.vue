@@ -72,10 +72,21 @@
             </table>
           </div>
         </div>
-        
+                    
         <AppFooter />
       </div>
     </div>
+    <button class="chatbot-float-btn" @click="showChat = !showChat">
+  <span v-if="!showChat">💬</span>
+  <span v-else>✖</span>
+</button>
+
+<!-- POPIN CHATBOT (fixe à droite, petite taille) -->
+<transition name="chatbot-fade">
+  <div v-if="showChat">
+    <ChatBot />
+  </div>
+</transition>
   </div>  
 </template>
 
@@ -86,6 +97,7 @@ import { useRouter } from 'vue-router'
 import Sidebar from "../../molecules/Sidebar.vue";
 import Header from "../../molecules/Header.vue";
 import AppFooter from "../../molecules/Footer.vue";
+import ChatBot from "../../molecules/ChatBot.vue";
 import { getUser } from "../../../services/Auth";
 
 const router = useRouter();
@@ -104,6 +116,8 @@ const editId = ref(null);
 const form = ref({
   Type: "",
 });
+
+const showChat = ref(false);
 
 const token = localStorage.getItem("token"); // Récupérer le token
 
@@ -199,10 +213,74 @@ onMounted(async () => {
   min-height: calc(100vh - 80px);
 }
 
+.chatbot-float-btn {
+  position: fixed;
+  bottom: 55px;
+  right: 45px;
+  width: 54px;
+  height: 54px;
+  background: linear-gradient(135deg,#1c45bd 0%,#011244 100%);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 101;
+  border: none;
+  box-shadow: 0 6px 16px rgba(102,126,234,0.22);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.chatbot-float-btn:hover {
+  box-shadow: 0 10px 22px rgba(102,126,234,0.32);
+  background: linear-gradient(135deg,#011244 0%,#1c45bd 100%);
+}
+
+.dashboard-chatbot-chatbox {
+  position: fixed;
+  bottom: 100px;
+  right: 40px;
+  width: 380px;
+  max-width: 99vw;
+  height: 520px;
+  max-height: 80vh;
+  z-index: 100;
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 8px 36px rgba(90,60,130,0.14);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Animation d'apparition */
+.chatbot-fade-enter-active, .chatbot-fade-leave-active {
+  transition: opacity 0.25s;
+}
+.chatbot-fade-enter, .chatbot-fade-leave-to {
+  opacity: 0;
+}
+
 @media (max-width: 768px) {
   .main-content {
     margin-left: 0;
     padding: 16px;
+  }
+
+  .dashboard-chatbot-chatbox {
+    right: 5vw;
+    bottom: 80px;
+    width: 98vw;
+    height: 90vh;
+    border-radius: 8px;
+  }
+  .chatbot-float-btn {
+    right: 8vw;
+    bottom: 18px;
+    width: 44px;
+    height: 44px;
+    font-size: 1.3em;
   }
 }
 </style>
