@@ -38,7 +38,6 @@ const {
   fetchAffectations,
   fetchClassement,
   fetchSousComptesVentiles,
-  fetchVerificationVentilations,
 
   // 🔥 NOUVELLES FONCTIONS
   initializeData,
@@ -61,9 +60,9 @@ const handleExerciceChange = async (event) => {
 };
 
 // Rafraîchissement des données
-const refreshData = async () => {
-  await fetchCentres();
-};
+// const refreshData = async () => {
+//   await fetchCentres();
+// };
 
 // const selectedCentre = ref('');
 const activeTab = ref('centres');
@@ -82,11 +81,11 @@ const affectationsChartData = computed(() => ({
   title: selectedCentre.value ? `Détails ventilés - ${selectedCentre.value}` : 'Détails des affectations ventilées'
 }));
 
-const sousComptesChartData = computed(() => ({
-  data: sousComptesVentiles.value.map(sc => parseFloat(sc.montant_ventile) || 0),
-  labels: sousComptesVentiles.value.map(sc => sc.libelle_sous_compte),
-  title: selectedCentre.value ? `Sous-comptes - ${selectedCentre.value}` : 'Sous-comptes ventilés'
-}));
+// const sousComptesChartData = computed(() => ({
+//   data: sousComptesVentiles.value.map(sc => parseFloat(sc.montant_ventile) || 0),
+//   labels: sousComptesVentiles.value.map(sc => sc.libelle_sous_compte),
+//   title: selectedCentre.value ? `Sous-comptes - ${selectedCentre.value}` : 'Sous-comptes ventilés'
+// }));
 
 const selectedCentreData = computed(() => {
   if (!selectedCentre.value) return null;
@@ -134,10 +133,10 @@ const handleReset = async () => {
 };
 
 // Charger toutes les données au montage
-const loadAllData = async () => {
-  await fetchCentres();
-  await fetchVerificationVentilations();
-};
+// const loadAllData = async () => {
+//   await fetchCentres();
+//   await fetchVerificationVentilations();
+// };
 
 onMounted(async () => {
   await initializeData();

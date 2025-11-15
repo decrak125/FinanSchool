@@ -14,29 +14,7 @@ export function useIndicateursUnifies(filters) {
   const totalProduits = ref(null);
   const totalCharges = ref(null);
   const resultatNet = ref(null);
-  const margeExploitation = ref(null);
-
-  // 💰 INDICATEURS DE LIQUIDITÉ
-  const LiquiditeGenerale = ref(null);
   const TresorerieNette = ref(null);
-  const BFR = ref(null);
-
-  // 🎓 INDICATEURS PÉDAGOGIQUES
-  const coutFonctionnement = ref(null);
-  const chiffreAffaires = ref(null);
-  const partMasseSalariale = ref(null);
-  const margeParEleve = ref(null);
-
-  // 📈 INDICATEURS DE RENTABILITÉ
-  const MargeBrute = ref(null);
-  const MargeNette = ref(null);
-  const ROE = ref(null);
-  const ROA = ref(null);
-
-  // 🏦 INDICATEURS DE SOLVABILITÉ
-  const RatioEndettement = ref(null);
-  const CapaciteRemboursement = ref(null);
-  const AutonomieFinanciere = ref(null);
 
   // 📌 Données de l'année N-1 pour tous les indicateurs
   const previousYearData = ref({
@@ -44,23 +22,7 @@ export function useIndicateursUnifies(filters) {
     totalProduits: null,
     totalCharges: null,
     resultatNet: null,
-    margeExploitation: null,
-    
-    // Liquidité
-    LiquiditeGenerale: null,
-    TresorerieNette: null,
-    BFR: null,
-    
-    // Rentabilité
-    MargeBrute: null,
-    MargeNette: null,
-    ROE: null,
-    ROA: null,
-    
-    // Solvabilité
-    RatioEndettement: null,
-    CapaciteRemboursement: null,
-    AutonomieFinanciere: null
+    TresorerieNette: null
   });
 
   // 📌 Fonction pour obtenir les dates de l'année précédente
@@ -93,10 +55,7 @@ export function useIndicateursUnifies(filters) {
       
       // Récupération de TOUS les indicateurs pour N-1
       const [
-        produits, charges, resultat, margeExploit,
-        liquidite, tresorerie, bfr,
-        margeBrute, margeNette, roe, roa,
-        endettement, remboursement, autonomie
+        produits, charges, resultat, tresorerie
       ] = await Promise.all([
         // Indicateurs Généraux
         axios.get(`${API_URL}/analyse/total-produits`, {
@@ -111,52 +70,10 @@ export function useIndicateursUnifies(filters) {
           params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
         }).catch(() => ({ data: null })),
         
-        axios.get(`${API_URL}/analyse/marge-exploitation`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
-
-        // Indicateurs de Liquidité
-        axios.get(`${API_URL}/analyse/ratio-liquidite-generale`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
-        
         axios.get(`${API_URL}/analyse/tresorerie-nette`, {
           params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
         }).catch(() => ({ data: null })),
         
-        axios.get(`${API_URL}/analyse/bfr`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
-
-        // Indicateurs de Rentabilité
-        axios.get(`${API_URL}/analyse/marge-brute`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
-        
-        axios.get(`${API_URL}/analyse/marge-nette`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
-        
-        axios.get(`${API_URL}/analyse/roe`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
-        
-        axios.get(`${API_URL}/analyse/roa`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
-
-        // Indicateurs de Solvabilité
-        axios.get(`${API_URL}/analyse/ratio-endettement`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
-        
-        axios.get(`${API_URL}/analyse/capacite-remboursement`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null })),
-        
-        axios.get(`${API_URL}/analyse/autonomie-financiere`, {
-          params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        }).catch(() => ({ data: null }))
       ]);
 
       previousYearData.value = {
@@ -164,23 +81,7 @@ export function useIndicateursUnifies(filters) {
         totalProduits: produits.data,
         totalCharges: charges.data,
         resultatNet: resultat.data,
-        margeExploitation: margeExploit.data,
-        
-        // Liquidité
-        LiquiditeGenerale: liquidite.data,
         TresorerieNette: tresorerie.data,
-        BFR: bfr.data,
-        
-        // Rentabilité
-        MargeBrute: margeBrute.data,
-        MargeNette: margeNette.data,
-        ROE: roe.data,
-        ROA: roa.data,
-        
-        // Solvabilité
-        RatioEndettement: endettement.data,
-        CapaciteRemboursement: remboursement.data,
-        AutonomieFinanciere: autonomie.data
       };
 
       console.log('Données N-1 unifiées:', previousYearData.value);
@@ -248,63 +149,9 @@ export function useIndicateursUnifies(filters) {
         resultatNet.value?.resultat_net, 
         previousYearData.value.resultatNet?.resultat_net
       ),
-      margeExploitation: getComparison(
-        margeExploitation.value?.marge_exploitation?.valeur, 
-        previousYearData.value.margeExploitation?.marge_exploitation?.valeur,
-        'pourcentage'
-      ),
-
-      // Indicateurs de Liquidité
-      Liquidite: getComparison(
-        LiquiditeGenerale.value?.ratio_liquidite_generale?.valeur, 
-        previousYearData.value.LiquiditeGenerale?.ratio_liquidite_generale?.valeur,
-        'pourcentage'
-      ),
       Tresorerie: getComparison(
         TresorerieNette.value?.tresorerie_nette, 
         previousYearData.value.TresorerieNette?.tresorerie_nette
-      ),
-      fondRoulement: getComparison(
-        BFR.value?.bfr, 
-        previousYearData.value.BFR?.bfr
-      ),
-
-      // Indicateurs de Rentabilité
-      brute: getComparison(
-        MargeBrute.value?.marge_brute?.valeur, 
-        previousYearData.value.MargeBrute?.marge_brute?.valeur,
-        'pourcentage'
-      ),
-      nette: getComparison(
-        MargeNette.value?.marge_nette?.valeur, 
-        previousYearData.value.MargeNette?.marge_nette?.valeur,
-        'pourcentage'
-      ),
-      ROE: getComparison(
-        ROE.value?.roe?.valeur, 
-        previousYearData.value.ROE?.roe?.valeur,
-        'pourcentage'
-      ),
-      ROA: getComparison(
-        ROA.value?.roa?.valeur, 
-        previousYearData.value.ROA?.roa?.valeur,
-        'pourcentage'
-      ),
-
-      // Indicateurs de Solvabilité
-      Endettement: getComparison(
-        RatioEndettement.value?.ratio_endettement?.valeur, 
-        previousYearData.value.RatioEndettement?.ratio_endettement?.valeur,
-        'pourcentage'
-      ),
-      Remboursement: getComparison(
-        CapaciteRemboursement.value?.capacite_remboursement, 
-        previousYearData.value.CapaciteRemboursement?.capacite_remboursement
-      ),
-      Autonomie: getComparison(
-        AutonomieFinanciere.value?.autonomie_financiere?.valeur, 
-        previousYearData.value.AutonomieFinanciere?.autonomie_financiere?.valeur,
-        'pourcentage'
       )
     };
   });
@@ -397,13 +244,7 @@ export function useIndicateursUnifies(filters) {
     try {
       const [
         // Général
-        produits, charges, resultat, margeExploit,
-        // Liquidité
-        liquidite, tresorerie, bfr,
-        // Rentabilité
-        margeBrute, margeNette, roe, roa,
-        // Solvabilité
-        endettement, remboursement, autonomie
+        produits, charges, resultat, tresorerie
       ] = await Promise.all([
         // Indicateurs Généraux
         axios.get(`${API_URL}/analyse/total-produits`, {
@@ -415,45 +256,10 @@ export function useIndicateursUnifies(filters) {
         axios.get(`${API_URL}/analyse/resultat-net`, {
           params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
         }),
-        axios.get(`${API_URL}/analyse/marge-exploitation`, {
-          params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
-        }),
-
         // Indicateurs de Liquidité
-        axios.get(`${API_URL}/analyse/ratio-liquidite-generale`, {
-          params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
-        }),
         axios.get(`${API_URL}/analyse/tresorerie-nette`, {
           params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
         }),
-        axios.get(`${API_URL}/analyse/bfr`, {
-          params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
-        }),
-
-        // Indicateurs de Rentabilité
-        axios.get(`${API_URL}/analyse/marge-brute`, {
-          params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
-        }),
-        axios.get(`${API_URL}/analyse/marge-nette`, {
-          params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
-        }),
-        axios.get(`${API_URL}/analyse/roe`, {
-          params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
-        }),
-        axios.get(`${API_URL}/analyse/roa`, {
-          params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
-        }),
-
-        // Indicateurs de Solvabilité
-        axios.get(`${API_URL}/analyse/ratio-endettement`, {
-          params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
-        }),
-        axios.get(`${API_URL}/analyse/capacite-remboursement`, {
-          params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
-        }),
-        axios.get(`${API_URL}/analyse/autonomie-financiere`, {
-          params: { date_debut: filters.value.dateStart, date_fin: filters.value.dateEnd }
-        })
       ]);
 
       // Assignation des valeurs
@@ -461,23 +267,7 @@ export function useIndicateursUnifies(filters) {
       totalProduits.value = produits.data;
       totalCharges.value = charges.data;
       resultatNet.value = resultat.data;
-      margeExploitation.value = margeExploit.data;
-
-      // Liquidité
-      LiquiditeGenerale.value = liquidite.data;
       TresorerieNette.value = tresorerie.data;
-      BFR.value = bfr.data;
-
-      // Rentabilité
-      MargeBrute.value = margeBrute.data;
-      MargeNette.value = margeNette.data;
-      ROE.value = roe.data;
-      ROA.value = roa.data;
-
-      // Solvabilité
-      RatioEndettement.value = endettement.data;
-      CapaciteRemboursement.value = remboursement.data;
-      AutonomieFinanciere.value = autonomie.data;
 
     } catch (error) {
       console.error("Erreur lors de la récupération de tous les indicateurs:", error);
@@ -490,8 +280,9 @@ export function useIndicateursUnifies(filters) {
     try {
       loading.value = true;
       await Promise.all([
-        getAllIndicateurs(),
-        fetchPreviousYearData(formatDateForInput(filters.value.dateStart), formatDateForInput(filters.value.dateEnd))
+        fetchPreviousYearData(formatDateForInput(filters.value.dateStart), formatDateForInput(filters.value.dateEnd)),
+        getAllIndicateurs()
+        
       ]);
     } catch (error) {
       console.error("Erreur lors du rafraîchissement de toutes les données:", error);
@@ -557,24 +348,7 @@ export function useIndicateursUnifies(filters) {
     totalProduits,
     totalCharges,
     resultatNet,
-    margeExploitation,
-    
-    // Liquidité
-    LiquiditeGenerale,
     TresorerieNette,
-    BFR,
-    
-    // Rentabilité
-    MargeBrute,
-    MargeNette,
-    ROE,
-    ROA,
-    
-    // Solvabilité
-    RatioEndettement,
-    CapaciteRemboursement,
-    AutonomieFinanciere,
-
     // Données de comparaison
     previousYearData,
     comparisons,

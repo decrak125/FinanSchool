@@ -38,7 +38,7 @@ const {
   fetchAffectations,
   fetchClassement,
   fetchSousComptesVentiles,
-  fetchVerificationVentilations,
+  // fetchVerificationVentilations,
 
   // 🔥 NOUVELLES FONCTIONS
   initializeData,
@@ -58,11 +58,6 @@ const {
 const handleExerciceChange = async (event) => {
   const idExercice = event.target.value;
   await changeExercice(idExercice);
-};
-
-// Rafraîchissement des données
-const refreshData = async () => {
-  await fetchCentres();
 };
 
 // const selectedCentre = ref('');
@@ -131,12 +126,6 @@ const handleReset = async () => {
   // S'assurer qu'on revient à la vue globale
   showGlobalView.value = true;
   selectedCentre.value = '';
-};
-
-// Charger toutes les données au montage
-const loadAllData = async () => {
-  await fetchCentres();
-  await fetchVerificationVentilations();
 };
 
 onMounted(async () => {

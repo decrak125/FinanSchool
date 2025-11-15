@@ -75,16 +75,28 @@ export function useCout(type) {
 
   // 📌 Récupérer tous les exercices
   const fetchExercicesList = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/exercices`);
-      exercicesList.value = response.data;
-      exercicesList.value.sort((a, b) => b.Annee_fiscale - a.Annee_fiscale);
-      return exercicesList.value;
-    } catch (error) {
-      console.error("Erreur fetchExercicesList:", error);
-      return [];
-    }
-  };
+  try {
+    const response = await axios.get(`${API_URL}/exercices`);
+    
+    // Filtrer les exercices avec des dates dans le futur, mais inclure l'exercice sélectionné
+    const currentDate = new Date();
+    exercicesList.value = response.data.filter(exercice => {
+      const dateDebut = new Date(exercice.Date_debut);
+      const isSelected = exercice.Id_Exercice_comptable === filters.value.idExercice;
+      
+      // Inclure l'exercice s'il est terminé, en cours OU s'il est sélectionné
+      return dateDebut <= currentDate || isSelected;
+    });
+    
+    exercicesList.value.sort((a, b) => b.Annee_fiscale - a.Annee_fiscale);
+    
+    console.log('Exercices filtrés (avec sélectionné):', exercicesList.value);
+    return exercicesList.value;
+  } catch (error) {
+    console.error("Erreur fetchExercicesList:", error);
+    return [];
+  }
+};
 
   // 📌 Récupérer tous les codes analytiques
   const fetchCodesAnalytiques = async () => {
@@ -141,7 +153,7 @@ export function useCout(type) {
       }
       
       await fetchCentres();
-      await fetchVerificationVentilations();
+      // await fetchVerificationVentilations();
       
       selectedCentre.value = null;
       affectations.value = [];
@@ -310,36 +322,35 @@ export function useCout(type) {
   };
 
   // 📌 Vérification de la cohérence des ventilations
-  const fetchVerificationVentilations = async () => {
-    try {
-      loading.value = true;
+  // const fetchVerificationVentilations = async () => {
+  //   try {
+  //     loading.value = true;
       
-      const response = await axios.get(`${API_URL}/analyse/verification-ventilations`, {
-        params: {
-          date_start: formatDateForAPI(filters.value.dateStart),
-          date_end: formatDateForAPI(filters.value.dateEnd),
-          id_code: filters.value.idCode || null,
-        },
-      });
-      verificationVentilations.value = response.data;
-    } catch (error) {
-      console.error("Erreur fetchVerificationVentilations:", error);
-    } finally {
-      loading.value = false;
-    }
-  };
+  //     const response = await axios.get(`${API_URL}/analyse/verification-ventilations`, {
+  //       params: {
+  //         date_start: formatDateForAPI(filters.value.dateStart),
+  //         date_end: formatDateForAPI(filters.value.dateEnd),
+  //         id_code: filters.value.idCode || null,
+  //       },
+  //     });
+  //     verificationVentilations.value = response.data;
+  //   } catch (error) {
+  //     console.error("Erreur fetchVerificationVentilations:", error);
+  //   } finally {
+  //     loading.value = false;
+  //   }
+  // };
 
   // 📌 Chargement initial avec exercice
   const initializeData = async () => {
     try {
       loading.value = true;
-      await fetchExercicesList();
-      await fetchCodesAnalytiques();
-      await fetchExercice();
-      await fetchCentresList();
       await fetchCentres();
-      await fetchVerificationVentilations();
       await fetchClassement();
+      await fetchCentresList();
+      await fetchExercicesList();
+      // await fetchExercice();
+      await fetchCodesAnalytiques();
     } catch (error) {
       console.error("Erreur initializeData:", error);
     } finally {
@@ -347,35 +358,35 @@ export function useCout(type) {
     }
   };
 
-  // 🔥 WATCH POUR RECHARGER AUTOMATIQUEMENT LES DONNÉES
-  watch(
-    () => [filters.value.dateStart, filters.value.dateEnd, filters.value.idCentre],
-    async () => {
-      if (filters.value.dateStart && filters.value.dateEnd) {
-        await fetchCentres();
-        await fetchVerificationVentilations();
-        await fetchClassement();
-      }
-    },
-    { immediate: false }
-  );
+  // // 🔥 WATCH POUR RECHARGER AUTOMATIQUEMENT LES DONNÉES
+  // watch(
+  //   () => [filters.value.dateStart, filters.value.dateEnd, filters.value.idCentre],
+  //   async () => {
+  //     if (filters.value.dateStart && filters.value.dateEnd) {
+  //       await fetchCentres();
+  //       // await fetchVerificationVentilations();
+  //       await fetchClassement();
+  //     }
+  //   },
+  //   { immediate: false }
+  // );
 
-  // 🔥 NOUVEAU WATCH : Recharger quand le code change
-  watch(
-    () => filters.value.idCode,
-    async (newCode, oldCode) => {
-      if (filters.value.dateStart && filters.value.dateEnd) {
-        if (newCode) {
-          await filterCentresByCode();
-        } else {
-          centresFiltresParCode.value = centres.value;
-        }
-        await fetchVerificationVentilations();
-        await fetchClassement();
-      }
-    },
-    { immediate: false }
-  );
+  // // 🔥 NOUVEAU WATCH : Recharger quand le code change
+  // watch(
+  //   () => filters.value.idCode,
+  //   async (newCode, oldCode) => {
+  //     if (filters.value.dateStart && filters.value.dateEnd) {
+  //       if (newCode) {
+  //         await filterCentresByCode();
+  //       } else {
+  //         centresFiltresParCode.value = centres.value;
+  //       }
+  //       // await fetchVerificationVentilations();
+  //       await fetchClassement();
+  //     }
+  //   },
+  //   { immediate: false }
+  // );
 
   // 🔥 COMPUTED POUR LES FILTRES EN TEMPS RÉEL
   const centresFiltres = computed(() => {
@@ -443,7 +454,7 @@ export function useCout(type) {
       filters.value.searchAffectation = "";
       
       await fetchCentres();
-      await fetchVerificationVentilations();
+      // await fetchVerificationVentilations();
       
       selectedCentre.value = null;
       affectations.value = [];
@@ -559,7 +570,7 @@ export function useCout(type) {
     fetchAffectations,
     fetchClassement,
     fetchSousComptesVentiles,
-    fetchVerificationVentilations,
+    // fetchVerificationVentilations,
     filterCentresByCode,
 
     // 🔥 NOUVELLES FONCTIONS

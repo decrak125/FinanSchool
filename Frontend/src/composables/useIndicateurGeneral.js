@@ -1,6 +1,7 @@
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 
+
 export function useIndicateurGeneral(filters) {
   const API_URL = "http://127.0.0.1:8000/api";
   
@@ -69,11 +70,7 @@ export function useIndicateurGeneral(filters) {
         axios.get(`${API_URL}/analyse/total-charges`, {
           params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
         }).catch(() => ({ data: null })),
-        
-        // axios.get(`${API_URL}/eleves/count`, {
-        //   params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
-        // }).catch(() => ({ data: null })),
-        
+
         axios.get(`${API_URL}/analyse/resultat-net`, {
           params: { date_debut: previousDates.dateStart, date_fin: previousDates.dateEnd }
         }).catch(() => ({ data: null })),
@@ -336,7 +333,6 @@ const fetchExercicesList = async () => {
       await Promise.all([
         getProduits(),
         getCharges(),
-        // getNombreEleves(),
         getResultatNet(),
         getMargeExploitation(),
         fetchPreviousYearData(formatDateForInput(filters.value.dateStart), formatDateForInput(filters.value.dateEnd))
@@ -358,8 +354,9 @@ const fetchExercicesList = async () => {
   const initializeData = async () => {
     try {
       loading.value = true;
-      await fetchExercicesList();
       await fetchExercice();
+      await fetchExercicesList();
+      
       await refreshAllData();
     } catch (error) {
       console.error("Erreur initializeData:", error);

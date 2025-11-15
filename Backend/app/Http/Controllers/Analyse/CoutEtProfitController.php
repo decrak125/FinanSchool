@@ -11,52 +11,101 @@ class CoutEtProfitController extends Controller
 {
     // Fonction pour récupérer les montants par centre analytique avec taux de ventilation
 // Fonction pour récupérer les montants par centre analytique avec taux de ventilation
-    public function AnalyseCoutEtProfit(Request $request)
-    {
-        // 🔥 Déclencher l'événement
-        event(new MouvementCreated());
-        // Dates paramétrables via l'URL ou valeur par défaut
-        $dateStart = $request->input('date_start', '2025-01-01');
-        $dateEnd = $request->input('date_end', '2025-12-31');
-        $idCentre  = $request->input('id_centre'); // facultatif
-        $idType = $request->input('id_type');
-        $idCode = $request->input('id_code'); // ← NOUVEAU : filtre par code analytique
+public function AnalyseCoutEtProfit(Request $request)
+{
+    $dateStart = $request->input('date_start', '2025-01-01');
+    $dateEnd = $request->input('date_end', '2025-12-31');
+    $idCentre = $request->input('id_centre');
+    $idType = $request->input('id_type');
+    $idCode = $request->input('id_code');
 
-        $query = DB::table('ligne_ecritures as le')
-            ->select(
-                'aa.id_type',
-                'ca.id_centre',
-                'ca.nom as centre',
-                // 🔥 CORRECTION : ABS() POUR AVOIR DES MONTANTS POSITIFS
-                DB::raw('ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) as montant_ventile'),
-                DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_brut'),
-                DB::raw('ROUND(ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) * 100.0 / NULLIF(SUM(ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)))) OVER (), 0), 2) as pourcentage_ventile'),
-                DB::raw('ROUND(ABS(SUM(le."Debit" - le."Credit")) * 100.0 / NULLIF(SUM(ABS(SUM(le."Debit" - le."Credit"))) OVER (), 0), 2) as pourcentage_brut')
-            )
-            ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
-            ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
-            ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')
-            ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd]);
+    // 🔥 OPTIMISATION : Requête simplifiée
+    $baseQuery = DB::table('ligne_ecritures as le')
+        ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
+        ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
+        ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')
+        ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd])
+        ->select(
+            'le.Debit',
+            'le.Credit', 
+            'aa.taux',
+            'aa.id_type',
+            'ca.id_centre',
+            'ca.nom as centre'
+        );
 
-        // Filtrer par centre si fourni
-        if ($idCentre) {
-            $query->where('ca.id_centre', $idCentre);
-        }
-        if ($idType) {
-            $query->where('aa.id_type', $idType);
-        }
-        // ← NOUVEAU : Filtrer par code analytique si fourni
-        if ($idCode) {
-            $query->where('aa.id_code', $idCode);
-        }
-
-        $results = $query
-            ->groupBy('aa.id_type','ca.id_centre', 'ca.nom')
-            ->get();
-
-        return response()->json($results);
+    // Appliquer les filtres
+    if ($idCentre) {
+        $baseQuery->where('ca.id_centre', $idCentre);
+    }
+    if ($idType) {
+        $baseQuery->where('aa.id_type', $idType);
+    }
+    if ($idCode) {
+        $baseQuery->where('aa.id_code', $idCode);
     }
 
+    // 🔥 CORRECTION : Récupérer les données
+    $rawData = $baseQuery->get();
+
+    // 🔥 CORRECTION : Grouper correctement et traiter chaque élément
+    $groupedData = [];
+    
+    foreach ($rawData as $item) {
+        $key = $item->id_type . '_' . $item->id_centre;
+        
+        if (!isset($groupedData[$key])) {
+            $groupedData[$key] = [
+                'id_type' => $item->id_type,
+                'id_centre' => $item->id_centre,
+                'centre' => $item->centre,
+                'items' => []
+            ];
+        }
+        
+        $groupedData[$key]['items'][] = $item;
+    }
+
+    // Calculer les montants pour chaque groupe
+    $data = [];
+    foreach ($groupedData as $group) {
+        $montantVentile = 0;
+        $montantBrut = 0;
+        
+        foreach ($group['items'] as $item) {
+            // 🔥 CORRECTION : Accéder aux propriétés sur l'objet $item
+            $montantBrut += abs($item->Debit - $item->Credit);
+            $montantVentile += abs(($item->Debit - $item->Credit) * ($item->taux / 100.0));
+        }
+
+        $data[] = [
+            'id_type' => $group['id_type'],
+            'id_centre' => $group['id_centre'],
+            'centre' => $group['centre'],
+            'montant_ventile' => $montantVentile,
+            'montant_brut' => $montantBrut,
+            'pourcentage_ventile' => 0,
+            'pourcentage_brut' => 0
+        ];
+    }
+
+    // Calcul des totaux pour les pourcentages
+    $totalVentile = array_sum(array_column($data, 'montant_ventile'));
+    $totalBrut = array_sum(array_column($data, 'montant_brut'));
+
+    // Appliquer les pourcentages
+    $results = array_map(function ($item) use ($totalVentile, $totalBrut) {
+        $item['pourcentage_ventile'] = $totalVentile > 0 ? 
+            round(($item['montant_ventile'] * 100.0) / $totalVentile, 2) : 0;
+        $item['pourcentage_brut'] = $totalBrut > 0 ? 
+            round(($item['montant_brut'] * 100.0) / $totalBrut, 2) : 0;
+        return $item;
+    }, $data);
+
+    event(new MouvementCreated());
+
+    return response()->json($results);
+}
     public function AnalyseParAffectationFiltree(Request $request)
     {
         // 🔥 Déclencher l'événement
@@ -130,57 +179,110 @@ class CoutEtProfitController extends Controller
     }
 
     // Nouvelle fonction pour analyse détaillée par sous-compte avec ventilation
-    public function AnalyseParSousCompteAvecVentilation(Request $request)
-    {
-        // 🔥 Déclencher l'événement
-        event(new MouvementCreated());
-        $dateStart = $request->input('date_start', '2025-01-01');
-        $dateEnd   = $request->input('date_end', '2025-12-31');
-        $idCentre  = $request->input('id_centre');
-        $idType = $request->input('id_type');
-        $idCode = $request->input('id_code', null); // ← NOUVEAU : filtre par code analytique
+public function AnalyseParSousCompteAvecVentilation(Request $request)
+{
+    $dateStart = $request->input('date_start', '2025-01-01');
+    $dateEnd   = $request->input('date_end', '2025-12-31');
+    $idCentre  = $request->input('id_centre');
+    $idType = $request->input('id_type');
+    $idCode = $request->input('id_code', null);
 
-        $query = DB::table('ligne_ecritures as le')
-            ->select(
-                'sc.Code_sous_compte',
-                'sc.Libelle as libelle_sous_compte',
-                'ca.nom as centre_nom',
-                'aa.taux as taux_ventilation',
-                'aa.description as description_ventilation',
-                'aa.id_code as id_code', // ← NOUVEAU : inclure l'id_code
-                'co.code as code',
-                // 🔥 CORRECTION : ABS() POUR AVOIR DES MONTANTS POSITIFS
-                DB::raw('ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) as montant_ventile'),
-                DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_total_sous_compte'),
-                DB::raw('ROUND((ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) / ABS(SUM(le."Debit" - le."Credit"))) * 100, 2) as pourcentage_effectif')
-            )
-            ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
-            ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
-            ->join('code_analytique as co', 'aa.id_code', '=', 'co.id_code')
-            ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
-            ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')
-            ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd]);
+    // 🔥 OPTIM: Requête simplifiée sans calculs complexes
+    $baseQuery = DB::table('ligne_ecritures as le')
+        ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
+        ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
+        ->join('code_analytique as co', 'aa.id_code', '=', 'co.id_code')
+        ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
+        ->join('mouvement_ecritures as me', 'le.Id_Mouvement_ecriture', '=', 'me.Id_Mouvement_ecriture')
+        ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd])
+        ->select(
+            'sc.Code_sous_compte',
+            'sc.Libelle as libelle_sous_compte',
+            'ca.nom as centre_nom',
+            'aa.taux as taux_ventilation',
+            'aa.description as description_ventilation',
+            'aa.id_code as id_code',
+            'co.code as code',
+            'le.Debit',
+            'le.Credit'
+        );
 
-        if ($idCentre) {
-            $query->where('ca.id_centre', $idCentre);
-        }
-        if ($idType) {
-            $query->where('aa.id_type', $idType);
-        }
-        // ← NOUVEAU : Filtrer par code analytique si fourni
-        if ($idCode) {
-            $query->where('aa.id_code', $idCode);
-        }
-         $results = $query
-            ->groupBy('sc.Code_sous_compte', 'sc.Libelle', 'ca.nom', 'aa.taux', 'aa.description', 'aa.id_code', 'co.code')
-            ->orderBy('sc.Code_sous_compte')
-            ->orderByDesc('montant_ventile')
-            ->get();
-
-        
-
-        return response()->json($results);
+    if ($idCentre) {
+        $baseQuery->where('ca.id_centre', $idCentre);
     }
+    if ($idType) {
+        $baseQuery->where('aa.id_type', $idType);
+    }
+    if ($idCode) {
+        $baseQuery->where('aa.id_code', $idCode);
+    }
+
+    $rawData = $baseQuery->get();
+
+    // 🔥 OPTIM: Calculs en mémoire PHP
+    $groupedData = [];
+    
+    foreach ($rawData as $item) {
+        $key = $item->Code_sous_compte . '_' . $item->id_code . '_' . $item->centre_nom;
+        
+        if (!isset($groupedData[$key])) {
+            $groupedData[$key] = [
+                'Code_sous_compte' => $item->Code_sous_compte,
+                'libelle_sous_compte' => $item->libelle_sous_compte,
+                'centre_nom' => $item->centre_nom,
+                'taux_ventilation' => $item->taux_ventilation,
+                'description_ventilation' => $item->description_ventilation,
+                'id_code' => $item->id_code,
+                'code' => $item->code,
+                'items' => []
+            ];
+        }
+        
+        $groupedData[$key]['items'][] = $item;
+    }
+
+    // Calculer les montants pour chaque groupe
+    $results = [];
+    foreach ($groupedData as $group) {
+        $montantVentile = 0;
+        $montantTotalSousCompte = 0;
+        
+        foreach ($group['items'] as $item) {
+            $montantLigne = abs($item->Debit - $item->Credit);
+            $montantTotalSousCompte += $montantLigne;
+            $montantVentile += $montantLigne * ($item->taux_ventilation / 100.0);
+        }
+
+        $pourcentageEffectif = $montantTotalSousCompte > 0 ? 
+            round(($montantVentile / $montantTotalSousCompte) * 100, 2) : 0;
+
+        $results[] = [
+            'Code_sous_compte' => $group['Code_sous_compte'],
+            'libelle_sous_compte' => $group['libelle_sous_compte'],
+            'centre_nom' => $group['centre_nom'],
+            'taux_ventilation' => $group['taux_ventilation'],
+            'description_ventilation' => $group['description_ventilation'],
+            'id_code' => $group['id_code'],
+            'code' => $group['code'],
+            'montant_ventile' => $montantVentile,
+            'montant_total_sous_compte' => $montantTotalSousCompte,
+            'pourcentage_effectif' => $pourcentageEffectif
+        ];
+    }
+
+    // 🔥 OPTIM: Tri en PHP
+    usort($results, function ($a, $b) {
+        if ($a['Code_sous_compte'] === $b['Code_sous_compte']) {
+            return $b['montant_ventile'] <=> $a['montant_ventile'];
+        }
+        return $a['Code_sous_compte'] <=> $b['Code_sous_compte'];
+    });
+
+    // 🔥 OPTIM: Event après le traitement
+    event(new MouvementCreated());
+
+    return response()->json($results);
+}
 
     // Fonction pour vérifier la cohérence des ventilations
     public function VerificationVentilations(Request $request)
@@ -663,16 +765,18 @@ public function getEvolutionMensuelleCoutProfit(Request $request)
 
 public function classementSousCompte(Request $request)
 {
-    event(new MouvementCreated());
-    
+
     $dateStart = $request->input('date_start', '2025-01-01');
     $dateEnd   = $request->input('date_end', '2025-12-31');
     $idCentre  = $request->input('id_centre');
     $idSousCompte = $request->input('id_sous_compte');
     $montantMin = $request->input('montant_min');
     $montantMax = $request->input('montant_max');
-    $idType = $request->input('id_type'); // Filtrer par type
+    $idType = $request->input('id_type');
 
+    // 🔥 VERSION SIMPLIFIÉE : Utiliser la même structure que votre fonction originale
+    // mais avec les index créés, ça ira déjà beaucoup plus vite !
+    
     $query = DB::table('ligne_ecritures as le')
         ->select(
             'aa.id_type',
@@ -681,11 +785,8 @@ public function classementSousCompte(Request $request)
             'aa.taux as taux_ventilation',
             'sc.Id_Sous_compte as id_sous_compte',
             'sc.Libelle as libelle_sous_compte',
-            // Montants
             DB::raw('ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) as montant_ventile'),
-            DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_brut'),
-            DB::raw('ROUND(ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0))) * 100.0 / NULLIF(SUM(ABS(SUM((le."Debit" - le."Credit") * (aa.taux / 100.0)))) OVER (), 0), 2) as pourcentage_ventile'),
-            DB::raw('ROUND(ABS(SUM(le."Debit" - le."Credit")) * 100.0 / NULLIF(SUM(ABS(SUM(le."Debit" - le."Credit"))) OVER (), 0), 2) as pourcentage_brut')
+            DB::raw('ABS(SUM(le."Debit" - le."Credit")) as montant_brut')
         )
         ->join('affectationanalytique as aa', 'le.Id_Sous_compte', '=', 'aa.Id_Sous_compte')
         ->join('centreanalytique as ca', 'aa.id_centre', '=', 'ca.id_centre')
@@ -693,38 +794,40 @@ public function classementSousCompte(Request $request)
         ->join('sous_comptes as sc', 'le.Id_Sous_compte', '=', 'sc.Id_Sous_compte')
         ->whereBetween('me.Date_mouvement', [$dateStart, $dateEnd]);
 
-    // Filtrer par centre si fourni
-    if ($idCentre) {
-        $query->where('ca.id_centre', $idCentre);
-    }
-
-    // Filtres sous-compte
-    if ($idSousCompte) {
-        $query->where('sc.Id_Sous_compte', $idSousCompte);
-    }
-
-    // 🔥 Filtrer par type spécifique
-    if ($idType) {
-        $query->where('aa.id_type', $idType);
-    }
+    if ($idCentre) $query->where('ca.id_centre', $idCentre);
+    if ($idSousCompte) $query->where('sc.Id_Sous_compte', $idSousCompte);
+    if ($idType) $query->where('aa.id_type', $idType);
 
     $results = $query
         ->groupBy('aa.id_type', 'aa.description', 'ca.nom', 'aa.taux', 'sc.Id_Sous_compte', 'sc.Libelle')
-        ->orderByDesc('montant_ventile') // Classement du plus gros au plus petit montant
-        ->limit(10) // Les 10 plus gros montants
+        ->orderByDesc('montant_ventile')
+        ->limit(10)
         ->get();
 
-    // Filtrage par montant (fait après pour éviter la complexité SQL)
+    // 🔥 OPTIMISATION : Calcul des pourcentages en PHP
+    $totalVentile = $results->sum('montant_ventile');
+    $totalBrut = $results->sum('montant_brut');
+
+    $results = $results->map(function ($item) use ($totalVentile, $totalBrut) {
+        $item->pourcentage_ventile = $totalVentile > 0 ? 
+            round(($item->montant_ventile * 100.0) / $totalVentile, 2) : 0;
+        $item->pourcentage_brut = $totalBrut > 0 ? 
+            round(($item->montant_brut * 100.0) / $totalBrut, 2) : 0;
+        return $item;
+    });
+
+    // Filtrage par montant
     if ($montantMin) {
         $results = $results->where('montant_ventile', '>=', $montantMin);
     }
-    
     if ($montantMax) {
         $results = $results->where('montant_ventile', '<=', $montantMax);
     }
 
+    event(new MouvementCreated());
     return response()->json($results->values());
 }
+
 public function classementSousCompteLocal($idType,$dateStart,$dateEnd,$idCentre,$idSousCompte,$montantMin,$montantMax)
 {
     event(new MouvementCreated());

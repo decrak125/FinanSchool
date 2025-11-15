@@ -1,0 +1,10 @@
+CREATE INDEX idx_mouvement_date ON mouvement_ecritures("Date_mouvement");
+CREATE INDEX idx_le_sous_compte ON ligne_ecritures("Id_Sous_compte");
+CREATE INDEX idx_le_mouvement ON ligne_ecritures("Id_Mouvement_ecriture");
+CREATE INDEX idx_affectation_sous_compte ON affectationanalytique("Id_Sous_compte");
+CREATE INDEX idx_affectation_centre ON affectationanalytique(id_centre);
+CREATE INDEX idx_affectation_type ON affectationanalytique(id_type);
+CREATE INDEX idx_affectation_code ON affectationanalytique(id_code);
+CREATE INDEX idx_sous_comptes_id ON sous_comptes("Id_Sous_compte");
+CREATE INDEX CONCURRENTLY idx_sous_comptes_code ON sous_comptes("Code_sous_compte");
+CREATE INDEX CONCURRENTLY idx_code_analytique_id ON code_analytique(id_code);
