@@ -28,7 +28,6 @@
             <h3>Notifications</h3>
             <button @click="markAllAsRead" v-if="unreadCount > 0">Tout lire</button>
           </div>
-
           <div class="notifications-list">
             <div v-if="notifications.length === 0" class="no-notifications">
               Aucune notification
@@ -51,6 +50,15 @@
                 <p class="notification-message">{{ notification.message }}</p>
                 <p class="notification-date">{{ formatDate(notification.created_at) }}</p>
               </div>
+              <!-- Bouton croix pour suppression côté front -->
+              <button
+                class="notification-close"
+                @click.stop="removeFromList(notification.id)"
+                aria-label="Supprimer"
+                title="Supprimer"
+              >
+                &times;
+              </button>
             </div>
           </div>
         </div>
@@ -79,7 +87,6 @@
               <p>{{ user.email || 'email@example.com' }}</p>
             </div>
           </div>
-
           <div class="profile-menu">
             <button @click="handleLogout" class="profile-menu-item logout">
               <i class="bi bi-box-arrow-right"></i>
@@ -158,7 +165,6 @@ export default {
       }
     },
     async markAllAsRead() {
-      // Marque toutes comme lue en backend puis refetch la liste entière
       const unreadIds = this.notifications.filter(n => n.statut !== 'lu').map(n => n.id)
       await Promise.all(unreadIds.map(id => this.markAsRead(id)))
       // Optionnel : re-fetch pour sync avec backend
@@ -166,13 +172,10 @@ export default {
     },
     async handleNotificationClick(notification) {
       await this.markAsRead(notification.id)
-      // Redirection SPA ou classique vers la cible
-      // Priorité : redirect_url, lien_redirection, données_evenement.lien_redirection
       const url = notification.redirect_url ||
                   notification.lien_redirection ||
                   notification.evenement?.donnees_evenement?.lien_redirection
       if (url) {
-        // SPA ? Remplace par $router.push si possible
         if (this.$router && url.startsWith('/')) {
           this.$router.push(url)
         } else {
@@ -183,6 +186,10 @@ export default {
     handleLogout() {
       localStorage.removeItem("token");
       this.$router.push("/")
+    },
+    // Ajoutée : suppression côté front
+    removeFromList(id) {
+      this.notifications = this.notifications.filter(n => n.id !== id)
     }
   }
 }
@@ -202,16 +209,13 @@ export default {
   z-index: 100;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-
 .header-left {
   flex: 1;
 }
-
 .search-container {
   position: relative;
   max-width: 400px;
 }
-
 .search-input {
   width: 100%;
   padding: 8px 12px 8px 36px;
@@ -232,17 +236,14 @@ export default {
   transform: translateY(-50%);
   color: #64748b;
 }
-
 .header-right {
   display: flex;
   align-items: center;
   gap: 20px;
 }
-
 .notifications-section {
   position: relative;
 }
-
 .notification-icon {
   position: relative;
   width: 40px;
@@ -259,7 +260,6 @@ export default {
   background: #1e40af;
   color: white;
 }
-
 .notification-badge {
   position: absolute;
   top: -6px;
@@ -318,6 +318,7 @@ export default {
   cursor: pointer;
   display: flex;
   gap: 12px;
+  position: relative;
 }
 .notification-item:hover {
   background: #f8fafc;
@@ -338,6 +339,17 @@ export default {
 .notification-content {
   flex: 1;
 }
+.notification-close {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.4em;
+  cursor: pointer;
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+}
 .notification-title {
   font-size: 0.875rem;
   font-weight: 600;
@@ -348,7 +360,6 @@ export default {
   color: #64748b;
   margin: 0;
 }
-
 .profile-section {
   position: relative;
 }

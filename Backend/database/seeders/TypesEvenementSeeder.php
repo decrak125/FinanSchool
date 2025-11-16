@@ -37,7 +37,13 @@ class TypesEvenementSeeder extends Seeder
                 'nom' => 'Notification Métier',
                 'description' => 'Notification concernant le métier',
                 'est_actif' => true,
-            ]
+            ],
+            [
+                'code' => 'CLOTURE_EXERCICE_PROCHE',
+                'nom' => 'Clôture Exercice Proche',
+                'description' => 'Alerte à l\'approche de la clôture de l\'exercice comptable',
+                'est_actif' => true,
+            ],
         ];
 
         DB::table('types_evenement')->insert($types);
