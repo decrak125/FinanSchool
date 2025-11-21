@@ -55,11 +55,31 @@ class JournalController extends Controller
     }
 
     public function ecritures($id, Request $request)
-    {
-        $journal = Journal::with(['lignes' => function ($query) {
-            $query->where('statut', 'brouillon');
-        }, 'lignes.sousCompte', 'lignes.modePaiement', 'lignes.mouvement'])->findOrFail($id);
-        return response()->json($journal->lignes);
-    }
+{
+    // Prépare la requête lignes avec les relations
+    $journal = Journal::with([
+        'lignes' => function ($query) use ($request) {
+            $query->where('statut', 'brouillon'); // ou "brouillon" selon le statut souhaité
+
+            // Ajoute le filtre sur la date de mouvement
+            if ($request->date_debut) {
+                $query->whereHas('mouvement', function ($q) use ($request) {
+                    $q->where('Date_mouvement', '>=', $request->date_debut);
+                });
+            }
+            if ($request->date_fin) {
+                $query->whereHas('mouvement', function ($q) use ($request) {
+                    $q->where('Date_mouvement', '<=', $request->date_fin);
+                });
+            }
+        },
+        'lignes.sousCompte',
+        'lignes.modePaiement',
+        'lignes.mouvement'
+    ])->findOrFail($id);
+
+    return response()->json($journal->lignes);
+}
+
 
 }

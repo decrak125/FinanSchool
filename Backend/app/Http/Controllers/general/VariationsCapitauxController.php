@@ -126,7 +126,8 @@ class VariationsCapitauxController extends Controller
                 'isDetail' => true
             ],
             [
-                'label' => 'Solde à la fin N',
+                // mitovy am total capitaux propres
+                'label' => 'Solde à la fin N', 
                 'capital' => $capitalN,
                 'prime' => $primeN,
                 'eval' => $evalN,

@@ -206,13 +206,15 @@ onMounted(async () => {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+  font-family: 'Manrope', sans-serif;
 }
 .main-content {
   margin-left: 278px;
   padding: 32px;
   flex: 1;
-  background: #f8fafb;
+  background: #f8fafc;
   min-height: calc(100vh - 80px);
+  font-family: 'Manrope', sans-serif;
 }
 .stat-row {
   display: flex;

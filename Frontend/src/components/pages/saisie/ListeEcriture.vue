@@ -308,6 +308,7 @@ onMounted(async () => {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+  font-family: 'Manrope', sans-serif;
 }
 .main-content {
   margin-left: 278px;
@@ -315,7 +316,7 @@ onMounted(async () => {
   flex: 1;
   background: #f8fafc;
   min-height: calc(100vh - 80px);
-  transition: filter 0.3s;
+  font-family: 'Manrope', sans-serif;
 }
 .blurred-overlay {
   filter: blur(4px);

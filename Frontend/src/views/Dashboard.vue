@@ -285,14 +285,14 @@ export default {
         datasets: [{
           data: this.bilanData.series,
           backgroundColor: [
-            '#42a5f5', 
-            '#66bb6a', 
-            '#ffa726', 
-            '#ef5350', 
-            '#26c6da', 
-            '#ab47bc', 
-            '#8d6e63', 
-            '#ffca28'
+            '#3C99DC', // Tufts Blue
+            '#66D3FA', // Maya Blue
+            '#2565AE', // Lapis Lazuli
+            '#0F5298', // Yale Blue
+            '#1976d2', // Blue (Material UI)
+            '#42a5f5', // Light Blue (Material UI)
+            '#283593', // Dark Indigo
+            '#5c6bc0'  // Soft Blue Grey
           ],
           borderWidth: 1
         }]
@@ -493,7 +493,7 @@ export default {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
-  font-family: 'Stara', sans-serif;
+  font-family: 'Manrope', sans-serif;
 }
 .main-content {
   margin-left: 278px;
@@ -501,7 +501,7 @@ export default {
   flex: 1;
   background: #f8fafc;
   min-height: calc(100vh - 80px);
-  font-family: 'Stara', sans-serif;
+  font-family: 'Manrope', sans-serif;
 }
 .dashboard {
   max-width: 1400px;

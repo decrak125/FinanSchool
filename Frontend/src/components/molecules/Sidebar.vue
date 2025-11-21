@@ -566,8 +566,8 @@ export default {
   flex-direction: column;
   background: linear-gradient(180deg, #1c45bd 0%, #011244 100%);
   color: white;
-  font-family: 'Stara', sans-serif;
-  font-size: 12px;
+  font-family: 'Manrope', sans-serif;
+  font-size: 30px;
   position: fixed;
   left: 0;
   top: 0;
@@ -651,7 +651,7 @@ export default {
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   overflow: hidden;
   margin-bottom: 2px;
@@ -704,7 +704,7 @@ export default {
 
 .chevron {
   margin-left: auto;
-  font-size: 12px;
+  font-size: 20px;
   transition: transform 0.3s ease;
   opacity: 0.6;
 }
@@ -800,7 +800,7 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 20px;
   opacity: 0.9;
 }
 

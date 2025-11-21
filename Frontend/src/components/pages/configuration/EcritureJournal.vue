@@ -100,9 +100,8 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
+import html2pdf from "html2pdf.js";
+import * as XLSX from "xlsx-js-style";
 import Header from "../../molecules/Header.vue";
 import Sidebar from "../../molecules/Sidebar.vue";
 import AppFooter from "../../molecules/Footer.vue";
@@ -125,6 +124,14 @@ const dateFilter = ref({
 
 const showChat = ref(false);
 
+// Informations de l'établissement
+const etablissement = {
+  nom: "RAITRA KIDZ",
+  adresse: "Antananarivo, Madagascar",
+  tel: "+261 XX XX XXX XX",
+  email: "contact@raitrakidz.mg"
+};
+
 const handleNavigation = (item) => {
   router.push(item.route);
 };
@@ -141,9 +148,9 @@ const formatNumber = (number) => {
   if (number === null || number === undefined || isNaN(number)) return '-';
   const num = Number(number);
   return num.toLocaleString('fr-FR', {
-    minimumFractionDigits: 2, // Always show 2 decimal places
-    maximumFractionDigits: 2, // Limit to 2 decimal places
-  }).replace(/\s/g, ' '); // Ensure space as thousand separator is consistent
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).replace(/\s/g, ' ');
 };
 
 const fetchEcritures = async () => {
@@ -167,7 +174,7 @@ const fetchDevises = async () => {
     const res = await axios.get(`http://127.0.0.1:8000/api/devises`);
     devises.value = res.data;
     if (devises.value.length > 0) {
-      defaultDevise.value = devises.value[0]; // Utiliser la première devise comme devise par défaut
+      defaultDevise.value = devises.value[0];
     }
     console.log("Devises chargées:", devises.value);
   } catch (error) {
@@ -192,187 +199,358 @@ const resetDateFilter = () => {
   fetchEcritures();
 };
 
-const getLogoBase64 = () => {
-  return logo; // Le logo est déjà en base64 grâce à l'import
-};
-
-const exportToPDF = () => {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-  // Ajout du logo
-  const logoBase64 = getLogoBase64();
-  doc.addImage(logoBase64, 'PNG', 10, 8, 30, 20); // X=10, Y=6, largeur=20mm, hauteur=20mm
-
-  // Identité de la société
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  
-
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-
-  // Titre du document
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.text(`Journal ${(journal.value ? journal.value.toUpperCase() : '')}`, 105, 15, { align: 'center' });
-
-  // Détails à droite
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  const deviseText = `Tenue de compte : ${defaultDevise.value ? defaultDevise.value.Sigle : 'Ar'}`;
-  doc.text(deviseText, 150, 15);
-
-  // Période (mois et année)
-  let period = '';
-  if (dateFilter.value.date_debut) {
-    const d = new Date(dateFilter.value.date_debut);
-    period = d.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
-  }
-  doc.text(`Période : ${period}`, 150, 20);
-
-  // Date de tirage et page
-  const now = new Date();
-  const dateTirage = `Date de tirage : ${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
-  doc.text(dateTirage, 10, 38);
-
-  // Plage de dates
-  doc.text(`Du ${dateFilter.value.date_debut || '-'} au ${dateFilter.value.date_fin || '-'}`, 10, 43);
-
-  // Tableau des écritures
-  autoTable(doc, {
-    startY: 55,
-    theme: 'grid',
-    head: [[
-      'Jour', 'N° Pièce', 'N° Compte', 'Référence',
-      'Libellé Écriture', 'Débit', 'Crédit'
-    ]],
-    body: ecritures.value.map(ecriture => {
-      const dateMouvement = ecriture.mouvement ? ecriture.mouvement.Date_mouvement : null;
-      let jour = '-';
-      if (dateMouvement) {
-        const d = new Date(dateMouvement);
-        jour = `${d.getDate().toString().padStart(2, '0')}${(d.getMonth() + 1).toString().padStart(2, '0')}${d.getFullYear().toString().slice(2)}`;
-      }
-      return [
-        jour,
-        ecriture.mouvement?.Numero_piece || '-',
-        ecriture.sous_compte?.Code_sous_compte || '-',
-        ecriture.Reference || '-',
-        ecriture.Libelle || '-',
-        ecriture.Debit ? formatNumber(ecriture.Debit) : '-',
-        ecriture.Credit ? formatNumber(ecriture.Credit) : '-',
-      ];
-    }),
-    foot: [[
-      '', '', '', '', 'Totaux', formatNumber(totalDebit.value), formatNumber(totalCredit.value),
-    ]],
-    styles: {
-      fontSize: 9,
-      cellPadding: 2,
-      textColor: [35, 35, 35],
-      lineColor: [180, 180, 180],
-      lineWidth: 0.1,
-      fillColor: [250, 250, 250],
-    },
-    headStyles: {
-      fillColor: [41, 128, 185],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      lineWidth: 0.3,
-      lineColor: [41, 128, 185],
-      halign: 'center',
-    },
-    alternateRowStyles: {
-      fillColor: [245, 245, 255],
-    },
-    footStyles: {
-      fillColor: [41, 128, 185],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      lineWidth: 0.3,
-      lineColor: [41, 128, 185],
-    },
-    columnStyles: {
-      5: { halign: 'right' },
-      6: { halign: 'right' },
-    },
-    margin: { top: 55, left: 10, right: 10, bottom: 25 },
-    didDrawPage: (data) => {
-      const pageCount = doc.internal.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(10);
-        doc.setTextColor(120, 120, 120);
-        const pageStr = `Page : ${i}`;
-        doc.text(pageStr, 190, 20);
-
-        // Pied de page personnalisé
-        doc.setFontSize(9);
-        doc.text(`RAITRA KIDZ © ${now.getFullYear()} | Impression provisoire`, 10, 290);
-      }
-    },
-  });
-
-  // Sauvegarde du PDF
-  doc.save(`Journal_${journalId.value}_${now.toISOString().split('T')[0]}.pdf`);
-};
-
-const exportToExcel = () => {
+// Export vers PDF avec html2pdf.js (CORRIGÉ)
+// Export vers PDF avec html2pdf.js (AVEC CONTENU DÉCALÉ À GAUCHE)
+const exportToPDF = async () => {
   if (!ecritures.value || ecritures.value.length === 0) {
     alert("Aucune écriture à exporter !");
     return;
   }
 
-  const data = ecritures.value.map(ecriture => ({
-    'Date Mouvement': ecriture.mouvement ? new Date(ecriture.mouvement.Date_mouvement).toLocaleDateString('fr-FR') : '-',
-    'N° Pièce': ecriture.mouvement ? ecriture.mouvement.Numero_piece : '-',
-    'Compte': ecriture.sous_compte ? ecriture.sous_compte.Code_sous_compte : '-',
-    'Libellé': ecriture.Libelle || '-',
-    'Référence': ecriture.Reference || '-',
-    'Mode Paiement': ecriture.mode_paiement ? ecriture.mode_paiement.Libelle : '-',
-    'Débit': ecriture.Debit ? formatNumber(ecriture.Debit) : '-',
-    'Crédit': ecriture.Credit ? formatNumber(ecriture.Credit) : '-',
-  }));
+  const now = new Date();
+  const dateTirage = `${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
+  
+  let period = '';
+  if (dateFilter.value.date_debut) {
+    const d = new Date(dateFilter.value.date_debut);
+    period = d.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+  }
 
-  data.push({
-    'Date Mouvement': '',
-    'N° Pièce': '',
-    'Compte': '',
-    'Libellé': '',
-    'Référence': '',
-    'Mode Paiement': 'TOTAUX',
-    'Débit': formatNumber(totalDebit.value),
-    'Crédit': formatNumber(totalCredit.value)
-  });
+  const rows = ecritures.value.map(ecriture => {
+    const dateMouvement = ecriture.mouvement ? ecriture.mouvement.Date_mouvement : null;
+    let jour = '-';
+    if (dateMouvement) {
+      const d = new Date(dateMouvement);
+      jour = `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+    }
+    return `
+      <tr>
+        <td>${jour}</td>
+        <td>${ecriture.mouvement?.Numero_piece || '-'}</td>
+        <td>${ecriture.sous_compte?.Code_sous_compte || '-'}</td>
+        <td>${ecriture.Reference || '-'}</td>
+        <td>${ecriture.Libelle || '-'}</td>
+        <td style="text-align: right;">${ecriture.Debit ? formatNumber(ecriture.Debit) : '-'}</td>
+        <td style="text-align: right;">${ecriture.Credit ? formatNumber(ecriture.Credit) : '-'}</td>
+      </tr>
+    `;
+  }).join('');
 
-  const ws = XLSX.utils.aoa_to_sheet([]);
+  const htmlContent = `
+    <div style="font-family: 'Helvetica', Arial, sans-serif; padding: 15px; max-width: 100%; margin: 0;">
+      <!-- En-tête -->
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 3px solid #2980b9;">
+        <div style="flex: 1;">
+          <img src="${logo}" alt="Logo" style="width: 100px; height: auto;" />
+          <div style="margin-top: 8px; font-size: 11px; color: #555;">
+            <div style="font-weight: bold; font-size: 13px; color: #2c3e50;">${etablissement.nom}</div>
+            <div>${etablissement.adresse}</div>
+            <div>${etablissement.tel}</div>
+            <div>${etablissement.email}</div>
+          </div>
+        </div>
+        <div style="flex: 2; text-align: center;">
+          <h1 style="font-size: 22px; font-weight: bold; color: #2c3e50; margin: 0; text-transform: uppercase;">
+            Journal ${journal.value ? journal.value.toUpperCase() : ''}
+          </h1>
+        </div>
+        <div style="flex: 1; text-align: right; font-size: 10px; color: #555;">
+          <div style="margin: 3px 0;"><strong>Devise:</strong> ${defaultDevise.value ? defaultDevise.value.Sigle : 'Ar'}</div>
+          <div style="margin: 3px 0;"><strong>Période:</strong> ${period}</div>
+          <div style="margin: 3px 0;"><strong>Journal N°:</strong> ${journalId.value}</div>
+        </div>
+      </div>
+      
+      <!-- Métadonnées -->
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 10px; color: #666; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+        <div><strong>Date de tirage:</strong> ${dateTirage}</div>
+        <div><strong>Plage:</strong> Du ${dateFilter.value.date_debut || '-'} au ${dateFilter.value.date_fin || '-'}</div>
+      </div>
 
-  const titre = [`JOURNAL DES ÉCRITURES N° ${journalId.value}`];
-  const details = [
-    [`Journal ID : ${journalId.value}`],
-    [`Unité monétaire : ${defaultDevise.value ? `${defaultDevise.value.Libelle} (${defaultDevise.value.Sigle})` : 'N/A'}`],
-    [`Date d’export : ${new Date().toLocaleDateString('fr-FR')}`],
-    [''],
-  ];
+      <!-- Tableau -->
+      <table style="width: 100%; border-collapse: collapse; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <thead>
+          <tr style="background: linear-gradient(135deg, #2980b9 0%, #3498db 100%); color: white;">
+            <th style="padding: 10px 8px; text-align: left; font-weight: 600; font-size: 10px; border: 1px solid #2980b9;">Jour</th>
+            <th style="padding: 10px 8px; text-align: left; font-weight: 600; font-size: 10px; border: 1px solid #2980b9;">N° Pièce</th>
+            <th style="padding: 10px 8px; text-align: left; font-weight: 600; font-size: 10px; border: 1px solid #2980b9;">N° Compte</th>
+            <th style="padding: 10px 8px; text-align: left; font-weight: 600; font-size: 10px; border: 1px solid #2980b9;">Référence</th>
+            <th style="padding: 10px 8px; text-align: left; font-weight: 600; font-size: 10px; border: 1px solid #2980b9;">Libellé</th>
+            <th style="padding: 10px 8px; text-align: right; font-weight: 600; font-size: 10px; border: 1px solid #2980b9;">Débit</th>
+            <th style="padding: 10px 8px; text-align: right; font-weight: 600; font-size: 10px; border: 1px solid #2980b9;">Crédit</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+        <tfoot>
+          <tr style="background: linear-gradient(135deg, #2980b9 0%, #3498db 100%); color: white; font-weight: bold;">
+            <td colspan="5" style="padding: 10px 8px; text-align: right; border: 1px solid #2980b9; font-size: 11px;">TOTAUX</td>
+            <td style="padding: 10px 8px; text-align: right; border: 1px solid #2980b9; font-size: 11px;">${formatNumber(totalDebit.value)}</td>
+            <td style="padding: 10px 8px; text-align: right; border: 1px solid #2980b9; font-size: 11px;">${formatNumber(totalCredit.value)}</td>
+          </tr>
+        </tfoot>
+      </table>
 
-  XLSX.utils.sheet_add_aoa(ws, [titre], { origin: 'A1' });
-  XLSX.utils.sheet_add_aoa(ws, details, { origin: 'A3' });
+      <!-- Pied de page -->
+      <div style="margin-top: 25px; text-align: center; font-size: 9px; color: #999; border-top: 1px solid #ddd; padding-top: 10px;">
+        <p style="margin: 0;">${etablissement.nom} © ${now.getFullYear()} | Document généré automatiquement | Impression provisoire</p>
+      </div>
+    </div>
+  `;
 
-  XLSX.utils.sheet_add_json(ws, data, { origin: 'A8', skipHeader: false });
+  // Styles pour le tableau dans tbody
+  const tbodyStyle = `
+    <style>
+      tbody tr { border: 1px solid #ddd; }
+      tbody tr:nth-child(even) { background-color: #f8f9fa; }
+      tbody td { padding: 8px; border: 1px solid #ddd; font-size: 9px; }
+    </style>
+  `;
 
-  const colWidths = Object.keys(data[0]).map((key) => ({
-    wch: Math.max(key.length + 5, 15)
-  }));
-  ws['!cols'] = colWidths;
+  const fullHTML = tbodyStyle + htmlContent;
+
+  // Créer un élément temporaire
+  const element = document.createElement('div');
+  element.innerHTML = fullHTML;
+  element.style.width = '210mm';
+  element.style.padding = '0'; // Suppression du padding
+  element.style.margin = '0';   // Suppression du margin
+
+  const opt = {
+    margin: [10, 5, 15, 5], // [haut, droite, bas, gauche] - Marge gauche réduite de 10 à 5
+    filename: `Journal_${journalId.value}_${now.toISOString().split('T')[0]}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      letterRendering: true,
+      allowTaint: true,
+      x: 0,  // Commencer à gauche
+      scrollX: 0,
+      scrollY: 0
+    },
+    jsPDF: { 
+      unit: 'mm', 
+      format: 'a4', 
+      orientation: 'portrait' 
+    },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+  };
+
+  try {
+    await html2pdf().set(opt).from(element).save();
+    console.log('PDF généré avec succès');
+  } catch (err) {
+    console.error('Erreur lors de l\'export PDF:', err);
+    alert('Erreur lors de la génération du PDF. Vérifiez la console.');
+  }
+};
+
+
+// Export vers Excel avec logo et nom établissement (CORRIGÉ)
+const exportToExcel = async () => {
+  if (!ecritures.value || ecritures.value.length === 0) {
+    alert("Aucune écriture à exporter !");
+    return;
+  }
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, `Journal_${journalId.value}`);
+  const ws = XLSX.utils.aoa_to_sheet([]);
+  
+  const now = new Date();
+  let period = '';
+  if (dateFilter.value.date_debut) {
+    const d = new Date(dateFilter.value.date_debut);
+    period = d.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+  }
 
-  const fileName = `Journal_${journalId.value}_${new Date()
-    .toISOString()
-    .split('T')[0]}.xlsx`;
+  // Styles
+  const titleStyle = {
+    font: { bold: true, sz: 20, color: { rgb: "2C3E50" } },
+    alignment: { horizontal: "center", vertical: "center" }
+  };
 
+  const headerStyle = {
+    font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+    fill: { fgColor: { rgb: "2980B9" } },
+    alignment: { horizontal: "center", vertical: "center" },
+    border: {
+      top: { style: "thin", color: { rgb: "000000" } },
+      bottom: { style: "thin", color: { rgb: "000000" } },
+      left: { style: "thin", color: { rgb: "000000" } },
+      right: { style: "thin", color: { rgb: "000000" } }
+    }
+  };
+
+  const etablissementStyle = {
+    font: { bold: true, sz: 14, color: { rgb: "2980B9" } },
+    alignment: { horizontal: "left", vertical: "center" }
+  };
+
+  const infoStyle = {
+    font: { sz: 10, color: { rgb: "555555" } },
+    alignment: { horizontal: "left", vertical: "center" }
+  };
+
+  const dataStyle = {
+    font: { sz: 10 },
+    alignment: { horizontal: "left", vertical: "center", wrapText: true },
+    border: {
+      top: { style: "thin", color: { rgb: "DDDDDD" } },
+      bottom: { style: "thin", color: { rgb: "DDDDDD" } },
+      left: { style: "thin", color: { rgb: "DDDDDD" } },
+      right: { style: "thin", color: { rgb: "DDDDDD" } }
+    }
+  };
+
+  const numberStyle = {
+    ...dataStyle,
+    alignment: { horizontal: "right", vertical: "center" },
+    numFmt: "#,##0.00"
+  };
+
+  const totalStyle = {
+    font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "2980B9" } },
+    alignment: { horizontal: "right", vertical: "center" },
+    border: {
+      top: { style: "medium", color: { rgb: "000000" } },
+      bottom: { style: "medium", color: { rgb: "000000" } },
+      left: { style: "medium", color: { rgb: "000000" } },
+      right: { style: "medium", color: { rgb: "000000" } }
+    }
+  };
+
+  // Logo et informations établissement (ligne 1-5)
+  const logoInfo = [
+    [etablissement.nom],
+    [etablissement.adresse],
+    [etablissement.tel],
+    [etablissement.email],
+    ['']
+  ];
+  
+  XLSX.utils.sheet_add_aoa(ws, logoInfo, { origin: 'A1' });
+  ws['A1'].s = etablissementStyle;
+  ws['A2'].s = infoStyle;
+  ws['A3'].s = infoStyle;
+  ws['A4'].s = infoStyle;
+
+  // Titre principal (ligne 6)
+  const title = [[`JOURNAL ${journal.value ? journal.value.toUpperCase() : ''}`]];
+  XLSX.utils.sheet_add_aoa(ws, title, { origin: 'A6' });
+  ws['A6'].s = titleStyle;
+  
+  if (!ws['!merges']) ws['!merges'] = [];
+  ws['!merges'].push({ s: { r: 5, c: 0 }, e: { r: 5, c: 6 } });
+
+  // Informations du document (ligne 8-12)
+  const info = [
+    [''],
+    [`Journal N°: ${journalId.value}`],
+    [`Devise: ${defaultDevise.value ? `${defaultDevise.value.Libelle} (${defaultDevise.value.Sigle})` : 'Ariary'}`],
+    [`Période: ${period}`],
+    [`Date d'export: ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`],
+    [`Plage: Du ${dateFilter.value.date_debut || '-'} au ${dateFilter.value.date_fin || '-'}`],
+    ['']
+  ];
+  
+  XLSX.utils.sheet_add_aoa(ws, info, { origin: 'A8' });
+  for (let i = 9; i <= 13; i++) {
+    if (ws[`A${i}`]) ws[`A${i}`].s = infoStyle;
+  }
+
+  // En-têtes du tableau (ligne 15)
+  const headers = [
+    ['Date Mouvement', 'N° Pièce', 'N° Compte', 'Référence', 'Libellé', 'Débit', 'Crédit']
+  ];
+  XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A15' });
+  
+  ['A15', 'B15', 'C15', 'D15', 'E15', 'F15', 'G15'].forEach(cell => {
+    ws[cell].s = headerStyle;
+  });
+
+  // Données (à partir de ligne 16)
+  const data = ecritures.value.map(ecriture => {
+    const dateMouvement = ecriture.mouvement ? new Date(ecriture.mouvement.Date_mouvement).toLocaleDateString('fr-FR') : '-';
+    return [
+      dateMouvement,
+      ecriture.mouvement?.Numero_piece || '-',
+      ecriture.sous_compte?.Code_sous_compte || '-',
+      ecriture.Reference || '-',
+      ecriture.Libelle || '-',
+      ecriture.Debit ? Number(ecriture.Debit) : 0,
+      ecriture.Credit ? Number(ecriture.Credit) : 0
+    ];
+  });
+
+  XLSX.utils.sheet_add_aoa(ws, data, { origin: 'A16' });
+
+  // Application des styles aux données
+  const startRow = 16;
+  data.forEach((_, index) => {
+    const rowNum = startRow + index;
+    ['A', 'B', 'C', 'D', 'E'].forEach(col => {
+      const cellRef = `${col}${rowNum}`;
+      if (ws[cellRef]) ws[cellRef].s = dataStyle;
+    });
+    ['F', 'G'].forEach(col => {
+      const cellRef = `${col}${rowNum}`;
+      if (ws[cellRef]) ws[cellRef].s = numberStyle;
+    });
+  });
+
+  // Ligne des totaux
+  const totalRow = startRow + data.length;
+  XLSX.utils.sheet_add_aoa(ws, [
+    ['', '', '', '', 'TOTAUX', totalDebit.value, totalCredit.value]
+  ], { origin: `A${totalRow}` });
+
+  ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach(col => {
+    const cellRef = `${col}${totalRow}`;
+    if (ws[cellRef]) ws[cellRef].s = totalStyle;
+  });
+
+  // Largeur des colonnes
+  ws['!cols'] = [
+    { wch: 15 },  // Date
+    { wch: 15 },  // N° Pièce
+    { wch: 15 },  // Compte
+    { wch: 15 },  // Référence
+    { wch: 40 },  // Libellé
+    { wch: 15 },  // Débit
+    { wch: 15 }   // Crédit
+  ];
+
+  // Hauteur des lignes
+  ws['!rows'] = [
+    { hpt: 25 },  // Nom établissement
+    { hpt: 18 },  // Adresse
+    { hpt: 18 },  // Tel
+    { hpt: 18 },  // Email
+    { hpt: 5 },   // Espace
+    { hpt: 35 },  // Titre
+    { hpt: 5 },   // Espace
+    { hpt: 5 },   // Espace
+    { hpt: 18 },  // Journal N°
+    { hpt: 18 },  // Devise
+    { hpt: 18 },  // Période
+    { hpt: 18 },  // Date export
+    { hpt: 18 },  // Plage
+    { hpt: 5 },   // Espace
+    { hpt: 25 }   // En-têtes
+  ];
+
+  // Ajout de la feuille au classeur
+  XLSX.utils.book_append_sheet(wb, ws, `Journal ${journalId.value}`);
+
+  // Sauvegarde
+  const fileName = `Journal_${journalId.value}_${now.toISOString().split('T')[0]}.xlsx`;
   XLSX.writeFile(wb, fileName);
+  
+  console.log('Excel généré avec succès');
 };
 
 const goBack = () => {
@@ -380,7 +558,7 @@ const goBack = () => {
 };
 
 onMounted(async () => {
-  console.log("Token récupéré :", token); // Vérifie si le token existe
+  console.log("Token récupéré :", token);
   
   if (!token) {
     console.log("Pas de token → Redirection vers /");
@@ -396,14 +574,15 @@ onMounted(async () => {
       console.error("Erreur lors de getUser :", err);
       localStorage.removeItem("token");
       window.location.href = "/";
-      return; // Important : arrête l'exécution
+      return;
     }
-  fetchDevises();
-  fetchEcritures();
+    fetchDevises();
+    fetchEcritures();
   }
 });
-
 </script>
+
+
 
 <style scoped>
 .dashboard-container {
