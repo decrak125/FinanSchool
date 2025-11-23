@@ -148,9 +148,8 @@ import Header from "../../molecules/Header.vue";
 import Sidebar from "../../molecules/Sidebar.vue";
 import AppFooter from "../../molecules/Footer.vue";
 import ChatBot from "../../molecules/ChatBot.vue";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
+import html2pdf from 'html2pdf.js';
+import * as XLSX from 'xlsx-js-style';
 import { getUser } from "../../../services/Auth";
 
 const router = useRouter();
@@ -301,90 +300,234 @@ const formatDate = d => {
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 };
 
-const exportToPDF = () => {
-  if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
-  const doc = new jsPDF();
-  if (logoBase64.value) {
-    doc.addImage(logoBase64.value, 'PNG', 14, 4, 24, 16);
-  }
-  doc.setFontSize(16);
-  doc.text("Compte de Résultat par Fonction", 44, 14);
-  doc.setFontSize(10);
-  doc.text(`Exercice : ${exerciceInfo.value.annee_fiscale}`, 14, 22);
-  doc.text(`Statut : ${exerciceInfo.value.statut || "-"}`, 120, 22);
-  doc.text(`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`, 14, 28);
-  doc.text(`Unité monétaire : Ariary (Ar)`, 14, 34);
 
-  autoTable(doc, {
-    head: [["POSTE", "NOTE", "N", "N-1"]],
-    body: listeComplete.value.map(l =>
-      [l.label, l.note || "", formatMontantAbsolu(l.montantN), formatMontantAbsolu(l.montantN1)]
-    ),
-    theme: "grid",
-    startY: 40,
-    styles: { fontSize: 9 },
-    headStyles: { fillColor: [51, 122, 183], textColor: [255, 255, 255], fontStyle: 'bold' }
-  });
-  doc.save("compte_resultat_fonction.pdf");
+
+const exportToPDF = () => {
+  if (!listeComplete.value.length) {
+    alert("Aucune donnée à exporter !");
+    return;
+  }
+  const now = new Date();
+
+  // Header
+  const header = `
+    <div style="display: flex; align-items: flex-start; border-bottom: 3px solid #2980b9; padding-bottom: 13px; margin-bottom: 11px;">
+      <div style="flex: 0 0 75px;">
+        <img src="${logoBase64.value || ''}" style="width: 65px; height: auto;" />
+      </div>
+      <div style="flex: 1; padding-left: 8px;">
+        <div style="font-size: 10px; color: #555;">
+          <div style="font-weight: bold; font-size: 12px; color: #2c3e50;">RAITRA KIDZ</div>
+          <div>Antananarivo, Madagascar</div>
+          <div>+261 XX XX XXX XX</div>
+        </div>
+      </div>
+      <div style="flex: 2; text-align: center;">
+        <h1 style="font-size: 18px; font-weight: bold; color: #1c45bd; margin: 0 0 4px 0;">Compte de Résultat par Fonction</h1>
+        <div style="font-size: 10px;">Exercice : ${exerciceInfo.value.annee_fiscale || ''}</div>
+        <div style="font-size: 9px;">Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}</div>
+        <div style="font-size: 9px;">Statut : ${exerciceInfo.value.statut || "-"}</div>
+        <div style="font-size: 9px;">Unité monétaire : Ariary (Ar)</div>
+      </div>
+      <div style="flex: 0 0 90px; text-align: right; font-size: 8px; color: #555;">
+        <div><strong>Date édition:</strong></div>
+        <div>${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+      </div>
+    </div>`;
+
+  // Table rows
+  const tableRows = listeComplete.value.map(l =>
+    `<tr
+      style="${l.isTotal ? 'background:#e0e7ff;font-weight:700;font-size:10px;color:#1e40af;' : 'font-size:9px;'}">
+      <td style="padding:7px 6px;${l.isTotal ? 'font-weight:700;' : 'padding-left:18px;'}border:1px solid #ddd;">${l.label}</td>
+      <td style="padding:7px 3px;text-align:center;border:1px solid #ddd;">${l.note || ''}</td>
+      <td style="padding:7px 3px;text-align:right;${l.isTotal ? 'font-weight:700;' : ''}border:1px solid #ddd;">${formatMontantAbsolu(l.montantN)}</td>
+      <td style="padding:7px 3px;text-align:right;${l.isTotal ? 'font-weight:700;' : ''}border:1px solid #ddd;">${formatMontantAbsolu(l.montantN1)}</td>
+    </tr>`
+  ).join('');
+
+  const htmlContent = `
+    <div style="font-family: 'Helvetica', Arial, sans-serif; max-width: 745px; margin: auto;">
+      ${header}
+      <table style="width:745px;max-width:100%;border-collapse:collapse;margin:10px auto 0 auto;">
+        <thead>
+          <tr style="background:linear-gradient(135deg,#2980b9 0%,#3498db 100%);color:#fff;">
+            <th style="padding:8px 4px;border:1px solid #2980b9;font-size:10px;">POSTE</th>
+            <th style="padding:8px 4px;border:1px solid #2980b9;text-align:center;font-size:10px;">NOTE</th>
+            <th style="padding:8px 4px;border:1px solid #2980b9;text-align:right;font-size:10px;">N</th>
+            <th style="padding:8px 4px;border:1px solid #2980b9;text-align:right;font-size:10px;">N-1</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+      <div style="margin-top:13px;text-align:center;font-size:8.5px;color:#888;">
+        RAITRA KIDZ © ${now.getFullYear()} | Compte de Résultat par Fonction - Export PDF
+      </div>
+    </div>
+  `;
+
+  const element = document.createElement('div');
+  element.innerHTML = htmlContent;
+  element.style.width = '745px';
+  element.style.margin = '0 auto';
+  document.body.appendChild(element);
+
+  html2pdf()
+    .set({
+      margin: [8, 5, 14, 5],
+      filename: `Compte_Resultat_Fonction_${now.toISOString().split("T")[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    })
+    .from(element)
+    .save()
+    .then(() => document.body.removeChild(element))
+    .catch(err => {
+      document.body.removeChild(element);
+      alert("Erreur lors de la génération du PDF.");
+      console.error(err);
+    });
 };
+
+
+
 
 const exportToExcel = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
-  const wsData = [
-    ["COMPTE DE RESULTAT PAR FONCTION"],
-    [""],
-    [`Exercice : ${exerciceInfo.value.annee_fiscale}`],
-    [`Statut : ${exerciceInfo.value.statut || "-"}`],
+  const now = new Date();
+  const etablissement = {
+    nom: "RAITRA KIDZ",
+    adresse: "Antananarivo, Madagascar",
+    tel: "+261 XX XX XXX XX",
+    email: "contact@raitrakidz.mg"
+  };
+
+  const titre = [[`COMPTE DE RESULTAT PAR FONCTION – RAITRA KIDZ`]];
+  const info = [
+    [etablissement.nom],
+    [etablissement.adresse],
+    [etablissement.tel],
+    [etablissement.email],
+    [''],
+    [`Exercice : ${exerciceInfo.value.annee_fiscale || ''}`],
     [`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`],
-    ["Unité monétaire : Ariary (Ar)"],
-    [""],
-    ["POSTE", "NOTE", "N", "N-1"],
-    ...listeComplete.value.map(l => [
-      l.label,
-      l.note || "",
-      formatMontantAbsolu(l.montantN),
-      formatMontantAbsolu(l.montantN1)
-    ])
+    [`Statut : ${exerciceInfo.value.statut || "-"}`],
+    [`Unité monétaire : Ariary (Ar)`],
+    [`Date édition : ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}`],
+    ['']
   ];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  const headers = [
+    ['POSTE', 'NOTE', 'N', 'N-1']
+  ];
+
+  const dataRows = listeComplete.value.map(l => [
+    l.label,
+    l.note || "",
+    l.montantN !== null && l.montantN !== undefined ? Math.abs(Number(l.montantN)) : '',
+    l.montantN1 !== null && l.montantN1 !== undefined ? Math.abs(Number(l.montantN1)) : ''
+  ]);
+
+  // Sheet création
+  const ws = XLSX.utils.aoa_to_sheet([]);
+  XLSX.utils.sheet_add_aoa(ws, titre, { origin: 'A1' });
+  info.forEach((val, i) => XLSX.utils.sheet_add_aoa(ws, [val], { origin: `A${i+2}` }));
+  XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A14' });
+  XLSX.utils.sheet_add_aoa(ws, dataRows, { origin: 'A15' });
+
   ws['!cols'] = [
-    { wch: 40 }, { wch: 12 }, { wch: 18 }, { wch: 18 }
+    { wch: 45 }, { wch: 12 }, { wch: 18 }, { wch: 18 }
   ];
-  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }];
-  ["A8", "B8", "C8", "D8"].forEach(cell => {
-    ws[cell].s = {
-      font: { bold: true, sz: 13 },
+
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }, // titre fusionné
+    ...[1,2,3,4,5,6,7,8,9,10,11,12,13].map(i => ({ s: { r: i, c: 0 }, e: { r: i, c: 3 } }))
+  ];
+
+  // Titre principal
+  ws['A1'].s = {
+    font: { bold: true, sz: 19, color: { rgb: "1C45BD" } },
+    alignment: { horizontal: "center", vertical: "center" }
+  };
+
+  // Infos établissement
+  for (let i = 2; i <= 5; ++i) {
+    const cell = `A${i}`;
+    if (ws[cell]) ws[cell].s = {
+      font: { sz: 11, bold: (i==2), color: { rgb: "222831" } },
+      alignment: { horizontal: "left", vertical: "center" }
+    };
+  }
+  // Infos supplémentaires
+  for (let i = 6; i <= 13; ++i) {
+    const cell = `A${i}`;
+    if (ws[cell]) ws[cell].s = {
+      font: { sz: 10, color: { rgb: "555555" } },
+      alignment: { horizontal: "left", vertical: "center" }
+    };
+  }
+  // En-tête du tableau
+  ['A14', 'B14', 'C14', 'D14'].forEach(cell => {
+    if (ws[cell]) ws[cell].s = {
+      font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "1C45BD" } },
       alignment: { horizontal: "center", vertical: "center" },
-      fill: { fgColor: { rgb: "e3edfc" } },
       border: {
-        top:    { style: "medium", color: { rgb: "1976d2" } },
-        left:   { style: "medium", color: { rgb: "1976d2" } },
-        right:  { style: "medium", color: { rgb: "1976d2" } },
-        bottom: { style: "medium", color: { rgb: "1976d2" } }
+        top:    { style: "thick", color: { rgb: "1C45BD" } },
+        left:   { style: "thin", color: { rgb: "1C45BD" } },
+        right:  { style: "thin", color: { rgb: "1C45BD" } },
+        bottom: { style: "thick", color: { rgb: "1C45BD" } }
       }
-    }
+    };
   });
-  for (let r = 8; r < wsData.length; ++r) {
-    for (let c = 0; c < 4; ++c) {
-      const cellAddr = XLSX.utils.encode_cell({ r, c });
-      if (ws[cellAddr]) {
-        ws[cellAddr].s = {
-          font: { sz: 12 },
+
+  // Data
+  const firstDataRow = 15;
+  for (let i = 0; i < dataRows.length; ++i) {
+    const rowIdx = firstDataRow + i;
+    const ligne = listeComplete.value[i];
+    ['A', 'B', 'C', 'D'].forEach((col, j) => {
+      const cell = `${col}${rowIdx}`;
+      if (!ws[cell]) return;
+      if (ligne.isTotal) {
+        ws[cell].s = {
+          font: { bold: true, sz: 12, color: { rgb: "1e40af" } },
+          fill: { fgColor: { rgb: "e0e7ff" } },
           alignment: { horizontal: "center", vertical: "center" },
           border: {
-            top:    { style: "thin", color: { rgb: "142c6c" } },
-            left:   { style: "thin", color: { rgb: "142c6c" } },
-            right:  { style: "thin", color: { rgb: "142c6c" } },
-            bottom: { style: "thin", color: { rgb: "142c6c" } }
+            top:    { style: "medium", color: { rgb: "3b82f6" } },
+            left:   { style: "thin", color: { rgb: "1C45BD" } },
+            right:  { style: "thin", color: { rgb: "1C45BD" } },
+            bottom: { style: "medium", color: { rgb: "3b82f6" } }
           }
+        };
+      } else {
+        ws[cell].s = {
+          font: { sz: 11 },
+          alignment: { horizontal: "left", vertical: "center" },
+          border: {
+            top:    { style: "thin", color: { rgb: "e5e7eb" } },
+            left:   { style: "thin", color: { rgb: "e5e7eb" } },
+            right:  { style: "thin", color: { rgb: "e5e7eb" } },
+            bottom: { style: "thin", color: { rgb: "e5e7eb" } }
+          }
+        };
+        // Style montant
+        if (j >= 2 && ws[cell].v !== '') {
+          ws[cell].z = "#,##0.00";
         }
       }
-    }
+    });
   }
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Compte_Resultat_Fonction");
-  XLSX.writeFile(wb, `compte_resultat_fonction_${new Date().toISOString().split("T")[0]}.xlsx`);
+  XLSX.writeFile(wb, `compte_resultat_fonction_${now.toISOString().split("T")[0]}.xlsx`);
 };
+
 </script>
 
 

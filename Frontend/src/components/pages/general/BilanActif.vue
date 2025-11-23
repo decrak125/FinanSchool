@@ -144,9 +144,8 @@ import Header from "../../molecules/Header.vue";
 import Sidebar from "../../molecules/Sidebar.vue";
 import AppFooter from "../../molecules/Footer.vue";
 import ChatBot from "../../molecules/ChatBot.vue";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
+import html2pdf from 'html2pdf.js';
+import * as XLSX from 'xlsx-js-style';
 import { getUser } from "../../../services/Auth";
 
 const router = useRouter();
@@ -315,104 +314,344 @@ const formatDate = d => {
 
 // EXPORT PDF avec logo et style pro
 const exportToPDF = () => {
-  if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
-  const doc = new jsPDF('l', 'mm', 'a4');
-  if (logoBase64.value) {
-    doc.addImage(logoBase64.value, "PNG", 16, 6, 24, 16);
+  if (!listeComplete.value.length) {
+    alert("Aucune donnée à exporter !");
+    return;
   }
-  doc.setFontSize(16);
-  doc.text("Bilan - Actif", 48, 14);
-  doc.setFontSize(10);
-  doc.text(`Exercice : ${exerciceInfo.value.annee_fiscale}`, 14, 22);
-  doc.text(`Statut : ${exerciceInfo.value.statut || "-"}`, 140, 22);
-  doc.text(`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`, 14, 28);
+  const now = new Date();
+
+  const bilanHeader = `
+    <div style="display: flex; align-items: flex-start; border-bottom: 3px solid #2980b9; padding-bottom: 16px; margin-bottom: 14px;width : 745px;">
+      <div style="flex: 0 0 80px;">
+        <img src="${logoBase64.value || ''}" style="width: 75px; height: auto;" />
+      </div>
+      <div style="flex: 1; padding-left: 12px;">
+        <div style="font-size: 10px; color: #555;">
+          <div style="font-weight: bold; font-size: 12px; color: #2c3e50;">RAITRA KIDZ</div>
+          <div>Antananarivo, Madagascar</div>
+          <div>+261 XX XX XXX XX</div>
+        </div>
+      </div>
+      <div style="flex: 2; text-align: center;">
+        <h1 style="font-size: 18px; font-weight: bold; color: #1c45bd; margin: 0 0 4px 0;">Bilan - Actif</h1>
+        <div style="font-size: 10px; margin: 2px 0;">
+          Exercice : ${exerciceInfo.value.annee_fiscale || ''}
+        </div>
+        <div style="font-size: 9px;">
+          Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}
+        </div>
+        <div style="font-size: 9px;">
+          Statut : ${exerciceInfo.value.statut || "-"}
+        </div>
+      </div>
+      <div style="flex: 0 0 120px; text-align: right; font-size: 8px; color: #555;">
+        <div><strong>Date édition:</strong></div>
+        <div>${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+      </div>
+    </div>`;
+
+  // tableau dynamique avec colonnes ajustées pour portrait
+  const tableRows = listeComplete.value.map(l =>
+    `<tr
+      style="
+      width : 745px;
+        ${l.isTitle ? 'background:#dbeafe;font-weight:bold;font-size:10px;color:#1e40af;' : ''}
+        ${l.isSubtitle ? 'background:#f0f9ff;font-style:italic;font-size:9px;color:#0369a1;' : ''}
+        ${l.isTotal ? 'background:#e0e7ff;font-weight:bold;font-size:10px;color:#1e40af;' : ''}
+        ${l.isSubtotal ? 'background:#ede9fe;font-weight:600;font-size:9px;color:#5b21b6;' : ''}
+        ${!l.isTitle && !l.isSubtitle && !l.isTotal && !l.isSubtotal ? 'font-size:8px;' : ''}
+      ">
+      <td style="padding:5px 4px;${l.isSubtitle?'padding-left:16px;':''}${l.isDetail?'padding-left:24px;':''}border:1px solid #ddd;">${l.label}</td>
+      <td style="padding:5px 3px;text-align:center;border:1px solid #ddd;">${l.note || ''}</td>
+      <td style="padding:5px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.brutN)}</td>
+      <td style="padding:5px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.amortN)}</td>
+      <td style="padding:5px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.netN)}</td>
+      <td style="padding:5px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.netN1)}</td>
+    </tr>`
+  ).join('');
   
-  autoTable(doc, {
-    head: [
-      [
-        { content: 'ACTIF', rowSpan: 2 },
-        { content: 'NOTE', rowSpan: 2 },
-        { content: 'N', colSpan: 3 },
-        { content: 'N-1 NET', rowSpan: 2 }
-      ],
-      ['Brut', 'Amort/Prov', 'Net']
-    ],
-    body: listeComplete.value.map(l => [
-      l.label,
-      l.note || "",
-      formatMontant(l.brutN),
-      formatMontant(l.amortN),
-      formatMontant(l.netN),
-      formatMontant(l.netN1)
-    ]),
-    theme: "grid",
-    startY: 35,
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [51, 122, 183], textColor: [255, 255, 255], fontStyle: 'bold' },
-    bodyStyles: { valign: 'middle' }
-  });
-  doc.save("bilan_actif.pdf");
+  const htmlContent = `
+    <div style="font-family: 'Helvetica', Arial, sans-serif; max-width: 210mm; padding: 0 10px;">
+      ${bilanHeader}
+      <table style="width:745px;border-collapse:collapse;margin-top:10px;font-size:8px;">
+        <thead>
+          <tr style="background: linear-gradient(135deg, #2980b9 0%, #3498db 100%); color: #fff;">
+            <th rowspan="2" style="padding:7px 4px;border:1px solid #2980b9;font-size:9px;">ACTIF</th>
+            <th rowspan="2" style="padding:7px 4px;border:1px solid #2980b9;text-align:center;font-size:9px;">NOTE</th>
+            <th colspan="3" style="padding:7px 4px;border:1px solid #2980b9;text-align:center;font-size:9px;">N</th>
+            <th rowspan="2" style="padding:7px 4px;border:1px solid #2980b9;text-align:center;font-size:9px;">N-1<br>NET</th>
+          </tr>
+          <tr style="background: linear-gradient(135deg, #2980b9 0%, #3498db 100%); color: #fff;">
+            <th style="padding:6px 3px;border:1px solid #2980b9;text-align:right;font-size:8px;">Brut</th>
+            <th style="padding:6px 3px;border:1px solid #2980b9;text-align:right;font-size:8px;">Amort/<br>Prov</th>
+            <th style="padding:6px 3px;border:1px solid #2980b9;text-align:right;font-size:8px;">Net</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+      <div style="margin-top:15px;text-align:center;font-size:8px;color:#888;">
+        RAITRA KIDZ © ${now.getFullYear()} | Export PDF Bilan - Actif
+      </div>
+    </div>
+  `;
+
+  const element = document.createElement('div');
+  element.innerHTML = htmlContent;
+  element.style.width = '210mm';
+  element.style.margin = '0';
+  element.style.padding = '0';
+  document.body.appendChild(element);
+
+  html2pdf()
+    .set({
+      margin: [8, 5, 12, 5],
+      filename: `Bilan_Actif_${now.toISOString().split("T")[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2, 
+        useCORS: true,
+        logging: false
+      },
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'portrait' // ← PORTRAIT au lieu de landscape
+      }
+    })
+    .from(element)
+    .save()
+    .then(() => document.body.removeChild(element))
+    .catch(err => {
+      console.error('Erreur PDF:', err);
+      document.body.removeChild(element);
+    });
 };
 
+
 // EXPORT EXCEL avec titre fusionné, infos période, style pro
-const exportToExcel = () => {
-  if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
-  const wsData = [
-    ["BILAN ACTIF"],
-    [""],
-    [`Exercice : ${exerciceInfo.value.annee_fiscale}`],
+const exportToExcel = async () => {
+  if (!listeComplete.value.length) {
+    alert("Aucune donnée à exporter !");
+    return;
+  }
+
+  const now = new Date();
+  const etablissement = {
+    nom: "RAITRA KIDZ",
+    adresse: "Antananarivo, Madagascar",
+    tel: "+261 XX XX XXX XX",
+    email: "contact@raitrakidz.mg"
+  };
+
+  // En-tête informations
+  const titre = [[`BILAN ACTIF – RAITRA KIDZ`]];
+  const info = [
+    [etablissement.nom],
+    [etablissement.adresse],
+    [etablissement.tel],
+    [etablissement.email],
+    [''],
+    [`Exercice : ${exerciceInfo.value.annee_fiscale || ''}`],
     [`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`],
     [`Statut : ${exerciceInfo.value.statut || "-"}`],
-    [""],
-    ["ACTIF", "NOTE", "Brut N", "Amort/Prov N", "Net N", "Net N-1"],
-    ...listeComplete.value.map(l => [
-      l.label,
-      l.note || "",
-      formatMontant(l.brutN),
-      formatMontant(l.amortN),
-      formatMontant(l.netN),
-      formatMontant(l.netN1)
-    ])
+    [`Date édition : ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}`],
+    ['']
   ];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // En-têtes du tableau (2 lignes)
+  const headers = [
+    ['ACTIF', 'NOTE', 'N', '', '', 'N-1'], // Ligne 1
+    ['', '', 'Brut', 'Amort/Prov', 'Net', 'NET']  // Ligne 2
+  ];
+
+  // Données
+  const dataRows = listeComplete.value.map(l => [
+    l.label,
+    l.note || "",
+    l.brutN !== null && l.brutN !== undefined ? parseFloat(l.brutN) : '',
+    l.amortN !== null && l.amortN !== undefined ? parseFloat(l.amortN) : '',
+    l.netN !== null && l.netN !== undefined ? parseFloat(l.netN) : '',
+    l.netN1 !== null && l.netN1 !== undefined ? parseFloat(l.netN1) : ''
+  ]);
+
+  // Création de la feuille Excel
+  const ws = XLSX.utils.aoa_to_sheet([]);
+  XLSX.utils.sheet_add_aoa(ws, titre, { origin: 'A1' });
+  info.forEach((val, i) => XLSX.utils.sheet_add_aoa(ws, [val], { origin: `A${i+2}` }));
+  XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A13' }); // 2 lignes d'en-tête
+  XLSX.utils.sheet_add_aoa(ws, dataRows, { origin: 'A15' }); // Données commencent ligne 15
+
+  // Largeurs colonnes
   ws['!cols'] = [
-    { wch: 40 }, { wch: 12 }, { wch: 16 }, { wch: 16 }, { wch: 16 }, { wch: 16 }
+    { wch: 40 }, // ACTIF
+    { wch: 12 }, // NOTE
+    { wch: 18 }, // Brut N
+    { wch: 18 }, // Amort/Prov N
+    { wch: 18 }, // Net N
+    { wch: 18 }  // Net N-1
   ];
-  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
-  ["A7","B7","C7","D7","E7","F7"].forEach(cell => {
-    ws[cell].s = {
-      font: { bold: true, sz: 13 },
+
+  // Fusion de cellules
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // fusion titre
+    ...[1,2,3,4,5,6,7,8,9,10,11,12].map(i => ({ s: { r: i, c: 0 }, e: { r: i, c: 5 } })), // infos
+    // En-tête tableau - fusions
+    { s: { r: 12, c: 0 }, e: { r: 13, c: 0 } }, // ACTIF (rowspan 2)
+    { s: { r: 12, c: 1 }, e: { r: 13, c: 1 } }, // NOTE (rowspan 2)
+    { s: { r: 12, c: 2 }, e: { r: 12, c: 4 } }, // N (colspan 3)
+    { s: { r: 12, c: 5 }, e: { r: 13, c: 5 } }  // N-1 (rowspan 2)
+  ];
+
+  // Styles Excel Avancés
+  // Titre principal
+  ws['A1'].s = {
+    font: { bold: true, sz: 20, color: { rgb: "1C45BD" } },
+    alignment: { horizontal: "center", vertical: "center" }
+  };
+
+  // Infos établissement
+  for (let i = 2; i <= 5; ++i) {
+    const cell = `A${i}`;
+    if (ws[cell]) ws[cell].s = {
+      font: { sz: 11, bold: (i==2), color: { rgb: "222831" } },
+      alignment: { horizontal: "left", vertical: "center" }
+    };
+  }
+
+  // Infos supplémentaires
+  for (let i = 6; i <= 12; ++i) {
+    const cell = `A${i}`;
+    if (ws[cell]) ws[cell].s = {
+      font: { sz: 10, color: { rgb: "555555" } },
+      alignment: { horizontal: "left", vertical: "center" }
+    };
+  }
+
+  // En-tête du tableau - Ligne 1 (row 12 en 0-index)
+  ['A13', 'B13', 'C13', 'F13'].forEach(cell => {
+    if (ws[cell]) ws[cell].s = {
+      font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "1C45BD" } },
       alignment: { horizontal: "center", vertical: "center" },
-      fill: { fgColor: { rgb: "e3edfc" } },
       border: {
-        top:    { style: "medium", color: { rgb: "1976d2" } },
-        left:   { style: "medium", color: { rgb: "1976d2" } },
-        right:  { style: "medium", color: { rgb: "1976d2" } },
-        bottom: { style: "medium", color: { rgb: "1976d2" } }
+        top:    { style: "thick", color: { rgb: "1C45BD" } },
+        left:   { style: "thin", color: { rgb: "1C45BD" } },
+        right:  { style: "thin", color: { rgb: "1C45BD" } },
+        bottom: { style: "thin", color: { rgb: "1C45BD" } }
       }
-    }
+    };
   });
-  for (let r = 7; r < wsData.length; ++r) {
-    for (let c = 0; c < 6; ++c) {
-      const cellAddr = XLSX.utils.encode_cell({ r, c });
-      if (ws[cellAddr]) {
-        ws[cellAddr].s = {
-          font: { sz: 12 },
-          alignment: { horizontal: "center", vertical: "center" },
+
+  // En-tête du tableau - Ligne 2 (row 13 en 0-index)
+  ['C14', 'D14', 'E14', 'F14'].forEach(cell => {
+    if (ws[cell]) ws[cell].s = {
+      font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "1C45BD" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        top:    { style: "thin", color: { rgb: "1C45BD" } },
+        left:   { style: "thin", color: { rgb: "1C45BD" } },
+        right:  { style: "thin", color: { rgb: "1C45BD" } },
+        bottom: { style: "thick", color: { rgb: "1C45BD" } }
+      }
+    };
+  });
+
+  // Données du tableau avec styles conditionnels
+  const firstDataRow = 15; // Maintenant ligne 15
+  for (let i = 0; i < dataRows.length; ++i) {
+    const rowIdx = firstDataRow + i;
+    const ligne = listeComplete.value[i];
+    
+    ['A','B','C','D','E','F'].forEach((col, j) => {
+      const cell = `${col}${rowIdx}`;
+      if (!ws[cell]) return;
+
+      // Style pour lignes de titre
+      if (ligne.isTitle) {
+        ws[cell].s = {
+          font: { bold: true, sz: 13, color: { rgb: "1e40af" } },
+          fill: { fgColor: { rgb: "dbeafe" } },
+          alignment: { horizontal: j===0?"left":"center", vertical: "center" },
           border: {
-            top:    { style: "thin", color: { rgb: "142c6c" } },
-            left:   { style: "thin", color: { rgb: "142c6c" } },
-            right:  { style: "thin", color: { rgb: "142c6c" } },
-            bottom: { style: "thin", color: { rgb: "142c6c" } }
+            top:    { style: "medium", color: { rgb: "3b82f6" } },
+            left:   { style: "thin", color: { rgb: "1C45BD" } },
+            right:  { style: "thin", color: { rgb: "1C45BD" } },
+            bottom: { style: "thin", color: { rgb: "1C45BD" } }
           }
+        };
+      }
+      // Style pour lignes de total
+      else if (ligne.isTotal) {
+        ws[cell].s = {
+          font: { bold: true, sz: 12, color: { rgb: "1e40af" } },
+          fill: { fgColor: { rgb: "e0e7ff" } },
+          alignment: { horizontal: j===0?"left":"center", vertical: "center" },
+          border: {
+            top:    { style: "medium", color: { rgb: "3b82f6" } },
+            left:   { style: "thin", color: { rgb: "1C45BD" } },
+            right:  { style: "thin", color: { rgb: "1C45BD" } },
+            bottom: { style: "medium", color: { rgb: "3b82f6" } }
+          }
+        };
+      }
+      // Style pour sous-titres
+      else if (ligne.isSubtitle) {
+        ws[cell].s = {
+          font: { sz: 11, italic: true, color: { rgb: "0369a1" } },
+          fill: { fgColor: { rgb: "f0f9ff" } },
+          alignment: { horizontal: j===0?"left":"center", vertical: "center" },
+          border: {
+            top:    { style: "thin", color: { rgb: "b0b0b0" } },
+            left:   { style: "thin", color: { rgb: "b0b0b0" } },
+            right:  { style: "thin", color: { rgb: "b0b0b0" } },
+            bottom: { style: "thin", color: { rgb: "b0b0b0" } }
+          }
+        };
+      }
+      // Style pour sous-totaux
+      else if (ligne.isSubtotal) {
+        ws[cell].s = {
+          font: { sz: 11, bold: true, color: { rgb: "5b21b6" } },
+          fill: { fgColor: { rgb: "ede9fe" } },
+          alignment: { horizontal: j===0?"left":"center", vertical: "center" },
+          border: {
+            top:    { style: "thin", color: { rgb: "b0b0b0" } },
+            left:   { style: "thin", color: { rgb: "b0b0b0" } },
+            right:  { style: "thin", color: { rgb: "b0b0b0" } },
+            bottom: { style: "thin", color: { rgb: "b0b0b0" } }
+          }
+        };
+      }
+      // Style pour lignes de détail
+      else {
+        ws[cell].s = {
+          font: { sz: 11 },
+          alignment: { horizontal: j===0?"left":"right", vertical: "center" },
+          border: {
+            top:    { style: "thin", color: { rgb: "e5e7eb" } },
+            left:   { style: "thin", color: { rgb: "e5e7eb" } },
+            right:  { style: "thin", color: { rgb: "e5e7eb" } },
+            bottom: { style: "thin", color: { rgb: "e5e7eb" } }
+          }
+        };
+        // Format nombre pour colonnes numériques
+        if (j >= 2 && ws[cell].v !== '') {
+          ws[cell].z = "#,##0.00";
         }
       }
-    }
+    });
   }
+
+  // Classeur & sauvegarde
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Bilan_Actif");
-  XLSX.writeFile(wb, `bilan_actif_${new Date().toISOString().split("T")[0]}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, "Bilan Actif");
+  XLSX.writeFile(wb, `bilan_actif_${now.toISOString().split("T")[0]}.xlsx`);
 };
+
+
 </script>
 
 

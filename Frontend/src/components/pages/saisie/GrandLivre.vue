@@ -3,24 +3,26 @@ import { ref, computed, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { debounce } from 'lodash'
 import { useRouter, useRoute } from 'vue-router'
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
-import * as XLSX from 'xlsx'
+import * as XLSX from 'xlsx-js-style';
 import Sidebar from '../../molecules/Sidebar.vue'
 import Header from '../../molecules/Header.vue'
 import AppFooter from '../../molecules/Footer.vue'
 import { getUser } from "../../../services/Auth";
-import logoImg from '../../../assets/img/01300.png';
-import { exportEtatPDF } from '../../../composables/pdfTemplates';
-
+import logoImg from '../../../assets/img/01300.png'
+import html2pdf from 'html2pdf.js'
 
 const router = useRouter()
 const route = useRoute()
 const user = ref(null);
 
-const handleNavigation = (item) => {
-  router.push(item.route)
+const etablissement = {
+  nom: "RAITRA KIDZ",
+  adresse: "Antananarivo, Madagascar",
+  tel: "+261 XX XX XXX XX",
+  email: "contact@raitrakidz.mg"
 }
+
+const handleNavigation = (item) => { router.push(item.route) }
 
 const grandLivres = ref([])
 const loading = ref(false)
@@ -31,9 +33,7 @@ const filters = ref({
 })
 const currentPage = ref(1)
 const itemsPerPage = 20
-
 const API_URL = 'http://localhost:8000/api'
-
 const token = localStorage.getItem('token')
 if (!token) {
   window.location.href = '/'
@@ -41,7 +41,6 @@ if (!token) {
   axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
 }
 
-// Computed properties
 const isSingleCompte = computed(() => !!route.params.codeCompte)
 const currentCompte = computed(() => route.params.codeCompte || '')
 
@@ -50,21 +49,11 @@ const loadGrandLivres = async () => {
   try {
     let url = `${API_URL}/grand-livre`
     let queryParams = new URLSearchParams()
-
-    if (filters.value.date_debut) {
-      queryParams.append('date_debut', filters.value.date_debut)
-    }
-    if (filters.value.date_fin) {
-      queryParams.append('date_fin', filters.value.date_fin)
-    }
-
-    if (isSingleCompte.value) {
-      queryParams.append('code_compte', currentCompte.value)
-    }
-
+    if (filters.value.date_debut) queryParams.append('date_debut', filters.value.date_debut)
+    if (filters.value.date_fin) queryParams.append('date_fin', filters.value.date_fin)
+    if (isSingleCompte.value) queryParams.append('code_compte', currentCompte.value)
     const queryString = queryParams.toString()
     const fullUrl = queryString ? `${url}?${queryString}` : url
-
     const response = await axios.get(fullUrl)
     grandLivres.value = response.data || []
   } catch (error) {
@@ -98,85 +87,27 @@ const paginatedGrandLivres = computed(() => {
   return filteredGrandLivres.value.slice(start, end)
 })
 
-const totalPages = computed(() => {
-  return Math.ceil(filteredGrandLivres.value.length / itemsPerPage)
-})
+const totalPages = computed(() => Math.ceil(filteredGrandLivres.value.length / itemsPerPage))
 
-const prevPage = () => {
-  if (currentPage.value > 1) currentPage.value--
-}
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) currentPage.value++
-}
-
-const goToPage = (page) => {
-  currentPage.value = page
-}
-
-const groupedGrandLivres = computed(() => {
-  if (isSingleCompte.value) return {}
-
-  const groups = {}
-  filteredGrandLivres.value.forEach(gl => {
-    const compteKey = gl.code_compte || 'Unknown'
-    const sousCompteKey = gl.code_sous_compte || 'N/A'
-    if (!groups[compteKey]) {
-      groups[compteKey] = {
-        libelle_compte: gl.libelle_compte || 'Compte Inconnu',
-        sousComptes: {}
-      }
-    }
-    if (!groups[compteKey].sousComptes[sousCompteKey]) {
-      groups[compteKey].sousComptes[sousCompteKey] = {
-        libelle_sous_compte: gl.libelle_sous_compte || 'Sous-Compte Inconnu',
-        entries: []
-      }
-    }
-    groups[compteKey].sousComptes[sousCompteKey].entries.push(gl)
-  })
-  return groups
-})
+const prevPage = () => { if (currentPage.value > 1) currentPage.value-- }
+const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
+const goToPage = (page) => { currentPage.value = page }
 
 const summary = computed(() => {
   if (!isSingleCompte.value || filteredGrandLivres.value.length === 0) {
     return { total_debit: 0, total_credit: 0, solde: 0 }
   }
-
-  const total_debit = filteredGrandLivres.value.reduce((sum, gl) => {
-    return sum + (parseFloat(gl.Debit) || 0)
-  }, 0)
-
-  const total_credit = filteredGrandLivres.value.reduce((sum, gl) => {
-    return sum + (parseFloat(gl.Credit) || 0)
-  }, 0)
-
+  const total_debit = filteredGrandLivres.value.reduce((sum, gl) => sum + (parseFloat(gl.Debit) || 0), 0)
+  const total_credit = filteredGrandLivres.value.reduce((sum, gl) => sum + (parseFloat(gl.Credit) || 0), 0)
   const solde = total_debit - total_credit
-
-  return {
-    total_debit,
-    total_credit,
-    solde
-  }
+  return { total_debit, total_credit, solde }
 })
 
 const paginatedSummary = computed(() => {
-  const total_debit = paginatedGrandLivres.value.reduce((sum, gl) => {
-    return sum + (parseFloat(gl.Debit) || 0)
-  }, 0)
-
-  const total_credit = paginatedGrandLivres.value.reduce((sum, gl) => {
-    return sum + (parseFloat(gl.Credit) || 0)
-  }, 0)
-
+  const total_debit = paginatedGrandLivres.value.reduce((sum, gl) => sum + (parseFloat(gl.Debit) || 0), 0)
+  const total_credit = paginatedGrandLivres.value.reduce((sum, gl) => sum + (parseFloat(gl.Credit) || 0), 0)
   return { total_debit, total_credit }
 })
-
-const getSousCompteTotal = (entries) => {
-  const total_debit = entries.reduce((sum, gl) => sum + (parseFloat(gl.Debit) || 0), 0)
-  const total_credit = entries.reduce((sum, gl) => sum + (parseFloat(gl.Credit) || 0), 0)
-  return { total_debit, total_credit, solde: total_debit - total_credit }
-}
 
 const calculateSoldeProgressif = (gl, entries) => {
   const index = entries.findIndex(e => e.numero_piece === gl.numero_piece && e.date_mouvement === gl.date_mouvement)
@@ -189,177 +120,243 @@ const calculateSoldeProgressif = (gl, entries) => {
   return solde
 }
 
-const applyDateFilter = () => {
-  currentPage.value = 1
-  loadGrandLivres()
-}
-
-const resetDateFilter = () => {
-  filters.value.date_debut = ''
-  filters.value.date_fin = ''
-  currentPage.value = 1
-  loadGrandLivres()
-}
-
-const goBack = () => {
-  router.push('/liste-grand-livre')
-}
-
-function getLogoBase64(callback) {
-  const img = new window.Image();
-  img.src = logoImg;
-  img.onload = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
-    callback(canvas.toDataURL('image/png'));
-  };
-}
-
-function exportGrandLivre() {
-  getLogoBase64((logoBase64) => {
-  exportEtatPDF({
-    titre: `Grand Livre - Compte ${currentCompte.value}`,
-    periode: `${filters.value.date_debut || 'Toutes'} à ${filters.value.date_fin || 'Toutes'}`,
-    detailsDroite: [
-      `Nombre d'écritures: ${filteredGrandLivres.value.length}`,
-    ],
-    colonnes: ['Date', 'N° Pièce', 'Libellé', 'Débit', 'Crédit', 'Solde Progressif'],
-    lignes: filteredGrandLivres.value.map(gl => [
-      formatDate(gl.date_mouvement),
-      gl.numero_piece,
-      gl.libelle_ecriture,
-      formatNumber(gl.Debit),
-      formatNumber(gl.Credit),
-      formatNumber(calculateSoldeProgressif(gl, filteredGrandLivres.value))
-    ]),
-    totaux: ['', '', 'TOTAUX:', formatNumber(summary.value.total_debit), formatNumber(summary.value.total_credit), formatNumber(summary.value.solde)],
-    fileName: `Grand_Livre_${currentCompte.value}`,
-    getLogoBase64: () => logoBase64
-  });
-    });
-}
-
-const exportToExcel = () => {
-  if (!filteredGrandLivres.value || filteredGrandLivres.value.length === 0) {
-    alert("Aucune donnée à exporter !");
-    return;
-  }
-
-  // Récupération du libellé depuis les données si non défini
-  const firstEntry = filteredGrandLivres.value[0] || {};
-  const libelleCompte = firstEntry.libelle_compte || '—';
-
-  // 1️⃣ Données principales
-  const data = filteredGrandLivres.value.map((gl) => ({
-    'Date Mouvement': formatDate(gl.date_mouvement),
-    'Numéro Pièce': gl.numero_piece,
-    'Libellé Écriture': gl.libelle_ecriture,
-    'Débit': parseFloat(gl.Debit) || 0,
-    'Crédit': parseFloat(gl.Credit) || 0,
-    'Solde Progressif': calculateSoldeProgressif(gl, filteredGrandLivres.value)
-  }));
-
-  // 2️⃣ Ligne Totaux
-  data.push({
-    'Date Mouvement': '',
-    'Numéro Pièce': '',
-    'Libellé Écriture': 'TOTAUX',
-    'Débit': summary.value.total_debit,
-    'Crédit': summary.value.total_credit,
-    'Solde Progressif': summary.value.solde
-  });
-
-  // 3️⃣ Feuille Excel
-  const ws = XLSX.utils.aoa_to_sheet([]);
-
-  // ✅ Titre et détails
-  const titre = [`GRAND LIVRE DU COMPTE ${currentCompte.value}`];
-  const details = [
-    [`Compte : ${currentCompte.value}`],
-    [`Libellé : ${libelleCompte}`],
-    [`Date d’export : ${new Date().toLocaleDateString('fr-FR')}`],
-    [''] // ligne vide
-  ];
-
-  // Ajout du titre et des détails dans la feuille
-  XLSX.utils.sheet_add_aoa(ws, [titre], { origin: 'A1' });
-  XLSX.utils.sheet_add_aoa(ws, details, { origin: 'A3' });
-
-  // ✅ Données comptables à partir de la ligne 8
-  XLSX.utils.sheet_add_json(ws, data, { origin: 'A8', skipHeader: false });
-
-  // ✅ Ajustement automatique des colonnes
-  const colWidths = Object.keys(data[0]).map((key) => ({
-    wch: Math.max(key.length + 5, 15)
-  }));
-  ws['!cols'] = colWidths;
-
-  // ✅ Création du classeur
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, `Compte_${currentCompte.value}`);
-
-  // ✅ Téléchargement
-  const fileName = `Grand_Livre_${currentCompte.value}_${new Date()
-    .toISOString()
-    .split('T')[0]}.xlsx`;
-
-  XLSX.writeFile(wb, fileName);
-};
-
+const applyDateFilter = () => { currentPage.value = 1; loadGrandLivres() }
+const resetDateFilter = () => { filters.value.date_debut = ''; filters.value.date_fin = ''; currentPage.value = 1; loadGrandLivres() }
+const goBack = () => { router.push('/liste-grand-livre') }
 
 const debounceSearch = debounce((val) => {
   filters.value.search = val
   currentPage.value = 1
 }, 300)
 
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('fr-FR')
-}
-
-const formatNumber = (value) => {
-  const num = parseFloat(value) || 0
-  return new Intl.NumberFormat('fr-FR', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(Math.abs(num))
-}
-
-const getNumberClass = (value) => {
-  const num = parseFloat(value) || 0
-  return num < 0 ? 'text-red-600' : ''
-}
+const formatDate = (date) => new Date(date).toLocaleDateString('fr-FR')
+const formatNumber = (value) => new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Math.abs(parseFloat(value) || 0))
+const getNumberClass = (value) => ((parseFloat(value) || 0) < 0 ? 'text-red-600' : '')
 
 onMounted(async () => {
-  console.log("Token récupéré :", token); // Vérifie si le token existe
-  
   if (!token) {
-    console.log("Pas de token → Redirection vers /");
     window.location.href = "/";
   } else {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     try {
-      console.log("Appel getUser en cours...");
-      const res = await getUser(token);
-      user.value = res.data;
-      console.log("User récupéré :", user.value);
-    } catch (err) {
-      console.error("Erreur lors de getUser :", err);
-      localStorage.removeItem("token");
-      window.location.href = "/";
-      return; // Important : arrête l'exécution
+      const res = await getUser(token)
+      user.value = res.data
+    } catch {
+      localStorage.removeItem("token")
+      window.location.href = "/"
+      return
     }
     loadGrandLivres();
   }
-});
-
-watch(() => route.params.codeCompte, () => {
-  currentPage.value = 1
-  loadGrandLivres()
 })
+
+watch(() => route.params.codeCompte, () => { currentPage.value = 1; loadGrandLivres() })
+
+// Export PDF (décalé à gauche, avec logo et détails établissement)
+function exportGrandLivre() {
+  const now = new Date();
+  const periodeText = `${filters.value.date_debut || 'Toutes'} à ${filters.value.date_fin || 'Toutes'}`;
+  const firstEntry = filteredGrandLivres.value[0] || {};
+  const libelleCompte = firstEntry.libelle_compte || '—';
+  const logoBase64 = logoImg;
+
+  const htmlContent = `
+    <div style="font-family:'Helvetica',Arial,sans-serif;max-width:900px;padding:0;margin-left:0;">
+      <div style="display:flex;align-items:flex-start;margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid #2980b9;">
+        <div style="flex:0 0 95px;">
+          <img src="${logoBase64}" style="width:85px;" alt="Logo" />
+        </div>
+        <div style="flex:2;padding-left:12px;">
+          <div style="font-size:13px;font-weight:700;color:#2c3e50;">${etablissement.nom}</div>
+          <div style="font-size:10px;">${etablissement.adresse}</div>
+          <div style="font-size:10px;">${etablissement.tel}</div>
+          <div style="font-size:10px;">${etablissement.email}</div>
+        </div>
+        <div style="flex:3;text-align:center;">
+          <h2 style="margin:0;margin-bottom:8px;font-size:19px;font-weight:bold;color:#1c45bd;">
+            Grand Livre – Compte ${currentCompte.value}
+          </h2>
+          <div style="font-size:11px;">Libellé : ${libelleCompte}</div>
+          <div style="font-size:10px;">Période : ${periodeText}</div>
+          <div style="font-size:10px;">Date export : ${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+      </div>
+      <table style="width:750px;border-collapse:collapse;margin-top:15px;">
+        <thead>
+          <tr style="background:#1c45bd;color:#fff;">
+            <th style="padding:8px;border:1px solid #2980b9;font-size:10px;">Date</th>
+            <th style="padding:8px;border:1px solid #2980b9;font-size:10px;">N° Pièce</th>
+            <th style="padding:8px;border:1px solid #2980b9;font-size:10px;">Libellé</th>
+            <th style="padding:8px;border:1px solid #2980b9;font-size:10px;text-align:right;">Débit</th>
+            <th style="padding:8px;border:1px solid #2980b9;font-size:10px;text-align:right;">Crédit</th>
+            <th style="padding:8px;border:1px solid #2980b9;font-size:10px;text-align:right;">Solde Progressif</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${filteredGrandLivres.value
+            .map(gl => `
+            <tr>
+              <td style="padding:7px;font-size:9px;border:1px solid #eee;">${formatDate(gl.date_mouvement)}</td>
+              <td style="padding:7px;font-size:9px;border:1px solid #eee;">${gl.numero_piece}</td>
+              <td style="padding:7px;font-size:9px;border:1px solid #eee;">${gl.libelle_ecriture}</td>
+              <td style="padding:7px;font-size:9px;border:1px solid #eee;text-align:right;">${formatNumber(gl.Debit)}</td>
+              <td style="padding:7px;font-size:9px;border:1px solid #eee;text-align:right;">${formatNumber(gl.Credit)}</td>
+              <td style="padding:7px;font-size:9px;border:1px solid #eee;text-align:right;">${formatNumber(calculateSoldeProgressif(gl, filteredGrandLivres.value))}</td>
+            </tr>`).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background:#1c45bd;color:#fff;font-weight:bold;">
+            <td colspan="3" style="padding:8px;border:1px solid #2980b9;text-align:right;">TOTAUX :</td>
+            <td style="padding:8px;border:1px solid #2980b9;text-align:right;">${formatNumber(summary.value.total_debit)}</td>
+            <td style="padding:8px;border:1px solid #2980b9;text-align:right;">${formatNumber(summary.value.total_credit)}</td>
+            <td style="padding:8px;border:1px solid #2980b9;text-align:right;">${formatNumber(summary.value.solde)}</td>
+          </tr>
+        </tfoot>
+      </table>
+      <div style="margin-top:22px;text-align:center;font-size:10px;color:#888;">
+        ${etablissement.nom} © ${now.getFullYear()} | Export PDF
+      </div>
+    </div>
+  `
+  const element = document.createElement('div');
+  element.innerHTML = htmlContent;
+  element.style.width = '210mm';
+  element.style.marginLeft = '0';
+  document.body.appendChild(element);
+  html2pdf()
+    .set({
+      margin: [10, 5, 15, 5],
+      filename: `Grand_Livre_${currentCompte.value}_${now.toISOString().split('T')[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    })
+    .from(element)
+    .save()
+    .then(() => document.body.removeChild(element));
+}
+
+// Export Excel avec header et détails PRO
+const exportToExcel = async () => {
+  if (!filteredGrandLivres.value || filteredGrandLivres.value.length === 0) {
+    alert("Aucune donnée à exporter !");
+    return;
+  }
+
+  const now = new Date();
+  const libelleCompte = filteredGrandLivres.value[0]?.libelle_compte || '—';
+  const titre = [[`GRAND LIVRE – Compte ${currentCompte.value}`]];
+  const info = [
+    [etablissement.nom],
+    [etablissement.adresse],
+    [etablissement.tel],
+    [etablissement.email],
+    [''],
+    [`Compte : ${currentCompte.value}`],
+    [`Libellé : ${libelleCompte}`],
+    [`Période : ${filters.value.date_debut || 'Toutes'} à ${filters.value.date_fin || 'Toutes'}`],
+    [`Date d’export : ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}`],
+    ['']
+  ];
+
+  // Styles
+  const titleStyle = {
+    font: { bold: true, sz: 19, color: { rgb: "1C45BD" } },
+    alignment: { horizontal: "center", vertical: "center" }
+  };
+  const headerStyle = {
+    font: { bold: true, color: { rgb: "FFFFFF" }, sz: 11 },
+    fill: { fgColor: { rgb: "1C45BD" } },
+    alignment: { horizontal: "center", vertical: "center" },
+    border: { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }
+  };
+  const infoStyle = {
+    font: { sz: 10, color: { rgb: "555555" } },
+    alignment: { horizontal: "left", vertical: "center" }
+  };
+  const dataStyle = {
+    font: { sz: 10 },
+    alignment: { horizontal: "left", vertical: "center", wrapText: true },
+    border: { top: { style: "thin" }, bottom: { style: "thin" }, left: { style: "thin" }, right: { style: "thin" } }
+  };
+  const numberStyle = {
+    ...dataStyle,
+    alignment: { horizontal: "right", vertical: "center" },
+    numFmt: "#,##0.00"
+  };
+  const totalStyle = {
+    font: { bold: true, sz: 11, color: { rgb: "FFFFFF" } },
+    fill: { fgColor: { rgb: "1C45BD" } },
+    alignment: { horizontal: "right", vertical: "center" },
+    border: { top: { style: "medium" }, bottom: { style: "medium" }, left: { style: "medium" }, right: { style: "medium" } }
+  };
+
+  // Création de la feuille
+  const ws = XLSX.utils.aoa_to_sheet([]);
+  XLSX.utils.sheet_add_aoa(ws, titre, { origin: 'A1' });
+  XLSX.utils.sheet_add_aoa(ws, info, { origin: 'A2' });
+
+  // En-têtes du tableau
+  const headers = [
+    ['Date Mouvement', 'Numéro Pièce', 'Libellé Écriture', 'Débit', 'Crédit', 'Solde Progressif']
+  ];
+  XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A13' });
+
+  // Données du Grand Livre
+  const dataRows = filteredGrandLivres.value.map(gl => [
+    formatDate(gl.date_mouvement),
+    gl.numero_piece || '',
+    gl.libelle_ecriture || '',
+    parseFloat(gl.Debit) || 0,
+    parseFloat(gl.Credit) || 0,
+    calculateSoldeProgressif(gl, filteredGrandLivres.value)
+  ]);
+  XLSX.utils.sheet_add_aoa(ws, dataRows, { origin: 'A14' });
+
+  // Ligne totaux
+  const totalRowIdx = 14 + dataRows.length;
+  XLSX.utils.sheet_add_aoa(ws, [
+    ['', '', 'TOTAUX', summary.value.total_debit, summary.value.total_credit, summary.value.solde]
+  ], { origin: `A${totalRowIdx}` });
+
+  // Styles et fusion
+  ws['A1'].s = titleStyle;
+  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }];
+  Object.keys(ws)
+    .filter(cell => cell.match(/^A([2-9]|10|11)$/)) // infos établissement
+    .forEach(cell => { ws[cell].s = infoStyle; });
+  ['A13', 'B13', 'C13', 'D13', 'E13', 'F13'].forEach(cell => { ws[cell].s = headerStyle; });
+
+  // Style lignes datas
+  dataRows.forEach((_, i) => {
+    const rowN = 14 + i;
+    ['A', 'B', 'C'].forEach(col => { const ref = `${col}${rowN}`; if (ws[ref]) ws[ref].s = dataStyle; });
+    ['D', 'E', 'F'].forEach(col => { const ref = `${col}${rowN}`; if (ws[ref]) ws[ref].s = numberStyle; });
+  });
+  // Style totaux
+  ['A', 'B', 'C', 'D', 'E', 'F'].forEach(col => {
+    const ref = `${col}${totalRowIdx}`;
+    if (ws[ref]) ws[ref].s = totalStyle;
+  });
+
+  // Largeurs colonnes
+  ws['!cols'] = [
+    { wch: 15 }, // Date
+    { wch: 15 }, // Numéro Pièce
+    { wch: 40 }, // Libellé
+    { wch: 15 }, // Débit
+    { wch: 15 }, // Crédit
+    { wch: 17 }  // Solde Progressif
+  ];
+
+  // Ajout au classeur et export
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, `GrandLivre_${currentCompte.value}`);
+  const fileName = `Grand_Livre_${currentCompte.value}_${now.toISOString().split('T')[0]}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+};
 </script>
+
 
 <template>
   <div class="dashboard-container">

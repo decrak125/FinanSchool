@@ -132,9 +132,10 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import html2pdf from 'html2pdf.js'
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
+import * as XLSX from 'xlsx-js-style';
 import Header from "../../molecules/Header.vue";
 import Sidebar from "../../molecules/Sidebar.vue";
 import AppFooter from "../../molecules/Footer.vue";
@@ -305,191 +306,243 @@ const resetFilters = () => {
   }
 };
 
-const exportToExcel = () => {
+const exportToExcel = async () => {
   if (!Object.keys(groupedComptes.value).length) {
     alert("Aucune donnée à exporter");
     return;
   }
-  const today = new Date().toLocaleDateString('fr-FR');
-  const titleRow = ["💼 RAITRA KIDZ"];
-  const infoRow = [`Date édition : ${today}`];
-  const periodRow = [`Période : ${filters.value.date_debut || "N/A"} à ${filters.value.date_fin || "N/A"}`];
-  const exerciceRow = [`Exercice : ${filters.value.exercice_comptable || "Tous"}`];
-  const classeRow = [`Classe de compte : ${filters.value.classe_compte || "Toutes"}`];
-  const emptyRow = [""];
-  const headerRow = ["Compte", "Libellé", "Débit", "Crédit"];
 
+  const now = new Date();
+  // En-tête informations
+  const title = [[`BALANCE GÉNÉRALE – RAITRA KIDZ`]];
+  const etablissement = ["RAITRA KIDZ", "Antananarivo, Madagascar", "+261 XX XX XXX XX", "contact@raitrakidz.mg"];
+  const info = [
+    [`Édité le : ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`],
+    [`Période : ${filters.value.date_debut || "N/A"} à ${filters.value.date_fin || "N/A"}`],
+    [`Exercice : ${(exercices.value.find(ex => ex.id == selectedExercice.value)?.nom) || "Tous"}`],
+    [`Classe de compte : ${getClasseLibelle(filters.value.classe_compte) || "Toutes"}`]
+  ];
+
+  const emptyRow = [''];
+  const headers = [
+    ['Compte', 'Libellé', 'Débit', 'Crédit']
+  ];
+
+  // Construction des lignes du tableau
   const dataRows = [];
   Object.entries(groupedComptes.value).forEach(([mainCode, mainAccount]) => {
+    // Compte principal
     dataRows.push([
       `${mainCode} - ${mainAccount.libelle}`,
-      "",
-      formatNumber(mainAccount.total_debit),
-      formatNumber(mainAccount.total_credit),
+      '',
+      mainAccount.total_debit,
+      mainAccount.total_credit
     ]);
+    // Sous-comptes
     mainAccount.subAccounts.forEach(subAccount => {
       dataRows.push([
         subAccount.code_sous_compte,
         subAccount.libelle_sous_compte,
-        subAccount.solde_final >= 0 ? formatNumber(subAccount.solde_final) : "",
-        subAccount.solde_final < 0 ? formatNumber(Math.abs(subAccount.solde_final)) : ""
+        subAccount.solde_final >= 0 ? subAccount.solde_final : '',
+        subAccount.solde_final < 0 ? Math.abs(subAccount.solde_final) : ''
       ]);
     });
   });
+  // Ligne des totaux
   dataRows.push([
-    "TOTAUX", "", formatNumber(totalDebit.value), formatNumber(totalCredit.value)
+    "TOTAUX",
+    "",
+    totalDebit.value,
+    totalCredit.value
   ]);
-  const wsData = [
-    titleRow, infoRow, periodRow, exerciceRow, classeRow, emptyRow, headerRow, ...dataRows
-  ];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Création de la feuille Excel
+  const ws = XLSX.utils.aoa_to_sheet([]);
+  XLSX.utils.sheet_add_aoa(ws, title, { origin: 'A1' });
+  etablissement.forEach((val, i) => XLSX.utils.sheet_add_aoa(ws, [[val]], { origin: `A${i+2}` }));
+  XLSX.utils.sheet_add_aoa(ws, info, { origin: 'A6' });
+  XLSX.utils.sheet_add_aoa(ws, emptyRow, { origin: 'A10' });
+  XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A11' });
+  XLSX.utils.sheet_add_aoa(ws, dataRows, { origin: 'A12' });
+
+  // Largeurs colonnes
   ws['!cols'] = [
-    { wch: 25 }, { wch: 40 }, { wch: 18 }, { wch: 18 }
+    { wch: 25 }, { wch: 35 }, { wch: 18 }, { wch: 18 }
   ];
+  // Fusion de cellules pour titres/en-têtes
   ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } },
-    { s: { r: 2, c: 0 }, e: { r: 2, c: 3 } },
-    { s: { r: 3, c: 0 }, e: { r: 3, c: 3 } },
-    { s: { r: 4, c: 0 }, e: { r: 4, c: 3 } },
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }, // fusion titre
+    ...[1,2,3,4,5,6,7,8,9,10].map(i => ({ s: { r: i, c: 0 }, e: { r: i, c: 3 } })) // infos
   ];
-  ["A7", "B7", "C7", "D7"].forEach(cell => {
-    ws[cell].s = {
-      font: { bold: true, sz: 13, color: { rgb: "222831" } },
-      alignment: { horizontal: "center", vertical: "center" },
-      fill: { fgColor: { rgb: "e3edfc" } },
-      border: {
-        top:    { style: "medium", color: { rgb: "1976d2" } },
-        left:   { style: "medium", color: { rgb: "1976d2" } },
-        right:  { style: "medium", color: { rgb: "1976d2" } },
-        bottom: { style: "medium", color: { rgb: "1976d2" } }
-      }
-    }
-  });
-  const startRow = 7;
-  for (let r = startRow; r < wsData.length; ++r) {
-    for (let c = 0; c < 4; ++c) {
-      const cellAddr = XLSX.utils.encode_cell({ r, c });
-      if (!ws[cellAddr]) continue;
-      ws[cellAddr].s = {
-        font: { sz: 12 },
-        alignment: { horizontal: "center", vertical: "center" },
-        border: {
-          top:    { style: "thin", color: { rgb: "142c6c" } },
-          left:   { style: "thin", color: { rgb: "142c6c" } },
-          right:  { style: "thin", color: { rgb: "142c6c" } },
-          bottom: { style: "thin", color: { rgb: "142c6c" } }
-        }
-      };
-      if (
-        wsData[r][0] &&
-        (
-          wsData[r][0].startsWith("TOTAUX") ||
-          wsData[r][0].match(/^\d - /)
-        )
-      ) {
-        ws[cellAddr].s.font.bold = true;
-        ws[cellAddr].s.fill = { fgColor: { rgb: "dbeafe" } };
-      }
-    }
+
+  // Styles Excel Avancé
+  // Titre principal
+  ws['A1'].s = {
+    font: { bold: true, sz: 20, color: { rgb: "1C45BD" } },
+    alignment: { horizontal: "center", vertical: "center" },
+  };
+  // Infos établissement
+  for (let i = 2; i <= 5; ++i) {
+    const cell = `A${i}`;
+    if (ws[cell]) ws[cell].s = {
+      font: { sz: 11, bold: (i==2), color: { rgb: "222831" } },
+      alignment: { horizontal: "left", vertical: "center" }
+    };
   }
+  // Infos supplémentaires
+  for (let i = 6; i <= 9; ++i) {
+    const cell = `A${i}`;
+    if (ws[cell]) ws[cell].s = {
+      font: { sz: 10, color: { rgb: "555555" } },
+      alignment: { horizontal: "left", vertical: "center" }
+    };
+  }
+  // En-tête du tableau
+  ['A11', 'B11', 'C11', 'D11'].forEach(cell => {
+    if (ws[cell]) ws[cell].s = {
+      font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "1C45BD" } },
+      alignment: { horizontal: "center", vertical: "center" },
+      border: {
+        top:    { style: "thick", color: { rgb: "1C45BD" } },
+        left:   { style: "thin", color: { rgb: "1C45BD" } },
+        right:  { style: "thin", color: { rgb: "1C45BD" } },
+        bottom: { style: "thin", color: { rgb: "1C45BD" } }
+      }
+    };
+  });
+
+  // Données du tableau
+  const firstDataRow = 12;
+  for (let i = 0; i < dataRows.length; ++i) {
+    const rowIdx = firstDataRow + i;
+    ['A','B','C','D'].forEach((col, j) => {
+      const cell = `${col}${rowIdx}`;
+      if (!ws[cell]) return;
+      if (i === dataRows.length - 1 || (dataRows[i][0] && /^\d - /.test(dataRows[i][0]))) {
+        ws[cell].s = {
+          font: { bold: true, sz: 12, color: { rgb: "1C45BD" } },
+          fill: { fgColor: { rgb: "dbeafe" } },
+          alignment: { horizontal: "center", vertical: "center" },
+          border: {
+            top:    { style: "thin", color: { rgb: "1C45BD" } },
+            left:   { style: "thin", color: { rgb: "1C45BD" } },
+            right:  { style: "thin", color: { rgb: "1C45BD" } },
+            bottom: { style: "thin", color: { rgb: "1C45BD" } }
+          }
+        };
+      } else {
+        ws[cell].s = {
+          font: { sz: 11 },
+          alignment: { horizontal: j<2?"left":"right", vertical: "center" },
+          border: {
+            top:    { style: "thin", color: { rgb: "b0b0b0" } },
+            left:   { style: "thin", color: { rgb: "b0b0b0" } },
+            right:  { style: "thin", color: { rgb: "b0b0b0" } },
+            bottom: { style: "thin", color: { rgb: "b0b0b0" } }
+          }
+        };
+      }
+    });
+  }
+
+  // Classeur & sauvegarde
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Balance_Generale");
-  XLSX.writeFile(wb, `balance_generale_${new Date().toISOString().split("T")[0]}.xlsx`);
+  XLSX.utils.book_append_sheet(wb, ws, "Balance Générale");
+  XLSX.writeFile(wb, `balance_generale_${now.toISOString().split("T")[0]}.xlsx`);
 };
 
-const exportToPDF = () => {
+const exportToPDF = async () => {
   if (!Object.keys(groupedComptes.value).length) {
     alert("Aucune donnée à exporter");
     return;
   }
-  const doc = new jsPDF();
-  // --- Ajout du logo ---
-  if (logoBase64.value) {
-    doc.addImage(logoBase64.value, "PNG", 14, 4, 24, 16);
-  }
-  doc.setFontSize(12);
-  doc.setTextColor(44, 62, 80);
-  doc.setFont("helvetica", "bold");
-  doc.text("RAITRA KIDZ", 44, 14);
 
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Date édition : ${new Date().toLocaleDateString("fr-FR")}`, 14, 20);
+  const now = new Date();
+  const exercice = exercices.value.find(ex => ex.id == selectedExercice.value);
 
-  doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
-  doc.setTextColor(51, 122, 183);
-  doc.text("BALANCE GÉNÉRALE", doc.internal.pageSize.getWidth() / 2, 32, {align:"center"});
+  // Branding header infos
+  const htmlContent = `
+    <div style="font-family: 'Helvetica', Arial, sans-serif; max-width: 950px; padding: 0 15px; margin: 0;">
+      <div style="display: flex; align-items: flex-start; margin-bottom: 22px; padding-bottom: 15px; border-bottom: 3px solid #2980b9;">
+        <div style="flex: 1;">
+          <img src="${logoBase64.value || ''}" alt="Logo" style="width: 100px; height: auto;" />
+          <div style="margin-top: 8px; font-size: 11px; color: #555;">
+            <div style="font-weight: bold; font-size: 13px; color: #2c3e50;">RAITRA KIDZ</div>
+            <div>Antananarivo, Madagascar</div>
+            <div>+261 XX XX XXX XX</div>
+            <div>contact@raitrakidz.mg</div>
+          </div>
+        </div>
+        <div style="flex: 3; text-align: center;">
+          <h1 style="font-size: 22px; font-weight: bold; color: #1c45bd; margin: 0;">Balance Générale</h1>
+          <div style="font-size: 12px; margin: 4px 0;">
+            Exercice : ${exercice ? exercice.nom : "Tous"}
+          </div>
+          <div style="font-size: 11px;">
+            Période : ${filters.value.date_debut || "N/A"} à ${filters.value.date_fin || "N/A"}
+          </div>
+          <div style="font-size: 10px;">
+            Classe de compte : ${getClasseLibelle(filters.value.classe_compte) || "Toutes"}
+          </div>
+        </div>
+        <div style="flex: 1; text-align: right; font-size: 10px; color: #555;">
+          <div style="margin: 3px 0;"><strong>Date édition:</strong> ${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+        </div>
+      </div>
+      <table style="width:725px; border-collapse: collapse; margin-top: 15px;">
+        <thead>
+          <tr style="background: linear-gradient(135deg, #1c45bd 0%, #1c45bd 100%); color: white;">
+            <th style="padding: 9px 3px; font-size: 11px; border: 1px solid #2980b9; text-align: left;">Compte</th>
+            <th style="padding: 9px 3px; font-size: 11px; border: 1px solid #2980b9; text-align: right;">Débit</th>
+            <th style="padding: 9px 3px; font-size: 11px; border: 1px solid #2980b9; text-align: right;">Crédit</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${Object.entries(groupedComptes.value).map(([mainCode, mainAccount]) => `
+            <tr style="font-weight: bold; background-color: #f4f8fd;">
+              <td style="padding:8px; font-size:11px; border:1px solid #eee;">${mainCode} - ${mainAccount.libelle}</td>
+              <td style="padding:8px; font-size:11px; border:1px solid #eee;text-align:right;">${formatNumber(mainAccount.total_debit)}</td>
+              <td style="padding:8px; font-size:11px; border:1px solid #eee;text-align:right;">${formatNumber(mainAccount.total_credit)}</td>
+            </tr>
+            ${mainAccount.subAccounts.map(sub =>
+              `<tr>
+                <td style="padding:7px 8px 7px 32px; font-size:10px; border:1px solid #f5f7fa;">${sub.code_sous_compte} - ${sub.libelle_sous_compte}</td>
+                <td style="padding:7px; font-size:10px; border:1px solid #f5f7fa; text-align:right;">${sub.solde_final >= 0 ? formatNumber(sub.solde_final) : ''}</td>
+                <td style="padding:7px; font-size:10px; border:1px solid #f5f7fa; text-align:right;">${sub.solde_final < 0 ? formatNumber(Math.abs(sub.solde_final)) : ''}</td>
+              </tr>`
+            ).join('')}
+          `).join('')}
+        </tbody>
+        <tfoot>
+          <tr style="background: linear-gradient(135deg, #2980b9 0%, #3498db 100%); color: white; font-weight: bold;">
+            <td style="padding:10px; font-size: 12px; text-align:right; border:1px solid #2980b9;">TOTAUX :</td>
+            <td style="padding:10px; font-size: 12px; text-align:right; border:1px solid #2980b9;">${formatNumber(totalDebit.value)}</td>
+            <td style="padding:10px; font-size: 12px; text-align:right; border:1px solid #2980b9;">${formatNumber(totalCredit.value)}</td>
+          </tr>
+        </tfoot>
+      </table>
+      <div style="margin-top:18px; text-align:center; font-size:10px; color:#888;">
+        RAITRA KIDZ © ${now.getFullYear()} | Export PDF
+      </div>
+    </div>
+  `;
 
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(44, 62, 80);
-  doc.text(`Période : ${filters.value.date_debut || "N/A"} à ${filters.value.date_fin || "N/A"}`, 14, 40);
-  doc.text(`Exercice : ${filters.value.exercice_comptable || "Tous"}`, 120, 40);
-  doc.text(`Classe de compte : ${filters.value.classe_compte || "Toutes"}`, 14, 46);
-
-  const tableData = [];
-  Object.entries(groupedComptes.value).forEach(([mainCode, mainAccount]) => {
-    tableData.push([
-      `${mainCode} - ${mainAccount.libelle}`,
-      formatNumber(mainAccount.total_debit),
-      formatNumber(mainAccount.total_credit),
-    ]);
-    mainAccount.subAccounts.forEach(subAccount => {
-      tableData.push([
-        `${subAccount.code_sous_compte} - ${subAccount.libelle_sous_compte}`,
-        subAccount.solde_final >= 0 ? formatNumber(subAccount.solde_final) : "",
-        subAccount.solde_final < 0 ? formatNumber(Math.abs(subAccount.solde_final)) : ""
-      ]);
-    });
-  });
-  tableData.push([
-    'TOTAUX',
-    formatNumber(totalDebit.value),
-    formatNumber(totalCredit.value),
-  ]);
-
-  autoTable(doc, {
-    startY: 52,
-    head: [['Compte', 'Débit', 'Crédit']],
-    body: tableData,
-    theme: 'grid',
-    styles: {
-      fontSize: 10,
-      font: "helvetica",
-      textColor: [44, 62, 80],
-      halign: 'right',
-      cellPadding: 4,
-      lineColor: [180, 180, 180],
-      lineWidth: 0.1,
-    },
-    headStyles: {
-      fillColor: [51, 122, 183],
-      textColor: [255, 255, 255],
-      fontStyle: 'bold',
-      halign: 'center',
-      fontSize: 11,
-    },
-    alternateRowStyles: {
-      fillColor: [245, 245, 245],
-    },
-    columnStyles: {
-      0: { halign: 'left', fontStyle: 'bold' },
-      1: { halign: 'right' },
-      2: { halign: 'right' }
-    },
-    margin: { top: 52 }
-  });
-
-  doc.setFontSize(8);
-  doc.setTextColor(180, 180, 180);
-  doc.text(
-    "Document édité automatiquement - Sage 100 style",
-    14,
-    doc.internal.pageSize.getHeight() - 10
-  );
-  doc.save(`Balance_Generale_${new Date().toISOString().split("T")[0]}.pdf`);
+  const element = document.createElement('div');
+  element.innerHTML = htmlContent;
+  element.style.width = '210mm';
+  document.body.appendChild(element);
+  await html2pdf()
+    .set({
+      margin: [10, 5, 15, 5],
+      filename: `Balance_Generale_${now.toISOString().split("T")[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    })
+    .from(element)
+    .save();
+  document.body.removeChild(element);
 };
 
 onMounted(async () => {

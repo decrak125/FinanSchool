@@ -139,9 +139,8 @@ import Header from "../../molecules/Header.vue";
 import Sidebar from "../../molecules/Sidebar.vue";
 import AppFooter from "../../molecules/Footer.vue";
 import ChatBot from "../../molecules/ChatBot.vue";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
+import html2pdf from 'html2pdf.js';
+import * as XLSX from 'xlsx-js-style';
 import { getUser } from "../../../services/Auth";
 
 const router = useRouter();
@@ -265,97 +264,246 @@ const formatDate = d => {
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 };
 
-const exportToPDF = () => {
-  if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
-  const doc = new jsPDF('l', 'mm', 'a4');
-  if (logoBase64.value) {
-    doc.addImage(logoBase64.value, 'PNG', 14, 4, 24, 16);
-  }
-  doc.setFontSize(14);
-  doc.text("Tableau des Variations des Capitaux Propres", 44, 14);
-  doc.setFontSize(10);
-  doc.text(`Exercice : ${exerciceInfo.value.annee_fiscale}`, 14, 20);
-  doc.text(`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`, 14, 26);
 
-  autoTable(doc, {
-    head: [["CAPITAUX PROPRES", "Capital", "Primes & Réserves", "Écarts évaluation", "Écart équivalence", "Résultat", "Report à nouveau", "Total"]],
-    body: listeComplete.value.map(l => [
-      l.label,
-      formatMontant(l.capital),
-      formatMontant(l.prime),
-      formatMontant(l.eval),
-      formatMontant(l.equiv),
-      formatMontant(l.result),
-      formatMontant(l.autcpro),
-      formatMontant(l.total)
-    ]),
-    theme: "grid",
-    startY: 32,
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [51, 122, 183], textColor: [255, 255, 255], fontStyle: 'bold' }
-  });
-  doc.save("variations_capitaux_propres.pdf");
+
+const exportToPDF = () => {
+  if (!listeComplete.value.length) {
+    alert("Aucune donnée à exporter !");
+    return;
+  }
+  const now = new Date();
+
+  // Header (branding)
+  const header = `
+    <div style="display: flex; align-items: flex-start; border-bottom: 3px solid #2980b9; padding-bottom: 11px; margin-bottom: 8px;">
+      <div style="flex: 0 0 70px;">
+        <img src="${logoBase64.value || ''}" style="width:58px; height:auto;" />
+      </div>
+      <div style="flex:1; padding-left:10px;">
+        <div style="font-size:10px; color:#555;">
+          <div style="font-weight:bold; font-size:12px; color:#2c3e50;">RAITRA KIDZ</div>
+          <div>Antananarivo, Madagascar</div>
+          <div>+261 XX XX XXX XX</div>
+        </div>
+      </div>
+      <div style="flex:2;text-align:center;">
+        <h1 style="font-size:18px; font-weight:700; color:#1c45bd;margin:0 0 5px 0;">Tableau des Variations des Capitaux Propres</h1>
+        <div style="font-size:10px; margin:2px 0;">Exercice : ${exerciceInfo.value.annee_fiscale || ''}</div>
+        <div style="font-size:9px;">Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}</div>
+        <div style="font-size:9px;">Statut : ${exerciceInfo.value.statut || '-'}</div>
+        <div style="font-size:9px;">Unité monétaire : Ariary (Ar)</div>
+      </div>
+      <div style="flex:0 0 90px;text-align:right;font-size:8px;color:#555;">
+        <div><strong>Date édition:</strong></div>
+        <div>${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' })}</div>
+      </div>
+    </div>`;
+
+  // Table rows
+  const tableRows = listeComplete.value.map(l =>
+    `<tr
+      style="${l.isTotal ? 'background:#e0e7ff;font-weight:700;font-size:10px;color:#1e40af;' : 'font-size:9px;background:#f0f9ff;'}">
+      <td style="padding:6px 4px;${l.isTotal?'font-weight:700;':''}border:1px solid #ddd;">
+        ${l.label ?? ""}
+      </td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.capital)}</td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.prime)}</td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.eval)}</td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.equiv)}</td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.result)}</td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.autcpro)}</td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;${l.isTotal?'font-weight:700;':''}">${formatMontant(l.total)}</td>
+    </tr>`
+  ).join('');
+
+  const htmlContent = `
+    <div style="font-family:'Manrope',sans-serif;max-width:1100px;margin:auto;">
+      ${header}
+      <table style="width:1040px;max-width:100%;border-collapse:collapse;margin:10px auto 0 auto;">
+        <thead>
+          <tr style="background:linear-gradient(135deg,#2980b9 0%,#1e40af 100%);color:#fff;">
+            <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;">CAPITAUX PROPRES</th>
+            <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Capital</th>
+            <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Primes & Réserves</th>
+            <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Écarts évaluation</th>
+            <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Écart équivalence</th>
+            <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Résultat</th>
+            <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Report à nouveau</th>
+            <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+      <div style="margin-top:13px;text-align:center;font-size:8.5px;color:#888;">
+        RAITRA KIDZ © ${now.getFullYear()} | Tableau des Variations - Export PDF
+      </div>
+    </div>
+  `;
+
+  const element = document.createElement('div');
+  element.innerHTML = htmlContent;
+  element.style.width = '1040px';
+  element.style.margin = '0 auto';
+  document.body.appendChild(element);
+
+  html2pdf()
+    .set({
+      margin: [8, 5, 14, 5],
+      filename: `variations_capitaux_propres_${now.toISOString().split("T")[0]}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    })
+    .from(element)
+    .save()
+    .then(() => document.body.removeChild(element))
+    .catch(err => {
+      document.body.removeChild(element);
+      alert("Erreur lors de la génération du PDF.");
+      console.error(err);
+    });
 };
+
+
+
 
 const exportToExcel = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
-  const wsData = [
-    ["TABLEAU DES VARIATIONS DES CAPITAUX PROPRES"],
-    [""],
-    [`Exercice : ${exerciceInfo.value.annee_fiscale}`],
+  const now = new Date();
+  const etablissement = {
+    nom: "RAITRA KIDZ",
+    adresse: "Antananarivo, Madagascar",
+    tel: "+261 XX XX XXX XX",
+    email: "contact@raitrakidz.mg"
+  };
+
+  const titre = [[`TABLEAU DES VARIATIONS DES CAPITAUX PROPRES – RAITRA KIDZ`]];
+  const info = [
+    [etablissement.nom],
+    [etablissement.adresse],
+    [etablissement.tel],
+    [etablissement.email],
+    [''],
+    [`Exercice : ${exerciceInfo.value.annee_fiscale || ''}`],
     [`Période : Du ${formatDate(exerciceInfo.value.date_debut)} au ${formatDate(exerciceInfo.value.date_fin)}`],
-    [""],
-    ["CAPITAUX PROPRES", "Capital", "Primes & Réserves", "Écarts évaluation", "Écart équivalence", "Résultat", "Report à nouveau", "Total"],
-    ...listeComplete.value.map(l => [
-      l.label,
-      formatMontant(l.capital),
-      formatMontant(l.prime),
-      formatMontant(l.eval),
-      formatMontant(l.equiv),
-      formatMontant(l.result),
-      formatMontant(l.autcpro),
-      formatMontant(l.total)
-    ])
+    [`Statut : ${exerciceInfo.value.statut || "-"}`],
+    [`Unité monétaire : Ariary (Ar)`],
+    [`Date édition : ${now.toLocaleDateString('fr-FR')} à ${now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}`],
+    ['']
   ];
-  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  const headers = [
+    ["CAPITAUX PROPRES", "Capital", "Primes & Réserves", "Écarts évaluation", "Écart équivalence", "Résultat", "Report à nouveau", "Total"]
+  ];
+
+  const dataRows = listeComplete.value.map(l => [
+    l.label,
+    l.capital !== null && l.capital !== undefined ? formatMontant(l.capital) : '',
+    l.prime !== null && l.prime !== undefined ? formatMontant(l.prime) : '',
+    l.eval !== null && l.eval !== undefined ? formatMontant(l.eval) : '',
+    l.equiv !== null && l.equiv !== undefined ? formatMontant(l.equiv) : '',
+    l.result !== null && l.result !== undefined ? formatMontant(l.result) : '',
+    l.autcpro !== null && l.autcpro !== undefined ? formatMontant(l.autcpro) : '',
+    l.total !== null && l.total !== undefined ? formatMontant(l.total) : ''
+  ]);
+
+  // Sheet création
+  const ws = XLSX.utils.aoa_to_sheet([]);
+  XLSX.utils.sheet_add_aoa(ws, titre, { origin: 'A1' });
+  info.forEach((val, i) => XLSX.utils.sheet_add_aoa(ws, [val], { origin: `A${i+2}` }));
+  XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A14' });
+  XLSX.utils.sheet_add_aoa(ws, dataRows, { origin: 'A15' });
+
   ws['!cols'] = [
     { wch: 30 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 22 }
   ];
-  ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 7 } }];
-  ["A6","B6","C6","D6","E6","F6","G6","H6"].forEach(cell => {
-    ws[cell].s = {
-      font: { bold: true, sz: 13 },
+
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
+    ...[1,2,3,4,5,6,7,8,9,10,11,12,13].map(i => ({ s: { r: i, c: 0 }, e: { r: i, c: 7 } }))
+  ];
+
+  // Titre principal
+  ws['A1'].s = {
+    font: { bold: true, sz: 18, color: { rgb: "1C45BD" } },
+    alignment: { horizontal: "center", vertical: "center" }
+  };
+  for (let i = 2; i <= 5; ++i) {
+    const cell = `A${i}`;
+    if (ws[cell]) ws[cell].s = {
+      font: { sz: 11, bold: (i==2), color: { rgb: "222831" } },
+      alignment: { horizontal: "left", vertical: "center" }
+    };
+  }
+  for (let i = 6; i <= 13; ++i) {
+    const cell = `A${i}`;
+    if (ws[cell]) ws[cell].s = {
+      font: { sz: 10, color: { rgb: "555555" } },
+      alignment: { horizontal: "left", vertical: "center" }
+    };
+  }
+
+  // En-tête du tableau
+  ['A14','B14','C14','D14','E14','F14','G14','H14'].forEach(cell => {
+    if (ws[cell]) ws[cell].s = {
+      font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "1C45BD" } },
       alignment: { horizontal: "center", vertical: "center" },
-      fill: { fgColor: { rgb: "e3edfc" } },
       border: {
-        top:    { style: "medium", color: { rgb: "1976d2" } },
-        left:   { style: "medium", color: { rgb: "1976d2" } },
-        right:  { style: "medium", color: { rgb: "1976d2" } },
-        bottom: { style: "medium", color: { rgb: "1976d2" } }
+        top:    { style: "thick", color: { rgb: "1C45BD" } },
+        left:   { style: "thin", color: { rgb: "1C45BD" } },
+        right:  { style: "thin", color: { rgb: "1C45BD" } },
+        bottom: { style: "thick", color: { rgb: "1C45BD" } }
       }
-    }
+    };
   });
-  for (let r = 6; r < wsData.length; ++r) {
-    for (let c = 0; c < 8; ++c) {
-      const cellAddr = XLSX.utils.encode_cell({ r, c });
-      if (ws[cellAddr]) {
-        ws[cellAddr].s = {
-          font: { sz: 12 },
+
+  // Données tableau
+  const firstDataRow = 15;
+  for (let i = 0; i < dataRows.length; ++i) {
+    const rowIdx = firstDataRow + i;
+    const ligne = listeComplete.value[i];
+    ['A','B','C','D','E','F','G','H'].forEach((col, j) => {
+      const cell = `${col}${rowIdx}`;
+      if (!ws[cell]) return;
+      if (ligne.isTotal) {
+        ws[cell].s = {
+          font: { bold: true, sz: 12, color: { rgb: "1e40af" } },
+          fill: { fgColor: { rgb: "e0e7ff" } },
           alignment: { horizontal: "center", vertical: "center" },
           border: {
-            top:    { style: "thin", color: { rgb: "142c6c" } },
-            left:   { style: "thin", color: { rgb: "142c6c" } },
-            right:  { style: "thin", color: { rgb: "142c6c" } },
-            bottom: { style: "thin", color: { rgb: "142c6c" } }
+            top:    { style: "medium", color: { rgb: "3b82f6" } },
+            left:   { style: "thin", color: { rgb: "3b82f6" } },
+            right:  { style: "thin", color: { rgb: "3b82f6" } },
+            bottom: { style: "medium", color: { rgb: "3b82f6" } }
           }
+        };
+      } else {
+        ws[cell].s = {
+          font: { sz: 10 },
+          alignment: { horizontal: "left", vertical: "center" },
+          border: {
+            top:    { style: "thin", color: { rgb: "e5e7eb" } },
+            left:   { style: "thin", color: { rgb: "e5e7eb" } },
+            right:  { style: "thin", color: { rgb: "e5e7eb" } },
+            bottom: { style: "thin", color: { rgb: "e5e7eb" } }
+          }
+        };
+        // Format nombre pour colonnes numériques
+        if (j >= 1 && ws[cell].v !== '') {
+          ws[cell].z = "#,##0.00";
         }
       }
-    }
+    });
   }
+
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Variations_Capitaux");
-  XLSX.writeFile(wb, `variations_capitaux_propres_${new Date().toISOString().split("T")[0]}.xlsx`);
+  XLSX.writeFile(wb, `variations_capitaux_propres_${now.toISOString().split("T")[0]}.xlsx`);
 };
+
 </script>
 
 
