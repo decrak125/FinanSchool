@@ -200,7 +200,7 @@ onMounted(() => {
   // width: 260px; // largeur fixe
   height: 100vh;
   // background-color: $light;
-  z-index: 1000;
+  // z-index: 1000;
   // background-color: $light; // à adapter selon ta couleur
   // border-right: 1px solid rgba(0, 0, 0, 0.1);
   
@@ -217,15 +217,16 @@ onMounted(() => {
   position: fixed;
   width: 100%;
   height: 100vh;
-  background: linear-gradient(
-    -45deg,
-    #f2c6b8, 
-    #ffffff, 
-    #ffe0e0, 
-    #ffffff);
+  // background: linear-gradient(
+  //   -45deg,
+  //   #f2c6b8, 
+  //   #ffffff, 
+  //   #ffe0e0, 
+  //   #ffffff);
+  background: url('@/assets/img/télécharger1.jpg') center no-repeat;
   background-color: $light;
-  background-size: 400% 400%;
-  animation: gradient 15s ease infinite;
+  background-size:cover;
+  // animation: gradient 15s ease infinite;
   
 }
 

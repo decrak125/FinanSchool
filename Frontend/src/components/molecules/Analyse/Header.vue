@@ -29,6 +29,18 @@ defineProps({
     justify-content: space-between;
     align-items: center;
     align-self: stretch;
+    mask-image: 
+        linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 10%),     /* bas */
+        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 1%);    /* droite */
+
+    -webkit-mask-image: 
+        linear-gradient(to top, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 10%),
+        linear-gradient(to right, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 1%);
+
+    /* Combine les deux masques en mode "intersection" */
+    mask-composite: intersect;
+    -webkit-mask-composite: destination-in;
+    
     
     @media (max-width: 768px) {
         flex-direction: column;
