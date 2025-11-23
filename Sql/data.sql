@@ -157,6 +157,10 @@ VALUES
   (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='CP'),
   (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
 
+('FINPLACEMENT', 'Autres capitaux propres - Report à nouveau', true, (SELECT id_duree FROM durees WHERE code='LT'),
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='CP'),
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
 ------------------
 -- Passifs non courants
 ('SUBVINV', 'Subventions d’investissement', true, (SELECT id_duree FROM durees WHERE code='LT'),
