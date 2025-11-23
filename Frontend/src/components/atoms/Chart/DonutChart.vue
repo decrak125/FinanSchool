@@ -374,7 +374,7 @@ watch(() => props.data, (newData) => {
 .donut-chart-wrapper:hover {
     transform: scale(1.02);
     transition: transform 0.3s ease, filter 0.3s ease-in-out;
-    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
+    // box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
     
     @media (max-width: 768px) {
         transform: none; // Désactiver le scale sur mobile pour éviter les problèmes de layout
@@ -382,6 +382,7 @@ watch(() => props.data, (newData) => {
 }
 
 .donut-chart-wrapper {
+    transform: translateZ(0);
     @include glass();
     width: 100%;
     height: 100%;

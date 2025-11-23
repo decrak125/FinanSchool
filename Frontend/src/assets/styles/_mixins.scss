@@ -182,7 +182,7 @@
     }
 }
 @mixin glass(){
-    background: rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.30);
     backdrop-filter: blur(50px);
     -webkit-backdrop-filter: blur(50px);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -195,14 +195,14 @@
     transform: translateY(-1px);
     animation: slideInDown 0.5s ease-out forwards;
     thead tr:first-child{
-        background: rgba(255, 255, 255, 0.70);
+        background: $headColor;
         backdrop-filter: blur(50px);
         position: sticky;
         top: 0;
         z-index: 99;
     }
     th{
-        background: fixed #fffcfc;
+        background: fixed $headColor;
         color: $primary;
         font-family: $stara-black;
         font-size: 16px;
