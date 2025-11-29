@@ -154,6 +154,19 @@ if (str_contains($messagetext, 'journal') || str_contains($messagetext, 'journau
     return "Veuillez préciser votre demande concernant les journaux. Vous pouvez demander la liste des journaux ou le détail d'un journal spécifique en mentionnant son code.";
             // Ajouter d'autres cas (par libellé, par type, ...)
     }
+    if (str_contains($messagetext, 'grand livre')) {
+            if (str_contains($messagetext, 'aide') || str_contains($messagetext, 'exemple')) {
+                return ChatGrandLivresController::aidePrompts();
+            }
+            if (str_contains($messagetext, 'solde')) {
+                return ChatGrandLivresController::getSoldeGrandLivre($message);
+            }
+            if (str_contains($messagetext, 'libellé') || str_contains($messagetext, 'motif') || str_contains($messagetext, 'cherche') || str_contains($messagetext, 'tiers')) {
+                return ChatGrandLivresController::searchByLibelle($message);
+            }
+            // Par défaut : affichage écritures du compte, période ou non
+            return ChatGrandLivresController::getEcrituresParCompte($message);
+        }
 
         
     return "Bonjour {$userName}, Je suis votre assistant financier pour établissements scolaires. Actuellement en cours de configuration, je pourrai bientôt vous aider avec :\n\n• 📊 Analyse des budgets\n• 📈 Suivi des dépenses  \n• 🎓 Indicateurs par élève\n• ⚖️ Équilibre financier\n\nPosez-moi une question simple pour tester !";

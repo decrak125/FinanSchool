@@ -64,4 +64,36 @@ class ChatUtilesController extends Controller
         return str_replace($search, $replace, $text);
     }
 
+    public static function extractCodeCompte($message)
+{
+    if (preg_match('/\b(\d{3,6})\b/', $message, $matches)) {
+        return $matches[1];
+    }
+    return null;
+}
+
+public static function extractDateRange($message)
+{
+    if (preg_match('/du\s+(\d{2}\/\d{2}\/\d{4})\s+au\s+(\d{2}\/\d{2}\/\d{4})/i', $message, $matches)) {
+        return ['start' => $matches[1], 'end' => $matches[2]];
+    }
+    return null;
+}
+
+public static function extractMonthFromMessage($message)
+{
+    $months = [
+        'janvier' => 1, 'février' => 2, 'mars' => 3, 'avril' => 4,
+        'mai' => 5, 'juin' => 6, 'juillet' => 7, 'août' => 8,
+        'septembre' => 9, 'octobre' => 10, 'novembre' => 11, 'décembre' => 12
+    ];
+    foreach ($months as $name => $num) {
+        if (str_contains(self::normalizeText($message), self::normalizeText($name))) {
+            return $num;
+        }
+    }
+    return null;
+}
+
+
 }

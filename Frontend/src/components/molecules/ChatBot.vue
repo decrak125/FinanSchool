@@ -329,7 +329,7 @@ speakMessage(text) {
   }
 }
 .chatbot-container {
-  font-family: $stara-medium;
+  font-family: 'Manrope', sans-serif;
   font-size: 14px;
   position: fixed;
   bottom: 136px;

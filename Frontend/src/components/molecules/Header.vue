@@ -223,7 +223,7 @@ export default {
   border-radius: 8px;
   font-size: 0.875rem;
   outline: none;
-  font-family: 'Stara', sans-serif;
+  font-family: 'Manrope', sans-serif;
 }
 .search-input:focus {
   border-color: #1e40af;
@@ -274,6 +274,7 @@ export default {
 }
 .notifications-dropdown {
   position: absolute;
+  font-family: 'Manrope', sans-serif;
   top: 50px;
   right: 0;
   width: 350px;
@@ -372,7 +373,7 @@ export default {
   border-radius: 8px;
   cursor: pointer;
   height: 40px;
-  font-family: 'Stara', sans-serif;
+  font-family: 'Manrope', sans-serif;
 }
 .profile-trigger:hover {
   background: #f8fafc;
@@ -387,7 +388,7 @@ export default {
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-family: 'Stara', sans-serif;
+  font-family: 'Manrope', sans-serif;
 }
 .profile-info {
   display: flex;
@@ -412,7 +413,7 @@ export default {
   border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   z-index: 1000;
-  font-family: 'Stara', sans-serif;
+  font-family: 'Manrope', sans-serif;
 }
 .profile-dropdown-header {
   padding: 20px;
