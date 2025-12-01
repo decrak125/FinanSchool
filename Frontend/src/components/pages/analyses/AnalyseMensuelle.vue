@@ -2,8 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useComparaison } from '@/composables/useComparaison';
 import AreaChart from '@/components/atoms/Chart/AreaChart.vue';
-
-
+import Texte from '@/components/atoms/Texte.vue';
 
 // Réactifs
 const chartData = ref([]);
@@ -96,6 +95,52 @@ const formatMontant = (value) => {
     maximumFractionDigits: 0
   }).format(value);
 };
+
+
+// Computed properties
+const uniqueMonths = computed(() => {
+  const months = [...new Set(chartData.value.map(item => item.mois))];
+  return months.sort((a, b) => a - b); // Trier les mois dans l'ordre numérique
+});
+
+const uniqueCentres = computed(() => {
+  const centres = [...new Set(chartData.value.map(item => item.centre))];
+  return centres.sort(); // Trier par ordre alphabétique
+});
+
+// Méthodes
+const getMontantForCentreAndMonth = (centre, month) => {
+  const item = chartData.value.find(d => 
+    d.centre === centre && d.mois === month
+  );
+  return item ? formatMontant(item.montant_brut || item.montant_ventile) : '-';
+};
+
+const getTotalForCentre = (centre) => {
+  const items = chartData.value.filter(d => d.centre === centre);
+  const total = items.reduce((sum, item) => 
+    sum + (parseFloat(item.montant_brut) || parseFloat(item.montant_ventile) || 0), 0
+  );
+  return formatMontant(total);
+};
+
+const getTotalForMonth = (month) => {
+  const items = chartData.value.filter(d => d.mois === month);
+  const total = items.reduce((sum, item) => 
+    sum + (parseFloat(item.montant_brut) || parseFloat(item.montant_ventile) || 0), 0
+  );
+  return formatMontant(total);
+};
+
+const getGrandTotal = () => {
+  const total = chartData.value.reduce((sum, item) => 
+    sum + (parseFloat(item.montant_brut) || parseFloat(item.montant_ventile) || 0), 0
+  );
+  return formatMontant(total);
+};
+
+
+
 // Cycle de vie
 onMounted(() => {
   fetchData();
@@ -116,7 +161,7 @@ onMounted(() => {
             </select>
           </div>
   
-          <div class="filter-group">
+          <!-- <div class="filter-group">
             <label for="centre">Centre:</label>
             <select id="centre" v-model="filters.id_centre" @change="fetchData">
               <option value="">Tous les centres</option>
@@ -124,7 +169,7 @@ onMounted(() => {
                 {{ centre.nom }}
               </option>
             </select>
-          </div>
+          </div> -->
   
           <div class="filter-group">
             <label for="type">Type:</label>
@@ -142,7 +187,7 @@ onMounted(() => {
       </div>
   
       <!-- Statistiques résumées -->
-      <div class="stats-container" v-if="chartData.length > 0">
+        <!-- <div class="stats-container" v-if="chartData.length > 0">
         <div class="stat-card">
           <div class="stat-value">{{ totalMontantFormatted }}</div>
           <div class="stat-label">Total Montant Brut</div>
@@ -152,12 +197,14 @@ onMounted(() => {
           <div class="stat-label">Enregistrements</div>
         </div>
         <div class="stat-card">
+          <div class="stat-value">{{ filters.year }}</div>
+          <div class="stat-label">Année d'exercice</div>
+        </div>
+        <div class="stat-card">
           <div class="stat-value">{{ centresUniques.length }}</div>
           <div class="stat-label">Centres</div>
         </div>
-      </div>
-      
-  
+      </div> -->
       <div class="chart-container">
         <AreaChart 
           :chartData="chartData"
@@ -167,44 +214,119 @@ onMounted(() => {
       </div>
   
       <!-- Tableau de données -->
-      <div class="data-table" v-if="chartData.length > 0">
-        <h3>Données détaillées</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Mois</th>
-              <th>Centre</th>
-              <th>Montant Ventilé</th>
-              <th>Montant Brut</th>
-              <th>Nombre Sous-comptes</th>
-              <th>Année</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in chartData" :key="`${item.mois}-${item.id_centre}`">
-              <td>{{ getMonthName(item.mois) }}</td>
-              <td>{{ item.centre }}</td>
-              <td>{{ formatMontant(item.montant_ventile) }}</td>
-              <td>{{ formatMontant(item.montant_brut) }}</td>
-              <td>{{ item.nombre_sous_comptes }}</td>
-              <td>{{ item.annee }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+<div class="table-div"  v-if="chartData.length > 0">
+  <Texte :type="'bold-dark'" :texte="'Données détaillées'" />
+  <table class="table" id="axesTable">
+    <thead>
+      <tr>
+        <th>Centre</th>
+        <th v-for="month in uniqueMonths" :key="month">{{ getMonthName(month) }}</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="centre in uniqueCentres" :key="centre">
+        <td class="centre-name">{{ centre }}</td>
+        <td v-for="month in uniqueMonths" :key="month">
+          {{ getMontantForCentreAndMonth(centre, month) }}
+        </td>
+        <td class="total-cell">
+          {{ getTotalForCentre(centre) }}
+        </td>
+      </tr>
+      <tr class="total-row">
+        <td class="total-cell">Total</td>
+        <td v-for="month in uniqueMonths" :key="`total-${month}`" class="total-cell">
+          {{ getTotalForMonth(month) }}
+        </td>
+        <td class="grand-total">
+          {{ getGrandTotal() }}
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
     </div>
   </template>
   
   
-  <style scoped>
+  <style lang="scss" scoped>
+    .table-div {
+    width: 100%;
+    height: 100%;
+    // overflow-x: auto;
+    @include glass();
+    border-radius: $radius-pm;
+    padding: 18px;
+    gap: 8px;
+  }
+  .graphics{
+    @include position-contenus(flex, center, center);
+  }
   .analyse-mensuelle {
-    padding: 20px;
-    max-width: 1400px;
+    // @include glass();
+    width: 100%;
+    border-radius: $radius-pm;
     margin: 0 auto;
   }
-  
+  #axesTable {
+opacity: 0;
+    transform: translateY(-1px);
+    animation: slideInDown 0.5s ease-out forwards;
+    thead tr:first-child{
+        background: transparent;
+        backdrop-filter: blur(50px);
+        position: sticky;
+        top: 0;
+        z-index: 99;
+    }
+    th{
+        background: fixed transparent;
+        color: $primary;
+        font-family: $stara-black;
+        font-size: 12px;
+        text-align:start;
+        // z-index: 99;
+        padding: 24px 0px;
+        @media (max-width: $mobile) {
+            font-size: 14px;
+            padding: 12px 8px;
+        }
+    }
+    tr:hover{
+        background-color: transparent;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+    }
+    tr{
+        transition: all 0.3s ease-in-out;
+    }
+    
+    tr td:last-child,
+    tr th:last-child {
+        text-align:center;
+    }
+    
+    td{
+        padding: 24px 0px;
+        animation: appear 0.6s ease-out forwards;
+        font-size: 12px;
+        @media (max-width: $mobile) {
+            font-size: 13px;
+            padding: 10px 8px;
+        }
+    }
+    
+    background: fixed;
+    font-family: $stara-medium;
+    border-radius: $radius-pm;
+    color: $dark;
+    
+    @media (max-width: $mobile) {
+        border-radius: $radius-sm;
+        font-size: 14px;
+    }}
   .filters-container {
-    background: #f5f5f5;
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 30px;
@@ -278,18 +400,11 @@ onMounted(() => {
   }
   
   .chart-container {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%;
     margin-bottom: 30px;
   }
   
   .data-table {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     overflow-x: auto;
   }
   

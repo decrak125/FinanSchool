@@ -92,7 +92,8 @@ defineProps({
 
 .button-cancel {
   cursor: pointer;
-  @include input($primary, $primary, $radius-pm, $stara-medium);
+  @include input($primary, $rouge, $radius-pm, $stara-medium);
+  @include glass();
   width: 250px;
   transition: all 0.5s ease-in-out;
   
@@ -114,8 +115,10 @@ defineProps({
 }
 
 .button-cancel:hover {
-  @include input($rouge, $rouge, $radius-pm, $stara-medium);
-  
+  @include input($primary, $rouge, $radius-pm, $stara-medium);
+    @include glass();
+  width: 250px;
+  transition: all 0.5s ease-in-out;
   @media (max-width: 1024px) {
     width: 220px;
   }

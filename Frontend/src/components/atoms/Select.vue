@@ -10,7 +10,7 @@ import Texte from './Texte.vue';
 
 <template>
   <div class="select-container">
-    <div class="label">
+    <div class="label" v-if="label">
       <Texte :type="'dark'" :texte="label"/>
     </div>
       <select :value="modelValue" @change="$emit('update:modelValue', $event.target.value)" class="select">
@@ -22,6 +22,7 @@ import Texte from './Texte.vue';
   <style lang="scss" scoped>
 .select{
     @include input($dark, $dark, $radius-pm, $stara-medium);
+    @include glass();
     width: 250px;
     // appearance: none;
     padding-right: 15px;

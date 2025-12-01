@@ -4,6 +4,8 @@ import Header from '@/components/molecules/Analyse/Header.vue';
 import Footer from '../molecules/Analyse/Footer.vue';
 import { useNotificationStore } from '@/stores/notificationStore'; // ← IMPORTANT
 import ChatBot from '@/components/template/ChatBot.vue';
+import Card from '../atoms/Chart/Card.vue';
+
 defineProps({
   menu: String,
   sousmenu : String,

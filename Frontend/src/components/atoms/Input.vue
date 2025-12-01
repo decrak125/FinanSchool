@@ -62,9 +62,10 @@ const handleInput = (event) => {
 
 input{
     @include input($dark, $dark, $radius-pm, $stara-medium);
+    @include glass();
     width: 250px;
-    .input::placeholder{
-        color: $dark;
+    &::placeholder{
+        color: $gris;
     }
 }
 

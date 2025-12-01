@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, onUnmounted } from "vue";
 import { useComparaison } from "@/composables/useComparaison";
 import PageAnalyse from '@/components/template/Page-analyse.vue';
 import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
@@ -8,7 +8,7 @@ import AnalyseTrimestrielle from "./AnalyseTrimestrielle.vue";
 import ComparaisonAnnuelle from "./ComparaisonAnnuelle.vue";
 import Evolution12mois from "./Evolution12Mois.vue";
 import ComparaisonCoutProfit from "./ComparaisonCoutProfit.vue";
-
+import Texte from "@/components/atoms/Texte.vue";
 // État des composants sélectionnés
 const selectedComponents = ref({
   mensuelle: true,
@@ -18,13 +18,16 @@ const selectedComponents = ref({
   coutProfit: true
 });
 
+// État du menu déroulant
+const isDropdownOpen = ref(false);
+
 // Options disponibles
 const componentOptions = [
-  { id: 'mensuelle', label: 'Analyse Mensuelle', icon: '📅' },
-  { id: 'trimestrielle', label: 'Analyse Trimestrielle', icon: '📊' },
-  { id: 'annuelle', label: 'Comparaison Annuelle', icon: '📈' },
-  { id: 'evolution12mois', label: 'Évolution 12 Mois', icon: '🔄' },
-  { id: 'coutProfit', label: 'Coûts vs Profits', icon: '💰' }
+  { id: 'mensuelle', label: 'Analyse Mensuelle', icon: '' },
+  { id: 'trimestrielle', label: 'Analyse Trimestrielle', icon: '' },
+  { id: 'annuelle', label: 'Comparaison Annuelle', icon: '' },
+  { id: 'evolution12mois', label: 'Évolution 12 Mois', icon: '' },
+  { id: 'coutProfit', label: 'Coûts vs Profits', icon: '' }
 ];
 
 // Basculer la sélection d'un composant
@@ -39,49 +42,94 @@ const toggleAllComponents = (selectAll) => {
   });
 };
 
+// Ouvrir/fermer le dropdown
+const toggleDropdown = () => {
+  isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+// Appliquer la sélection et fermer le dropdown
+const applySelection = () => {
+  isDropdownOpen.value = false;
+};
+
+// Fermer le dropdown en cliquant à l'extérieur
+const closeDropdown = (event) => {
+  if (!event.target.closest('.dropdown-container')) {
+    isDropdownOpen.value = false;
+  }
+};
+
 // Nombre de composants sélectionnés
 const selectedCount = computed(() => {
   return Object.values(selectedComponents.value).filter(Boolean).length;
 });
+
+// Gestion des clics en dehors du dropdown
+onMounted(() => {
+  document.addEventListener('click', closeDropdown);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeDropdown);
+});
 </script>
 
 <template>
-  <PageAnalyse>
+  <PageAnalyse :menu="'Analyse Comparative'" :sousmenu="'Données temporelles'">
     <div class="main">
-      <ContentHeader :menu="'Analyse Comparative'" :sousmenu="'Données temporelles'" />
-      
-      <!-- Sélecteur de composants -->
+      <!-- Sélecteur de composants avec menu déroulant -->
       <div class="components-selector">
         <div class="selector-header">
-          <h3>📋 Sections à afficher</h3>
-          <div class="selector-actions">
-            <span class="selected-count">{{ selectedCount }}/{{ componentOptions.length }} sélectionnés</span>
-            <button @click="toggleAllComponents(true)" class="btn-select-all">
-              Tout sélectionner
+          <Texte :type="'thin-dark'" :texte="'Sections à afficher'" />
+          <!-- Menu déroulant -->
+          <div class="dropdown-container">
+            <button 
+              class="dropdown-toggle"
+              @click="toggleDropdown"
+            >
+              <span class="selected-count">{{ selectedCount }}/{{ componentOptions.length }} sélectionnés</span>
+              <i class="bi bi-chevron-down" :class="{ 'open': isDropdownOpen }"></i>
             </button>
-            <button @click="toggleAllComponents(false)" class="btn-deselect-all">
-              Tout désélectionner
-            </button>
-          </div>
-        </div>
-        
-        <div class="components-grid">
-          <div 
-            v-for="option in componentOptions" 
-            :key="option.id"
-            class="component-option"
-            :class="{ selected: selectedComponents[option.id] }"
-            @click="toggleComponent(option.id)"
-          >
-            <div class="option-icon">{{ option.icon }}</div>
-            <div class="option-label">{{ option.label }}</div>
-            <div class="option-checkbox">
-              <input 
-                type="checkbox" 
-                :checked="selectedComponents[option.id]"
-                @click.stop="toggleComponent(option.id)"
-              />
-            </div>
+            
+            <transition name="dropdown">
+              <div v-if="isDropdownOpen" class="dropdown-menu">
+                <!-- <div class="dropdown-header">
+                  <Texte :type="'thin-dark'" :texte="'Sélectionner les sections'" />
+                  
+                </div> -->
+                
+                <div class="dropdown-options">
+                  <div 
+                    v-for="option in componentOptions" 
+                    :key="option.id"
+                    class="dropdown-option"
+                    :class="{ selected: selectedComponents[option.id] }"
+                    @click="toggleComponent(option.id)"
+                  >
+                    <div class="option-checkbox">
+                      <input 
+                        type="checkbox" 
+                        :checked="selectedComponents[option.id]"
+                        @click.stop="toggleComponent(option.id)"
+                      />
+                    </div>
+                    <div class="option-icon">{{ option.icon }}</div>
+                    <div class="option-label">{{ option.label }}</div>
+                  </div>
+                </div>
+                
+                <!-- <div class="dropdown-footer">
+                  <div class="dropdown-actions">
+                    <button @click="toggleAllComponents(true)" class="btn-select-all">
+                      Tout
+                    </button>
+                    <button @click="toggleAllComponents(false)" class="btn-deselect-all">
+                      Aucun
+                    </button>
+                  </div>
+                </div> -->
+              </div>
+            </transition>
           </div>
         </div>
       </div>
@@ -100,7 +148,7 @@ const selectedCount = computed(() => {
         <div class="empty-state">
           <span class="empty-icon">📊</span>
           <h3>Aucune section sélectionnée</h3>
-          <p>Veuillez sélectionner au moins une section à afficher ci-dessus.</p>
+          <p>Veuillez sélectionner au moins une section à afficher dans le menu déroulant ci-dessus.</p>
           <button @click="toggleAllComponents(true)" class="btn-primary">
             Afficher toutes les sections
           </button>
@@ -110,125 +158,212 @@ const selectedCount = computed(() => {
   </PageAnalyse>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
+.main {
+  @include position-contenus(flex, center, center);
+  padding: 0 18px;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 0 0;
+  align-self: stretch;
+  animation: appear 0.6s ease-out forwards;
+}
+
 .components-selector {
-  background: white;
-  border-radius: 12px;
-  padding: 1.5rem;
+  width: 100%;
+  border-radius: $radius-pm;
+  // padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e7eb;
 }
 
 .selector-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
   margin-bottom: 1.5rem;
   flex-wrap: wrap;
   gap: 1rem;
 }
 
-.selector-header h3 {
-  margin: 0;
-  color: #1f2937;
-  font-size: 1.25rem;
-  font-weight: 600;
+
+/* Styles du menu déroulant */
+.dropdown-container {
+  position: relative;
+  display: inline-block;
 }
 
-.selector-actions {
+.dropdown-toggle {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
+  align-items: space-between;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: $radius-pm;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+  @include glass();
+  font-family: 'stara';
 }
+
 
 .selected-count {
-  color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 14px;
+  color: $dark;
   font-weight: 500;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  transition: transform 0.3s ease;
+  color: $dark;
+}
+
+.dropdown-arrow.open {
+  transform: rotate(180deg);
+}
+
+.dropdown-menu {
+  
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: $radius-pm;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  margin-top: 5px;
+  @include glass();
+}
+
+.dropdown-header {
+  background-color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  // padding: 8px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.dropdown-title {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+
+.dropdown-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .btn-select-all,
 .btn-deselect-all {
-  padding: 0.5rem 1rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   background: white;
-  color: #374151;
-  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .btn-select-all:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
+  background: $primary;
+  color: white;
+  border-color: $primary;
 }
 
 .btn-deselect-all:hover {
-  background: #fef2f2;
-  border-color: #fca5a5;
-  color: #dc2626;
+  background: #dc3545;
+  color: white;
+  border-color: #dc3545;
 }
 
-.components-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+.dropdown-options {
+  background: #ffffff;
+  border-radius: $radius-pm;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 8px 0;
 }
 
-.component-option {
+.dropdown-option {
+  background-color: transparent;
+  font-family: $stara-medium;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  // gap: 12px;
+  padding: 10px 16px;
   cursor: pointer;
-  transition: all 0.3s ease;
-  background: white;
+  // transition: background-color 0.2s ease;
 }
 
-.component-option:hover {
-  border-color: #9ca3af;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.dropdown-option:hover {
+  background: #f8f9fa;
 }
 
-.component-option.selected {
-  border-color: #017AFF;
-  background: #f0f7ff;
-  box-shadow: 0 4px 12px rgba(1, 122, 255, 0.15);
+
+.option-checkbox {
+  display: flex;
+  align-items: center;
+}
+
+.option-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: $primary;
 }
 
 .option-icon {
-  font-size: 1.5rem;
-  flex-shrink: 0;
+  font-size: 12px;
+  width: 20px;
+  text-align: center;
 }
 
 .option-label {
   flex: 1;
+  font-size: 12px;
+  color: #333;
   font-weight: 500;
-  color: #374151;
-  font-size: 0.9rem;
 }
 
-.option-checkbox input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
+.dropdown-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #eee;
+  text-align: right;
+}
+
+.btn-apply {
+  padding: 8px 16px;
+  background: $primary;
+  color: white;
+  border: none;
   border-radius: 4px;
-  border: 2px solid #d1d5db;
   cursor: pointer;
-  accent-color: #017AFF;
+  font-size: 14px;
+  transition: background-color 0.2s ease;
 }
 
-.component-option.selected .option-checkbox input[type="checkbox"] {
-  background-color: #017AFF;
-  border-color: #017AFF;
+.btn-apply:hover {
+  background: #0163cc;
+}
+
+/* Animations */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.3s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
 .components-container {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -242,6 +377,7 @@ const selectedCount = computed(() => {
   background: white;
   border-radius: 12px;
   border: 2px dashed #e5e7eb;
+  @include glass();
 }
 
 .empty-state {
@@ -268,7 +404,7 @@ const selectedCount = computed(() => {
 
 .btn-primary {
   padding: 0.75rem 1.5rem;
-  background: #017AFF;
+  background: $primary;
   color: white;
   border: none;
   border-radius: 6px;
@@ -286,18 +422,22 @@ const selectedCount = computed(() => {
   .selector-header {
     flex-direction: column;
     align-items: stretch;
+    gap: 1rem;
   }
   
-  .selector-actions {
+  .dropdown-container {
+    width: 100%;
+  }
+  
+  .dropdown-toggle {
+    width: 100%;
     justify-content: space-between;
   }
   
-  .components-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .component-option {
-    padding: 0.75rem;
+  .dropdown-menu {
+    width: 100%;
+    right: 0;
+    left: 0;
   }
   
   .empty-state {
@@ -306,6 +446,26 @@ const selectedCount = computed(() => {
   
   .empty-icon {
     font-size: 3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main {
+    padding: 0 12px;
+  }
+  
+  .components-selector {
+    padding: 1rem;
+  }
+  
+  .dropdown-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  
+  .dropdown-actions {
+    align-self: flex-end;
   }
 }
 </style>

@@ -31,7 +31,7 @@
   
   <style lang="scss" scoped>
   .file-upload{
-    background-color: $light;
+    // background-color: ;
     display: flex;
     height: 189px;
     padding: 10px;
@@ -41,7 +41,8 @@
     gap: 10px;
     align-self: stretch;
     border-radius: $radius-pm;
-    border: 1px dashed #515151;
+    // border: 1px dashed #515151;
+    @include popupglass();
   }
   .custom-file-label {
     cursor: pointer;

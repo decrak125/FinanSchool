@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useComparaison } from '@/composables/useComparaison';
 import EvolutionChart from '@/components/atoms/Chart/EvolutionChart.vue';
-
+import Texte from '@/components/atoms/Texte.vue';
 // Réactifs
 const chartData = ref([]);
 const loading = ref(false);
@@ -104,6 +104,51 @@ const formatMontant = (montant) => {
     maximumFractionDigits: 0
   }).format(parseFloat(montant) || 0);
 };
+// --------------------------------------------
+
+// Computed properties
+const uniqueMonths = computed(() => {
+  const months = [...new Set(chartData.value.map(item => item.mois))];
+  return months.sort((a, b) => a - b); // Trier les mois dans l'ordre numérique
+});
+
+const uniqueCentres = computed(() => {
+  const centres = [...new Set(chartData.value.map(item => item.centre))];
+  return centres.sort(); // Trier par ordre alphabétique
+});
+
+// Méthodes
+const getMontantForCentreAndMonth = (centre, month) => {
+  const item = chartData.value.find(d => 
+    d.centre === centre && d.mois === month
+  );
+  // Utilise montant_brut en priorité, sinon montant_ventile
+  const montant = item ? (parseFloat(item.montant_brut) || parseFloat(item.montant_ventile) || 0) : 0;
+  return montant > 0 ? formatMontant(montant) : '-';
+};
+
+const getTotalForCentre = (centre) => {
+  const items = chartData.value.filter(d => d.centre === centre);
+  const total = items.reduce((sum, item) => 
+    sum + (parseFloat(item.montant_brut) || parseFloat(item.montant_ventile) || 0), 0
+  );
+  return formatMontant(total);
+};
+
+const getTotalForMonth = (month) => {
+  const items = chartData.value.filter(d => d.mois === month);
+  const total = items.reduce((sum, item) => 
+    sum + (parseFloat(item.montant_brut) || parseFloat(item.montant_ventile) || 0), 0
+  );
+  return formatMontant(total);
+};
+
+const getGrandTotal = () => {
+  const total = chartData.value.reduce((sum, item) => 
+    sum + (parseFloat(item.montant_brut) || parseFloat(item.montant_ventile) || 0), 0
+  );
+  return formatMontant(total);
+};
 
 // Cycle de vie
 onMounted(() => {
@@ -117,7 +162,6 @@ onMounted(() => {
   <div class="evolution-12-mois">
     <div class="filters-container">
       <h2>Évolution sur 12 Mois</h2>
-      <p class="period-info" v-if="chartData.length > 0">{{ periodDescription }}</p>
       
       <div class="filters">
         <div class="filter-group">
@@ -146,7 +190,7 @@ onMounted(() => {
     </div>
 
     <!-- Statistiques résumées -->
-    <div class="stats-container" v-if="chartData.length > 0">
+    <!-- <div class="stats-container" v-if="chartData.length > 0">
       <div class="stat-card">
         <div class="stat-value">{{ totalMontantFormatted }}</div>
         <div class="stat-label">Total Période</div>
@@ -163,7 +207,7 @@ onMounted(() => {
         <div class="stat-value">{{ datesUniques.length }}</div>
         <div class="stat-label">Mois analysés</div>
       </div>
-    </div>
+    </div> -->
 
     <div class="chart-container">
       <EvolutionChart 
@@ -175,43 +219,51 @@ onMounted(() => {
 
     <!-- Tableau de données -->
     <div class="data-table" v-if="chartData.length > 0">
-      <h3>Données détaillées</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Mois</th>
-            <th>Centre</th>
-            <th>Montant Ventilé</th>
-            <th>Montant Brut</th>
-            <th>Nombre Sous-comptes</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in chartData" :key="`${item.mois}-${item.id_centre}`">
-            <td>{{ getMonthName(item.mois) }}</td>
-            <td>{{ item.centre }}</td>
-            <td>{{ formatMontant(item.montant_ventile) }}</td>
-            <td>{{ formatMontant(item.montant_brut) }}</td>
-            <td>{{ item.nombre_sous_comptes }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+  <Texte :type="'bold-dark'" :texte="periodDescription" />
+    <table class="table" id="axesTable">
+      <thead>
+        <tr>
+          <th class="centre-header">Centre</th>
+          <th v-for="month in uniqueMonths" :key="month" class="month-header">
+            {{ getMonthName(month) }}
+          </th>
+          <th class="total-header">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="centre in uniqueCentres" :key="centre">
+          <td class="centre-name">{{ centre }}</td>
+          <td v-for="month in uniqueMonths" :key="`${centre}-${month}`" class="montant-cell">
+            {{ getMontantForCentreAndMonth(centre, month) }}
+          </td>
+          <td class="total-cell">
+            {{ getTotalForCentre(centre) }}
+          </td>
+        </tr>
+        <tr class="total-row">
+          <td class="total-label">Total</td>
+          <td v-for="month in uniqueMonths" :key="`total-${month}`" class="total-cell">
+            {{ getTotalForMonth(month) }}
+          </td>
+          <td class="grand-total">
+            {{ getGrandTotal() }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
+</div>
 </template>
 
 <!-- Le style reste identique -->
-<style scoped>
+<style lang="scss" scoped>
 .evolution-12-mois {
-  padding: 20px;
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
 }
 
 .filters-container {
-  background: #f5f5f5;
-  padding: 20px;
-  border-radius: 8px;
+  width: 100%;
   margin-bottom: 30px;
 }
 
@@ -291,42 +343,75 @@ onMounted(() => {
 }
 
 .chart-container {
-  background: white;
-  padding: 20px;
+  width: 100%;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   margin-bottom: 30px;
 }
 
 .data-table {
-  background: white;
+  @include glass();
+  border-radius: $radius-pm;
   padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   overflow-x: auto;
 }
 
-.data-table table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 800px;
-}
-
-.data-table th,
-.data-table td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.data-table th {
-  background: #f8f9fa;
-  font-weight: bold;
-}
-
-.data-table tr:hover {
-  background: #f5f5f5;
-}
+  #axesTable {
+opacity: 0;
+    transform: translateY(-1px);
+    animation: slideInDown 0.5s ease-out forwards;
+    thead tr:first-child{
+        background: transparent;
+        backdrop-filter: blur(50px);
+        position: sticky;
+        top: 0;
+        z-index: 99;
+    }
+    th{
+        background: fixed transparent;
+        color: $primary;
+        font-family: $stara-black;
+        font-size: 12px;
+        text-align:start;
+        // z-index: 99;
+        padding: 24px 0px;
+        @media (max-width: $mobile) {
+            font-size: 14px;
+            padding: 12px 8px;
+        }
+    }
+    tr:hover{
+        background-color: transparent;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+    }
+    tr{
+        transition: all 0.3s ease-in-out;
+    }
+    
+    tr td:last-child,
+    tr th:last-child {
+        text-align:center;
+    }
+    
+    td{
+        padding: 24px 0px;
+        animation: appear 0.6s ease-out forwards;
+        font-size: 12px;
+        @media (max-width: $mobile) {
+            font-size: 13px;
+            padding: 10px 8px;
+        }
+    }
+    
+    background: fixed;
+    font-family: $stara-medium;
+    border-radius: $radius-pm;
+    color: $dark;
+    
+    @media (max-width: $mobile) {
+        border-radius: $radius-sm;
+        font-size: 14px;
+    }}
 
 @media (max-width: 768px) {
   .filters {

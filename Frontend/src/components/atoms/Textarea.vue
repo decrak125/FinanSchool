@@ -75,6 +75,7 @@ const handleBlur = () => {
 <style lang="scss" scoped>
 textarea{
   @include input($dark, $dark, $radius-pm, $stara-medium);
+  @include glass();
   width: 250px;
   height: 40px;
   transition: all 0.3s ease-in-out;
@@ -82,7 +83,7 @@ textarea{
   overflow: hidden;
   
   &::placeholder{
-    color: $dark;
+    color: $gris;
   }
   
   // Quand le textarea est agrandi

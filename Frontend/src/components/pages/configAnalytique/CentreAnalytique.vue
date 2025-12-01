@@ -109,12 +109,12 @@ const filteredCount = computed(() => {
           <Texte :texte="'Créer un centre analytique'" :type="'dark'" />
           <div class="popupContent">
             <div class="gauche">
-            <Input v-model="form.nom" label="Nom du centre" type="text" required />
-            <Textarea v-model="form.description" label="Description" required />
+            <Input v-model="form.nom" placeholder="Nom du centre" type="text" required />
+            <Textarea v-model="form.description" placeholder="Description" required />
           </div>
           <div class="droite">
             <div>
-              <Select v-model="form.id_axe" :label="'Axe analytique'">
+              <Select v-model="form.id_axe" :placeholder="'Axe analytique'">
                 <option value="" disabled>Choisir un axe</option>
                 <option v-for="axe in axes" :key="axe.id_axe" :value="axe.id_axe">{{ axe.axe }}</option>
               </Select>
@@ -160,7 +160,8 @@ const filteredCount = computed(() => {
       
       <!-- Section Filtres -->
       <div class="filtres">
-            <searchbar
+            <div class="ok">
+              <searchbar
               v-model="searchTerm"
               type="text"
               placeholder="Nom du centre..."
@@ -178,26 +179,16 @@ const filteredCount = computed(() => {
                 {{ axe.axe }}
               </option>
             </FilterSelect>
-
-          <!-- Filtre par type -->
-            <!-- <FilterSelect
-              v-model="selectedType"
-            >
-              <option value="">Types</option>
-              <option 
-                v-for="type in types" 
-                :key="type.id_type" 
-                :value="type.id_type"
-              >
-                {{ type.code }}
-              </option>
-            </FilterSelect> -->
             <BoutonIcon 
               v-if="searchTerm || selectedAxe"
               @click="resetFilters" 
               type="cancel" 
               :icon-name="'x-lg'"
             />
+            </div>
+            <div class="iconbtn">
+                  <i class="bi bi-file-earmark-pdf-fill"></i>
+            </div>
             <!-- <i @click="resetFilters" class="bi bi-x-circle-fill"></i> -->
       </div>
       <!-- Tableau des axes - utilise donneesPagination qui vient maintenant de filteredCentres -->
@@ -223,8 +214,8 @@ const filteredCount = computed(() => {
               <!-- <td class="col">{{ getTypeName(centre.id_type) }}</td> -->
               <td class="col text-center">
                 <div class="action-content">
-                  <BoutonIcon @click="editCentre(centre), openForm = true" icon-name="pen" :type="'edit'" />
-                  <BoutonIcon @click="id_to_delete = centre.id_centre,opendelete = true" icon-name="trash" :type="'cancel'" />
+                  <BoutonIcon @click="editCentre(centre), openForm = true" icon-name="pen-fill" :type="'edit'" />
+                  <BoutonIcon @click="id_to_delete = centre.id_centre,opendelete = true" icon-name="trash-fill" :type="'cancel'" />
                 </div>
                 
               </td>
@@ -260,6 +251,27 @@ const filteredCount = computed(() => {
   </PageAnalyse>
 </template>
 <style lang="scss" scoped>
+.ok{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.iconbtn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 49px;
+  height: 49px;
+  border-radius: 50%;
+  @include glass();
+  cursor: pointer;
+  i{
+    color: #e25252;
+    font-size: 20px;
+  }
+}
+
 .main {
   @include glass();
   height: 82vh;
@@ -294,7 +306,7 @@ const filteredCount = computed(() => {
 
 .btn-form {
   @include position-contenus(flex, center, center);
-  // flex-direction: column;
+  flex-direction: column;
   gap: 10px;
   padding-top: 10px;
 }
@@ -378,10 +390,11 @@ const filteredCount = computed(() => {
 }
 .popupContent{
   @include position-contenus(flex,center, flex-start);
+  flex-direction: column;
   gap: 10px;
 }
 .filtres{
-  @include position-contenus(flex, flex-start, center);
+  @include position-contenus(flex, space-between, center);
   padding: 0 0;
   align-self: self-start;
   // background-color: #fff;

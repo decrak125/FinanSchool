@@ -71,9 +71,9 @@ const {
     <transition name="fade">
       <PopUp v-if="openForm">
         <form @submit.prevent="saveAxe" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
-          <Texte :texte="'Créer une axe analytique'" :type="'dark'" />
-          <Input v-model="form.axe" label="Nom de l'Axe" type="text" required />
-          <Textarea v-model="form.description" label="Description" required />
+          <Texte :texte="'Ajouter une axe analytique'" :type="'dark'" />
+          <Input v-model="form.axe" placeholder="Nom de l'Axe" type="text" required />
+          <Textarea v-model="form.description" placeholder="Description" required />
           <div class="btn-form">
             <Bouton v-if="!isEditing" type="input" :texte="'Créer'" redirection="" />
             <Bouton v-if="isEditing" type="input" :texte="'Modifier'" redirection="" />
@@ -102,6 +102,9 @@ const {
           axes analytique disponibles.
         </p>
         <div class="btn">
+          <!-- <div class="iconbtn">
+                  <i class="bi bi-file-earmark-pdf-fill"></i>
+          </div> -->
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
           <Bouton type="primary" texte="Ajouter" redirection="" @click="openForm = !openForm" />
         </div>
@@ -127,8 +130,8 @@ const {
                 <td class="col">{{ axe.axe }}</td>
                 <td class="col">{{ axe.description }}</td>
                 <td class="col text-center">
-                  <BoutonIcon @click="editAxe(axe), openForm = true" icon-name="pen" :type="'edit'" />
-                  <BoutonIcon @click="id_to_delete = axe.id_axe, opendelete = true" icon-name="trash" :type="'cancel'" />
+                  <BoutonIcon @click="editAxe(axe), openForm = true" icon-name="pen-fill" :type="'edit'" />
+                  <BoutonIcon @click="id_to_delete = axe.id_axe, opendelete = true" icon-name="trash-fill" :type="'cancel'" />
                 </td>
               </tr>
               <tr v-if="loading" v-for="n in nombreLignesLoader" :key="'loader-' + n">
@@ -155,7 +158,20 @@ const {
   </PageAnalyse>
 </template>
 <style lang="scss" scoped>
-
+.iconbtn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  @include glass();
+  cursor: pointer;
+  i{
+    color: #e25252;
+    font-size: 20px;
+  }
+}
 .main {
   @include glass();
   min-height: 82vh;

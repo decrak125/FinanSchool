@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useComparaison } from '@/composables/useComparaison';
 import CoutProfitChart from '@/components/atoms/Chart/CoutProfitChart.vue';
+import Texte from '@/components/atoms/Texte.vue';
 
 const chartData = ref([]);
 const loading = ref(false);
@@ -119,7 +120,6 @@ onMounted(() => {
         :chartData="chartData"
         :loading="loading"
         :error="error"
-        height="400"
       />
     </div>
   </div>
@@ -127,15 +127,11 @@ onMounted(() => {
 
 <style scoped>
 .comparaison-cout-profit {
-  padding: 20px;
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
 }
 
 .filters-container {
-  background: #f5f5f5;
-  padding: 20px;
-  border-radius: 8px;
   margin-bottom: 30px;
 }
 
@@ -175,10 +171,7 @@ onMounted(() => {
 }
 
 .chart-container {
-  background: white;
-  padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 @media (max-width: 768px) {

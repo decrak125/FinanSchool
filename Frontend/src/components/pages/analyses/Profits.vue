@@ -256,14 +256,21 @@ onMounted(async () => {
             <!-- Tableau global des centres (visible seulement en vue globale) -->
             <div v-if="showGlobalView" class="table-div">
               <div class="table-title">
-                <Texte :type="'bold-dark'" :texte="'profits ventilés par centre'" />
+                
+                <div class="info">
+                  <Texte :type="'bold-dark'" :texte="'Profits ventilés par centre'" />
+                  <Texte :type="'dark'" :texte="'Montants en Ariary (Ar).'" />
+                </div>
+                <div class="iconbtn">
+                  <i class="bi bi-file-earmark-pdf-fill"></i>
+                </div>
               </div>
               <table class="table" id="axesTable">
                 <thead class="">
                   <tr>
                     <th class="col">Centre</th>
-                    <th class="col">Montant Ventilé</th>
-                    <th class="col">% Ventilé</th>
+                    <th class="col">Taux ventilé</th>
+                    <th class="col">Montant</th>
                     <th class="col">Action</th>
                   </tr>
                 </thead>
@@ -271,12 +278,13 @@ onMounted(async () => {
                   <!-- 🔥 MODIFICATION : Utiliser centresFiltres au lieu de centres -->
                   <tr v-for="centre in centresFiltres" :key="centre.id_centre" class="cursor-pointer hover:bg-gray-100">
                     <td class="col">{{ centre.centre }}</td>
-                    <td class="col">{{ formatMontant(centre.montant_ventile) }}</td>
+                    
                     <td class="col" :class="formatPourcentage(centre.pourcentage_ventile).classe">
                       {{ formatPourcentage(centre.pourcentage_ventile).valeur }}
                     </td>
+                    <td class="col">{{ formatMontant(centre.montant_ventile) }}</td>
                     <td class="col">
-                      <BoutonIcon @click="handleFetchAffectations(centre)" icon-name="eye" :type="'edit'" />
+                      <BoutonIcon @click="handleFetchAffectations(centre)" icon-name="eye-fill" :type="'edit'" />
                     </td>
                   </tr>
                 </tbody>
@@ -286,7 +294,13 @@ onMounted(async () => {
             <!-- Détails des affectations (visible seulement en vue détaillée) -->
             <div v-if="!showGlobalView && affectationsFiltrees.length > 0" class="table-div">
               <div class="table-title">
-                <Texte :type="'bold-dark'" :texte="`Détails ventilés du centre : ${selectedCentre}`" />
+                <div class="info">
+                  <Texte :type="'bold-dark'" :texte="`Détails ventilés du centre : ${selectedCentre}`" />
+                  <Texte :type="'dark'" :texte="'Montants en Ariary (Ar).'" />
+                </div>
+                <div class="iconbtn">
+                  <i class="bi bi-file-earmark-pdf-fill"></i>
+                </div>
               </div>
               <table class="table" id="axesTable">
                 <thead class="">
@@ -294,10 +308,11 @@ onMounted(async () => {
                     <th class="col">Code</th>
                     <th class="col">Description</th>
                     <th class="col">Centre</th>
-                    <th class="col">Montant Ventilé</th>
-                    <th class="col">Taux Ventilation</th>
+                    <th class="col">Taux de ventilation</th>
                     <th class="col">% Ventilé</th>
+                    <th class="col">Montant</th>
                   </tr>
+                  
                 </thead>
                 <tbody>
                   <!-- 🔥 MODIFICATION : Utiliser affectationsFiltrees au lieu de affectations -->
@@ -305,16 +320,18 @@ onMounted(async () => {
                     <td class="col">{{ a.code || 'N/A' }}</td>
                     <td class="col">{{ a.libelle_sous_compte || 'N/A' }}</td>
                     <td class="col">{{ a.centre_nom }}</td>
-                    <td class="col">{{ formatMontant(a.montant_ventile) }}</td>
                     <td class="col">{{ a.taux_ventilation }}%</td>
                     <td class="col" :class="formatPourcentage(a.pourcentage_ventile).classe">
                       {{ formatPourcentage(a.pourcentage_ventile).valeur }}
                     </td>
+                    <td class="col">{{ formatMontant(a.montant_ventile) }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
-            <Leaderboard v-if="showGlobalView" :depenses="classementFiltrees" :texte="'Top 5 des profits'" />
+            <div class="classement" v-if="showGlobalView">
+              <Leaderboard  :depenses="classementFiltrees" :texte="'Top 5 des profits'" />
+            </div>
 
           </div>
 
@@ -331,22 +348,62 @@ body {
   height: 100%;
   margin: 0;
 }
+.info{
+  @include position-contenus(flex, flex-start, flex-start);
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: -10px 0;
+}
+.iconbtn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  @include glass();
+  cursor: pointer;
+  i{
+    color: #e25252;
+    font-size: 20px;
+  }
+}
 .milieu{
   display: flex;
   // flex-direction: column;
-  gap: 18px;
+  gap: 24px;
 }
 .table-div {
   width: 100%;
   height: 100%;
-  background-color: #ffffff;
+  @include glass();
   border-radius: $radius-pm;
   padding: 18px;
   gap: 8px;
 }
 
 .table-title {
+  display: flex;
+  justify-content: space-between;
   padding: 12px
+}
+.bc{
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  z-index: -1;
+  // background: linear-gradient(
+  //   -45deg,
+  //   #f2c6b8, 
+  //   #ffffff, 
+  //   #ffe0e0, 
+  //   #ffffff);
+  background: url('@/assets/img/25.jpg') center no-repeat;
+  background-color: $light;
+  background-size:cover;
+  // animation: gradient 15s ease infinite;
+  
 }
 
 .content {
@@ -357,7 +414,7 @@ body {
   // max-height: 60vh;
   border-radius: $radius-pm;
   align-self: stretch;
-  gap: 18px;
+  gap: 24px;
 
   // @media (max-width: $mobile) {
   //   max-height: 50vh;
@@ -385,21 +442,21 @@ body {
 
 .graphic {
   @include position-contenus(flex, flex-start, flex-start);
-  padding: 10px 0;
+  padding: 18px 0;
   align-self: stretch;
-  gap: 18px;
+  gap: 24px;
 }
 
 .cartes {
   @include position-contenus(grid, center, center);
   padding: 0;
-  gap: 18px;
+  gap: 24px;
 }
 
 .hauteur {
   @include position-contenus(flex, center, center);
   padding: 0;
-  gap: 18px;
+  gap: 24px;
 }
 
 .gauche {
@@ -411,7 +468,7 @@ body {
   padding: 10px 0;
   height: 100%;
   @include position-contenus(flex, center, center);
-  gap: 18px;
+  gap: 24px;
 
   @media (max-width: $tablet) {
     grid-template-columns: repeat(2, 1fr);
@@ -424,8 +481,8 @@ body {
 }
 
 #axesTable {
-  @include table(#ffff);
-  background-color: #fff;
+  @include table();
+  // @include glass();
   border-radius: $radius-pm;
 }
 
@@ -451,7 +508,7 @@ body {
 
 .main {
   @include position-contenus(flex, center, center);
-  padding: 0 12px;
+  padding: 0 18px;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;

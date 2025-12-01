@@ -6,71 +6,26 @@
       Aucune donnée disponible pour les filtres sélectionnés
     </div>
     <div v-else class="evolution-chart-wrapper">
-      <div class="chart-container">
-        <div class="graphic-wrapper">
-          <apexchart
-            type="area"
-            :height="height"
-            :options="chartOptions"
-            :series="series"
-          ></apexchart>
-        </div>
-        <div class="voir" @click="showDetails = !showDetails">
-          <i class="bi bi-eye"></i>
-          <p v-if="!showDetails">Voir les détails</p>
-          <p v-if="showDetails">Masquer les détails</p>
-        </div>
-      </div>
-      
-      <transition name="fade">
-        <div class="legend-container" v-if="showDetails">
-          <div class="legend-wrapper">
-            <!-- Statistiques globales -->
-            <div class="stats-summary">
-              <div class="stat-item">
-                <span class="stat-label">Période :</span>
-                <span class="stat-value">{{ periodRange }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Centres :</span>
-                <span class="stat-value">{{ centresCount }}</span>
-              </div>
-              <div class="stat-item">
-                <span class="stat-label">Évolution moyenne :</span>
-                <span class="stat-value" :class="getEvolutionClass(averageEvolution)">
-                  {{ formatEvolution(averageEvolution) }}
-                </span>
-              </div>
+      <div class="chart-with-separate-legend">
+        <transition name="fade">
+          <div class="chart-container">
+            <div class="table-title">
+              <Texte :type="'bold-dark'" :texte="'Évolution des Montants sur 12 Mois'" />
             </div>
-
-            <!-- Légende des centres -->
-            <div class="legend-year-group">
-              <div class="legend-year-title">Performance des Centres</div>
-              <div class="legend-items">
-                <div v-for="(centre, index) in centresList" :key="index" class="legend-item">
-                  <div class="legend-color" :style="{ backgroundColor: getColor(index) }"></div>
-                  <div class="legend-content">
-                    <div class="legend-label">{{ centre.name }}</div>
-                    <div class="legend-values">
-                      <span class="legend-value">{{ formatMontant(centre.total) }}</span>
-                      <span class="legend-percentage" :class="getEvolutionClass(centre.evolution)">
-                        {{ formatEvolution(centre.evolution) }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            
+            <div class="graphic-wrapper">
+              <apexchart type="area" :height="height" :options="chartOptions" :series="series"></apexchart>
             </div>
           </div>
-        </div>
-      </transition>
+        </transition>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, watch, computed } from 'vue';
-
+import Texte from '@/components/atoms/Texte.vue';
 const props = defineProps({
   chartData: {
     type: Array,
@@ -86,12 +41,12 @@ const props = defineProps({
   },
   height: {
     type: Number,
-    default: 400
+    default: 298
   },
   colors: {
     type: Array,
     default: () => [
-      '#017AFF', '#F34971', '#00D4AA', '#F5C900', 
+      '#017AFF', '#F34971', '#00D4AA', '#F5C900',
       '#6C47FF', '#39C0C8', '#FF6B8B', '#9C27B0'
     ]
   }
@@ -103,17 +58,17 @@ const series = ref([]);
 // Computed properties
 const periodRange = computed(() => {
   if (props.chartData.length === 0) return '';
-  
+
   const dates = props.chartData.map(item => new Date(item.mois));
   const minDate = new Date(Math.min(...dates));
   const maxDate = new Date(Math.max(...dates));
-  
+
   return `${minDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })} - ${maxDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`;
 });
 
 const centresList = computed(() => {
   const centres = {};
-  
+
   props.chartData.forEach(item => {
     if (!centres[item.centre]) {
       centres[item.centre] = {
@@ -125,23 +80,23 @@ const centresList = computed(() => {
         dernierPoint: null
       };
     }
-    
+
     const montant = parseFloat(item.montant_brut) || parseFloat(item.montant_ventile) || 0;
     const date = new Date(item.mois);
     const pointData = { date, montant };
-    
+
     centres[item.centre].data.push({
       x: date.getTime(),
       y: montant,
       ...pointData
     });
     centres[item.centre].total += montant;
-    
+
     // Premier point (le plus ancien)
     if (!centres[item.centre].premierPoint || date < centres[item.centre].premierPoint.date) {
       centres[item.centre].premierPoint = pointData;
     }
-    
+
     // Dernier point (le plus récent)
     if (!centres[item.centre].dernierPoint || date > centres[item.centre].dernierPoint.date) {
       centres[item.centre].dernierPoint = pointData;
@@ -151,10 +106,10 @@ const centresList = computed(() => {
   // Calculer l'évolution entre premier et dernier point
   Object.values(centres).forEach(centre => {
     centre.data.sort((a, b) => a.x - b.x);
-    
+
     if (centre.premierPoint && centre.dernierPoint && centre.premierPoint.montant > 0) {
       centre.evolution = ((centre.dernierPoint.montant - centre.premierPoint.montant) / centre.premierPoint.montant) * 100;
-      
+
       console.log(`📈 ${centre.name}: ` +
         `${centre.premierPoint.date.toLocaleDateString('fr-FR')} = ${centre.premierPoint.montant.toLocaleString()}€ → ` +
         `${centre.dernierPoint.date.toLocaleDateString('fr-FR')} = ${centre.dernierPoint.montant.toLocaleString()}€ → ` +
@@ -174,9 +129,9 @@ const averageEvolution = computed(() => {
   const evolutions = centresList.value
     .filter(centre => !isNaN(centre.evolution) && Math.abs(centre.evolution) < 1000) // Filtrer les valeurs aberrantes
     .map(centre => centre.evolution);
-  
+
   if (evolutions.length === 0) return 0;
-  
+
   const totalEvolution = evolutions.reduce((sum, evolution) => sum + evolution, 0);
   return totalEvolution / evolutions.length;
 });
@@ -223,16 +178,16 @@ const chartOptions = computed(() => {
         stops: [0, 90, 100]
       }
     },
-    title: {
-      text: 'Évolution des Montants sur 12 Mois',
-      align: 'center',
-      style: {
-        fontFamily: 'stara',
-        fontSize: '18px',
-        fontWeight: 'bold',
-        color: '#2c3e50'
-      }
-    },
+    // title: {
+    //   text: 'Évolution des Montants sur 12 Mois',
+    //   align: 'center',
+    //   style: {
+    //     fontFamily: 'stara',
+    //     fontSize: '18px',
+    //     fontWeight: 'bold',
+    //     color: '#2c3e50'
+    //   }
+    // },
     xaxis: {
       type: 'datetime',
       labels: {
@@ -241,8 +196,8 @@ const chartOptions = computed(() => {
           colors: '#6b7280',
           fontSize: '11px'
         },
-        formatter: function(value) {
-          return new Date(value).toLocaleDateString('fr-FR', { 
+        formatter: function (value) {
+          return new Date(value).toLocaleDateString('fr-FR', {
             month: 'short',
             year: '2-digit'
           });
@@ -271,13 +226,13 @@ const chartOptions = computed(() => {
           colors: '#6b7280',
           fontSize: '11px'
         },
-        formatter: function(value) {
+        formatter: function (value) {
           return new Intl.NumberFormat('mg-MG', {
-          // style: 'currency',
-          // currency: 'MGA',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0
-        }).format(value);
+            // style: 'currency',
+            // currency: 'MGA',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+          }).format(value);
         }
       }
     },
@@ -289,26 +244,34 @@ const chartOptions = computed(() => {
         fontSize: '12px'
       },
       x: {
-        formatter: function(value) {
-          return new Date(value).toLocaleDateString('fr-FR', { 
+        formatter: function (value) {
+          return new Date(value).toLocaleDateString('fr-FR', {
             month: 'long',
             year: 'numeric'
           });
         }
       },
       y: {
-        formatter: function(value) {
+        formatter: function (value) {
           return new Intl.NumberFormat('mg-MG', {
-    // style: 'currency',
-    // currency: 'MGA',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(value);
+            // style: 'currency',
+            // currency: 'MGA',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+          }).format(value);
         }
       }
     },
     legend: {
-      show: false
+      show: true,
+      position: 'top',
+      horizontalAlign: 'left',
+      fontFamily: 'stara',
+      markers: {
+        width: 12,
+        height: 12,
+        radius: 6
+      }
     },
     markers: {
       size: 0,
@@ -354,8 +317,8 @@ const chartOptions = computed(() => {
         },
         xaxis: {
           labels: {
-            formatter: function(value) {
-              return new Date(value).toLocaleDateString('fr-FR', { 
+            formatter: function (value) {
+              return new Date(value).toLocaleDateString('fr-FR', {
                 month: 'short'
               });
             }
@@ -369,7 +332,7 @@ const chartOptions = computed(() => {
 // Transformer les données pour ApexCharts
 const transformData = (data) => {
   console.log('🔹 Transformation des données pour area chart:', data);
-  
+
   if (!data || data.length === 0) {
     series.value = [];
     return;
@@ -377,16 +340,16 @@ const transformData = (data) => {
 
   // Grouper les données par centre
   const centres = {};
-  
+
   data.forEach(item => {
     const centreName = item.centre;
     const date = new Date(item.mois);
     const montant = parseFloat(item.montant_brut) || parseFloat(item.montant_ventile) || 0;
-    
+
     if (!centres[centreName]) {
       centres[centreName] = [];
     }
-    
+
     centres[centreName].push({
       x: date.getTime(),
       y: montant
@@ -440,9 +403,10 @@ watch(() => props.chartData, (newData) => {
 }, { immediate: true, deep: true });
 </script>
 
-<style scoped>
-/* Le style reste identique à la version précédente */
-.loading, .error, .no-data {
+<style lang="scss" scoped>
+.loading,
+.error,
+.no-data {
   text-align: center;
   padding: 40px;
   font-size: 16px;
@@ -463,192 +427,208 @@ watch(() => props.chartData, (newData) => {
 }
 
 .evolution-chart-wrapper {
+  @include glass();
   width: 100%;
-  background-color: #fff;
-  border-radius: 12px;
+  height: 100%;
+  gap: 12px;
+  // padding: 24px;
+  border-radius: $radius-pm;
   animation: appear 0.6s ease-out forwards;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease, filter 0.3s ease-in-out;
+
+  @media (max-width: 768px) {
+    border-radius: $radius-sm;
+  }
 }
 
-.chart-container {
-  flex: 1;
-  min-width: 0;
+.evolution-chart-wrapper:hover {
+  transform: scale(1.02);
+  transition: transform 0.3s ease, filter 0.3s ease-in-out;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
+
+  @media (max-width: 768px) {
+    transform: none;
+  }
 }
 
-.graphic-wrapper {
-  padding: 1.5rem;
-  border-radius: 8px;
-}
+// .chart-container {
+//   @include position-contenus(flex, flex, center);
+//     flex-direction: column;
+//     position: relative;
+//     overflow: hidden;
+//     animation: appear 0.6s ease-out forwards;
+// }
 
-.voir {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  padding: 1rem;
-  font-family: 'stara';
-  color: #017AFF;
-  border-top: 1px solid #f1f3f4;
-  transition: all 0.3s ease;
-}
+// Style pour la version séparée
+.chart-with-separate-legend {
+  // min-width: none;
 
-.voir:hover {
-  background-color: #f8f9fa;
-}
+  transition: transform 0.3s ease, filter 0.3s ease-in-out;
+  @include position-contenus(flex, flex-start, flex-start);
 
-.legend-container {
-  width: auto;
-  height: auto;
-}
+  @media (max-width: 1024px) {
+    gap: 10px;
+  }
 
-.legend-wrapper {
-  padding: 1.5rem;
-  border-radius: 8px;
-  max-height: 400px;
-  overflow-y: auto;
-}
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 5px;
+  }
 
-.stats-summary {
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  padding: 1.25rem;
-  border-radius: 10px;
-  margin-bottom: 1.5rem;
-  border-left: 4px solid #017AFF;
-}
+  .chart-container {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 24px;
 
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-  padding: 0.5rem 0;
-}
+    @media (max-width: 768px) {
+      width: 100%;
+    }
 
-.stat-item:last-child {
-  margin-bottom: 0;
-  border-top: 1px solid #e9ecef;
-  padding-top: 0.75rem;
-  margin-top: 0.5rem;
-}
+    .graphic-wrapper {
+      min-width: 600px;
+      // padding: 12px;
+      border-radius: 8px;
 
-.stat-label {
-  font-family: 'stara';
-  font-size: 13px;
-  color: #6b7280;
-  font-weight: 500;
-}
+      @media (max-width: 768px) {
+        padding: 8px;
+      }
+    }
+  }
 
-.stat-value {
-  font-family: 'arial';
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-}
+  .legend-container {
+    width: auto;
+    height: auto;
 
-.legend-year-group {
-  margin-bottom: 1.5rem;
-}
+    // padding: 24px 0;      
+    @media (max-width: 768px) {
+      width: 100%;
+    }
 
-.legend-year-title {
-  font-family: 'stara';
-  font-size: 15px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #e9ecef;
-}
+    .legend-wrapper {
+      padding: 12px 0;
+      border-radius: 8px;
+      max-height: v-bind('legendHeight + "px"');
+      overflow-y: auto;
 
-.legend-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
+      @media (max-width: 1024px) {
+        padding: 1rem;
+      }
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  border: 1px solid transparent;
-}
+      @media (max-width: 768px) {
+        padding: 8px;
+        max-height: 250px;
+      }
 
-.legend-item:hover {
-  background-color: #f8f9fa;
-  border-color: #e9ecef;
-  transform: translateX(4px);
-}
+      .legend-title {
+        font-family: 'stara';
 
-.legend-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        color: #373d3f;
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 0.5rem;
 
-.legend-content {
-  flex: 1;
-  min-width: 0;
-}
+        @media (max-width: 768px) {
+          font-size: 14px;
+          margin-bottom: 0.75rem;
+        }
+      }
 
-.legend-label {
-  font-family: 'stara';
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.25rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+      .legend-items {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        // flex-direction: column;
+        justify-content: flex-start;
+      }
 
-.legend-values {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0 12px 0 0;
+        transition: background-color 0.2s ease;
 
-.legend-value {
-  font-family: 'arial';
-  font-size: 12px;
-  font-weight: 600;
-  color: #6b7280;
-  background: #f8f9fa;
-  padding: 2px 8px;
-  border-radius: 6px;
-}
+        @media (max-width: 480px) {
+          gap: 0.5rem;
+          padding: 0.375rem;
+        }
 
-.legend-percentage {
-  font-family: 'arial';
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 12px;
-  min-width: 70px;
-  text-align: center;
-  letter-spacing: 0.3px;
-}
+        // &:hover {
+        //     background-color: #f8f9fa;
+        // }
 
-.evolution-positive {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  color: #065f46;
-  border: 1px solid #10b981;
-}
+        .legend-color {
+          width: 12px;
+          height: 12px;
+          border-radius: $radius-pm;
+          flex-shrink: 0;
 
-.evolution-negative {
-  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-  color: #991b1b;
-  border: 1px solid #ef4444;
-}
+          @media (max-width: 480px) {
+            width: 12px;
+            height: 12px;
+          }
+        }
 
-.evolution-stable {
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-  color: #374151;
-  border: 1px solid #d1d5db;
+        .legend-content {
+          flex: 1;
+          min-width: 0;
+
+
+          .legend-label {
+            font-family: 'stara';
+            font-size: 12px;
+            font-weight: 500;
+            color: #374151;
+            // margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+            @media (max-width: 480px) {
+              font-size: 11px;
+            }
+          }
+
+          .legend-values {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+
+            @media (max-width: 480px) {
+              gap: 0.25rem;
+              flex-direction: column;
+              align-items: flex-start;
+            }
+
+            .legend-value {
+              font-family: 'arial';
+              font-size: 11px;
+              font-weight: 600;
+              color: #6b7280;
+
+              @media (max-width: 480px) {
+                font-size: 10px;
+              }
+            }
+
+            .legend-percentage {
+              font-family: 'arial';
+              font-size: 11px;
+              font-weight: 500;
+              color: #9ca3af;
+
+              @media (max-width: 480px) {
+                font-size: 10px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 .fade-enter-active,
@@ -659,13 +639,24 @@ watch(() => props.chartData, (newData) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: scale(0.9);
 }
 
 .fade-enter-to,
 .fade-leave-from {
   opacity: 1;
-  transform: translateY(0);
+  transform: scale(1);
+}
+
+// Responsive amélioré
+@media (max-width: 1024px) {
+  .chart-with-separate-legend {
+    .legend-container {
+      .legend-wrapper {
+        max-height: 180px;
+      }
+    }
+  }
 }
 
 /* Responsive */
@@ -673,30 +664,48 @@ watch(() => props.chartData, (newData) => {
   .evolution-chart-wrapper {
     flex-direction: column;
   }
-  
+
   .graphic-wrapper {
-    padding: 1rem;
+    padding: 0.5rem;
   }
-  
+
   .legend-wrapper {
     padding: 1rem;
-    max-height: 350px;
+    max-height: 150px;
   }
-  
-  .stats-summary {
-    padding: 1rem;
+
+  .voir {
+    padding: 0.75rem;
   }
-  
+}
+
+@media (max-width: 480px) {
   .legend-item {
-    padding: 0.5rem;
+    gap: 0.5rem;
+    padding: 0.375rem;
+  }
+
+  .legend-color {
+    width: 12px;
+    height: 12px;
+  }
+
+  .legend-label {
+    font-size: 11px;
+  }
+
+  .legend-value,
+  .legend-percentage {
+    font-size: 10px;
   }
 }
 
 @keyframes appear {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

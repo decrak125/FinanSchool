@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useComparaison } from '@/composables/useComparaison';
 import AnnualChart from '@/components/atoms/Chart/AnnualChart.vue';
+import Texte from '@/components/atoms/Texte.vue';
 
 // Réactifs
 const chartData = ref([]);
@@ -116,6 +117,112 @@ const getEvolutionClass = (evolution) => {
   if (evolution < 0) return 'evolution-negative';
   return 'evolution-stable';
 };
+// ------------------------------------
+
+// Computed properties
+const uniqueAnnees = computed(() => {
+  const annees = [...new Set(chartData.value.map(item => item.annee))];
+  return annees.sort((a, b) => b - a); // Tri décroissant pour avoir les années récentes en premier
+});
+
+const uniqueCentres = computed(() => {
+  const centres = [...new Set(chartData.value.map(item => item.centre))];
+  return centres.sort();
+});
+
+// Méthodes pour les données par centre et année
+const getMontantForCentreAndAnnee = (centre, annee, typeMontant) => {
+  const item = chartData.value.find(d => 
+    d.centre === centre && d.annee === annee
+  );
+  if (!item) return '-';
+  return typeMontant === 'montant_ventile' 
+    ? formatMontant(item.montant_ventile)
+    : formatMontant(item.montant_brut);
+};
+
+const getSousComptesForCentreAndAnnee = (centre, annee) => {
+  const item = chartData.value.find(d => 
+    d.centre === centre && d.annee === annee
+  );
+  return item ? item.nombre_sous_comptes : '-';
+};
+
+// Méthodes pour les totaux par année
+const getTotalForAnnee = (annee, typeMontant) => {
+  const items = chartData.value.filter(d => d.annee === annee);
+  const total = items.reduce((sum, item) => 
+    sum + (parseFloat(item[typeMontant]) || 0), 0
+  );
+  return formatMontant(total);
+};
+
+const getTotalSousComptesForAnnee = (annee) => {
+  const items = chartData.value.filter(d => d.annee === annee);
+  const total = items.reduce((sum, item) => 
+    sum + (parseInt(item.nombre_sous_comptes) || 0), 0
+  );
+  return total > 0 ? total : '-';
+};
+
+// Méthodes pour l'évolution par centre
+const getEvolutionForCentre = (centre) => {
+  const annees = uniqueAnnees.value;
+  if (annees.length < 2) return 'N/A';
+  
+  const currentYear = annees[0];
+  const previousYear = annees[1];
+  
+  const currentItem = chartData.value.find(d => d.centre === centre && d.annee === currentYear);
+  const previousItem = chartData.value.find(d => d.centre === centre && d.annee === previousYear);
+  
+  if (!currentItem || !previousItem) return 'N/A';
+  
+  const currentMontant = parseFloat(currentItem.montant_brut) || 0;
+  const previousMontant = parseFloat(previousItem.montant_brut) || 0;
+  
+  if (previousMontant === 0) return 'N/A';
+  
+  const evolution = ((currentMontant - previousMontant) / previousMontant) * 100;
+  return formatEvolution(evolution);
+};
+
+const getEvolutionClassForCentre = (centre) => {
+  const evolutionValue = getEvolutionForCentre(centre);
+  if (evolutionValue === 'N/A' || evolutionValue === 'Stable') return 'evolution-stable';
+  
+  const evolution = parseFloat(evolutionValue);
+  if (evolution > 0) return 'evolution-positive';
+  if (evolution < 0) return 'evolution-negative';
+  return 'evolution-stable';
+};
+
+// Méthodes pour l'évolution totale
+const getEvolutionForTotal = () => {
+  const annees = uniqueAnnees.value;
+  if (annees.length < 2) return 'N/A';
+  
+  const currentTotal = getTotalForAnnee(annees[0], 'montant_brut');
+  const previousTotal = getTotalForAnnee(annees[1], 'montant_brut');
+  
+  const current = parseFloat(currentTotal.replace(/[^\d.-]/g, '')) || 0;
+  const previous = parseFloat(previousTotal.replace(/[^\d.-]/g, '')) || 0;
+  
+  if (previous === 0) return 'N/A';
+  
+  const evolution = ((current - previous) / previous) * 100;
+  return formatEvolution(evolution);
+};
+
+const getEvolutionClassForTotal = () => {
+  const evolutionValue = getEvolutionForTotal();
+  if (evolutionValue === 'N/A' || evolutionValue === 'Stable') return 'evolution-stable';
+  
+  const evolution = parseFloat(evolutionValue);
+  if (evolution > 0) return 'evolution-positive';
+  if (evolution < 0) return 'evolution-negative';
+  return 'evolution-stable';
+};
 
 // Cycle de vie
 onMounted(() => {
@@ -175,7 +282,7 @@ onMounted(() => {
     </div>
 
     <!-- Statistiques de comparaison -->
-    <div class="stats-container" v-if="chartData.length > 0">
+    <!-- <div class="stats-container" v-if="chartData.length > 0">
       <div class="stat-card comparison-stat">
         <div class="stat-year">{{ filters.annee1 }}</div>
         <div class="stat-value">{{ formatMontant(totalComparaison.annee1) }}</div>
@@ -199,7 +306,7 @@ onMounted(() => {
         <div class="stat-value">{{ centresUniques.length }}</div>
         <div class="stat-label">Centres comparés</div>
       </div>
-    </div>
+    </div> -->
 
     <div class="chart-container">
       <AnnualChart 
@@ -212,50 +319,62 @@ onMounted(() => {
     </div>
 
     <!-- Tableau de données -->
-    <div class="data-table" v-if="chartData.length > 0">
-      <h3>Données détaillées de comparaison</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Centre</th>
-            <th>Année</th>
-            <th>Montant Ventilé</th>
-            <th>Montant Brut</th>
-            <th>Nombre Sous-comptes</th>
-            <th>Évolution</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in chartData" :key="`${item.centre}-${item.annee}`">
-            <td>{{ item.centre }}</td>
-            <td>{{ item.annee }}</td>
-            <td>{{ formatMontant(item.montant_ventile) }}</td>
-            <td>{{ formatMontant(item.montant_brut) }}</td>
-            <td>{{ item.nombre_sous_comptes }}</td>
-            <td>
-              <!-- CORRECTION : Passer l'évolution calculée ou 0 si non définie -->
-              <span class="evolution-badge" :class="getEvolutionClass(item.evolution || 0)">
-                {{ formatEvolution(item.evolution || 0) }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+<div class="data-table" v-if="chartData.length > 0">
+  <Texte :type="'bold-dark'" :texte="'Comparaison annuelle par centre'" />
+    <table class="table" id="axesTable">
+      <thead>
+        <tr>
+          <th class="centre-header">Centre</th>
+          <th v-for="annee in uniqueAnnees" :key="annee" colspan="3" class="annee-group-header">
+            {{ annee }}
+          </th>
+          <th class="evolution-header" rowspan="2">Évolution</th>
+        </tr>
+        <tr>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="centre in uniqueCentres" :key="centre">
+          <td class="centre-name">{{ centre }}</td>
+          <td v-for="annee in uniqueAnnees" :key="`${centre}-${annee}`" colspan="3" class="annee-data-group">
+            <div class="data-cells">
+              <span class="data-cell ventile">{{ getMontantForCentreAndAnnee(centre, annee, 'montant_ventile') }}</span>
+            </div>
+          </td>
+          <td class="evolution-cell">
+            <span class="evolution-badge" :class="getEvolutionClassForCentre(centre)">
+              {{ getEvolutionForCentre(centre) }}
+            </span>
+          </td>
+        </tr>
+        <tr class="total-row">
+          <td class="total-label">Total</td>
+          <td v-for="annee in uniqueAnnees" :key="`total-${annee}`" colspan="3" class="total-data-group">
+            <div class="data-cells">
+              <span class="data-cell ventile">{{ getTotalForAnnee(annee, 'montant_ventile') }}</span>
+            </div>
+          </td>
+          <td class="evolution-total">
+            <span class="evolution-badge" :class="getEvolutionClassForTotal()">
+              {{ getEvolutionForTotal() }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
+</div>
 </template>
 
 <!-- Le reste du style reste inchangé -->
-<style scoped>
+<style lang="scss" scoped>
 .comparaison-annuelle {
-  padding: 20px;
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
 }
 
 .filters-container {
-  background: #f5f5f5;
-  padding: 20px;
+  width: 100%;
   border-radius: 8px;
   margin-bottom: 30px;
 }
@@ -362,6 +481,63 @@ onMounted(() => {
   background-color: #f3f4f6;
   color: #374151;
 }
+  #axesTable {
+opacity: 0;
+    transform: translateY(-1px);
+    animation: slideInDown 0.5s ease-out forwards;
+    thead tr:first-child{
+        background: transparent;
+        backdrop-filter: blur(50px);
+        position: sticky;
+        top: 0;
+        z-index: 99;
+    }
+    th{
+        background: fixed transparent;
+        color: $primary;
+        font-family: $stara-black;
+        font-size: 12px;
+        text-align:start;
+        // z-index: 99;
+        padding: 24px 0px;
+        @media (max-width: $mobile) {
+            font-size: 14px;
+            padding: 12px 8px;
+        }
+    }
+    tr:hover{
+        background-color: transparent;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+    }
+    tr{
+        transition: all 0.3s ease-in-out;
+    }
+    
+    tr td:last-child,
+    tr th:last-child {
+        text-align:center;
+    }
+    
+    td{
+        padding: 24px 0px;
+        animation: appear 0.6s ease-out forwards;
+        font-size: 12px;
+        @media (max-width: $mobile) {
+            font-size: 13px;
+            padding: 10px 8px;
+        }
+    }
+    
+    background: fixed;
+    font-family: $stara-medium;
+    border-radius: $radius-pm;
+    color: $dark;
+    
+    @media (max-width: $mobile) {
+        border-radius: $radius-sm;
+        font-size: 14px;
+    }}
 
 .stat-label {
   font-size: 14px;
@@ -370,42 +546,18 @@ onMounted(() => {
 }
 
 .chart-container {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  width: 100%;
   margin-bottom: 30px;
 }
 
 .data-table {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  padding: 18px;
+  gap: 8px;
+  @include glass();
+  border-radius: $radius-pm;
   overflow-x: auto;
 }
 
-.data-table table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 800px;
-}
-
-.data-table th,
-.data-table td {
-  padding: 12px;
-  text-align: left;
-  border-bottom: 1px solid #ddd;
-}
-
-.data-table th {
-  background: #f8f9fa;
-  font-weight: bold;
-}
-
-.data-table tr:hover {
-  background: #f5f5f5;
-}
 
 .evolution-badge {
   padding: 4px 8px;

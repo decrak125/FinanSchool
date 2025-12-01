@@ -6,46 +6,14 @@
         Aucune donnée disponible pour les filtres sélectionnés
       </div>
       <div v-else class="cout-profit-chart-wrapper">
+            <div class="chart-with-separate-legend">
         <div class="chart-container">
-          <div class="graphic-wrapper">
-            <apexchart
-              type="area"
-              :height="height"
-              :options="chartOptions"
-              :series="series"
-            ></apexchart>
-          </div>
-          <div class="voir" @click="showDetails = !showDetails">
-            <i class="bi bi-eye"></i>
-            <p v-if="!showDetails">Voir les détails</p>
-            <p v-if="showDetails">Masquer les détails</p>
-          </div>
+          <div class="table-title">
+              <Texte :type="'bold-dark'" :texte="'Évolution Coûts vs Profits'" />
         </div>
-        
-        <transition name="fade">
+        <!-- <transition name="fade">
           <div class="legend-container" v-if="showDetails">
             <div class="legend-wrapper">
-              <!-- Statistiques globales -->
-              <div class="stats-summary">
-                <div class="stat-item">
-                  <span class="stat-label">Période :</span>
-                  <span class="stat-value">{{ periodRange }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Types analysés :</span>
-                  <span class="stat-value">{{ typesCount }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Marge moyenne :</span>
-                  <span class="stat-value" :class="getMargeClass(averageMarge)">
-                    {{ formatPourcentage(averageMarge) }}
-                  </span>
-                </div>
-              </div>
-  
-              <!-- Légende des séries -->
-              <div class="legend-year-group">
-                <div class="legend-year-title">Séries du Graphique</div>
                 <div class="legend-items">
                   <div class="legend-item">
                     <div class="legend-color" style="background-color: #00D4AA"></div>
@@ -77,10 +45,49 @@
                     </div>
                   </div>
                 </div>
+                </div>
               </div>
+        </transition> -->
+          <div class="graphic-wrapper">
+            <apexchart
+              type="area"
+              :height="height"
+              :options="chartOptions"
+              :series="series"
+            ></apexchart>
+          </div>
+          <!-- <div class="voir" @click="showDetails = !showDetails">
+            <i class="bi bi-eye"></i>
+            <p v-if="!showDetails">Voir les détails</p>
+            <p v-if="showDetails">Masquer les détails</p>
+          </div> -->
+        </div>
+        
+        <!-- <transition name="fade">
+          <div class="legend-container" v-if="showDetails">
+            <div class="legend-wrapper"> -->
+              <!-- Statistiques globales -->
+              <!-- <div class="stats-summary">
+                <div class="stat-item">
+                  <span class="stat-label">Période :</span>
+                  <span class="stat-value">{{ periodRange }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Types analysés :</span>
+                  <span class="stat-value">{{ typesCount }}</span>
+                </div>
+                <div class="stat-item">
+                  <span class="stat-label">Marge moyenne :</span>
+                  <span class="stat-value" :class="getMargeClass(averageMarge)">
+                    {{ formatPourcentage(averageMarge) }}
+                  </span>
+                </div>
+              </div> -->
+  
+              <!-- Légende des séries -->
   
               <!-- Détails par type -->
-              <div class="legend-year-group" v-if="detailedData.length > 0">
+              <!-- <div class="legend-year-group" v-if="detailedData.length > 0">
                 <div class="legend-year-title">Analyse par Type</div>
                 <div class="type-details">
                   <div v-for="item in detailedData" :key="'detail-' + item.id_type" class="type-detail-item">
@@ -108,17 +115,19 @@
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </div> -->
+            <!-- </div>
           </div>
-        </transition>
+        </transition> -->
+      </div>
       </div>
     </div>
   </template>
   
   <script setup>
   import { ref, computed, watch } from 'vue';
-  
+  import Texte from '@/components/atoms/Texte.vue';
+
   const props = defineProps({
     chartData: {
       type: Array,
@@ -134,7 +143,7 @@
     },
     height: {
       type: Number,
-      default: 400
+      default: 298
     }
   });
   
@@ -237,16 +246,16 @@
           stops: [0, 90, 100]
         }
       },
-      title: {
-        text: 'Évolution Coûts vs Profits',
-        align: 'center',
-        style: {
-          fontFamily: 'stara',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          color: '#2c3e50'
-        }
-      },
+      // title: {
+      //   text: 'Évolution Coûts vs Profits',
+      //   align: 'center',
+      //   style: {
+      //     fontFamily: 'stara',
+      //     fontSize: '18px',
+      //     fontWeight: 'bold',
+      //     color: '#2c3e50'
+      //   }
+      // },
       xaxis: {
         type: 'datetime',
         labels: {
@@ -324,7 +333,7 @@
       legend: {
         show: true,
         position: 'top',
-        horizontalAlign: 'center',
+        horizontalAlign: 'left',
         fontFamily: 'stara',
         markers: {
           width: 12,
@@ -363,7 +372,8 @@
             }
           }
         }
-      }, {
+      },
+      {
         breakpoint: 480,
         options: {
           chart: {
@@ -477,343 +487,311 @@
   watch(() => props.chartData, transformData, { immediate: true, deep: true });
   </script>
   
-  <style scoped>
-  /* Les styles restent identiques à la version précédente */
-  .cout-profit-chart-wrapper {
+<style lang="scss" scoped>
+.loading,
+.error,
+.no-data {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin: 20px 0;
+  font-family: 'stara';
+}
+
+.error {
+  color: #ff0000;
+  background: #ffe6e6;
+}
+
+.no-data {
+  color: #666;
+  background: #f0f0f0;
+}
+
+.cout-profit-chart-wrapper {
+  @include glass();
     width: 100%;
-    background-color: #fff;
-    border-radius: 12px;
+    height: 100%;
+    gap: 12px;
+    // padding: 24px;
+    border-radius: $radius-pm;
     animation: appear 0.6s ease-out forwards;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-  }
-  
-  .chart-container {
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .graphic-wrapper {
-    padding: 1.5rem;
-    border-radius: 8px;
-  }
-  
-  .voir {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    padding: 1rem;
-    font-family: 'stara';
-    color: #017AFF;
-    border-top: 1px solid #f1f3f4;
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    
+    @media (max-width: 768px) {
+        border-radius: $radius-sm;
+    }
+}
+
+.cout-profit-chart-wrapper:hover {
+  transform: scale(1.02);
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
+    
+    @media (max-width: 768px) {
+        transform: none; 
+    }
+}
+
+// .chart-container {
+//   @include position-contenus(flex, flex, center);
+//     flex-direction: column;
+//     position: relative;
+//     overflow: hidden;
+//     animation: appear 0.6s ease-out forwards;
+// }
+
+// Style pour la version séparée
+.chart-with-separate-legend {
+    // min-width: none;
+    
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    @include position-contenus(flex, flex-start, flex-start);
+    
+    @media (max-width: 1024px) {
+        gap: 10px;
+    }
+    
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .chart-container {
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        padding: 24px;
+        
+        @media (max-width: 768px) {
+            width: 100%;
+        }
+
+        .graphic-wrapper {
+            min-width: 600px;
+            // padding: 12px;
+            border-radius: 8px;
+            
+            @media (max-width: 768px) {
+                padding: 8px;
+            }
+        }
+    }
+
+    .legend-container {
+        width: auto;
+        height: auto;  
+        // padding: 24px 0;      
+        @media (max-width: 768px) {
+            width: 100%;
+        }
+        
+        .legend-wrapper {
+            padding: 12px 0;
+            border-radius: 8px;
+            max-height: v-bind('legendHeight + "px"');
+            overflow-y: auto;
+            
+            @media (max-width: 1024px) {
+                padding: 1rem;
+            }
+            
+            @media (max-width: 768px) {
+                padding: 8px;
+                max-height: 250px;
+            }
+
+            .legend-title {
+                font-family: 'stara';
+                
+                font-size: 16px;
+                font-weight: bold;
+                margin-bottom: 1rem;
+                color: #373d3f;
+                border-bottom: 1px solid #e5e7eb;
+                padding-bottom: 0.5rem;
+                
+                @media (max-width: 768px) {
+                    font-size: 14px;
+                    margin-bottom: 0.75rem;
+                }
+            }
+
+            .legend-items {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                // flex-direction: column;
+                justify-content: flex-start;
+            }
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0 12px 0 0;
+                transition: background-color 0.2s ease;
+                
+                @media (max-width: 480px) {
+                    gap: 0.5rem;
+                    padding: 0.375rem;
+                }
+
+                // &:hover {
+                //     background-color: #f8f9fa;
+                // }
+
+                .legend-color {
+                    width: 12px;
+                    height: 12px;
+                    border-radius: $radius-pm;
+                    flex-shrink: 0;
+                    
+                    @media (max-width: 480px) {
+                        width: 12px;
+                        height: 12px;
+                    }
+                }
+
+                .legend-content {
+                    flex: 1;
+                    min-width: 0;
+                    
+
+                    .legend-label {
+                        font-family: 'stara';
+                        font-size: 12px;
+                        font-weight: 500;
+                        color: #374151;
+                        // margin-bottom: 0.25rem;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        
+                        @media (max-width: 480px) {
+                            font-size: 11px;
+                        }
+                    }
+
+                    .legend-values {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        
+                        @media (max-width: 480px) {
+                            gap: 0.25rem;
+                            flex-direction: column;
+                            align-items: flex-start;
+                        }
+
+                        .legend-value {
+                            font-family: 'arial';
+                            font-size: 11px;
+                            font-weight: 600;
+                            color: #6b7280;
+                            
+                            @media (max-width: 480px) {
+                                font-size: 10px;
+                            }
+                        }
+
+                        .legend-percentage {
+                            font-family: 'arial';
+                            font-size: 11px;
+                            font-weight: 500;
+                            color: #9ca3af;
+                            
+                            @media (max-width: 480px) {
+                                font-size: 10px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+.fade-enter-active,
+.fade-leave-active {
     transition: all 0.3s ease;
-  }
-  
-  .voir:hover {
-    background-color: #f8f9fa;
-  }
-  
-  .legend-container {
-    width: auto;
-    height: auto;
-  }
-  
-  .legend-wrapper {
-    padding: 1.5rem;
-    border-radius: 8px;
-    max-height: 500px;
-    overflow-y: auto;
-  }
-  
-  .stats-summary {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    padding: 1.25rem;
-    border-radius: 10px;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #017AFF;
-  }
-  
-  .stat-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-    padding: 0.5rem 0;
-  }
-  
-  .stat-item:last-child {
-    margin-bottom: 0;
-    border-top: 1px solid #e9ecef;
-    padding-top: 0.75rem;
-    margin-top: 0.5rem;
-  }
-  
-  .stat-label {
-    font-family: 'stara';
-    font-size: 13px;
-    color: #6b7280;
-    font-weight: 500;
-  }
-  
-  .stat-value {
-    font-family: 'arial';
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
-  }
-  
-  .legend-year-group {
-    margin-bottom: 1.5rem;
-  }
-  
-  .legend-year-title {
-    font-family: 'stara';
-    font-size: 15px;
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
-    border-bottom: 2px solid #e9ecef;
-  }
-  
-  .legend-items {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    border: 1px solid transparent;
-  }
-  
-  .legend-item:hover {
-    background-color: #f8f9fa;
-    border-color: #e9ecef;
-    transform: translateX(4px);
-  }
-  
-  .legend-color {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    flex-shrink: 0;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  
-  .legend-content {
-    flex: 1;
-    min-width: 0;
-  }
-  
-  .legend-label {
-    font-family: 'stara';
-    font-size: 13px;
-    font-weight: 600;
-    color: #374151;
-    margin-bottom: 0.25rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  
-  .legend-values {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  
-  .legend-value {
-    font-family: 'arial';
-    font-size: 12px;
-    font-weight: 600;
-    color: #6b7280;
-    background: #f8f9fa;
-    padding: 2px 8px;
-    border-radius: 6px;
-  }
-  
-  .positive {
-    color: #00D4AA;
-    font-weight: bold;
-  }
-  
-  .negative {
-    color: #F34971;
-    font-weight: bold;
-  }
-  
-  /* Classes pour les marges */
-  .marge-excellente {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    color: #065f46;
-    border: 1px solid #10b981;
-  }
-  
-  .marge-bonne {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    color: #92400e;
-    border: 1px solid #f59e0b;
-  }
-  
-  .marge-faible {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    color: #92400e;
-    border: 1px solid #f59e0b;
-  }
-  
-  .marge-negative {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-    color: #991b1b;
-    border: 1px solid #ef4444;
-  }
-  
-  .marge-stable {
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-    color: #374151;
-    border: 1px solid #d1d5db;
-  }
-  
-  /* Détails par type */
-  .type-details {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .type-detail-item {
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  }
-  
-  .type-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid #f1f3f4;
-  }
-  
-  .type-badge {
-    background: #017AFF;
-    color: white;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: bold;
-  }
-  
-  .marge-badge {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 11px;
-    font-weight: bold;
-  }
-  
-  .type-stats {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-  
-  .stat-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.25rem 0;
-    font-size: 13px;
-  }
-  
-  .stat-row.highlight {
-    border-top: 1px solid #e5e7eb;
-    padding-top: 0.5rem;
-    margin-top: 0.25rem;
-    font-weight: 600;
-  }
-  
-  .loading, .error, .no-data {
-    text-align: center;
-    padding: 40px;
-    font-size: 16px;
-    background: #f9f9f9;
-    border-radius: 8px;
-    margin: 20px 0;
-    font-family: 'stara';
-  }
-  
-  .error {
-    color: #ff0000;
-    background: #ffe6e6;
-  }
-  
-  .no-data {
-    color: #666;
-    background: #f0f0f0;
-  }
-  
-  .fade-enter-active,
-  .fade-leave-active {
-    transition: all 0.3s ease;
-  }
-  
-  .fade-enter-from,
-  .fade-leave-to {
+}
+
+.fade-enter-from,
+.fade-leave-to {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: scale(0.9);
+}
+
+.fade-enter-to,
+.fade-leave-from {
+    opacity: 1;
+    transform: scale(1);
+}
+
+// Responsive amélioré
+@media (max-width: 1024px) {
+    .chart-with-separate-legend {
+        .legend-container {
+            .legend-wrapper {
+                max-height: 180px;
+            }
+        }
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cout-profit-chart-wrapper {
+    flex-direction: column;
   }
-  
-  .fade-enter-to,
-  .fade-leave-from {
+
+  .graphic-wrapper {
+    padding: 0.5rem;
+  }
+
+  .legend-wrapper {
+    padding: 1rem;
+    max-height: 150px;
+  }
+
+  .voir {
+    padding: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .legend-item {
+    gap: 0.5rem;
+    padding: 0.375rem;
+  }
+
+  .legend-color {
+    width: 12px;
+    height: 12px;
+  }
+
+  .legend-label {
+    font-size: 11px;
+  }
+
+  .legend-value,
+  .legend-percentage {
+    font-size: 10px;
+  }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
     opacity: 1;
     transform: translateY(0);
   }
-  
-  /* Responsive */
-  @media (max-width: 768px) {
-    .cout-profit-chart-wrapper {
-      flex-direction: column;
-    }
-    
-    .graphic-wrapper {
-      padding: 1rem;
-    }
-    
-    .legend-wrapper {
-      padding: 1rem;
-      max-height: 400px;
-    }
-    
-    .stats-summary {
-      padding: 1rem;
-    }
-    
-    .legend-item {
-      padding: 0.5rem;
-    }
-    
-    .type-detail-item {
-      padding: 0.75rem;
-    }
-  }
-  
-  @keyframes appear {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  </style>
+}
+</style>

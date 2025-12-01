@@ -6,41 +6,45 @@
       Aucune donnée disponible pour les filtres sélectionnés
     </div>
     <div v-else class="column-chart-wrapper">
+    <div class="chart-with-separate-legend">
+    <transition name="fade">
       <div class="chart-container">
-        <div class="graphic-wrapper">
-          <apexchart type="bar" :height="height" :options="chartOptions" :series="series"></apexchart>
+        <div class="table-title">
+              <Texte :type="'bold-dark'" :texte="'Analyse Trimestrielle par Centre'" />
         </div>
-        <div class="voir" @click="showDetails = !showDetails">
-          <i class="bi bi-eye"></i>
-          <p v-if="!showDetails">Voir les détails</p>
-          <p v-if="showDetails">Masquer les détails</p>
-        </div>
-      </div>
-
-      <transition name="fade">
-        <div class="legend-container" v-if="showDetails">
+        <!-- <transition name="fade">
+          <div class="legend-container" v-if="showDetails">
           <div class="legend-wrapper">
             <div class="legend-items">
               <div v-for="(serie, index) in series" :key="index" class="legend-item">
                 <div class="legend-color" :style="{ backgroundColor: getColor(index) }"></div>
                 <div class="legend-content">
                   <div class="legend-label">{{ serie.name }}</div>
-                  <div class="legend-values">
-                    <span class="legend-value">{{ formatTotal(serie.data) }}</span>
-                    <span class="legend-percentage">({{ calculatePercentage(serie.data) }}%)</span>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        </transition> -->
+        <div class="graphic-wrapper">
+          <apexchart type="bar" :height="height" :options="chartOptions" :series="series"></apexchart>
+        </div>
+        <!-- <div class="voir" @click="showDetails = !showDetails">
+          <i class="bi bi-eye"></i>
+          <p v-if="!showDetails">Voir les détails</p>
+          <p v-if="showDetails">Masquer les détails</p>
+        </div> -->
+        
+      </div>
       </transition>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, watch, computed } from 'vue';
+import Texte from '@/components/atoms/Texte.vue';
 
 const props = defineProps({
   chartData: {
@@ -57,7 +61,7 @@ const props = defineProps({
   },
   height: {
     type: Number,
-    default: 400
+    default: 298
   },
   colors: {
     type: Array,
@@ -75,7 +79,7 @@ const chartOptions = computed(() => {
       height: props.height,
       stacked: false,
       toolbar: {
-        show: false
+        show: true
       },
       animations: {
         enabled: true,
@@ -103,16 +107,16 @@ const chartOptions = computed(() => {
       width: 2,
       colors: ['transparent']
     },
-    title: {
-      text: 'Analyse Trimestrielle par Centre',
-      align: 'center',
-      style: {
-        fontFamily: 'stara',
-        fontSize: '16px',
-        fontWeight: 'bold',
-        color: '#373d3f'
-      }
-    },
+    // title: {
+    //   text: 'Analyse Trimestrielle par Centre',
+    //   align: 'center',
+    //   style: {
+    //     fontFamily: 'stara',
+    //     fontSize: '16px',
+    //     fontWeight: 'bold',
+    //     color: '#373d3f'
+    //   }
+    // },
     xaxis: {
       categories: ['T1', 'T2', 'T3', 'T4'],
       title: {
@@ -173,7 +177,15 @@ const chartOptions = computed(() => {
       }
     },
     legend: {
-      show: false
+      show: true,
+      position: 'top',
+      horizontalAlign: 'left',
+      fontFamily: 'stara',
+      markers: {
+        width: 12,
+        height: 12,
+        radius: 6
+      }
     },
     grid: {
       borderColor: '#e5e7eb',
@@ -269,7 +281,7 @@ watch(() => props.chartData, (newData) => {
 }, { immediate: true, deep: true });
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .loading,
 .error,
 .no-data {
@@ -291,143 +303,239 @@ watch(() => props.chartData, (newData) => {
   color: #666;
   background: #f0f0f0;
 }
-
+.apexcharts-bar-series .apexcharts-legend-marker {
+  border-radius: 50% !important;
+}
 .column-chart-wrapper {
-  width: 100%;
-  background-color: #fff;
-  border-radius: 8px;
-  animation: appear 0.6s ease-out forwards;
-  transition: transform 0.3s ease, filter 0.3s ease-in-out;
+  @include glass();
+    width: 100%;
+    height: 100%;
+    gap: 12px;
+    // padding: 24px;
+    border-radius: $radius-pm;
+    animation: appear 0.6s ease-out forwards;
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    
+    @media (max-width: 768px) {
+        border-radius: $radius-sm;
+    }
 }
 
 .column-chart-wrapper:hover {
   transform: scale(1.02);
-  transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
+    
+    @media (max-width: 768px) {
+        transform: none; 
+    }
 }
 
-.chart-container {
-  flex: 1;
-  min-width: 0;
-}
+// .chart-container {
+//   @include position-contenus(flex, flex, center);
+//     flex-direction: column;
+//     position: relative;
+//     overflow: hidden;
+//     animation: appear 0.6s ease-out forwards;
+// }
 
-.graphic-wrapper {
-  padding: 1rem;
-  border-radius: 8px;
-}
+// Style pour la version séparée
+.chart-with-separate-legend {
+    // min-width: none;
+    
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    @include position-contenus(flex, flex-start, flex-start);
+    
+    @media (max-width: 1024px) {
+        gap: 10px;
+    }
+    
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 5px;
+    }
 
-.voir {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  padding: 1rem;
-  font-family: 'stara';
-  color: #017AFF;
-  transition: transform 0.3s ease, filter 0.3s ease-in-out;
-}
+    .chart-container {
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        padding: 24px;
+        
+        @media (max-width: 768px) {
+            width: 100%;
+        }
 
-.voir:hover {
-  transform: scale(1.02);
-}
+        .graphic-wrapper {
+            min-width: 600px;
+            // padding: 12px;
+            border-radius: 8px;
+            
+            @media (max-width: 768px) {
+                padding: 8px;
+            }
+        }
+    }
 
-.voir p {
-  margin: 0;
-  font-weight: 500;
-}
+    .legend-container {
+        width: auto;
+        height: auto;  
+        // padding: 24px 0;      
+        @media (max-width: 768px) {
+            width: 100%;
+        }
+        
+        .legend-wrapper {
+            padding: 12px 0;
+            border-radius: 8px;
+            max-height: v-bind('legendHeight + "px"');
+            overflow-y: auto;
+            
+            @media (max-width: 1024px) {
+                padding: 1rem;
+            }
+            
+            @media (max-width: 768px) {
+                padding: 8px;
+                max-height: 250px;
+            }
 
-.voir i {
-  font-size: 18px;
-}
+            .legend-title {
+                font-family: 'stara';
+                
+                font-size: 16px;
+                font-weight: bold;
+                margin-bottom: 1rem;
+                color: #373d3f;
+                border-bottom: 1px solid #e5e7eb;
+                padding-bottom: 0.5rem;
+                
+                @media (max-width: 768px) {
+                    font-size: 14px;
+                    margin-bottom: 0.75rem;
+                }
+            }
 
-.legend-container {
-  width: auto;
-  height: auto;
-}
+            .legend-items {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                // flex-direction: column;
+                justify-content: flex-start;
+            }
 
-.legend-wrapper {
-  padding: 1.5rem;
-  border-radius: 8px;
-  max-height: 200px;
-  overflow-y: auto;
-}
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                padding: 0 12px 0 0;
+                transition: background-color 0.2s ease;
+                
+                @media (max-width: 480px) {
+                    gap: 0.5rem;
+                    padding: 0.375rem;
+                }
 
-.legend-items {
-  display: flex;
-  flex-direction: column;
-}
+                // &:hover {
+                //     background-color: #f8f9fa;
+                // }
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-}
+                .legend-color {
+                    width: 12px;
+                    height: 12px;
+                    border-radius: $radius-pm;
+                    flex-shrink: 0;
+                    
+                    @media (max-width: 480px) {
+                        width: 12px;
+                        height: 12px;
+                    }
+                }
 
-.legend-item:hover {
-  background-color: #f8f9fa;
-}
+                .legend-content {
+                    flex: 1;
+                    min-width: 0;
+                    
 
-.legend-color {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  flex-shrink: 0;
-}
+                    .legend-label {
+                        font-family: 'stara';
+                        font-size: 12px;
+                        font-weight: 500;
+                        color: #374151;
+                        // margin-bottom: 0.25rem;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                        
+                        @media (max-width: 480px) {
+                            font-size: 11px;
+                        }
+                    }
 
-.legend-content {
-  flex: 1;
-  min-width: 0;
-}
+                    .legend-values {
+                        display: flex;
+                        align-items: center;
+                        gap: 0.5rem;
+                        
+                        @media (max-width: 480px) {
+                            gap: 0.25rem;
+                            flex-direction: column;
+                            align-items: flex-start;
+                        }
 
-.legend-label {
-  font-family: 'stara';
-  font-size: 12px;
-  font-weight: 500;
-  color: #374151;
-  margin-bottom: 0.25rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+                        .legend-value {
+                            font-family: 'arial';
+                            font-size: 11px;
+                            font-weight: 600;
+                            color: #6b7280;
+                            
+                            @media (max-width: 480px) {
+                                font-size: 10px;
+                            }
+                        }
 
-.legend-values {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.legend-value {
-  font-family: 'arial';
-  font-size: 11px;
-  font-weight: 600;
-  color: #6b7280;
-}
-
-.legend-percentage {
-  font-family: 'arial';
-  font-size: 11px;
-  font-weight: 500;
-  color: #9ca3af;
+                        .legend-percentage {
+                            font-family: 'arial';
+                            font-size: 11px;
+                            font-weight: 500;
+                            color: #9ca3af;
+                            
+                            @media (max-width: 480px) {
+                                font-size: 10px;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .fade-enter-from,
 .fade-leave-to {
-  opacity: 0;
-  transform: scale(0.9);
+    opacity: 0;
+    transform: scale(0.9);
 }
 
 .fade-enter-to,
 .fade-leave-from {
-  opacity: 1;
-  transform: scale(1);
+    opacity: 1;
+    transform: scale(1);
+}
+
+// Responsive amélioré
+@media (max-width: 1024px) {
+    .chart-with-separate-legend {
+        .legend-container {
+            .legend-wrapper {
+                max-height: 180px;
+            }
+        }
+    }
 }
 
 /* Responsive */

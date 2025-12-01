@@ -4,101 +4,133 @@ import LoadingText from "../Loading-text.vue";
 import Texte from "../Texte.vue";
 
 const props = defineProps({
-  depenses: {
-    type: Array,
-    required: true
-  },
-  texte: {
-    type: String,
-    required: true
-  },
-  ready: {
-    type: Boolean,
-    default: true
-  }
+  depenses: { type: Array, required: true },
+  texte: { type: String, required: true },
+  ready: { type: Boolean, default: true }
 });
-const first = computed(() => props.depenses[0]);
+
+
+
+
+// Fonction pourcentage
+const getPourcentage = (val) => {
+  if (total.value === 0) return 0;
+  return (val / total.value) * 100;
+};
+
 const topThree = computed(() => props.depenses.slice(0, 3));
-const others = computed(() => props.depenses.slice(3,5));
+const others = computed(() => props.depenses.slice(3, 5));
+// Total de tous les montants
+
+const total = computed(() => {
+  const merged = [...topThree.value, ...others.value];
+  return merged.reduce((acc, d) => acc + Number(d.montant_ventile || 0), 0);
+});
 // Formateur de montants
 const formatMontant = (val) => {
-    return new Intl.NumberFormat("mg-MG", {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    }).format(val);
-  };
+  return new Intl.NumberFormat("mg-MG", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(val);
+};
 </script>
 
 <template>
-    <div class="leaderboard-card" v-if="ready">
-      <!-- Titre -->
-      <div class="table-title">
+  <div class="leaderboard-card" v-if="ready">
+
+    <!-- Titre -->
+    <div class="table-title">
       <Texte :type="'bold-dark'" :texte="texte" />
-      </div>
-      <!-- Top 3 -->
-      <!-- Autres classements -->
-      <ul class="ranking-list">
-        <li v-for="(item, index) in topThree"
-          :key="index" class="ranking-item">
-          <div class="ranking-left">
-            <span class="rank-number">{{ index + 1 }}</span>
-            <div>
-              <div class="name">{{ item.libelle_sous_compte }}</div>
-              <div class="amount">{{ formatMontant(item.montant_ventile) }}</div>
-            </div>
-          </div>
-        </li>
-        <li v-for="(item, index) in others" :key="index" class="ranking-item">
-          <div class="ranking-left">
-            <span class="rank-number">{{ index + 4 }}</span>
-            <div>
-              <div class="name">{{ item.libelle_sous_compte }}</div>
-              <div class="amount">{{ formatMontant(item.montant_ventile) }}</div>
-            </div>
-          </div>
-          <div class="ranking-icon">
-          </div>
-        </li>
-      </ul>
     </div>
-        <div class="leaderboard-card" v-if="!ready">
-      <!-- Titre -->
-      <h2 class="leaderboard-title">
-        <LoadingText :type="'line-1'" />
-        <LoadingText :type="'line-3'" />
-      </h2>
 
-      <!-- Top 3 -->
-      <div class="top-three">
-        <div
-          v-for="(item, index) in topThree"
-          :key="index"
-          class="top-item"
-          :class="'rank-' + index"
-        >
+    <ul class="ranking-list">
+
+      <!-- TOP 3 -->
+      <li v-for="(item, index) in topThree"
+          :key="'top-' + index"
+          class="ranking-item">
+
+        <div class="ranking-left">
+          <span class="rank-number">{{ index + 1 }}</span>
+          <div>
+            <div class="name">{{ item.libelle_sous_compte }}</div>
+            <div class="amount">{{ formatMontant(item.montant_ventile) }}</div>
+
+            <!-- JAUGE -->
+            <div class="progress-bar">
+              <div class="progress-fill"
+                :style="{ width: getPourcentage(item.montant_ventile) + '%' }">
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-      <!-- Autres classements -->
-      <ul class="ranking-list">
-        <li v-for="(item, index) in others" :key="index" class="ranking-item">
-          <div class="ranking-left">
-            <span class="rank-number">{{ index + 4 }}</span>
-            <div>
-              <div class="name"><LoadingText :type="'line-3'" /></div>
-              <div class="amount"><LoadingText :type="'line-1'" /></div>
+
+      </li>
+
+      <!-- AUTRES -->
+      <li v-for="(item, index) in others"
+          :key="'other-' + index"
+          class="ranking-item">
+
+        <div class="ranking-left">
+          <span class="rank-number">{{ index + 4 }}</span>
+          <div>
+            <div class="name">{{ item.libelle_sous_compte }}</div>
+            <div class="amount">{{ formatMontant(item.montant_ventile) }}</div>
+
+            <!-- JAUGE -->
+            <div class="progress-bar">
+              <div class="progress-fill"
+                :style="{ width:getPourcentage(item.montant_ventile) + '%' }">
+              </div>
             </div>
           </div>
-          <div class="ranking-icon">
-          </div>
-        </li>
-      </ul>
-    </div>
+        </div>
 
+      </li>
+
+    </ul>
+  </div>
+
+  <!-- LOADING -->
+  <div class="leaderboard-card" v-else>
+    <h2 class="leaderboard-title">
+      <LoadingText type="line-1" />
+      <LoadingText type="line-3" />
+    </h2>
+
+    <ul class="ranking-list">
+      <li v-for="n in 5" :key="n" class="ranking-item">
+        <div class="ranking-left">
+          <span class="rank-number">{{ n }}</span>
+          <div>
+            <div class="name"><LoadingText type="line-3" /></div>
+            <div class="amount"><LoadingText type="line-1" /></div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
 </template>
 
 
 <style lang="scss" scoped>
 /* --- Layout global --- */
+.progress-bar {
+  width: 250px;
+  height: 6px;
+  background: $light;
+  border-radius: 6px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1b6bff, #1cb7ff);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
 
 .table-title {
   padding: 12px
@@ -107,7 +139,7 @@ const formatMontant = (val) => {
   @include glass();
   border-radius: $radius-pm;
     padding: 18px;
-  width: 520px;
+  width:100%;
   // width: 100%;
   height: 100%;
   transition: transform 0.3s ease, filter 0.3s ease-in-out;
@@ -235,11 +267,13 @@ const formatMontant = (val) => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 0;
+  width: 100%;
   height: 68px;
   border-bottom: 1px solid #eee;
 }
 
 .ranking-left {
+  width: 100%;
   display: flex;
   align-items: center;
   gap: 24px;
