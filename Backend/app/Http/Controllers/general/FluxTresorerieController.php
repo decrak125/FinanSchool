@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\general;
 
 use Illuminate\Http\Request;
@@ -8,7 +9,7 @@ use DateTime;
 class FluxTresorerieController extends Controller
 {
     /**
-     * Tableau des flux de trésorerie - Méthode INDIRECTE (PCG Madagascar 2005)
+     * Tableau des flux de trésorerie – Méthode INDIRECTE (PCG Madagascar 2005)
      */
     public function index(Request $request)
     {
@@ -16,144 +17,175 @@ class FluxTresorerieController extends Controller
             'date_debut' => 'required|date',
             'date_fin'   => 'required|date|after_or_equal:date_debut',
         ]);
+
         $dateDebut = $request->date_debut;
         $dateFin   = $request->date_fin;
-
-        $get = function ($code, $dStart, $dEnd) {
-            $resultat = \App\Http\Controllers\calcul\UtilesController::calculerSommeCategorie($code, $dStart, $dEnd);
-            return $resultat && $resultat->montant_total ? floatval($resultat->montant_total) : 0;
-        };
-
-        $getVariation = function ($code, $dStart, $dEnd) {
-            $variation = \App\Http\Controllers\calcul\UtilesController::calculerVariationCategorie($code, $dStart, $dEnd);
-            return $variation !== null ? floatval($variation) : 0;
-        };
-
-        // Helper calcul du solde
-        $getSoldeTresorerie = function($date) use ($get) {
-            return $get('TRESO', $date, $date)
-                 + $get('PLACEMENTS', $date, $date)
-                 + $get('TRESOFONDS', $date, $date);
-        };
-
         $dateFinN1 = (new DateTime($dateDebut))->modify('-1 day')->format('Y-m-d');
 
-        // ==== Calculs de base par catégorie PCG (aucun zéro arbitraire) ====
+        $get = function ($code, $dStart, $dEnd) {
+            $r = \App\Http\Controllers\calcul\UtilesController::calculerSommeCategorie($code, $dStart, $dEnd);
+            return $r && $r->montant_total ? floatval($r->montant_total) : 0;
+        };
 
-        // Résultat et soldes du compte de résultat
-        $produitsExploitation = $get('CA', $dateDebut, $dateFin)
-                             + $get('PRODSTOCK', $dateDebut, $dateFin)
-                             + $get('PRODIMMO', $dateDebut, $dateFin)
-                             + $get('SUBVENT', $dateDebut, $dateFin)
-                             + $get('AUTPRODOP', $dateDebut, $dateFin);
-        $chargesExploitation  = $get('ACHATCONSOM', $dateDebut, $dateFin)
-                             + $get('SERVEXT', $dateDebut, $dateFin)
-                             + $get('IMPTAX', $dateDebut, $dateFin)
-                             + $get('CHPERS', $dateDebut, $dateFin)
-                             + $get('AUTCHOP', $dateDebut, $dateFin);
-        
-        $dotAmort = $get('AMORTPROV', $dateDebut, $dateFin);
-        $prodFin = $get('PRODFIN', $dateDebut, $dateFin);
-        $prodExcept = $get('PRODEXCEPT', $dateDebut, $dateFin);
-        $reprises = $get('REPRISEPROV', $dateDebut, $dateFin);
-        $chargeFin = $get('CHARGEFIN', $dateDebut, $dateFin);
-        $charExcept = $get('CHAREXCEPT', $dateDebut, $dateFin);
-        $impot = $get('IMPOT', $dateDebut, $dateFin);
+        $getVar = function ($code, $dStart, $dEnd) {
+            $v = \App\Http\Controllers\calcul\UtilesController::calculerVariationCategorie($code, $dStart, $dEnd);
+            return $v !== null ? floatval($v) : 0;
+        };
 
-        $totalProduits = $produitsExploitation + $prodFin + $prodExcept + $reprises;
-        $totalCharges  = $chargesExploitation + $chargeFin + $charExcept + $dotAmort + $impot;
+        $getSoldeTresorerie = function ($date) use ($get) {
+            return $get('TRESO',      $date, $date)   // comptes bancaires à vue
+                 + $get('PLACEMENTS',$date, $date)   // équivalents de trésorerie
+                 + $get('TRESOFONDS',$date, $date);  // caisse
+        };
+
+        /* ================= 1. RÉSULTAT NET (BASE) ================= */
+
+        // Produits d’exploitation (7)
+        $produitsExpl =
+              $get('CA',        $dateDebut, $dateFin)
+            + $get('PRODVENDU', $dateDebut, $dateFin)
+            + $get('PRODLTTERM',$dateDebut, $dateFin)
+            + $get('PRODIMMO',  $dateDebut, $dateFin)
+            + $get('SUBVENT',   $dateDebut, $dateFin)
+            + $get('AUTPRODOP', $dateDebut, $dateFin);
+
+        // Charges d’exploitation (6)
+        $chargesExpl =
+              $get('ACHATCONSOM',$dateDebut, $dateFin)
+            + $get('SERVEXT',    $dateDebut, $dateFin)
+            + $get('IMPTAX',     $dateDebut, $dateFin)
+            + $get('CHPERS',     $dateDebut, $dateFin)
+            + $get('AUTCHOP',    $dateDebut, $dateFin);
+
+        // Autres éléments
+        $dotAmort   = $get('AMORTPROV',   $dateDebut, $dateFin);  // dotations aux amort/prov/pertes
+        $reprises   = $get('REPRISEPROV', $dateDebut, $dateFin);  // reprises
+        $prodFin    = $get('PRODFIN',     $dateDebut, $dateFin);
+        $chargeFin  = $get('CHARGEFIN',   $dateDebut, $dateFin);
+        $prodExcept = $get('PRODEXCEPT',  $dateDebut, $dateFin);
+        $charExcept = $get('CHAREXCEPT',  $dateDebut, $dateFin);
+        $impotExig  = $get('IMPOT',       $dateDebut, $dateFin);
+        $impotDiff  = $get('IMPOTDIFF',   $dateDebut, $dateFin);
+
+        $totalProduits = $produitsExpl + $prodFin + $prodExcept + $reprises;
+        $totalCharges  = $chargesExpl + $chargeFin + $charExcept + $dotAmort + $impotExig + $impotDiff;
         $resultatNet   = $totalProduits - $totalCharges;
 
-        // --- Ajustements flux non décaissés, non encaissés
-        // Dotations/reprises = variat. sur AMORTPROV et REPRISEPROV
-        $dotations = $get('AMORTPROV', $dateDebut, $dateFin); 
-        $reprises  = $get('REPRISEPROV', $dateDebut, $dateFin); // à vérifier selon ta DB
+        /* ================= A. FLUX DE TRÉSORERIE LIÉS À L’ACTIVITÉ ================= */
 
-        // Variation d’impôts différés (si tu as le compte 692 ou autres)
-        $variationImpotsDifferes = $getVariation('IMPOT', $dateDebut, $dateFin); // ajuster si besoin
+        // 1) Retraitements non monétaires
+        $plusMoinsValues     = $prodExcept - $charExcept;               // plus/moins-values nettes
+        $variationImpotsDiff = $getVar('IMPOTDIFF', $dateDebut, $dateFin);
 
-        // Variations d’éléments opérationnels (classe 3,4)
-        $variationStocks = $getVariation('STOCKS', $dateDebut, $dateFin);
-        $variationClients = $getVariation('CLIENTS', $dateDebut, $dateFin)
-                          + $getVariation('AUTCREANCES', $dateDebut, $dateFin);
-        $variationFournisseurs = $getVariation('FOURN', $dateDebut, $dateFin)
-                              + $getVariation('DETTECT', $dateDebut, $dateFin)
-                              + $getVariation('AUTDETTE', $dateDebut, $dateFin);
+        // 2) Variation du BFR (stocks + créances – dettes d’exploitation)
+        $variationStocks =
+            $getVar('STOCKS', $dateDebut, $dateFin);
 
-        // Plus ou moins-values de cession nettes
-        $plusMoinsValues = ($get('PRODEXCEPT', $dateDebut, $dateFin) - $get('CHAREXCEPT', $dateDebut, $dateFin));
+        $variationCreancesExpl =
+              $getVar('CLIENTS',     $dateDebut, $dateFin)
+            + $getVar('AUTCREANCES', $dateDebut, $dateFin);
 
-        // ---- FLUX ACTIVITE
-        $fluxActivite = $resultatNet
-            + $dotations
+        $variationDettesExpl =
+              $getVar('FOURN',    $dateDebut, $dateFin)
+            + $getVar('DETTECT',  $dateDebut, $dateFin)
+            + $getVar('AUTDETTE', $dateDebut, $dateFin);
+
+        // Formule indirecte PCG:
+        // A = Résultat net
+        //   + Dotations – Reprises
+        //   − Plus/moins-values
+        //   + Variation impôts différés
+        //   − Δ Stocks − Δ Créances d’exploitation + Δ Dettes d’exploitation
+        $fluxActivite =
+              $resultatNet
+            + $dotAmort
             - $reprises
-            + $variationImpotsDifferes
-            + $variationStocks
-            + $variationClients
-            + $variationFournisseurs
-            + $plusMoinsValues;
+            - $plusMoinsValues
+            + $variationImpotsDiff
+            - $variationStocks
+            - $variationCreancesExpl
+            + $variationDettesExpl;
 
-        // ---- FLUX INVESTISSEMENT (acquisition/cession d’immobilisations)
-        $acquisImmo = $getVariation('IMMOINC', $dateDebut, $dateFin)
-                    + $getVariation('IMMOCO', $dateDebut, $dateFin)
-                    + $getVariation('IMMOCOURS', $dateDebut, $dateFin)
-                    + $getVariation('IMMOFIN', $dateDebut, $dateFin);
-        // Cession = mouvement négatif sur comptes d'immos OU via produits de cession
-        $cessionImmo = $get('PRODEXCEPT', $dateDebut, $dateFin); // à affiner (produits de cession réels...)
-        $fluxInvestissement = - abs($acquisImmo) + abs($cessionImmo);
+        /* ================= B. FLUX D’INVESTISSEMENT ================= */
 
-        // ---- FLUX FINANCEMENT
-        // Augmentation de capital & primes
-        $augmCapital    = $getVariation('CAPITAL', $dateDebut, $dateFin)
-                        + $getVariation('PRIME', $dateDebut, $dateFin);
-        // Emprunts > Variation sur 16x (emprunts) - on distingue émission/remboursement
-        $variationEmprunt = $getVariation('EMPRUNT', $dateDebut, $dateFin);
-        $emissionEmprunt = $variationEmprunt > 0 ? $variationEmprunt : 0;
+        // Variation des immobilisations (20,21,22,23,26,27 via tes catégories)
+        $variationImmo =
+              $getVar('IMMOINC',     $dateDebut, $dateFin)
+            + $getVar('IMMOCO',      $dateDebut, $dateFin)
+            + $getVar('IMMOCONCESS', $dateDebut, $dateFin)
+            + $getVar('IMMOCOURS',   $dateDebut, $dateFin)
+            + $getVar('IMMOFIN',     $dateDebut, $dateFin);
+
+        // Règle :
+        // variationImmo > 0  => acquisitions nettes => décaissement
+        // variationImmo < 0  => cessions nettes    => encaissement
+        $acquisitionsImmo  = $variationImmo > 0 ? $variationImmo : 0;
+        $cessionsImmo      = $variationImmo < 0 ? abs($variationImmo) : 0;
+
+        // Flux B = - acquisitions + cessions
+        $fluxInvestissement = -$acquisitionsImmo + $cessionsImmo;
+
+        /* ================= C. FLUX DE FINANCEMENT ================= */
+
+        // Augmentation (ou diminution) des capitaux propres en numéraire:
+        // on retient la variation de CAPITAL + RESERVES
+        $variationCapitalRes =
+              $getVar('CAPITAL',  $dateDebut, $dateFin)
+            + $getVar('RESERVES', $dateDebut, $dateFin);
+
+        // Emprunts (classe 16)
+        $variationEmprunt     = $getVar('EMPRUNT', $dateDebut, $dateFin);
+        $emissionEmprunt      = $variationEmprunt > 0 ? $variationEmprunt : 0;
         $remboursementEmprunt = $variationEmprunt < 0 ? abs($variationEmprunt) : 0;
-        // Dividendes versés = Variation sur 457 (si applicable) ou sortie trésorerie liées aux CP
-        $dividendesVerses = $get('DIVIDENDE', $dateDebut, $dateFin); // à adapter à ta structure
 
-        $fluxFinancement = $augmCapital + $emissionEmprunt - $remboursementEmprunt - $dividendesVerses;
+        // Dividendes versés (si tu as une catégorie DIVIDENDE, sinon 0)
+        $dividendesVerses = $get('DIVIDENDE', $dateDebut, $dateFin);
 
-        // ============ VARIATION TRÉSORERIE ============
+        // Flux C = + apports + nouveaux emprunts − remboursements − dividendes
+        $fluxFinancement =
+              $variationCapitalRes
+            + $emissionEmprunt
+            - $remboursementEmprunt
+            - $dividendesVerses;
+
+        /* ================= VARIATION ET CONTROLE DE TRÉSORERIE ================= */
+
         $variationTresorerie = $fluxActivite + $fluxInvestissement + $fluxFinancement;
 
-        // ----- Trésorerie ouverture/clôture
-        $tresorerieOuverture = $getSoldeTresorerie($dateFinN1);
-        $tresorerieCloture = $getSoldeTresorerie($dateFin);
+        $tresOuverture = $getSoldeTresorerie($dateFinN1);
+        $tresCloture   = $getSoldeTresorerie($dateFin);
 
-        // ---- Incidence de change (à calculer si tu utilises des comptes en devises : ici laissé à 0)
-        $incidenceDevises = 0;
-
-        // === STRUCTURE EXPORT AVANCÉE ===
         $structure = [
-            ['label' => "Résultat net de l'exercice", 'note' => '', 'montant' => $resultatNet],
-            ['label' => "Ajustements pour :", 'note' => '', 'montant' => null, 'isSubtitle' => true],
-            ['label' => "- Dotations nettes aux amortissements et provisions", 'note' => '', 'montant' => $dotations - $reprises],
-            ['label' => "- Variation des impôts différés", 'note' => '', 'montant' => $variationImpotsDifferes],
-            ['label' => "- Variation des stocks", 'note' => '', 'montant' => $variationStocks],
-            ['label' => "- Variation des clients et autres créances", 'note' => '', 'montant' => $variationClients],
-            ['label' => "- Variation des fournisseurs et autres dettes", 'note' => '', 'montant' => $variationFournisseurs],
-            ['label' => "- Plus ou moins values de cession, nettes d'impôts", 'note' => '', 'montant' => $plusMoinsValues],
-            ['label' => "Flux de trésorerie générés par l'activité", 'note' => 'A', 'montant' => $fluxActivite, 'isTotal' => true],
+            // A – Activité (indirecte)
+            ['label' => "A. Flux de trésorerie liés aux activités opérationnelles", 'note' => '', 'montant' => null, 'isTitle' => true],
+            ['label' => "Résultat net de l'exercice",                               'note' => '',  'montant' => $resultatNet],
+            ['label' => "Dotations aux amortissements, provisions et pertes de valeur", 'note' => '',  'montant' => $dotAmort],
+            ['label' => "Reprises sur amortissements, provisions et pertes de valeur", 'note' => '',  'montant' => -$reprises],
+            ['label' => "Plus ou moins-values de cession d'actifs",                 'note' => '',  'montant' => -$plusMoinsValues],
+            ['label' => "Variation des impôts différés",                            'note' => '',  'montant' => $variationImpotsDiff],
+            ['label' => "Variation des stocks",                                     'note' => '',  'montant' => -$variationStocks],
+            ['label' => "Variation des créances d'exploitation",                    'note' => '',  'montant' => -$variationCreancesExpl],
+            ['label' => "Variation des dettes d'exploitation",                      'note' => '',  'montant' => $variationDettesExpl],
+            ['label' => "Flux nets de trésorerie générés par l'activité (A)",       'note' => 'A', 'montant' => $fluxActivite, 'isTotal' => true],
 
-            ['label' => "Flux de trésorerie liés aux opérations d'investissement", 'note' => '', 'montant' => null, 'isTitle' => true],
-            ['label' => "Décaissements sur acquisitions d'immobilisations", 'note' => '', 'montant' => -abs($acquisImmo)],
-            ['label' => "Encaissements sur cessions d'immobilisations", 'note' => '', 'montant' => abs($cessionImmo)],
-            ['label' => "Flux de trésorerie liés aux opérations d'investissement", 'note' => 'B', 'montant' => $fluxInvestissement, 'isTotal' => true],
+            // B – Investissement
+            ['label' => "B. Flux de trésorerie liés aux opérations d'investissement", 'note' => '', 'montant' => null, 'isTitle' => true],
+            ['label' => "Acquisitions d'immobilisations",                             'note' => '', 'montant' => -$acquisitionsImmo],
+            ['label' => "Cessions d'immobilisations",                                 'note' => '', 'montant' => $cessionsImmo],
+            ['label' => "Flux nets de trésorerie liés à l'investissement (B)",        'note' => 'B','montant' => $fluxInvestissement, 'isTotal' => true],
 
-            ['label' => "Flux de trésorerie liés aux activités de financement", 'note' => '', 'montant' => null, 'isTitle' => true],
-            ['label' => "Dividendes versés aux actionnaires", 'note' => '', 'montant' => -$dividendesVerses],
-            ['label' => "Augmentation de capital en numéraire", 'note' => '', 'montant' => $augmCapital],
-            ['label' => "Émission d'emprunt", 'note' => '', 'montant' => $emissionEmprunt],
-            ['label' => "Remboursement d'emprunt", 'note' => '', 'montant' => -$remboursementEmprunt],
-            ['label' => "Flux de trésorerie liés aux activités de financement", 'note' => 'C', 'montant' => $fluxFinancement, 'isTotal' => true],
+            // C – Financement
+            ['label' => "C. Flux de trésorerie liés aux activités de financement",  'note' => '', 'montant' => null, 'isTitle' => true],
+            ['label' => "Augmentation / diminution de capital et réserves",         'note' => '', 'montant' => $variationCapitalRes],
+            ['label' => "Dividendes versés",                                        'note' => '', 'montant' => -$dividendesVerses],
+            ['label' => "Emissions d'emprunts",                                     'note' => '', 'montant' => $emissionEmprunt],
+            ['label' => "Remboursements d'emprunts",                                'note' => '', 'montant' => -$remboursementEmprunt],
+            ['label' => "Flux nets de trésorerie liés au financement (C)",          'note' => 'C','montant' => $fluxFinancement, 'isTotal' => true],
 
-            ['label' => "Variation de trésorerie de la période (A+B+C)", 'note' => '', 'montant' => $variationTresorerie, 'isTotal' => true],
-            ['label' => "Trésorerie d'ouverture", 'note' => '', 'montant' => $tresorerieOuverture],
-            ['label' => "Trésorerie de clôture", 'note' => '', 'montant' => $tresorerieCloture],
-            ['label' => "Incidence des variations de cours des devises", 'note' => '', 'montant' => $incidenceDevises],
-            ['label' => "Variation de trésorerie", 'note' => '', 'montant' => $variationTresorerie, 'isTotal' => true]
+            // Synthèse
+            ['label' => "Variation nette de trésorerie (A + B + C)",                'note' => '', 'montant' => $variationTresorerie, 'isTotal' => true],
+            ['label' => "Trésorerie au début de la période",                        'note' => '', 'montant' => $tresOuverture],
+            ['label' => "Trésorerie à la fin de la période",                        'note' => '', 'montant' => $tresCloture],
         ];
 
         return response()->json($structure);

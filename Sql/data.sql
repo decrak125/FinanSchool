@@ -1,7 +1,12 @@
 INSERT INTO categorie_fonctionelles (code, libelle, calcul_auto, id_duree, id_fonction_economique, id_nature_comptable, id_type_categorie)
 VALUES
 ('CA', 'Chiffre d’affaires', true, (SELECT id_duree FROM durees WHERE code='CT'), (SELECT id_fonction_economique FROM fonction_economiques WHERE code='EXPLOIT'), (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PRODUIT'), (SELECT id_type_categorie FROM type_categories WHERE code_type='GESTION')),
-('PRODSTOCK', 'Production stockée', true, (SELECT id_duree FROM durees WHERE code='CT'), (SELECT id_fonction_economique FROM fonction_economiques WHERE code='EXPLOIT'), (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PRODUIT'), (SELECT id_type_categorie FROM type_categories WHERE code_type='GESTION')),
+
+('PRODVENDU', 'Production vendue (biens et services)', true, 
+  (SELECT id_duree FROM durees WHERE code='CT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='EXPLOIT'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PRODUIT'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='GESTION')),
 ('PRODIMMO', 'Production immobilisée', true, (SELECT id_duree FROM durees WHERE code='LT'), (SELECT id_fonction_economique FROM fonction_economiques WHERE code='EXPLOIT'), (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PRODUIT'), (SELECT id_type_categorie FROM type_categories WHERE code_type='GESTION')),
 ('ACHATCONSOM', 'Achats consommés', true, (SELECT id_duree FROM durees WHERE code='CT'), (SELECT id_fonction_economique FROM fonction_economiques WHERE code='EXPLOIT'), (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='CHARGE'), (SELECT id_type_categorie FROM type_categories WHERE code_type='GESTION')),
 ('SERVEXT', 'Services extérieurs et autres consommations', true, (SELECT id_duree FROM durees WHERE code='CT'), (SELECT id_fonction_economique FROM fonction_economiques WHERE code='EXPLOIT'), (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='CHARGE'), (SELECT id_type_categorie FROM type_categories WHERE code_type='GESTION')),
@@ -137,15 +142,18 @@ VALUES
   (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='CP'),
   (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
 
-('EVAL', 'Ecarts d’évaluation', true, (SELECT id_duree FROM durees WHERE code='LT'),
-  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
-  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='CP'),
+('SUBVINVEST', 'Subventions d''investissement', true, 
+  (SELECT id_duree FROM durees WHERE code='LT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='CP'), 
   (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
 
-('EQUIV', 'Ecart d’équivalence', true, (SELECT id_duree FROM durees WHERE code='LT'),
-  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
-  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='CP'),
+('PROVREG', 'Provisions réglementées', true, 
+  (SELECT id_duree FROM durees WHERE code='LT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='CP'), 
   (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
 
 ('RESULT', 'Résultat net (part du groupe)', true, (SELECT id_duree FROM durees WHERE code='LT'),
   (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
@@ -208,4 +216,112 @@ VALUES
 ('DECOUV', 'Comptes de trésorerie découverts bancaires', true, (SELECT id_duree FROM durees WHERE code='CT'),
   (SELECT id_fonction_economique FROM fonction_economiques WHERE code='TRESO'),
   (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PASSIF'),
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+
+('PRODLTTERM', 'Produits nets partiels sur opérations long terme', true, 
+  (SELECT id_duree FROM durees WHERE code='LT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='EXPLOIT'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PRODUIT'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='GESTION')),
+
+('TRANSFCHARG', 'Transferts de charges', true, 
+  (SELECT id_duree FROM durees WHERE code='CT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='EXPLOIT'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PRODUIT'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='GESTION'));
+
+
+-- ==========================================
+-- NOUVELLES CATÉGORIES - ACTIF IMMOBILISÉ
+-- ==========================================
+
+INSERT INTO categorie_fonctionelles (code, libelle, calcul_auto, id_duree, id_fonction_economique, id_nature_comptable, id_type_categorie)
+VALUES
+('IMMOCONCESS', 'Immobilisations mises en concession/affectation/disposition', true, 
+  (SELECT id_duree FROM durees WHERE code='LT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='INVEST'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='ACTIF'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('PERTEVAL_IMMO', 'Pertes de valeur sur immobilisations', true, 
+  (SELECT id_duree FROM durees WHERE code='LT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='INVEST'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='ACTIF'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN'));
+
+
+-- ==========================================
+-- NOUVELLES CATÉGORIES - ACTIF COURANT
+-- ==========================================
+
+INSERT INTO categorie_fonctionelles (code, libelle, calcul_auto, id_duree, id_fonction_economique, id_nature_comptable, id_type_categorie)
+VALUES
+('PERTEVAL_STOCK', 'Pertes de valeur sur stocks', true, 
+  (SELECT id_duree FROM durees WHERE code='CT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='EXPLOIT'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='ACTIF'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('PERTEVAL_TIERS', 'Pertes de valeur sur comptes de tiers', true, 
+  (SELECT id_duree FROM durees WHERE code='CT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='EXPLOIT'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='ACTIF'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN'));
+
+
+-- ==========================================
+-- NOUVELLES CATÉGORIES - TRÉSORERIE
+-- ==========================================
+
+INSERT INTO categorie_fonctionelles (code, libelle, calcul_auto, id_duree, id_fonction_economique, id_nature_comptable, id_type_categorie)
+VALUES
+('REGIES', 'Régies d''avance et avances de caisse', true, 
+  (SELECT id_duree FROM durees WHERE code='CT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='TRESO'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='ACTIF'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('VIRINT', 'Virements internes', true, 
+  (SELECT id_duree FROM durees WHERE code='CT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='TRESO'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='ACTIF'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('PERTEVAL_FIN', 'Pertes de valeur sur comptes financiers', true, 
+  (SELECT id_duree FROM durees WHERE code='CT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='TRESO'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='ACTIF'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN'));
+
+
+-- ==========================================
+-- NOUVELLES CATÉGORIES - CAPITAUX PROPRES (détaillés)
+-- ==========================================
+
+INSERT INTO categorie_fonctionelles (code, libelle, calcul_auto, id_duree, id_fonction_economique, id_nature_comptable, id_type_categorie)
+VALUES
+('RESERVES', 'Primes et réserves (légales, statutaires, libres)', true, 
+  (SELECT id_duree FROM durees WHERE code='LT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='CP'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('REPORTNOUV', 'Report à nouveau', true, 
+  (SELECT id_duree FROM durees WHERE code='LT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='CP'), 
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN'));
+
+
+-- ==========================================
+-- NOUVELLES CATÉGORIES - PASSIF (Comptes de liaison)
+-- ==========================================
+
+INSERT INTO categorie_fonctionelles (code, libelle, calcul_auto, id_duree, id_fonction_economique, id_nature_comptable, id_type_categorie)
+VALUES
+('CPTLIAISON', 'Comptes de liaison et opérations particulières', true, 
+  (SELECT id_duree FROM durees WHERE code='CT'), 
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'), 
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PASSIF'), 
   (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN'));

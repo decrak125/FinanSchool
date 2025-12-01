@@ -207,7 +207,7 @@ Route::prefix('dashboard')->group(function () {
 
 // Liste des immobilisations (avec amortissement exercice courant)
 Route::get('/amortissement', [AmortissementController::class, 'index']);
-
+Route::apiResource('amortissement', AmortissementController::class);
 // Création d'une immobilisation
 Route::post('/amortissement', [AmortissementController::class, 'store']);
 

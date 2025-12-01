@@ -138,7 +138,7 @@ public function getSommeParCategorie(Request $request)
     //         ->first();
     // }
 
-    public static function calculerSommeCategorie($codeCategorie, $dateDebut, $dateFin)
+public static function calculerSommeCategorie($codeCategorie, $dateDebut, $dateFin)
 {
     // 1. Trouver les Id_Sous_compte associés à la catégorie
     $idsSousComptes = DB::table('compte_categories as cc')
@@ -165,6 +165,7 @@ public function getSommeParCategorie(Request $request)
     // Structure du retour conforme à l'ancienne fonction
     return $resultat;
 }
+
 
 public static function calculerVariationCategorie($codeCategorie, $dateDebut, $dateFin)
 {

@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\ChatBot;
 
 use App\Http\Controllers\Controller;
-use App\Models\Saisie\GrandLivre; // Remplace par ta classe modèle/vue
+use App\Models\Saisie\GrandLivre;       // Pour le détail des écritures
+use App\Models\general\Balance;         // Pour le solde via la vue SQL
+use App\Models\exercice\ExerciceComptable; // Pour filtrer par exercice courant
 use App\Http\Controllers\ChatBot\ChatUtilesController;
 use Carbon\Carbon;
 
@@ -15,38 +17,41 @@ class ChatGrandLivresController extends Controller
     public static function getEcrituresParCompte($message)
     {
         try {
-            // Extraction du code compte
+            // 1. Extraction du code compte
             $codeCompte = ChatUtilesController::extractCodeCompte($message);
             if (!$codeCompte) {
                 return "Veuillez préciser le code du compte (ex: 512001, 411, 401 etc).";
             }
 
-            // Construction requête
+            // 2. Construction requête sur le GrandLivre (Détail)
             $query = GrandLivre::where('code_compte', $codeCompte);
 
-            // Extraction de la période (format "du ... au ...")
+            // 3. Gestion des dates
             $range = ChatUtilesController::extractDateRange($message);
             if ($range) {
+                // Cas "du X au Y"
                 $start = Carbon::createFromFormat('d/m/Y', $range['start'])->startOfDay();
                 $end = Carbon::createFromFormat('d/m/Y', $range['end'])->endOfDay();
                 $query->whereBetween('date_mouvement', [$start, $end]);
             } else {
-                // Extraction mois & année ("pour janvier 2025")
+                // Cas "janvier 2025" ou par défaut
                 $mois = ChatUtilesController::extractMonthFromMessage($message);
                 $annee = ChatUtilesController::extractYearFromMessage($message);
                 if ($mois && $annee) {
                     $query->whereMonth('date_mouvement', $mois)
-                        ->whereYear('date_mouvement', $annee);
+                          ->whereYear('date_mouvement', $annee);
                 }
+                // Note: Si aucune date n'est précisée, on pourrait aussi restreindre à l'exercice courant ici,
+                // mais pour l'instant on laisse l'historique complet ou on attend une précision de l'utilisateur.
             }
 
-            // Pagination
+            // 4. Pagination / Limite
             $limit = 30;
             $ecritures = $query->orderBy('date_mouvement')->limit($limit + 1)->get();
             $truncated = $ecritures->count() > $limit;
             $ecritures = $ecritures->slice(0, $limit);
 
-            // Construction réponse
+            // 5. Réponse
             if ($ecritures->isEmpty()) {
                 return "Aucune écriture trouvée pour le compte **{$codeCompte}** sur la période demandée.";
             }
@@ -54,13 +59,17 @@ class ChatGrandLivresController extends Controller
             $response = "📒 Grand Livre du compte **{$codeCompte}** :\n\n";
             $response .= "| Date | Libellé | Débit | Crédit |\n";
             $response .= "|------|---------|-------|--------|\n";
+            
             foreach ($ecritures as $ecriture) {
                 $response .= "| {$ecriture->date_mouvement} | {$ecriture->libelle_ecriture} | {$ecriture->Debit} | {$ecriture->Credit} |\n";
             }
+            
             if ($truncated) {
                 $response .= "\n_(Liste tronquée à {$limit} écritures)_\n";
             }
+            
             return $response;
+
         } catch (\Exception $e) {
             return "Erreur lors de la récupération du Grand Livre : " . $e->getMessage();
         }
@@ -73,7 +82,7 @@ class ChatGrandLivresController extends Controller
     {
         try {
             $text = ChatUtilesController::normalizeText($message);
-            $text = str_replace(['cherche', 'libellé', 'motif', 'grand livre'], '', $text);
+            $text = str_replace(['cherche', 'libellé', 'motif', 'grand livre', 'dans le'], '', $text);
             $text = trim($text);
 
             if (strlen($text) < 2) {
@@ -93,17 +102,21 @@ class ChatGrandLivresController extends Controller
             $response = "🔎 Écritures du Grand Livre pour « {$text} » :\n";
             $response .= "| Date | Compte | Libellé | Débit | Crédit |\n";
             $response .= "|------|--------|---------|-------|--------|\n";
+            
             foreach ($results as $ecriture) {
                 $response .= "| {$ecriture->date_mouvement} | {$ecriture->code_compte} | {$ecriture->libelle_ecriture} | {$ecriture->Debit} | {$ecriture->Credit} |\n";
             }
+            
             return $response;
+
         } catch (\Exception $e) {
             return "Erreur lors de la recherche dans le Grand Livre : " . $e->getMessage();
         }
     }
 
     /**
-     * Résumé/solde du Grand Livre pour un compte
+     * Résumé/solde du Grand Livre pour un compte via le modèle Balance (Vue SQL)
+     * Filtré par l'exercice comptable courant.
      */
     public static function getSoldeGrandLivre($message)
     {
@@ -113,15 +126,41 @@ class ChatGrandLivresController extends Controller
                 return "Précisez le code du compte pour obtenir le solde du Grand Livre.";
             }
 
-            $totalDebit = GrandLivre::where('code_compte', $codeCompte)->sum('Debit');
-            $totalCredit = GrandLivre::where('code_compte', $codeCompte)->sum('Credit');
-            $solde = $totalDebit - $totalCredit;
+            // 1. Récupération de l'exercice courant basé sur la date actuelle
+            $dateActuelle = Carbon::now();
+            $exercice = ExerciceComptable::getExerciceByDate($dateActuelle);
 
-            $response = "🧾 Solde du Grand Livre pour le compte **{$codeCompte}** :\n";
-            $response .= "{$solde}";
+            if (!$exercice) {
+                return "⚠️ Impossible de récupérer le solde : aucun exercice comptable n'est actif pour la date du " . $dateActuelle->format('d/m/Y') . ".";
+            }
+
+            // 2. Requête filtrée sur les dates de l'exercice trouvé
+            // La vue 'vue_balance_generale' peut avoir plusieurs lignes (par date), on doit faire la somme.
+            $data = Balance::where('code_sous_compte', $codeCompte)
+                ->whereBetween('date_mouvement', [$exercice->Date_debut, $exercice->Date_fin])
+                ->selectRaw('SUM(total_debit) as debit, SUM(total_credit) as credit, SUM(solde_final) as solde')
+                ->first();
+
+            // 3. Vérification du résultat
+            if (!$data || ($data->debit == 0 && $data->credit == 0)) {
+                 return "Aucun mouvement trouvé pour le compte **{$codeCompte}** sur l'exercice courant ({$exercice->Annee_fiscale}).";
+            }
+
+            // 4. Formatage
+            $soldeFormatted = number_format($data->solde, 2, ',', ' ');
+            $debitFormatted = number_format($data->debit, 2, ',', ' ');
+            $creditFormatted = number_format($data->credit, 2, ',', ' ');
+            
+            $statut = $data->solde > 0 ? "Débiteur" : ($data->solde < 0 ? "Créditeur" : "Soldé");
+
+            // 5. Réponse détaillée
+            $response = "**Solde actuel du compte {$codeCompte}**\n";
+            $response .= "• **Solde : {$soldeFormatted} ({$statut})**";
+            
             return $response;
+
         } catch (\Exception $e) {
-            return "Erreur lors du calcul du solde : " . $e->getMessage();
+            return "Erreur lors du calcul du solde : " . $e->getMessage();
         }
     }
 
@@ -132,10 +171,10 @@ class ChatGrandLivresController extends Controller
     {
         return
             "Voici ce que je peux faire sur le Grand Livre 👇\n\n"
-            . "• Détail par compte : `Grand livre du compte 401001 pour janvier 2025`\n"
-            . "• Toutes les écritures sur une période : `Montre le grand livre du 512 du 01/01/2025 au 28/02/2025`\n"
-            . "• Recherche par libellé/tiers : `Cherche chèque dans le grand livre`\n"
-            . "• Solde final d’un compte : `Solde final du grand livre pour 401`\n"
+            . "• Détail par compte : `Grand livre du compte 401001 pour janvier 2025`\n"
+            . "• Toutes les écritures sur une période : `Montre le grand livre du 512 du 01/01/2025 au 28/02/2025`\n"
+            . "• Recherche par libellé/tiers : `Cherche chèque dans le grand livre`\n"
+            . "• Solde actuel d’un compte : `Solde du compte 411` (sur l'exercice courant)\n"
             . "• Liste limitée à 30 écritures, détail par ligne\n";
     }
 }

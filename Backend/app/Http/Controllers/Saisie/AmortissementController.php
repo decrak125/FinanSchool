@@ -86,4 +86,40 @@ class AmortissementController extends Controller
     {
         return TauxAmortissement::all();
     }
+
+        // PUT /api/amortissement/{id}
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'libelle' => 'required|string',
+            'Id_Sous_compte' => 'required|exists:sous_comptes,Id_Sous_compte',
+            'taux_amortissement_id' => 'required|exists:taux_amortissement,id',
+            'valeur_brute' => 'required|numeric',
+            'date_acquisition' => 'required|date',
+            'date_debut_utilisation' => 'nullable|date'
+        ]);
+
+        $immo = Amortissement::findOrFail($id);
+        
+        $immo->update([
+            'libelle' => $validated['libelle'],
+            'Id_Sous_compte' => $validated['Id_Sous_compte'],
+            'taux_amortissement_id' => $validated['taux_amortissement_id'],
+            'valeur_brute' => $validated['valeur_brute'],
+            'date_acquisition' => $validated['date_acquisition'],
+            'date_debut_utilisation' => $validated['date_debut_utilisation'] ?? $validated['date_acquisition'],
+        ]);
+
+        return response()->json($immo->load(['tauxAmortissement', 'sousCompte']));
+    }
+
+    // DELETE /api/amortissement/{id}
+    public function destroy($id)
+    {
+        $immo = Amortissement::findOrFail($id);
+        $immo->delete();
+        
+        return response()->json(['message' => 'Immobilisation supprimée avec succès']);
+    }
+
 }

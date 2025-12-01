@@ -1,5 +1,5 @@
 <?php
-// app/Http/Controllers/ChatController.php
+// app/Http/Controllers/ChatBot/ChatsController.php
 
 namespace App\Http\Controllers\ChatBot;
 
@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ChatBot\ChatSousCompteController;
 use App\Http\Controllers\ChatBot\ChatUtilesController;
+use App\Http\Controllers\ChatBot\ChatJournalController; // Assurez-vous que ce contrôleur existe
+use App\Http\Controllers\ChatBot\ChatGrandLivresController;
+use App\Http\Controllers\ChatBot\ChatEtatsFinanciersController; // <--- NOUVEL IMPORT
 
 class ChatsController extends Controller
 {
@@ -22,7 +25,6 @@ class ChatsController extends Controller
         $userMessage = $request->message;
         $sessionId = $request->session_id;
         
-        // Récupérer l'utilisateur connecté via le token
         $user = Auth::user();
         $userId = $user ? $user->id : null;
 
@@ -57,11 +59,10 @@ class ChatsController extends Controller
         
         $query = ChatMessage::where('session_id', $sessionId);
         
-        // Si l'utilisateur est connecté, on peut filtrer par user_id pour la sécurité
         if ($user) {
             $query->where(function($q) use ($user) {
                 $q->where('user_id', $user->id)
-                  ->orWhereNull('user_id'); // Inclure aussi les messages sans user_id
+                  ->orWhereNull('user_id');
             });
         }
         
@@ -78,7 +79,6 @@ class ChatsController extends Controller
             return response()->json([]);
         }
 
-        // Récupérer les sessions de chat distinctes pour cet utilisateur
         $sessions = ChatMessage::where('user_id', $user->id)
             ->select('session_id')
             ->distinct()
@@ -91,70 +91,74 @@ class ChatsController extends Controller
     }
 
     private function generateSimpleResponse($message)
-{
-    $messagetext = ChatUtilesController::normalizeText($message);
-     $user = Auth::user();
-    $userName = $user ? $user->name : "Utilisateur";
-    
-    if (str_contains($messagetext, 'bonjour') || str_contains($messagetext, 'salut') || str_contains($messagetext, 'hello') || str_contains($messagetext, 'hi')) {
-        return "Bonjour {$userName}! Je suis votre assistant pour l'analyse financière scolaire. Comment puis-je vous aider ?";
-    }
+    {
+        $messagetext = ChatUtilesController::normalizeText($message);
+        $user = Auth::user();
+        $userName = $user ? $user->name : "Utilisateur";
+        
+        // 1. Salutations
+        if (str_contains($messagetext, 'bonjour') || str_contains($messagetext, 'salut') || str_contains($messagetext, 'hello') || str_contains($messagetext, 'hi')) {
+            return "Bonjour {$userName}! Je suis votre assistant pour l'analyse financière scolaire. Comment puis-je vous aider ?";
+        }
 
-    // Détection des questions sur les centres de coût
+        // 2. DÉTECTION ÉTATS FINANCIERS (Nouveau bloc)
+        // Liste des mots-clés liés au Bilan et Compte de Résultat
+        $keywordsEtatsFinanciers = [
+            'chiffre affaire', 'ca ', 'resultat', 'benefice', 'perte', 
+            'immobilisation', 'stock', 'creance', 'dette', 'emprunt', 
+            'capital', 'tresorerie', 'charge personnel', 'achat', 'impot'
+        ];
 
-    // Dans la méthode generateSimpleResponse() du ChatController
+        // On vérifie si le message contient l'un de ces mots-clés
+        if ($this->containsNormalized($messagetext, $keywordsEtatsFinanciers)) {
+             // Cas spécifique pour l'aide
+             if (str_contains($messagetext, 'aide') || str_contains($messagetext, 'comment')) {
+                 return ChatEtatsFinanciersController::aidePrompts();
+             }
+             // Sinon, on lance le calcul financier
+             return ChatEtatsFinanciersController::getIndicateurFinancier($message);
+        }
 
-// Détection des questions sur les sous-comptes
-if (str_contains($messagetext, 'sous-compte') || 
-    str_contains($messagetext, 'sous compte') || 
-    str_contains($messagetext, 'souscompte')) {
-    
-    try {
-        // "Liste tous les sous-comptes"
-        if (str_contains($messagetext, 'liste') || str_contains($messagetext, 'tous') || str_contains($messagetext, 'affiche')) {
-            return ChatSousCompteController::getAllSousComptes();
+        // 3. DÉTECTION SOUS-COMPTES
+        if (str_contains($messagetext, 'sous-compte') || 
+            str_contains($messagetext, 'sous compte') || 
+            str_contains($messagetext, 'souscompte')) {
+            
+            try {
+                if (str_contains($messagetext, 'liste') || str_contains($messagetext, 'tous') || str_contains($messagetext, 'affiche')) {
+                    return ChatSousCompteController::getAllSousComptes();
+                }
+                if (str_contains($messagetext, 'cherche') || str_contains($messagetext, 'code') || str_contains($messagetext, 'numero')) {
+                    return ChatSousCompteController::searchByCode($messagetext);
+                }
+                if (str_contains($messagetext, 'compte') && preg_match('/\d{3,4}/', $messagetext)) {
+                    return ChatSousCompteController::getSousComptesParCompte($messagetext);
+                }
+                if (str_contains($messagetext, 'libelle') || str_contains($messagetext, 'description')) {
+                    return ChatSousCompteController::searchByLibelle($messagetext);
+                }
+                if (str_contains($messagetext, 'statistique') || str_contains($messagetext, 'stats')) {
+                    return ChatSousCompteController::getStatistiques();
+                }
+                return ChatSousCompteController::getAllSousComptes();
+            } catch (\Exception $e) {
+                return "Erreur lors du traitement de la question : " . $e->getMessage();
+            }
         }
-        
-        // "Cherche le sous-compte 401001"
-        if (str_contains($messagetext, 'cherche') || str_contains($messagetext, 'code') || str_contains($messagetext, 'numero')) {
-            return ChatSousCompteController::searchByCode($messagetext);
-        }
-        
-        // "Quels sont les sous-comptes du compte 401"
-        if (str_contains($messagetext, 'compte') && preg_match('/\d{3,4}/', $messagetext)) {
-            return ChatSousCompteController::getSousComptesParCompte($messagetext);
-        }
-        
-        // "Cherche les sous-comptes avec trésorerie"
-        if (str_contains($messagetext, 'libelle') || str_contains($messagetext, 'description')) {
-            return ChatSousCompteController::searchByLibelle($messagetext);
-        }
-        
-        // "Statistiques sous-comptes"
-        if (str_contains($messagetext, 'statistique') || str_contains($messagetext, 'stats')) {
-            return ChatSousCompteController::getStatistiques();
-        }
-        
-        
-        // Par défaut
-        return ChatSousCompteController::getAllSousComptes();
-    } catch (\Exception $e) {
-        return "Erreur lors du traitement de la question : " . $e->getMessage();
-    }
-}
 
-if (str_contains($messagetext, 'journal') || str_contains($messagetext, 'journaux') || str_contains($messagetext, 'journals')) {
-    if (str_contains($messagetext, 'tous') || str_contains($messagetext, 'liste') || str_contains($messagetext, 'affiche')) {
-        return ChatJournalController::getAllJournaux();
-    }
-    if (preg_match('/journal\s+[A-Za-z0-9]+/', $messagetext)) {
-        return ChatJournalController::detailJournal($messagetext);
-    }
-    
-    return "Veuillez préciser votre demande concernant les journaux. Vous pouvez demander la liste des journaux ou le détail d'un journal spécifique en mentionnant son code.";
-            // Ajouter d'autres cas (par libellé, par type, ...)
-    }
-    if (str_contains($messagetext, 'grand livre')) {
+        // 4. DÉTECTION JOURNAUX
+        if (str_contains($messagetext, 'journal') || str_contains($messagetext, 'journaux') || str_contains($messagetext, 'journals')) {
+            if (str_contains($messagetext, 'tous') || str_contains($messagetext, 'liste') || str_contains($messagetext, 'affiche')) {
+                return ChatJournalController::getAllJournaux();
+            }
+            if (preg_match('/journal\s+[A-Za-z0-9]+/', $messagetext)) {
+                return ChatJournalController::detailJournal($messagetext);
+            }
+            return "Veuillez préciser votre demande concernant les journaux. Vous pouvez demander la liste des journaux ou le détail d'un journal spécifique en mentionnant son code.";
+        }
+
+        // 5. DÉTECTION GRAND LIVRE
+        if (str_contains($messagetext, 'grand livre')) {
             if (str_contains($messagetext, 'aide') || str_contains($messagetext, 'exemple')) {
                 return ChatGrandLivresController::aidePrompts();
             }
@@ -164,14 +168,19 @@ if (str_contains($messagetext, 'journal') || str_contains($messagetext, 'journau
             if (str_contains($messagetext, 'libellé') || str_contains($messagetext, 'motif') || str_contains($messagetext, 'cherche') || str_contains($messagetext, 'tiers')) {
                 return ChatGrandLivresController::searchByLibelle($message);
             }
-            // Par défaut : affichage écritures du compte, période ou non
             return ChatGrandLivresController::getEcrituresParCompte($message);
         }
 
-        
-    return "Bonjour {$userName}, Je suis votre assistant financier pour établissements scolaires. Actuellement en cours de configuration, je pourrai bientôt vous aider avec :\n\n• 📊 Analyse des budgets\n• 📈 Suivi des dépenses  \n• 🎓 Indicateurs par élève\n• ⚖️ Équilibre financier\n\nPosez-moi une question simple pour tester !";
-}
-private function containsNormalized($haystack, $needles)
+        // 6. RÉPONSE PAR DÉFAUT
+        return "Bonjour {$userName}, Je suis votre assistant financier. Je peux vous aider sur :\n\n" .
+               "• 📊 **États Financiers** : CA, Résultat, Immobilisations, Dettes...\n" .
+               "• 📒 **Grand Livre** : Soldes, recherche d'écritures...\n" .
+               "• 🔢 **Sous-comptes** : Recherche, liste par compte...\n" .
+               "• 📓 **Journaux** : Liste et détails.\n\n" .
+               "Posez simplement votre question !";
+    }
+
+    private function containsNormalized($haystack, $needles)
     {
         $normalizedHaystack = ChatUtilesController::normalizeText($haystack);
         
@@ -183,13 +192,14 @@ private function containsNormalized($haystack, $needles)
         }
         return false;
     }
+
     private function getSuggestions($message)
     {
         return [
-            // "Quel est le budget total ?",
-            // "Comment sont réparties les dépenses ?", 
-            // "Quel est le coût par élève ?",
-            "Quels sont nos ratios financiers ?"
+            "Quel est le chiffre d'affaires ?",
+            "Quel est le résultat net ?",
+            "Solde du compte 512",
+            "Liste des journaux"
         ];
     }
 }
