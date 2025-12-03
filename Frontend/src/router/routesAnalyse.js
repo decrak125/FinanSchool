@@ -9,6 +9,8 @@ import Rentabilite from "@/components/pages/indicateurs/Rentabilite.vue";
 import NonAffected from "@/components/pages/configAnalytique/NonAffected.vue";
 import CodeAnalytique from "@/components/pages/configAnalytique/CodeAnalytique.vue";
 import Pedagogique from "@/components/pages/indicateurs/Pedagogique.vue";
+import Parametres from "@/components/pages/configAnalytique/Parametres.vue";
+import EffectifEleve from "@/components/pages/configAnalytique/EffectifEleve.vue";
 
 export default [
   {
@@ -66,4 +68,14 @@ export default [
       name: Pedagogique,
       component: Pedagogique
     },
+    {
+      path: "/parametres",
+      name: Parametres,
+      component: Parametres
+    },
+    {
+      path: "/effectif-eleve",
+      name: EffectifEleve,
+      component: EffectifEleve
+    }
 ];

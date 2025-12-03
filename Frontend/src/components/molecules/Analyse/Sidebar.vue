@@ -104,6 +104,11 @@ const menuConfig = [
         id: 'non-affected',
         texte: 'Sous-comptes non affectés',
         redirection: '/non-affected'
+      },
+      {
+        id: 'parametres',
+        texte: 'Configurations des indicateurs',
+        redirection: '/parametres'
       }
     ]
   }
@@ -115,7 +120,7 @@ const bottomMenuConfig = [
     id: 'parametres',
     icon: 'bi bi-gear-fill',
     texte: 'Paramètres',
-    redirection: '#',
+    redirection: '/parametres',
     type: 'simple'
   }
 ];
@@ -311,7 +316,6 @@ onMounted(() => {
         @click="handleMenuClick(menu)"
       />
       <!-- LOG OUT -->
-      
     </div>
   </aside>
 
@@ -594,6 +598,7 @@ hr {
   }
   
   .bottom-menu {
+    position: fixed;
     padding-top: 16px;
   }
 }

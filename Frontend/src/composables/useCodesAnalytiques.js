@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 
 export function useCodesAnalytiques() {
@@ -17,6 +17,9 @@ export function useCodesAnalytiques() {
     const importMessage = ref("");
     const importSuccess = ref(false);
     
+    // Variables pour les filtres
+    const searchTerm = ref("");
+    
     const token = localStorage.getItem("token");
     
     if (!token) {
@@ -32,6 +35,24 @@ export function useCodesAnalytiques() {
       nombreLignesLoader.value = res.data.length || 10;
       codes.value = res.data;
       loading.value = false;
+    };
+    
+    // Computed property pour les codes filtrés
+    const filteredCodes = computed(() => {
+      if (searchTerm.value === "") {
+        return codes.value;
+      }
+      
+      const term = searchTerm.value.toLowerCase();
+      return codes.value.filter(code => 
+        code.code?.toLowerCase().includes(term) ||
+        code.libelle?.toLowerCase().includes(term)
+      );
+    });
+    
+    // Réinitialiser les filtres
+    const resetFilters = () => {
+      searchTerm.value = "";
     };
     
     // Ajouter / Mettre à jour
@@ -113,6 +134,11 @@ export function useCodesAnalytiques() {
       }
     };
     
+    // Charger les données au montage
+    onMounted(() => {
+      fetchCodes();
+    });
+    
     return {
         codes,
         form,
@@ -123,6 +149,11 @@ export function useCodesAnalytiques() {
         nombreLignesLoader,
         importMessage,
         importSuccess,
+        // Nouvelles variables pour les filtres
+        searchTerm,
+        filteredCodes,
+        resetFilters,
+        // Fonctions existantes
         fetchCodes,
         saveCode,
         editCode,

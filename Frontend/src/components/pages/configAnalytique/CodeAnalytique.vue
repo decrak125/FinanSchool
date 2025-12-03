@@ -1,8 +1,9 @@
+[file name]: CodeAnalytique.vue
+[file content begin]
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useCodesAnalytiques } from "@/composables/useCodesAnalytiques";
 import PageAnalyse from "@/components/template/Page-analyse.vue";
-import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Bouton from "@/components/atoms/Bouton.vue";
 import Input from "@/components/atoms/Input.vue";
 import Textarea from "@/components/atoms/Textarea.vue";
@@ -14,6 +15,7 @@ import { usePagination } from "@/composables/usePagination";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 import Counter from "@/components/atoms/counter.vue";
 import LoadingText from "@/components/atoms/Loading-text.vue";
+import searchbar from "@/components/atoms/searchbar.vue";
 
 const openForm = ref(false);
 const openImport = ref(false);
@@ -36,10 +38,16 @@ const {
   cancelEdit,
   deleteCode,
   onFileChange,
-  uploadFile } = useCodesAnalytiques();
+  uploadFile,
+  // Nouvelles variables pour les filtres
+  searchTerm,
+  filteredCodes,
+  resetFilters
+} = useCodesAnalytiques();
 
 onMounted(fetchCodes);
 
+// Utilisation des codes filtrés pour la pagination
 const {
   currentPage,
   itemsPerPage,
@@ -51,7 +59,12 @@ const {
   nextPage,
   goToPage,
   resetPagination
-} = usePagination(codes)
+} = usePagination(filteredCodes)
+
+// Computed pour le nombre de résultats filtrés
+const filteredCount = computed(() => {
+  return filteredCodes.length;
+});
 
 </script>
 
@@ -73,9 +86,9 @@ const {
       <PopUp v-if="openForm">
         <form @submit.prevent="saveCode" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
           <Texte :texte="isEditing ? 'Modifier le code analytique' : 'Créer un code analytique'" :type="'dark'" />
-          <Input v-model="form.code" label="Code" type="text" required />
-          <Input v-model="form.libelle" label="Libellé" type="text" required />
-          <Input v-model="form.plage_de_extension" label="Plage d'extension" type="text" />
+          <Input v-model="form.code" placeholder="Code" type="text" required />
+          <Textarea v-model="form.libelle" placeholder="Libellé" type="text" required />
+          <!-- <Input v-model="form.plage_de_extension" placeholder="Plage d'extension" type="text" /> -->
           <div class="btn-form">
             <Bouton v-if="!isEditing" type="input" :texte="'Créer'" redirection="" />
             <Bouton v-if="isEditing" type="input" :texte="'Modifier'" redirection="" />
@@ -99,7 +112,7 @@ const {
     <div class="main">
       <div class="informations">
         <p class="Count-content">
-          <Counter v-if="codes.length > 0" :number="codes.length" />
+          <Counter v-if="codes.length > 0" :number="filteredCodes.length" />
           <Counter v-if="codes.length == 0" :number="0" />
           codes analytiques disponibles.
         </p>
@@ -108,8 +121,29 @@ const {
           <Bouton type="primary" texte="Ajouter" redirection="" @click="openForm = !openForm" />
         </div>
       </div>
+      
+      <!-- Section Filtres - comme dans CentreAnalytique -->
       <div class="filters">
+        <div class="ok">
+          <searchbar
+            v-model="searchTerm"
+            type="text"
+            placeholder="Rechercher par code ou libellé..."
+            class="search-input"
+          />
+          
+          <BoutonIcon 
+            v-if="searchTerm"
+            @click="resetFilters" 
+            type="cancel" 
+            :icon-name="'x-lg'"
+          />
+        </div>
+        <div class="iconbtn">
+          <i class="bi bi-file-earmark-pdf-fill"></i>
+        </div>
       </div>
+      
       <!-- Tableau des codes analytiques -->
       <transition name="fade">
         <div class="content">
@@ -128,14 +162,17 @@ const {
                 <td class="col">{{ code.code }}</td>
                 <td class="col">{{ code.libelle }}</td>
                 <td class="col text-center">
-                  <BoutonIcon @click="editCode(code), openForm = true" icon-name="pen" :type="'edit'" />
-                  <BoutonIcon @click="id_to_delete = code.id_code, opendelete = true" icon-name="trash" :type="'cancel'" />
+                  <BoutonIcon @click="editCode(code), openForm = true" icon-name="pen-fill" :type="'edit'" />
+                  <BoutonIcon @click="id_to_delete = code.id_code, opendelete = true" icon-name="trash-fill" :type="'cancel'" />
+                </td>
+              </tr>
+              <!-- Message si aucun résultat -->
+              <tr v-if="!loading && filteredCodes.length === 0">
+                <td colspan="4" class="no-results text-center py-8 text-gray-500">
+                  Aucun code ne correspond aux critères de recherche.
                 </td>
               </tr>
               <tr v-if="loading" v-for="n in nombreLignesLoader" :key="'loader-' + n">
-                <td class="col">
-                  <LoadingText :type="'line-1'" />
-                </td>
                 <td class="col">
                   <LoadingText :type="'line-1'" />
                 </td>
@@ -153,8 +190,15 @@ const {
           </table>
         </div>
       </transition>
-      <Pagination :donnees="codes" :current-page="currentPage" :items-per-page="itemsPerPage"
-        :total-pages="totalPages" :go-to-page="goToPage" :previous-page="previousPage" :next-page="nextPage" />
+      <Pagination 
+        :donnees="filteredCodes" 
+        :current-page="currentPage" 
+        :items-per-page="itemsPerPage"
+        :total-pages="totalPages" 
+        :go-to-page="goToPage" 
+        :previous-page="previousPage" 
+        :next-page="nextPage" 
+      />
     </div>
   </PageAnalyse>
 </template>
@@ -166,20 +210,33 @@ const {
   @include position-contenus(flex, baseline, center);
   padding: 0 24px 24px 24px;
   margin: 12px;
-  height: 100%;
+  // height: 100%;
+  height: 82vh;
   flex-direction: column;
   gap: 10px;
-  min-height: 82vh;
   flex: 1 0 0;
   align-self: stretch;
   animation: appear 0.6s ease-out forwards;
 
 }
+.iconbtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 49px;
+  height: 49px;
+  border-radius: 50%;
+  @include glass();
+  cursor: pointer;
 
+  i {
+    color: #e25252;
+    font-size: 20px;
+  }
+}
 #codesTable {
   @include table();
 }
-
 
 .informations {
   @include position-contenus(flex, space-between, center);
@@ -213,6 +270,25 @@ const {
   margin: 0;
 }
 
+.filters {
+  @include position-contenus(flex, space-between, center);
+  padding: 0 0;
+  align-self: self-start;
+  gap: 10px;
+  width: 100%;
+}
+
+.ok {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.search-input {
+  width: 300px;
+}
+
 .file {
   display: flex;
   height: 189px;
@@ -234,6 +310,11 @@ const {
   @include text-xs($stara-medium, $rouge)
 }
 
+.no-results {
+  text-align: center;
+  padding: 40px !important;
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition: all 0.3s ease;
@@ -253,11 +334,8 @@ const {
 
 .content {
   overflow-y: auto;
-  /* Scroll vertical */
-  // background-color: #fff;
   width: 100%;
   height: 60vh;
-  /* Ajuste selon tes besoins */
   border-radius: $radius-pm;
 }
 
@@ -269,13 +347,11 @@ const {
 .content::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 10px;
-  
 }
 
 .content::-webkit-scrollbar-thumb {
   background: #C5C5C5;
   border-radius: 10px;
-
 }
 
 .popupContent {
@@ -289,3 +365,4 @@ const {
   gap: 10px;
 }
 </style>
+[file content end]

@@ -1,16 +1,14 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import PageAnalyse from '@/components/template/Page-analyse.vue';
 import { useIndicateurPedagogique } from "@/composables/useIndicateurPedagogique";
 import Card from "@/components/atoms/Chart/Card.vue";
-import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import FilterSelect from "@/components/atoms/Filter-select.vue";
 import LoadingText from "@/components/atoms/Loading-text.vue";
 import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
-
-const nombreLignesLoader = 5;
+import InterpretationCarousel from "@/components/molecules/Analyse/InterpretationCarousel.vue";
 
 const filters = ref({
   dateStart: "",
@@ -18,14 +16,16 @@ const filters = ref({
   idExercice: ""
 });
 
+const nombreLignesLoader = ref(4);
+
 const detailsCoutFonctionnement = ref(false);
 const detailsChiffreAffaires = ref(false);
 const detailsPartMasseSalariale = ref(false);
 const detailsMargeParEleve = ref(false);
 
 const {
-  loadingTable,
   exercice,
+  loadingTable,
   exercicesOptions,
   coutFonctionnement,
   chiffreAffaires,
@@ -33,29 +33,16 @@ const {
   margeParEleve,
   loading,
   comparisons,
-  threeYearsData,
+  previousYearData,
   refreshAllData,
   initializeData,
   changeExercice
 } = useIndicateurPedagogique(filters);
 
-// Chargement initial
-onMounted(() => {
-  initializeData();
-});
-
-// Gestion du changement d'exercice
-const handleExerciceChange = async (event) => {
-  const idExercice = event.target.value;
-  await changeExercice(idExercice);
-};
-
 // Formater les valeurs monétaires
 const formatMoney = (value) => {
-  if (value === null || value === undefined) return 'N/A';
+  if (value === null || value === undefined) return '';
   return new Intl.NumberFormat('mg-MG', {
-    style: 'currency',
-    currency: 'MGA',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(value);
@@ -63,7 +50,7 @@ const formatMoney = (value) => {
 
 // Formater les pourcentages
 const formatPercentage = (value) => {
-  if (value === null || value === undefined) return 'N/A';
+  if (value === null || value === undefined) return '';
   return `${parseFloat(value).toFixed(2)}%`;
 };
 
@@ -80,27 +67,108 @@ const getTrendIcon = (comparison) => {
          comparison.trend === 'down' ? '↘' : '→';
 };
 
-// Formater l'évolution avec les deux comparaisons
-const formatEvolution = (comparison) => {
-  if (!comparison?.hasData) return 'N/A';
+// Préparer les données pour le carousel
+const interpretationCardsData = ref([]);
+
+// Fonction sécurisée pour mettre à jour les données du carousel
+const updateInterpretationCards = () => {
+  console.log('Updating carousel data pédagogique:', {
+    coutFonctionnement: coutFonctionnement.value,
+    chiffreAffaires: chiffreAffaires.value,
+    partMasseSalariale: partMasseSalariale.value,
+    margeParEleve: margeParEleve.value,
+    comparisons: comparisons.value
+  });
+
+  interpretationCardsData.value = [
+    {
+      texte: "Coût par élève",
+      chiffre: comparisons.value.coutFonctionnement?.hasData ? 
+               formatMoney(comparisons.value.coutFonctionnement.evolution) : 'N/A',
+      icon: getTrendIcon(comparisons.value?.coutFonctionnement),
+      variation: comparisons.value?.coutFonctionnement?.percentage || '0',
+      colorVariation: getTrendClass(comparisons.value?.coutFonctionnement),
+      interpretation: coutFonctionnement.value?.cout_fonctionnement_par_eleve?.interpretation || 
+                     "Évolution du coût de fonctionnement par élève",
+      format: 'money'
+    },
+    {
+      texte: "CA par élève",
+      chiffre: comparisons.value.chiffreAffaires?.hasData ? 
+               formatMoney(comparisons.value.chiffreAffaires.evolution) : 'N/A',
+      icon: getTrendIcon(comparisons.value?.chiffreAffaires),
+      variation: comparisons.value?.chiffreAffaires?.percentage || '0',
+      colorVariation: getTrendClass(comparisons.value?.chiffreAffaires),
+      interpretation: chiffreAffaires.value?.chiffre_affaires_par_eleve?.interpretation || 
+                     "Évolution du chiffre d'affaires par élève",
+      format: 'money'
+    },
+    {
+      texte: "Part masse salariale",
+      chiffre: comparisons.value.partMasseSalariale?.hasData ? 
+               formatPercentage(comparisons.value.partMasseSalariale.evolution) : 'N/A',
+      icon: getTrendIcon(comparisons.value?.partMasseSalariale),
+      variation: comparisons.value?.partMasseSalariale?.percentage || '0',
+      colorVariation: getTrendClass(comparisons.value?.partMasseSalariale),
+      interpretation: partMasseSalariale.value?.part_masse_salariale_enseignante?.interpretation || 
+                     "Évolution de la part de la masse salariale enseignante",
+      format: 'percentage'
+    },
+    {
+      texte: "Marge par élève",
+      chiffre: comparisons.value.margeParEleve?.hasData ? 
+               formatMoney(comparisons.value.margeParEleve.evolution) : 'N/A',
+      icon: getTrendIcon(comparisons.value?.margeParEleve),
+      variation: comparisons.value?.margeParEleve?.percentage || '0',
+      colorVariation: getTrendClass(comparisons.value?.margeParEleve),
+      interpretation: margeParEleve.value?.marge_par_eleve?.interpretation || 
+                     "Évolution de la marge par élève",
+      format: 'money',
+      negative: true
+    }
+  ].filter(card => card.chiffre !== undefined && card.chiffre !== null);
   
-  const vsPrevious = comparison.percentageVsPrevious ? 
-    `N-1: ${comparison.percentageVsPrevious}%` : '';
-  
-  const vsTwoYearsAgo = comparison.percentageVsTwoYearsAgo ? 
-    `N-2: ${comparison.percentageVsTwoYearsAgo}%` : '';
-  
-  return [vsPrevious, vsTwoYearsAgo].filter(Boolean).join(' | ');
+  console.log('Carousel data pédagogique updated:', interpretationCardsData.value);
+};
+
+// Watcher pour mettre à jour automatiquement le carousel quand les données changent
+watch([() => coutFonctionnement.value, () => chiffreAffaires.value, 
+       () => partMasseSalariale.value, () => margeParEleve.value, 
+       () => comparisons.value], () => {
+  if (!loading.value) {
+    updateInterpretationCards();
+  }
+}, { deep: true, immediate: true });
+
+// Chargement initial
+onMounted(() => {
+  initializeData().then(() => {
+    console.log('Data pédagogique initialized, updating carousel');
+    updateInterpretationCards();
+  });
+});
+
+// Gestion du changement d'exercice
+const handleExerciceChange = async (event) => {
+  const idExercice = event.target.value;
+  await changeExercice(idExercice);
+  updateInterpretationCards();
+};
+
+// Fonction pour rafraîchir les données manuellement
+const handleRefresh = () => {
+  refreshAllData();
+  updateInterpretationCards();
 };
 </script>
 
 <template>
-  <PageAnalyse>
+  <PageAnalyse :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs pedagogiques'">
     <!-- POP UP pour Coût de Fonctionnement -->
     <PopUp v-if="detailsCoutFonctionnement">
       <div class="details-popup">
         <div class="popuphead">
-          <Texte :texte="coutFonctionnement?.definition" :type="'dark'" />
+          <Texte :texte="coutFonctionnement?.cout_fonctionnement_par_eleve?.definition || 'Coût de fonctionnement par élève'" :type="'dark'" />
           <BoutonIcon @click="detailsCoutFonctionnement = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
         </div>
         <div class="indicateur-detail">
@@ -108,35 +176,31 @@ const formatEvolution = (comparison) => {
             <thead>
               <tr>
                 <th class="col">Indicateur</th>
-                <th class="col">{{ exercice?.Annee_fiscale - 2 }}</th>
-                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
                 <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td id="detailTitle">Charges d'exploitation</td>
-                <td id="detail">{{ formatMoney(threeYearsData.twoYearsAgo?.details_calcul?.total_charges_exploitation) }}</td>
-                <td id="detail">{{ formatMoney(threeYearsData.previous?.details_calcul?.total_charges_exploitation) }}</td>
                 <td id="detail">{{ formatMoney(coutFonctionnement?.details_calcul?.total_charges_exploitation) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.coutFonctionnement?.details_calcul?.total_charges_exploitation) }}</td>
               </tr>
               <tr>
                 <td id="detailTitle">Effectif élèves</td>
-                <td id="detail">{{ threeYearsData.twoYearsAgo?.details_calcul?.effectif_eleves || 'N/A' }}</td>
-                <td id="detail">{{ threeYearsData.previous?.details_calcul?.effectif_eleves || 'N/A' }}</td>
                 <td id="detail">{{ coutFonctionnement?.details_calcul?.effectif_eleves || 'N/A' }}</td>
+                <td id="detail">{{ previousYearData.coutFonctionnement?.details_calcul?.effectif_eleves || 'N/A' }}</td>
               </tr>
             </tbody>
             <tfoot id="footable">
               <tr>
                 <td id="detailTitle">Coût par élève</td>
-                <td id="detail">{{ formatMoney(threeYearsData.twoYearsAgo?.cout_fonctionnement_par_eleve) }}</td>
-                <td id="detail">{{ formatMoney(threeYearsData.previous?.cout_fonctionnement_par_eleve) }}</td>
                 <td id="detail">{{ formatMoney(coutFonctionnement?.cout_fonctionnement_par_eleve?.valeur) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.coutFonctionnement?.cout_fonctionnement_par_eleve?.valeur) }}</td>
               </tr>
               <tr>
                 <td id="detailTitle">Formule</td>
-                <td id="detail" colspan="3">{{ coutFonctionnement?.formule }}</td>
+                <td id="detail" colspan="2">{{ coutFonctionnement?.formule }}</td>
               </tr>
             </tfoot>
           </table>
@@ -148,7 +212,7 @@ const formatEvolution = (comparison) => {
     <PopUp v-if="detailsChiffreAffaires">
       <div class="details-popup">
         <div class="popuphead">
-          <Texte :texte="chiffreAffaires?.definition" :type="'dark'" />
+          <Texte :texte="chiffreAffaires?.chiffre_affaires_par_eleve?.definition || 'Chiffre d\'affaires par élève'" :type="'dark'" />
           <BoutonIcon @click="detailsChiffreAffaires = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
         </div>
         <div class="indicateur-detail">
@@ -156,35 +220,31 @@ const formatEvolution = (comparison) => {
             <thead>
               <tr>
                 <th class="col">Indicateur</th>
-                <th class="col">{{ exercice?.Annee_fiscale - 2 }}</th>
-                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
                 <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td id="detailTitle">Produits d'exploitation</td>
-                <td id="detail">{{ formatMoney(threeYearsData.twoYearsAgo?.details_calcul?.total_produits_exploitation) }}</td>
-                <td id="detail">{{ formatMoney(threeYearsData.previous?.details_calcul?.total_produits_exploitation) }}</td>
                 <td id="detail">{{ formatMoney(chiffreAffaires?.details_calcul?.total_produits_exploitation) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.chiffreAffaires?.details_calcul?.total_produits_exploitation) }}</td>
               </tr>
               <tr>
                 <td id="detailTitle">Effectif élèves</td>
-                <td id="detail">{{ threeYearsData.twoYearsAgo?.details_calcul?.effectif_eleves || 'N/A' }}</td>
-                <td id="detail">{{ threeYearsData.previous?.details_calcul?.effectif_eleves || 'N/A' }}</td>
                 <td id="detail">{{ chiffreAffaires?.details_calcul?.effectif_eleves || 'N/A' }}</td>
+                <td id="detail">{{ previousYearData.chiffreAffaires?.details_calcul?.effectif_eleves || 'N/A' }}</td>
               </tr>
             </tbody>
             <tfoot id="footable">
               <tr>
                 <td id="detailTitle">CA par élève</td>
-                <td id="detail">{{ formatMoney(threeYearsData.twoYearsAgo?.chiffre_affaires_par_eleve) }}</td>
-                <td id="detail">{{ formatMoney(threeYearsData.previous?.chiffre_affaires_par_eleve) }}</td>
                 <td id="detail">{{ formatMoney(chiffreAffaires?.chiffre_affaires_par_eleve?.valeur) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.chiffreAffaires?.chiffre_affaires_par_eleve?.valeur) }}</td>
               </tr>
               <tr>
                 <td id="detailTitle">Formule</td>
-                <td id="detail" colspan="3">{{ chiffreAffaires?.formule }}</td>
+                <td id="detail" colspan="2">{{ chiffreAffaires?.formule }}</td>
               </tr>
             </tfoot>
           </table>
@@ -196,7 +256,7 @@ const formatEvolution = (comparison) => {
     <PopUp v-if="detailsPartMasseSalariale">
       <div class="details-popup">
         <div class="popuphead">
-          <Texte :texte="partMasseSalariale?.definition" :type="'dark'" />
+          <Texte :texte="partMasseSalariale?.part_masse_salariale_enseignante?.definition || 'Part de la masse salariale enseignante'" :type="'dark'" />
           <BoutonIcon @click="detailsPartMasseSalariale = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
         </div>
         <div class="indicateur-detail">
@@ -204,35 +264,31 @@ const formatEvolution = (comparison) => {
             <thead>
               <tr>
                 <th class="col">Indicateur</th>
-                <th class="col">{{ exercice?.Annee_fiscale - 2 }}</th>
-                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
                 <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td id="detailTitle">Masse salariale enseignante</td>
-                <td id="detail">{{ formatMoney(threeYearsData.twoYearsAgo?.details_calcul?.masse_salariale_enseignante) }}</td>
-                <td id="detail">{{ formatMoney(threeYearsData.previous?.details_calcul?.masse_salariale_enseignante) }}</td>
                 <td id="detail">{{ formatMoney(partMasseSalariale?.details_calcul?.masse_salariale_enseignante) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.partMasseSalariale?.details_calcul?.masse_salariale_enseignante) }}</td>
               </tr>
               <tr>
                 <td id="detailTitle">Total charges</td>
-                <td id="detail">{{ formatMoney(threeYearsData.twoYearsAgo?.details_calcul?.total_charges) }}</td>
-                <td id="detail">{{ formatMoney(threeYearsData.previous?.details_calcul?.total_charges) }}</td>
                 <td id="detail">{{ formatMoney(partMasseSalariale?.details_calcul?.total_charges) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.partMasseSalariale?.details_calcul?.total_charges) }}</td>
               </tr>
             </tbody>
             <tfoot id="footable">
               <tr>
                 <td id="detailTitle">Part masse salariale</td>
-                <td id="detail">{{ formatPercentage(threeYearsData.twoYearsAgo?.part_masse_salariale_enseignante) }}</td>
-                <td id="detail">{{ formatPercentage(threeYearsData.previous?.part_masse_salariale_enseignante) }}</td>
                 <td id="detail">{{ formatPercentage(partMasseSalariale?.part_masse_salariale_enseignante?.valeur) }}</td>
+                <td id="detail">{{ formatPercentage(previousYearData.partMasseSalariale?.part_masse_salariale_enseignante?.valeur) }}</td>
               </tr>
               <tr>
                 <td id="detailTitle">Formule</td>
-                <td id="detail" colspan="3">{{ partMasseSalariale?.formule }}</td>
+                <td id="detail" colspan="2">{{ partMasseSalariale?.formule }}</td>
               </tr>
             </tfoot>
           </table>
@@ -244,7 +300,7 @@ const formatEvolution = (comparison) => {
     <PopUp v-if="detailsMargeParEleve">
       <div class="details-popup">
         <div class="popuphead">
-          <Texte :texte="margeParEleve?.definition" :type="'dark'" />
+          <Texte :texte="margeParEleve?.marge_par_eleve?.definition || 'Marge par élève'" :type="'dark'" />
           <BoutonIcon @click="detailsMargeParEleve = false" icon-name="x-lg" :type="'cancel'" title="Fermer" />
         </div>
         <div class="indicateur-detail">
@@ -252,35 +308,31 @@ const formatEvolution = (comparison) => {
             <thead>
               <tr>
                 <th class="col">Indicateur</th>
-                <th class="col">{{ exercice?.Annee_fiscale - 2 }}</th>
-                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
                 <th class="col">{{ exercice?.Annee_fiscale }}</th>
+                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td id="detailTitle">Résultat net</td>
-                <td id="detail">{{ formatMoney(threeYearsData.twoYearsAgo?.details_calcul?.resultat_net) }}</td>
-                <td id="detail">{{ formatMoney(threeYearsData.previous?.details_calcul?.resultat_net) }}</td>
                 <td id="detail">{{ formatMoney(margeParEleve?.details_calcul?.resultat_net) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.margeParEleve?.details_calcul?.resultat_net) }}</td>
               </tr>
               <tr>
                 <td id="detailTitle">Effectif élèves</td>
-                <td id="detail">{{ threeYearsData.twoYearsAgo?.details_calcul?.effectif_eleves || 'N/A' }}</td>
-                <td id="detail">{{ threeYearsData.previous?.details_calcul?.effectif_eleves || 'N/A' }}</td>
                 <td id="detail">{{ margeParEleve?.details_calcul?.effectif_eleves || 'N/A' }}</td>
+                <td id="detail">{{ previousYearData.margeParEleve?.details_calcul?.effectif_eleves || 'N/A' }}</td>
               </tr>
             </tbody>
             <tfoot id="footable">
               <tr>
                 <td id="detailTitle">Marge par élève</td>
-                <td id="detail">{{ formatMoney(threeYearsData.twoYearsAgo?.marge_par_eleve) }}</td>
-                <td id="detail">{{ formatMoney(threeYearsData.previous?.marge_par_eleve) }}</td>
                 <td id="detail">{{ formatMoney(margeParEleve?.marge_par_eleve?.valeur) }}</td>
+                <td id="detail">{{ formatMoney(previousYearData.margeParEleve?.marge_par_eleve?.valeur) }}</td>
               </tr>
               <tr>
                 <td id="detailTitle">Formule</td>
-                <td id="detail" colspan="3">{{ margeParEleve?.formule }}</td>
+                <td id="detail" colspan="2">{{ margeParEleve?.formule }}</td>
               </tr>
             </tfoot>
           </table>
@@ -289,8 +341,6 @@ const formatEvolution = (comparison) => {
     </PopUp>
 
     <div class="main">
-      <ContentHeader :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs pédagogiques'" />
-      
       <!-- Filtres -->
       <div class="filtres">
         <Texte :type="'dark'" :texte="'Exercice comptable'" />
@@ -323,7 +373,7 @@ const formatEvolution = (comparison) => {
               :icon="'bi bi-cash-coin'" 
               :icon-color="'orange'" 
               :negative="false"
-              :variation="getTrendIcon(comparisons.coutFonctionnement) + ' ' + formatEvolution(comparisons.coutFonctionnement)"
+              :variation="getTrendIcon(comparisons.coutFonctionnement) + ' ' + comparisons.coutFonctionnement.percentage"
               :colorVariation="getTrendClass(comparisons.coutFonctionnement)"
             />
             <Card 
@@ -333,7 +383,7 @@ const formatEvolution = (comparison) => {
               :icon="'bi bi-graph-up'"
               :icon-color="'green'" 
               :negative="false"
-              :variation="getTrendIcon(comparisons.chiffreAffaires) + ' ' + formatEvolution(comparisons.chiffreAffaires)"
+              :variation="getTrendIcon(comparisons.chiffreAffaires) + ' ' + comparisons.chiffreAffaires.percentage"
               :colorVariation="getTrendClass(comparisons.chiffreAffaires)"
             />
           </div>
@@ -345,7 +395,7 @@ const formatEvolution = (comparison) => {
               :icon="'bi bi-people-fill'" 
               :icon-color="'blue'" 
               :negative="false"
-              :variation="getTrendIcon(comparisons.partMasseSalariale) + ' ' + formatEvolution(comparisons.partMasseSalariale)"
+              :variation="getTrendIcon(comparisons.partMasseSalariale) + ' ' + comparisons.partMasseSalariale.percentage"
               :colorVariation="getTrendClass(comparisons.partMasseSalariale)"
             />
             <Card 
@@ -355,168 +405,157 @@ const formatEvolution = (comparison) => {
               :icon="'bi bi-wallet2'" 
               :icon-color="'purple'" 
               :negative="true"
-              :variation="getTrendIcon(comparisons.margeParEleve) + ' ' + formatEvolution(comparisons.margeParEleve)"
+              :variation="getTrendIcon(comparisons.margeParEleve) + ' ' + comparisons.margeParEleve.percentage"
               :colorVariation="getTrendClass(comparisons.margeParEleve)"
             />
           </div>
         </div>
+        <InterpretationCarousel 
+          :cards="interpretationCardsData"
+          :autoPlay="true"
+          :autoPlayInterval="5000"
+          :showNavigation="true"
+        />
       </div>
 
-      <!-- Tableau de comparaison sur 3 ans -->
+      <!-- Tableau de comparaison N vs N-1 -->
       <div class="comparison-section">
         <div class="section-header">
-          <Texte :type="'bold-dark'" :texte="'Évolution sur 3 ans des indicateurs pédagogiques'" />
+          <Texte :type="'bold-dark'" :texte="'Vue et évolution des indicateurs pédagogiques'" />
         </div>
         
-        <div class="comparison-table-container">
-          <table class="table" id="axesTable">
-            <thead>
-              <tr>
-                <th class="col">Indicateur</th>
-                <th class="col">{{ exercice?.Annee_fiscale - 2 }}</th>
-                <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
-                <th class="col">{{ exercice?.Annee_fiscale }}</th>
-                <th class="col">Évolution N-1</th>
-                <th class="col">Évolution N-2</th>
-                <th class="col">Action</th>
-              </tr>
-            </thead>
-            <tbody v-if="!loadingTable">
-              <!-- Coût de fonctionnement -->
-              <tr>
-                <td class="col">
-                  <i class="bi bi-cash-coin trend-icon orange"></i>
-                  Coût par élève
-                </td>
-                <td class="col">
-                  {{ formatMoney(threeYearsData.twoYearsAgo?.cout_fonctionnement_par_eleve) }}
-                </td>
-                <td class="col">
-                  {{ formatMoney(threeYearsData.previous?.cout_fonctionnement_par_eleve) }}
-                </td>
-                <td class="col">
-                  {{ formatMoney(coutFonctionnement?.cout_fonctionnement_par_eleve?.valeur) }}
-                </td>
-                <td :class="['evolution', getTrendClass(comparisons.coutFonctionnement)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.coutFonctionnement) }}</span>
-                  {{ comparisons.coutFonctionnement?.percentageVsPrevious ? `${comparisons.coutFonctionnement.percentageVsPrevious}%` : 'N/A' }}
-                </td>
-                <td :class="['evolution', getTrendClass(comparisons.coutFonctionnement)]">
-                  {{ comparisons.coutFonctionnement?.percentageVsTwoYearsAgo ? `${comparisons.coutFonctionnement.percentageVsTwoYearsAgo}%` : 'N/A' }}
-                </td>
-                <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
-                    @click="detailsCoutFonctionnement = !detailsCoutFonctionnement" />
-                </td>
-              </tr>
-              
-              <!-- Chiffre d'affaires -->
-              <tr>
-                <td class="col">
-                  <i class="bi bi-graph-up trend-icon green"></i>
-                  CA par élève
-                </td>
-                <td class="col">
-                  {{ formatMoney(threeYearsData.twoYearsAgo?.chiffre_affaires_par_eleve) }}
-                </td>
-                <td class="col">
-                  {{ formatMoney(threeYearsData.previous?.chiffre_affaires_par_eleve) }}
-                </td>
-                <td class="col">
-                  {{ formatMoney(chiffreAffaires?.chiffre_affaires_par_eleve?.valeur) }}
-                </td>
-                <td :class="['evolution', getTrendClass(comparisons.chiffreAffaires)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.chiffreAffaires) }}</span>
-                  {{ comparisons.chiffreAffaires?.percentageVsPrevious ? `${comparisons.chiffreAffaires.percentageVsPrevious}%` : 'N/A' }}
-                </td>
-                <td :class="['evolution', getTrendClass(comparisons.chiffreAffaires)]">
-                  {{ comparisons.chiffreAffaires?.percentageVsTwoYearsAgo ? `${comparisons.chiffreAffaires.percentageVsTwoYearsAgo}%` : 'N/A' }}
-                </td>
-                <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
-                    @click="detailsChiffreAffaires = !detailsChiffreAffaires" />
-                </td>
-              </tr>
-              
-              <!-- Part masse salariale -->
-              <tr>
-                <td class="col">
-                  <i class="bi bi-people-fill trend-icon blue"></i>
-                  Part masse salariale
-                </td>
-                <td class="col">
-                  {{ formatPercentage(threeYearsData.twoYearsAgo?.part_masse_salariale_enseignante) }}
-                </td>
-                <td class="col">
-                  {{ formatPercentage(threeYearsData.previous?.part_masse_salariale_enseignante) }}
-                </td>
-                <td class="col">
-                  {{ formatPercentage(partMasseSalariale?.part_masse_salariale_enseignante?.valeur) }}
-                </td>
-                <td :class="['evolution', getTrendClass(comparisons.partMasseSalariale)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.partMasseSalariale) }}</span>
-                  {{ comparisons.partMasseSalariale?.percentageVsPrevious ? `${comparisons.partMasseSalariale.percentageVsPrevious}%` : 'N/A' }}
-                </td>
-                <td :class="['evolution', getTrendClass(comparisons.partMasseSalariale)]">
-                  {{ comparisons.partMasseSalariale?.percentageVsTwoYearsAgo ? `${comparisons.partMasseSalariale.percentageVsTwoYearsAgo}%` : 'N/A' }}
-                </td>
-                <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
-                    @click="detailsPartMasseSalariale = !detailsPartMasseSalariale" />
-                </td>
-              </tr>
-              
-              <!-- Marge par élève -->
-              <tr>
-                <td class="col">
-                  <i class="bi bi-wallet2 trend-icon purple"></i>
-                  Marge par élève
-                </td>
-                <td class="col">
-                  {{ formatMoney(threeYearsData.twoYearsAgo?.marge_par_eleve) }}
-                </td>
-                <td class="col">
-                  {{ formatMoney(threeYearsData.previous?.marge_par_eleve) }}
-                </td>
-                <td class="col">
-                  {{ formatMoney(margeParEleve?.marge_par_eleve?.valeur) }}
-                </td>
-                <td :class="['evolution', getTrendClass(comparisons.margeParEleve)]">
-                  <span class="trend-icon">{{ getTrendIcon(comparisons.margeParEleve) }}</span>
-                  {{ comparisons.margeParEleve?.percentageVsPrevious ? `${comparisons.margeParEleve.percentageVsPrevious}%` : 'N/A' }}
-                </td>
-                <td :class="['evolution', getTrendClass(comparisons.margeParEleve)]">
-                  {{ comparisons.margeParEleve?.percentageVsTwoYearsAgo ? `${comparisons.margeParEleve.percentageVsTwoYearsAgo}%` : 'N/A' }}
-                </td>
-                <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
-                    @click="detailsMargeParEleve = !detailsMargeParEleve" />
-                </td>
-              </tr>
-            </tbody>
-            <tbody v-if="loadingTable">
-              <tr v-for="n in nombreLignesLoader" :key="'loader-' + n">
-                <td><LoadingText :type="'line-1'" /></td>
-                <td><LoadingText :type="'line-1'" /></td>
-                <td><LoadingText :type="'line-1'" /></td>
-                <td><LoadingText :type="'line-1'" /></td>
-                <td><LoadingText :type="'line-1'" /></td>
-                <td><LoadingText :type="'line-1'" /></td>
-                <td><LoadingText :type="'line-1'" /></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <table class="table" id="axesTable">
+          <thead>
+            <tr>
+              <th class="col">Indicateur</th>
+              <th class="col">{{ exercice?.Annee_fiscale }}</th>
+              <th class="col">{{ exercice?.Annee_fiscale - 1 }}</th>
+              <th class="col">Évolution</th>
+              <th class="col">Variation</th>
+              <th class="col">Action</th>
+            </tr>
+          </thead>
+          <tbody v-if="!loadingTable">
+            <!-- Coût de fonctionnement -->
+            <tr>
+              <td class="col">
+                <i class="bi bi-cash-coin trend-icon orange"></i>
+                Coût par élève
+              </td>
+              <td class="col">
+                {{ formatMoney(coutFonctionnement?.cout_fonctionnement_par_eleve?.valeur) }}
+              </td>
+              <td class="col">
+                {{ formatMoney(previousYearData.coutFonctionnement?.cout_fonctionnement_par_eleve?.valeur) }}
+              </td>
+              <td :class="['evolution', getTrendClass(comparisons.coutFonctionnement)]">
+                <span class="trend-icon">{{ getTrendIcon(comparisons.coutFonctionnement) }}</span>
+                {{ comparisons.coutFonctionnement?.hasData ? formatMoney(comparisons.coutFonctionnement.evolution) : 'N/A' }}
+              </td>
+              <td :class="['percentage', getTrendClass(comparisons.coutFonctionnement)]">
+                {{ comparisons.coutFonctionnement?.hasData ? `${comparisons.coutFonctionnement.percentage}%` : 'N/A' }}
+              </td>
+              <td>
+                <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  @click="detailsCoutFonctionnement = !detailsCoutFonctionnement" />
+              </td>
+            </tr>
+            
+            <!-- Chiffre d'affaires -->
+            <tr>
+              <td class="col">
+                <i class="bi bi-graph-up trend-icon green"></i>
+                CA par élève
+              </td>
+              <td class="col">
+                {{ formatMoney(chiffreAffaires?.chiffre_affaires_par_eleve?.valeur) }}
+              </td>
+              <td class="col">
+                {{ formatMoney(previousYearData.chiffreAffaires?.chiffre_affaires_par_eleve?.valeur) }}
+              </td>
+              <td :class="['evolution', getTrendClass(comparisons.chiffreAffaires)]">
+                <span class="trend-icon">{{ getTrendIcon(comparisons.chiffreAffaires) }}</span>
+                {{ comparisons.chiffreAffaires?.hasData ? formatMoney(comparisons.chiffreAffaires.evolution) : 'N/A' }}
+              </td>
+              <td :class="['percentage', getTrendClass(comparisons.chiffreAffaires)]">
+                {{ comparisons.chiffreAffaires?.hasData ? `${comparisons.chiffreAffaires.percentage}%` : 'N/A' }}
+              </td>
+              <td>
+                <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  @click="detailsChiffreAffaires = !detailsChiffreAffaires" />
+              </td>
+            </tr>
+            
+            <!-- Part masse salariale -->
+            <tr>
+              <td class="col">
+                <i class="bi bi-people-fill trend-icon blue"></i>
+                Part masse salariale
+              </td>
+              <td class="col">
+                {{ formatPercentage(partMasseSalariale?.part_masse_salariale_enseignante?.valeur) }}
+              </td>
+              <td class="col">
+                {{ formatPercentage(previousYearData.partMasseSalariale?.part_masse_salariale_enseignante?.valeur) }}
+              </td>
+              <td :class="['evolution', getTrendClass(comparisons.partMasseSalariale)]">
+                <span class="trend-icon">{{ getTrendIcon(comparisons.partMasseSalariale) }}</span>
+                {{ comparisons.partMasseSalariale?.hasData ? formatPercentage(comparisons.partMasseSalariale.evolution) : 'N/A' }}
+              </td>
+              <td :class="['percentage', getTrendClass(comparisons.partMasseSalariale)]">
+                {{ comparisons.partMasseSalariale?.hasData ? `${comparisons.partMasseSalariale.percentage}%` : 'N/A' }}
+              </td>
+              <td>
+                <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  @click="detailsPartMasseSalariale = !detailsPartMasseSalariale" />
+              </td>
+            </tr>
+            
+            <!-- Marge par élève -->
+            <tr>
+              <td class="col">
+                <i class="bi bi-wallet2 trend-icon purple"></i>
+                Marge par élève
+              </td>
+              <td class="col">
+                {{ formatMoney(margeParEleve?.marge_par_eleve?.valeur) }}
+              </td>
+              <td class="col">
+                {{ formatMoney(previousYearData.margeParEleve?.marge_par_eleve?.valeur) }}
+              </td>
+              <td :class="['evolution', getTrendClass(comparisons.margeParEleve)]">
+                <span class="trend-icon">{{ getTrendIcon(comparisons.margeParEleve) }}</span>
+                {{ comparisons.margeParEleve?.hasData ? formatMoney(comparisons.margeParEleve.evolution) : 'N/A' }}
+              </td>
+              <td :class="['percentage', getTrendClass(comparisons.margeParEleve)]">
+                {{ comparisons.margeParEleve?.hasData ? `${comparisons.margeParEleve.percentage}%` : 'N/A' }}
+              </td>
+              <td>
+                <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  @click="detailsMargeParEleve = !detailsMargeParEleve" />
+              </td>
+            </tr>
+          </tbody>
+          <tbody v-if="loadingTable">
+            <tr v-for="n in nombreLignesLoader" :key="'loader-' + n">
+              <td><LoadingText :type="'line-1'" /></td>
+              <td><LoadingText :type="'line-1'" /></td>
+              <td><LoadingText :type="'line-1'" /></td>
+              <td><LoadingText :type="'line-1'" /></td>
+              <td><LoadingText :type="'line-1'" /></td>
+              <td><LoadingText :type="'line-1'" /></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </PageAnalyse>
 </template>
 
 <style lang="scss" scoped>
-// Vos styles SCSS existants restent les mêmes...
-
 #axesTable {
-  @include table(#f5f5f5);
+  @include table();
+  border-radius: $radius-pm;
   cursor: pointer;
   @media (max-width: $mobile) {
     font-size: 0.875rem;
@@ -529,7 +568,7 @@ const formatEvolution = (comparison) => {
 
 #footable {
   font-family: $stara-bold;
-  background-color: $light;
+  // background-color: $light;
 }
 
 #detail {
@@ -551,7 +590,7 @@ const formatEvolution = (comparison) => {
 .cartes {
   @include position-contenus(grid, center, center);
   padding: 0;
-  gap: 32px;
+  gap: 24px;
 
   @media (max-width: $tablet) {
     gap: 24px;
@@ -566,7 +605,7 @@ const formatEvolution = (comparison) => {
 
 .main {
   @include position-contenus(flex, center, center);
-  padding: 0 32px;
+  padding: 0 18px;
   flex-direction: column;
   gap: 20px;
   flex: 1 0 0;
@@ -587,7 +626,7 @@ const formatEvolution = (comparison) => {
 .hauteur {
   @include position-contenus(flex, center, center);
   padding: 0;
-  gap: 32px;
+  gap: 24px;
 
   @media (max-width: $tablet) {
     gap: 24px;
@@ -603,10 +642,10 @@ const formatEvolution = (comparison) => {
   @include position-contenus(flex, flex-start, flex-start);
   padding: 10px 0;
   align-self: stretch;
-  gap: 32px;
+  gap: 24px;
 
   @media (max-width: $tablet) {
-    gap: 24px;
+    gap: 18px;
     flex-direction: column;
   }
 
@@ -637,11 +676,16 @@ const formatEvolution = (comparison) => {
 /* Section de comparaison */
 .comparison-section {
   width: 100%;
-  margin-top: 20px;
+  height: 100%;
+  @include glass();
+  border-radius: $radius-pm;
+  padding: 18px;
+  gap: 8px;
 }
 
 .section-header {
   margin-bottom: 16px;
+  padding: 12px;
   
   h3 {
     margin: 0;
@@ -667,7 +711,8 @@ const formatEvolution = (comparison) => {
   &.grey { color: #6c757d; }
 }
 
-.evolution {
+.evolution,
+.percentage {
   font-weight: 600;
   
   .trend-icon {
@@ -684,7 +729,8 @@ const formatEvolution = (comparison) => {
   color: #dc3545;
 }
 
-.trend-stable, .trend-neutral {
+.trend-stable,
+.trend-neutral {
   color: #6c757d;
 }
 
@@ -705,7 +751,7 @@ const formatEvolution = (comparison) => {
   }
   
   .comparison-table {
-    min-width: 800px;
+    min-width: 600px;
     font-size: 12px;
     
     th, td {

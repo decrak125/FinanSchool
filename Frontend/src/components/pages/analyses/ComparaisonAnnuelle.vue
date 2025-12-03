@@ -3,6 +3,8 @@ import { ref, onMounted, computed } from 'vue';
 import { useComparaison } from '@/composables/useComparaison';
 import AnnualChart from '@/components/atoms/Chart/AnnualChart.vue';
 import Texte from '@/components/atoms/Texte.vue';
+import InterpretationCardAnnuelle from '@/components/atoms/Chart/InterpretationCardAnnuelle.vue';
+import FilterSelect from '@/components/atoms/Filter-select.vue';
 
 // Réactifs
 const chartData = ref([]);
@@ -223,7 +225,132 @@ const getEvolutionClassForTotal = () => {
   if (evolution < 0) return 'evolution-negative';
   return 'evolution-stable';
 };
+// Computed: Écart entre les deux années (montant et pourcentage)
+const ecartAnnuel = computed(() => {
+  if (uniqueAnnees.value.length < 2) return null;
+  
+  const annee1 = uniqueAnnees.value[1]; // Année la plus ancienne
+  const annee2 = uniqueAnnees.value[0]; // Année la plus récente
+  
+  const totalAnnee1 = chartData.value
+    .filter(item => item.annee === annee1)
+    .reduce((sum, item) => sum + (parseFloat(item.montant_ventile) || parseFloat(item.montant_brut) || 0), 0);
+  
+  const totalAnnee2 = chartData.value
+    .filter(item => item.annee === annee2)
+    .reduce((sum, item) => sum + (parseFloat(item.montant_ventile) || parseFloat(item.montant_brut) || 0), 0);
+  
+  const difference = totalAnnee2 - totalAnnee1;
+  const pourcentage = totalAnnee1 !== 0 ? (difference / totalAnnee1) * 100 : 0;
+  
+  return {
+    annee1: annee1,
+    annee2: annee2,
+    totalAnnee1: totalAnnee1,
+    totalAnnee2: totalAnnee2,
+    difference: difference,
+    pourcentage: pourcentage,
+    isPositive: difference >= 0
+  };
+});
 
+// Computed: Centre avec la plus forte augmentation
+const centrePlusForteAugmentation = computed(() => {
+  if (uniqueAnnees.value.length < 2 || uniqueCentres.value.length === 0) return null;
+  
+  const annee1 = uniqueAnnees.value[1];
+  const annee2 = uniqueAnnees.value[0];
+  
+  let maxPourcentage = -Infinity;
+  let maxCentre = null;
+  let maxDifference = 0;
+  let montantAnnee1 = 0;
+  let montantAnnee2 = 0;
+  
+  uniqueCentres.value.forEach(centre => {
+    const itemAnnee1 = chartData.value.find(d => d.centre === centre && d.annee === annee1);
+    const itemAnnee2 = chartData.value.find(d => d.centre === centre && d.annee === annee2);
+    
+    if (itemAnnee1 && itemAnnee2) {
+      const montant1 = parseFloat(itemAnnee1.montant_ventile) || parseFloat(itemAnnee1.montant_brut) || 0;
+      const montant2 = parseFloat(itemAnnee2.montant_ventile) || parseFloat(itemAnnee2.montant_brut) || 0;
+      
+      if (montant1 > 0) {
+        const difference = montant2 - montant1;
+        const pourcentage = (difference / montant1) * 100;
+        
+        if (pourcentage > maxPourcentage) {
+          maxPourcentage = pourcentage;
+          maxCentre = centre;
+          maxDifference = difference;
+          montantAnnee1 = montant1;
+          montantAnnee2 = montant2;
+        }
+      }
+    }
+  });
+  
+  if (!maxCentre || maxPourcentage <= 0) return null;
+  
+  return {
+    centre: maxCentre,
+    pourcentage: maxPourcentage,
+    difference: maxDifference,
+    montantAnnee1: montantAnnee1,
+    montantAnnee2: montantAnnee2,
+    annee1: annee1,
+    annee2: annee2
+  };
+});
+
+// Computed: Centre avec la plus forte diminution
+const centrePlusForteDiminution = computed(() => {
+  if (uniqueAnnees.value.length < 2 || uniqueCentres.value.length === 0) return null;
+  
+  const annee1 = uniqueAnnees.value[1];
+  const annee2 = uniqueAnnees.value[0];
+  
+  let minPourcentage = Infinity;
+  let minCentre = null;
+  let minDifference = 0;
+  let montantAnnee1 = 0;
+  let montantAnnee2 = 0;
+  
+  uniqueCentres.value.forEach(centre => {
+    const itemAnnee1 = chartData.value.find(d => d.centre === centre && d.annee === annee1);
+    const itemAnnee2 = chartData.value.find(d => d.centre === centre && d.annee === annee2);
+    
+    if (itemAnnee1 && itemAnnee2) {
+      const montant1 = parseFloat(itemAnnee1.montant_ventile) || parseFloat(itemAnnee1.montant_brut) || 0;
+      const montant2 = parseFloat(itemAnnee2.montant_ventile) || parseFloat(itemAnnee2.montant_brut) || 0;
+      
+      if (montant1 > 0) {
+        const difference = montant2 - montant1;
+        const pourcentage = (difference / montant1) * 100;
+        
+        if (pourcentage < minPourcentage) {
+          minPourcentage = pourcentage;
+          minCentre = centre;
+          minDifference = difference;
+          montantAnnee1 = montant1;
+          montantAnnee2 = montant2;
+        }
+      }
+    }
+  });
+  
+  if (!minCentre || minPourcentage >= 0) return null;
+  
+  return {
+    centre: minCentre,
+    pourcentage: minPourcentage,
+    difference: minDifference,
+    montantAnnee1: montantAnnee1,
+    montantAnnee2: montantAnnee2,
+    annee1: annee1,
+    annee2: annee2
+  };
+});
 // Cycle de vie
 onMounted(() => {
   fetchData();
@@ -235,49 +362,38 @@ onMounted(() => {
 <template>
   <div class="comparaison-annuelle">
     <div class="filters-container">
-      <h2>Comparaison Annuelle</h2>
+      <!-- <Texte :type="'bold-dark'" :texte="'Comparaison Annuelle'" /> -->
       
       <div class="filters">
-        <div class="filter-group">
-          <label for="annee1">Année 1:</label>
-          <select id="annee1" v-model="filters.annee1" @change="fetchData">
+          <Texte :type="'thin-dark'" :texte="'Année 1'" />
+          <FilterSelect id="annee1" v-model="filters.annee1" @change="fetchData">
             <option v-for="year in availableYears" :key="`a1-${year}`" :value="year">
               {{ year }}
             </option>
-          </select>
-        </div>
+          </FilterSelect>
 
-        <div class="filter-group">
-          <label for="annee2">Année 2:</label>
-          <select id="annee2" v-model="filters.annee2" @change="fetchData">
+          <Texte :type="'thin-dark'" :texte="'Année 2'" />
+          <FilterSelect id="annee2" v-model="filters.annee2" @change="fetchData">
             <option v-for="year in availableYears" :key="`a2-${year}`" :value="year">
               {{ year }}
             </option>
-          </select>
-        </div>
+          </FilterSelect>
 
-        <div class="filter-group">
-          <label for="centre">Centre:</label>
-          <select id="centre" v-model="filters.id_centre" @change="fetchData">
+          <Texte :type="'thin-dark'" :texte="'Centre'" />
+          <FilterSelect id="centre" v-model="filters.id_centre" @change="fetchData">
             <option value="">Tous les centres</option>
             <option v-for="centre in centerdata" :key="centre.id_centre" :value="centre.id_centre">
               {{ centre.nom }}
             </option>
-          </select>
-        </div>
+          </FilterSelect>
 
-        <div class="filter-group">
-          <label for="type">Type:</label>
-          <select id="type" v-model="filters.id_type" @change="fetchData">
+          <Texte :type="'thin-dark'" :texte="'Type'" />
+          <FilterSelect id="type" v-model="filters.id_type" @change="fetchData">
             <option v-for="type in typedata" :key="type.id_type" :value="type.id_type">
               {{ type.code }}
             </option>
-          </select>
-        </div>
+          </FilterSelect>
 
-        <button @click="fetchData" :disabled="loading" class="refresh-btn">
-          {{ loading ? 'Chargement...' : 'Actualiser' }}
-        </button>
       </div>
     </div>
 
@@ -316,11 +432,26 @@ onMounted(() => {
         :annee1="filters.annee1"
         :annee2="filters.annee2"
       />
+      <InterpretationCardAnnuelle
+        v-if="ecartAnnuel"
+        :dataComparaison="ecartAnnuel"
+        type="ecart-annuel"
+        :loading="loading"
+        :idType="filters.id_type || 1"
+      />
     </div>
 
     <!-- Tableau de données -->
 <div class="data-table" v-if="chartData.length > 0">
-  <Texte :type="'bold-dark'" :texte="'Comparaison annuelle par centre'" />
+  <div class="ok">
+    <div class="info">
+    <Texte :type="'bold-dark'" :texte="'Comparaison annuelle par centre'" />
+    <Texte :type="'dark'" :texte="'Montants en Ariary (Ar).'" />
+    </div>
+    <div class="iconbtn">
+      <i class="bi bi-file-earmark-pdf-fill"></i>
+    </div>
+  </div>
     <table class="table" id="axesTable">
       <thead>
         <tr>
@@ -368,21 +499,52 @@ onMounted(() => {
 
 <!-- Le reste du style reste inchangé -->
 <style lang="scss" scoped>
+.iconbtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 49px;
+  height: 49px;
+  border-radius: 50%;
+  @include glass();
+  cursor: pointer;
+
+  i {
+    color: #e25252;
+    font-size: 20px;
+  }
+}
+.ok {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.info{
+  @include position-contenus(flex, flex-start, flex-start);
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: -10px 0;
+}
 .comparaison-annuelle {
   width: 100%;
   margin: 0 auto;
 }
 
 .filters-container {
-  width: 100%;
-  border-radius: 8px;
+  display: flex;
+  align-items: baseline;
+  flex-direction: column;
+  gap: 20px;
   margin-bottom: 30px;
 }
 
 .filters {
   display: flex;
-  gap: 20px;
-  align-items: end;
+  gap: 8px;
+  align-items: center;
+  justify-content: baseline;
   flex-wrap: wrap;
 }
 
@@ -547,6 +709,8 @@ opacity: 0;
 
 .chart-container {
   width: 100%;
+  display: flex;
+  gap: 20px;
   margin-bottom: 30px;
 }
 

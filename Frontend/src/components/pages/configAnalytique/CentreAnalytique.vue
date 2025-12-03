@@ -91,41 +91,40 @@ const filteredCount = computed(() => {
 
 <template>
   <PageAnalyse :menu="'Saisie Analytique'" :sousmenu="'Centre Analytique'">
-      <transition name="fade">
+    <transition name="fade">
       <PopUp v-if="opendelete">
         <Icon :color="'primary'" :icon="'bi bi-envelope'" />
         <Texte :type="'bold-dark'" texte="Supprimer ce centre ?" />
-        <Texte :type="'dark'"
-          texte="Une fois l'opération faite, la suppression sera irréversible" />
+        <Texte :type="'dark'" texte="Une fois l'opération faite, la suppression sera irréversible" />
         <div class="PPbtn">
           <Bouton @click="deleteCentre(id_to_delete), opendelete = false" :type="'input'" :texte="'Confirmer'" />
-        <Bouton @click="opendelete = false" :type="'cancel'" :texte="'Annuler'" />
+          <Bouton @click="opendelete = false" :type="'cancel'" :texte="'Annuler'" />
         </div>
       </PopUp>
-      </transition>
+    </transition>
     <transition name="fade">
       <PopUp v-if="openForm">
         <form @submit.prevent="saveCentre" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
           <Texte :texte="'Créer un centre analytique'" :type="'dark'" />
           <div class="popupContent">
             <div class="gauche">
-            <Input v-model="form.nom" placeholder="Nom du centre" type="text" required />
-            <Textarea v-model="form.description" placeholder="Description" required />
-          </div>
-          <div class="droite">
-            <div>
-              <Select v-model="form.id_axe" :placeholder="'Axe analytique'">
-                <option value="" disabled>Choisir un axe</option>
-                <option v-for="axe in axes" :key="axe.id_axe" :value="axe.id_axe">{{ axe.axe }}</option>
-              </Select>
+              <Input v-model="form.nom" placeholder="Nom du centre" type="text" required />
+              <Textarea v-model="form.description" placeholder="Description" required />
             </div>
-            <!-- <div>
+            <div class="droite">
+              <div>
+                <Select v-model="form.id_axe" :placeholder="'Axe analytique'">
+                  <option value="" disabled>Choisir un axe</option>
+                  <option v-for="axe in axes" :key="axe.id_axe" :value="axe.id_axe">{{ axe.axe }}</option>
+                </Select>
+              </div>
+              <!-- <div>
               <Select v-model="form.id_type" :label="'Type de centre'">
                 <option value="" disabled>Choisir un type</option>
                 <option v-for="type in types" :key="type.id_type" :value="type.id_type">{{ type.code }}</option>
               </Select>
             </div> -->
-          </div>
+            </div>
           </div>
           <div class="btn-form">
             <Bouton v-if="!isEditing" type="input" :texte="'Créer'" redirection="" />
@@ -150,86 +149,83 @@ const filteredCount = computed(() => {
     <div class="main">
       <div class="informations">
         <p class="Count-content">
-          <Counter v-if="centres.length>0" :number="filteredCentres.length" />
-            <Counter v-if="centres.length == 0" :number="0" /> centres analytique disponibles.</p>
+          <Counter v-if="centres.length > 0" :number="filteredCentres.length" />
+          <Counter v-if="centres.length == 0" :number="0" /> centres analytique disponibles.
+        </p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
           <Bouton type="primary" texte="Ajouter" redirection="" @click="openForm = !openForm" />
         </div>
       </div>
-      
+
       <!-- Section Filtres -->
       <div class="filtres">
-            <div class="ok">
-              <searchbar
-              v-model="searchTerm"
-              type="text"
-              placeholder="Nom du centre..."
-            />
+        <div class="ok">
+          <searchbar v-model="searchTerm" type="text" placeholder="Nom du centre..." />
           <!-- Filtre par axe -->
-            <FilterSelect
-              v-model="selectedAxe"
-            >
-              <option value="">Axes</option>
-              <option 
-                v-for="axe in axes" 
-                :key="axe.id_axe" 
-                :value="axe.id_axe"
-              >
-                {{ axe.axe }}
-              </option>
-            </FilterSelect>
-            <BoutonIcon 
-              v-if="searchTerm || selectedAxe"
-              @click="resetFilters" 
-              type="cancel" 
-              :icon-name="'x-lg'"
-            />
-            </div>
-            <div class="iconbtn">
-                  <i class="bi bi-file-earmark-pdf-fill"></i>
-            </div>
-            <!-- <i @click="resetFilters" class="bi bi-x-circle-fill"></i> -->
+          <FilterSelect v-model="selectedAxe">
+            <option value="">Axes</option>
+            <option v-for="axe in axes" :key="axe.id_axe" :value="axe.id_axe">
+              {{ axe.axe }}
+            </option>
+          </FilterSelect>
+          <BoutonIcon v-if="searchTerm || selectedAxe" @click="resetFilters" type="cancel" :icon-name="'x-lg'" />
+        </div>
+        <div class="iconbtn">
+          <i class="bi bi-file-earmark-pdf-fill"></i>
+        </div>
+        <!-- <i @click="resetFilters" class="bi bi-x-circle-fill"></i> -->
       </div>
       <!-- Tableau des axes - utilise donneesPagination qui vient maintenant de filteredCentres -->
       <transition name="fade">
         <div class="content">
           <table class="table" id="axesTable">
-          <thead>
-            <tr class="">
-              <th class="col">#</th>
-              <th class="col">Nom</th>
-              <th class="col">Description</th>
-              <th class="col">Axe</th>
-              <!-- <th class="col">Type</th> -->
-              <th class="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="centre in donneesPagination" :key="centre.id_centre" v-if="loading == false">
-              <td class="col">{{ centre.id_centre }}</td>
-              <td class="col">{{ centre.nom }}</td>
-              <td class="col">{{ centre.description }}</td>
-              <td class="col">{{ getAxeName(centre.id_axe) }}</td>
-              <!-- <td class="col">{{ getTypeName(centre.id_type) }}</td> -->
-              <td class="col text-center">
-                <div class="action-content">
-                  <BoutonIcon @click="editCentre(centre), openForm = true" icon-name="pen-fill" :type="'edit'" />
-                  <BoutonIcon @click="id_to_delete = centre.id_centre,opendelete = true" icon-name="trash-fill" :type="'cancel'" />
-                </div>
-                
-              </td>
-            </tr>
-            <tr v-if="loading" v-for="n in nombreLignesLoader" :key="'loader-' + n">
-              <td class="col"><LoadingText type="line-1" /></td>
-              <td class="col"><LoadingText type="line-2" /></td>
-              <td class="col"><LoadingText type="line-4" /></td>
-              <td class="col"><LoadingText type="line-1" /></td>
-              <td class="col"><LoadingText type="line-1" /></td>
-            </tr>
-            
-          </tbody>
-        </table>
+            <thead>
+              <tr class="">
+                <th class="col">#</th>
+                <th class="col">Nom</th>
+                <th class="col">Description</th>
+                <th class="col">Axe</th>
+                <!-- <th class="col">Type</th> -->
+                <th class="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="centre in donneesPagination" :key="centre.id_centre" v-if="loading == false">
+                <td class="col">{{ centre.id_centre }}</td>
+                <td class="col">{{ centre.nom }}</td>
+                <td class="col">{{ centre.description }}</td>
+                <td class="col">{{ getAxeName(centre.id_axe) }}</td>
+                <!-- <td class="col">{{ getTypeName(centre.id_type) }}</td> -->
+                <td class="col text-center">
+                  <div class="action-content">
+                    <BoutonIcon @click="editCentre(centre), openForm = true" icon-name="pen-fill" :type="'edit'" />
+                    <BoutonIcon @click="id_to_delete = centre.id_centre, opendelete = true" icon-name="trash-fill"
+                      :type="'cancel'" />
+                  </div>
+
+                </td>
+              </tr>
+              <tr v-if="loading" v-for="n in nombreLignesLoader" :key="'loader-' + n">
+                <td class="col">
+                  <LoadingText type="line-1" />
+                </td>
+                <td class="col">
+                  <LoadingText type="line-2" />
+                </td>
+                <td class="col">
+                  <LoadingText type="line-4" />
+                </td>
+                <td class="col">
+                  <LoadingText type="line-1" />
+                </td>
+                <td class="col">
+                  <LoadingText type="line-1" />
+                </td>
+              </tr>
+
+            </tbody>
+          </table>
         </div>
       </transition>
 
@@ -238,26 +234,20 @@ const filteredCount = computed(() => {
         Aucun centre ne correspond aux critères de recherche.
       </div> -->
 
-      <Pagination 
-        :donnees="filteredCentres" 
-        :current-page="currentPage" 
-        :items-per-page="itemsPerPage"
-        :total-pages="totalPages" 
-        :go-to-page="goToPage" 
-        :previous-page="previousPage" 
-        :next-page="nextPage" 
-      />
+      <Pagination :donnees="filteredCentres" :current-page="currentPage" :items-per-page="itemsPerPage"
+        :total-pages="totalPages" :go-to-page="goToPage" :previous-page="previousPage" :next-page="nextPage" />
     </div>
   </PageAnalyse>
 </template>
 <style lang="scss" scoped>
-.ok{
+.ok {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
 }
-.iconbtn{
+
+.iconbtn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -266,7 +256,8 @@ const filteredCount = computed(() => {
   border-radius: 50%;
   @include glass();
   cursor: pointer;
-  i{
+
+  i {
     color: #e25252;
     font-size: 20px;
   }
@@ -312,7 +303,7 @@ const filteredCount = computed(() => {
 }
 
 .Count-content {
-  gap: 5px; 
+  gap: 5px;
   display: flex;
   background-color: transparent;
   color: #4A4A4A;
@@ -355,6 +346,7 @@ const filteredCount = computed(() => {
   opacity: 0;
   transform: scale(0.9);
 }
+
 .content {
   overflow-y: auto;
   /* Scroll vertical */
@@ -373,7 +365,7 @@ const filteredCount = computed(() => {
 .content::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 10px;
-  
+
 }
 
 .content::-webkit-scrollbar-thumb {
@@ -388,12 +380,14 @@ const filteredCount = computed(() => {
   opacity: 1;
   transform: scale(1);
 }
-.popupContent{
-  @include position-contenus(flex,center, flex-start);
+
+.popupContent {
+  @include position-contenus(flex, center, flex-start);
   flex-direction: column;
   gap: 10px;
 }
-.filtres{
+
+.filtres {
   @include position-contenus(flex, space-between, center);
   padding: 0 0;
   align-self: self-start;
@@ -401,12 +395,14 @@ const filteredCount = computed(() => {
   gap: 10px;
   width: 100%;
 }
-.action-content{
+
+.action-content {
   display: flex;
   justify-content: center;
   gap: 10px;
 }
-.PPbtn{
+
+.PPbtn {
   display: flex;
   flex-direction: column;
   gap: 10px;

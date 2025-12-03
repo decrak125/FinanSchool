@@ -11,43 +11,6 @@
           <div class="table-title">
               <Texte :type="'bold-dark'" :texte="'Évolution Coûts vs Profits'" />
         </div>
-        <!-- <transition name="fade">
-          <div class="legend-container" v-if="showDetails">
-            <div class="legend-wrapper">
-                <div class="legend-items">
-                  <div class="legend-item">
-                    <div class="legend-color" style="background-color: #00D4AA"></div>
-                    <div class="legend-content">
-                      <div class="legend-label">Profits</div>
-                      <div class="legend-values">
-                        <span class="legend-value">{{ formatMontant(summaryData.totalProfits) }}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="legend-item">
-                    <div class="legend-color" style="background-color: #F34971"></div>
-                    <div class="legend-content">
-                      <div class="legend-label">Coûts</div>
-                      <div class="legend-values">
-                        <span class="legend-value">{{ formatMontant(summaryData.totalCosts) }}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="legend-item">
-                    <div class="legend-color" style="background-color: #017AFF"></div>
-                    <div class="legend-content">
-                      <div class="legend-label">Solde Net</div>
-                      <div class="legend-values">
-                        <span class="legend-value" :class="summaryData.soldeNet >= 0 ? 'positive' : 'negative'">
-                          {{ formatMontant(summaryData.soldeNet) }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                </div>
-              </div>
-        </transition> -->
           <div class="graphic-wrapper">
             <apexchart
               type="area"
@@ -56,69 +19,7 @@
               :series="series"
             ></apexchart>
           </div>
-          <!-- <div class="voir" @click="showDetails = !showDetails">
-            <i class="bi bi-eye"></i>
-            <p v-if="!showDetails">Voir les détails</p>
-            <p v-if="showDetails">Masquer les détails</p>
-          </div> -->
         </div>
-        
-        <!-- <transition name="fade">
-          <div class="legend-container" v-if="showDetails">
-            <div class="legend-wrapper"> -->
-              <!-- Statistiques globales -->
-              <!-- <div class="stats-summary">
-                <div class="stat-item">
-                  <span class="stat-label">Période :</span>
-                  <span class="stat-value">{{ periodRange }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Types analysés :</span>
-                  <span class="stat-value">{{ typesCount }}</span>
-                </div>
-                <div class="stat-item">
-                  <span class="stat-label">Marge moyenne :</span>
-                  <span class="stat-value" :class="getMargeClass(averageMarge)">
-                    {{ formatPourcentage(averageMarge) }}
-                  </span>
-                </div>
-              </div> -->
-  
-              <!-- Légende des séries -->
-  
-              <!-- Détails par type -->
-              <!-- <div class="legend-year-group" v-if="detailedData.length > 0">
-                <div class="legend-year-title">Analyse par Type</div>
-                <div class="type-details">
-                  <div v-for="item in detailedData" :key="'detail-' + item.id_type" class="type-detail-item">
-                    <div class="type-header">
-                      <span class="type-badge">Type {{ item.id_type }}</span>
-                      <span class="marge-badge" :class="getMargeClass(item.marge_moyenne)">
-                        {{ formatPourcentage(item.marge_moyenne) }}
-                      </span>
-                    </div>
-                    <div class="type-stats">
-                      <div class="stat-row">
-                        <span>Coûts:</span>
-                        <span>{{ formatMontant(item.total_couts) }}</span>
-                      </div>
-                      <div class="stat-row">
-                        <span>Profits:</span>
-                        <span>{{ formatMontant(item.total_profits) }}</span>
-                      </div>
-                      <div class="stat-row highlight">
-                        <span>Solde net:</span>
-                        <span :class="item.solde_net >= 0 ? 'positive' : 'negative'">
-                          {{ formatMontant(item.solde_net) }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div> -->
-            <!-- </div>
-          </div>
-        </transition> -->
       </div>
       </div>
     </div>
@@ -149,61 +50,133 @@
   
   const showDetails = ref(true);
   const series = ref([]);
+  const xaxisCategories = ref([]); // Pour stocker les catégories de l'axe X
+  const periodesOriginales = ref([]); // Pour stocker les périodes originales (année-mois)
   
   // Computed properties
   const periodRange = computed(() => {
     if (props.chartData.length === 0) return '';
     
-    const dates = props.chartData.map(item => new Date(item.mois));
-    const minDate = new Date(Math.min(...dates));
-    const maxDate = new Date(Math.max(...dates));
+    const annees = [...new Set(props.chartData.map(item => item.annee))].sort();
+    if (annees.length === 0) return '';
     
-    return `${minDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })} - ${maxDate.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })}`;
+    const minYear = Math.min(...annees.map(a => parseInt(a)));
+    const maxYear = Math.max(...annees.map(a => parseInt(a)));
+    
+    if (minYear === maxYear) {
+      return `Année ${minYear}`;
+    }
+    return `Période ${minYear}-${maxYear}`;
   });
   
   const typesCount = computed(() => {
     return new Set(props.chartData.map(item => item.id_type)).size;
   });
   
-  // Données détaillées par type
-  const detailedData = computed(() => {
-    const types = [...new Set(props.chartData.map(item => item.id_type))];
-    return types.map(type => {
-      const typeData = props.chartData.filter(item => item.id_type === type);
-      const totalCouts = typeData.reduce((sum, item) => sum + (parseFloat(item.total_couts_ventiles) || 0), 0);
-      const totalProfits = typeData.reduce((sum, item) => sum + (parseFloat(item.total_profits_ventiles) || 0), 0);
-      const soldeNet = totalProfits - totalCouts;
-      const margeMoyenne = totalCouts > 0 ? (soldeNet / totalCouts) * 100 : 0;
-  
-      return {
-        id_type: type,
-        total_couts: totalCouts,
-        total_profits: totalProfits,
-        solde_net: soldeNet,
-        marge_moyenne: margeMoyenne
-      };
-    }).sort((a, b) => b.solde_net - a.solde_net);
-  });
-  
-  // Données résumées
-  const summaryData = computed(() => {
-    const totalCosts = props.chartData.reduce((sum, item) => sum + (parseFloat(item.total_couts_ventiles) || 0), 0);
-    const totalProfits = props.chartData.reduce((sum, item) => sum + (parseFloat(item.total_profits_ventiles) || 0), 0);
-    const soldeNet = totalProfits - totalCosts;
+  // Transformer les données pour ApexCharts (version avec catégories)
+  const transformData = (data) => {
+    console.log('🔹 Transformation des données coûts vs profits:', data);
     
-    return {
-      totalCosts,
-      totalProfits,
-      soldeNet
-    };
-  });
+    if (!data || data.length === 0) {
+      series.value = [];
+      xaxisCategories.value = [];
+      periodesOriginales.value = [];
+      return;
+    }
+
+    // 1. Grouper les données par période (année-mois)
+    const periodesSet = new Set();
+    data.forEach(item => {
+      if (item.annee && item.mois) {
+        const moisFormate = item.mois.padStart(2, '0');
+        periodesSet.add(`${item.annee}-${moisFormate}`);
+      }
+    });
+    
+    // 2. Trier les périodes chronologiquement
+    const periodes = Array.from(periodesSet).sort((a, b) => {
+      const [anneeA, moisA] = a.split('-').map(Number);
+      const [anneeB, moisB] = b.split('-').map(Number);
+      
+      if (anneeA !== anneeB) return anneeA - anneeB;
+      return moisA - moisB;
+    });
+    
+    periodesOriginales.value = periodes;
+    console.log('🔹 Périodes triées:', periodes);
+
+    // 3. Créer les catégories pour l'axe X (noms des mois)
+    xaxisCategories.value = periodes.map(periode => {
+      const [annee, mois] = periode.split('-').map(Number);
+      const date = new Date(annee, mois - 1, 1);
+      
+      // Si toutes les données sont de la même année, afficher seulement le mois
+      const anneesUniques = new Set(data.map(item => item.annee));
+      if (anneesUniques.size === 1) {
+        return date.toLocaleDateString('fr-FR', { 
+          month: 'short'
+        });
+      }
+      
+      // Sinon, afficher mois + année abrégée
+      return date.toLocaleDateString('fr-FR', { 
+        month: 'short',
+        year: '2-digit'
+      });
+    });
+    
+    console.log('🔹 Catégories X:', xaxisCategories.value);
+
+    // 4. Calculer les totaux pour chaque période
+    const profitsData = periodes.map(periode => {
+      const [annee, mois] = periode.split('-');
+      const items = data.filter(item => 
+        item.annee === annee && item.mois === mois.replace(/^0+/, '')
+      );
+      
+      return items.reduce((sum, item) => sum + (parseFloat(item.total_profits_ventiles) || 0), 0);
+    });
+
+    const costsData = periodes.map(periode => {
+      const [annee, mois] = periode.split('-');
+      const items = data.filter(item => 
+        item.annee === annee && item.mois === mois.replace(/^0+/, '')
+      );
+      
+      return items.reduce((sum, item) => sum + (parseFloat(item.total_couts_ventiles) || 0), 0);
+    });
+
+    // 5. Calculer le solde cumulatif
+    let soldeCumulatif = 0;
+    const soldeData = profitsData.map((profit, index) => {
+      const cost = costsData[index] || 0;
+      soldeCumulatif += (profit - cost);
+      return soldeCumulatif;
+    });
+
+    // 6. Préparer les séries pour ApexCharts
+    series.value = [
+      {
+        name: 'Profits',
+        data: profitsData
+      },
+      {
+        name: 'Coûts',
+        data: costsData
+      },
+      {
+        name: 'Solde Net',
+        data: soldeData
+      }
+    ];
+
+    console.log('🔹 Séries préparées:', series.value);
+    console.log('🔹 Profits:', profitsData);
+    console.log('🔹 Coûts:', costsData);
+    console.log('🔹 Solde:', soldeData);
+  };
   
-  const averageMarge = computed(() => {
-    if (detailedData.value.length === 0) return 0;
-    const totalMarge = detailedData.value.reduce((sum, item) => sum + item.marge_moyenne, 0);
-    return totalMarge / detailedData.value.length;
-  });
-  
+  // Options du graphique
   const chartOptions = computed(() => {
     return {
       chart: {
@@ -246,37 +219,26 @@
           stops: [0, 90, 100]
         }
       },
-      // title: {
-      //   text: 'Évolution Coûts vs Profits',
-      //   align: 'center',
-      //   style: {
-      //     fontFamily: 'stara',
-      //     fontSize: '18px',
-      //     fontWeight: 'bold',
-      //     color: '#2c3e50'
-      //   }
-      // },
       xaxis: {
-        type: 'datetime',
+        type: 'category', // Utiliser des catégories au lieu de datetime
+        categories: xaxisCategories.value, // Les catégories générées
         labels: {
           style: {
             fontFamily: 'stara',
             colors: '#6b7280',
             fontSize: '11px'
           },
-          formatter: function(value) {
-            return new Date(value).toLocaleDateString('fr-FR', { 
-              month: 'short',
-              year: '2-digit'
-            });
-          }
+          rotate: -45, // Rotation pour mieux lire
+          rotateAlways: false,
+          hideOverlappingLabels: true
         },
         axisBorder: {
           show: false
         },
         axisTicks: {
           show: false
-        }
+        },
+        tickPlacement: 'on' // Placer les ticks sur les catégories
       },
       yaxis: {
         title: {
@@ -296,37 +258,48 @@
           },
           formatter: function(value) {
             return new Intl.NumberFormat('mg-MG', {
-          // style: 'currency',
-          // currency: 'MGA',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0
-        }).format(value);
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(value);
           }
         }
       },
       tooltip: {
         enabled: true,
+        shared: true, // Tooltip partagé pour toutes les séries
+        intersect: false,
         theme: 'light',
         style: {
           fontFamily: 'stara',
           fontSize: '12px'
         },
         x: {
-          formatter: function(value) {
-            return new Date(value).toLocaleDateString('fr-FR', { 
-              month: 'long',
-              year: 'numeric'
-            });
+          formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
+            // Afficher la période complète dans le tooltip
+            if (periodesOriginales.value.length > dataPointIndex) {
+              const periode = periodesOriginales.value[dataPointIndex];
+              const [annee, mois] = periode.split('-').map(Number);
+              const date = new Date(annee, mois - 1, 1);
+              return date.toLocaleDateString('fr-FR', { 
+                month: 'long',
+                year: 'numeric'
+              });
+            }
+            return value;
           }
         },
         y: {
-          formatter: function(value) {
-            return new Intl.NumberFormat('mg-MG', {
-          // style: 'currency',
-          // currency: 'MGA',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0
-        }).format(value);
+          formatter: function(value, { series, seriesIndex, dataPointIndex, w }) {
+            const seriesName = w.globals.seriesNames[seriesIndex];
+            const formattedValue = new Intl.NumberFormat('mg-MG', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0
+            }).format(value);
+            
+            return `<div style="display: flex; justify-content: space-between; min-width: 150px;">
+                      <span style="font-weight: 600; margin-right: 10px;">${seriesName}:</span>
+                      <span>${formattedValue} Ar</span>
+                    </div>`;
           }
         }
       },
@@ -366,9 +339,12 @@
           chart: {
             height: 350
           },
-          title: {
-            style: {
-              fontSize: '16px'
+          xaxis: {
+            labels: {
+              rotate: -45,
+              style: {
+                fontSize: '10px'
+              }
             }
           }
         }
@@ -379,114 +355,132 @@
           chart: {
             height: 300
           },
-          title: {
-            style: {
-              fontSize: '14px'
-            }
-          },
           xaxis: {
             labels: {
+              rotate: -45,
+              style: {
+                fontSize: '9px'
+              },
               formatter: function(value) {
-                return new Date(value).toLocaleDateString('fr-FR', { 
-                  month: 'short'
-                });
+                // Sur très petit écran, réduire la longueur
+                return value.length > 4 ? value.substring(0, 3) + '.' : value;
               }
             }
+          },
+          legend: {
+            position: 'top',
+            horizontalAlign: 'center'
           }
         }
       }]
     };
   });
   
-  // Transformer les données pour ApexCharts
-  const transformData = (data) => {
-    console.log('🔹 Transformation des données coûts vs profits:', data);
-    
-    if (!data || data.length === 0) {
-      series.value = [];
-      return;
-    }
-  
-    // Grouper les données par période
-    const periodes = [...new Set(data.map(item => item.mois))].sort();
-    
-    // Calculer les totaux par période
-    const profitsData = periodes.map(periode => {
-      const items = data.filter(item => item.mois === periode);
-      return {
-        x: new Date(periode).getTime(),
-        y: items.reduce((sum, item) => sum + (parseFloat(item.total_profits_ventiles) || 0), 0)
-      };
-    });
-  
-    const costsData = periodes.map(periode => {
-      const items = data.filter(item => item.mois === periode);
-      return {
-        x: new Date(periode).getTime(),
-        y: items.reduce((sum, item) => sum + (parseFloat(item.total_couts_ventiles) || 0), 0)
-      };
-    });
-  
-    const soldeData = periodes.map(periode => {
-      const items = data.filter(item => item.mois === periode);
-      const profits = items.reduce((sum, item) => sum + (parseFloat(item.total_profits_ventiles) || 0), 0);
-      const costs = items.reduce((sum, item) => sum + (parseFloat(item.total_couts_ventiles) || 0), 0);
-      return {
-        x: new Date(periode).getTime(),
-        y: profits - costs
-      };
-    });
-  
-    series.value = [
-      {
-        name: 'Profits',
-        data: profitsData.sort((a, b) => a.x - b.x)
-      },
-      {
-        name: 'Coûts',
-        data: costsData.sort((a, b) => a.x - b.x)
-      },
-      {
-        name: 'Solde Net',
-        data: soldeData.sort((a, b) => a.x - b.x)
-      }
-    ];
-  
-    console.log('🔹 Séries area chart:', series.value);
-  };
-  
   // Méthodes utilitaires
   const formatMontant = (montant) => {
     return new Intl.NumberFormat('mg-MG', {
-          // style: 'currency',
-          // currency: 'MGA',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0
-        }).format(parseFloat(montant) || 0);
-  };
-  
-  const formatPourcentage = (pourcentage) => {
-    if (pourcentage === undefined || pourcentage === null || isNaN(pourcentage)) {
-      return 'N/A';
-    }
-    const sign = pourcentage > 0 ? '+' : '';
-    return `${sign}${pourcentage.toFixed(1)}%`;
-  };
-  
-  const getMargeClass = (marge) => {
-    if (marge === undefined || marge === null || isNaN(marge)) {
-      return 'marge-stable';
-    }
-    if (marge > 20) return 'marge-excellente';
-    if (marge > 10) return 'marge-bonne';
-    if (marge > 0) return 'marge-faible';
-    return 'marge-negative';
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(parseFloat(montant) || 0);
   };
   
   // Watchers
   watch(() => props.chartData, transformData, { immediate: true, deep: true });
   </script>
   
+<style lang="scss" scoped>
+.loading,
+.error,
+.no-data {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin: 20px 0;
+  font-family: 'stara';
+}
+
+.error {
+  color: #ff0000;
+  background: #ffe6e6;
+}
+
+.no-data {
+  color: #666;
+  background: #f0f0f0;
+}
+
+.cout-profit-chart-wrapper {
+  @include glass();
+    width: 100%;
+    height: 100%;
+    gap: 12px;
+    border-radius: $radius-pm;
+    animation: appear 0.6s ease-out forwards;
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    
+    @media (max-width: 768px) {
+        border-radius: $radius-sm;
+    }
+}
+
+.cout-profit-chart-wrapper:hover {
+  transform: scale(1.02);
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.05);
+    
+    @media (max-width: 768px) {
+        transform: none; 
+    }
+}
+
+.chart-with-separate-legend {
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    @include position-contenus(flex, flex-start, flex-start);
+    
+    @media (max-width: 1024px) {
+        gap: 10px;
+    }
+    
+    @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .chart-container {
+        flex: 1;
+        min-width: 0;
+        height: 100%;
+        padding: 24px;
+        
+        @media (max-width: 768px) {
+            width: 100%;
+        }
+
+        .graphic-wrapper {
+            min-width: 600px;
+            border-radius: 8px;
+            
+            @media (max-width: 768px) {
+                padding: 8px;
+            }
+        }
+    }
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+</style>  
 <style lang="scss" scoped>
 .loading,
 .error,

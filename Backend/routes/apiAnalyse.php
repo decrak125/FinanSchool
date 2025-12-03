@@ -16,6 +16,7 @@ use App\Http\Controllers\ParametresAnalytique\NiveauAlerteController;
 use App\Http\Controllers\ParametresAnalytique\InterpretationIndicateurController;
 use App\Http\Controllers\ParametresAnalytique\CodeAnalytiqueController;
 use App\Http\Controllers\Analyse\IndicateurPedagogiqueController;
+use App\Http\Controllers\EffectifEleveController;
 // use App\Http\Controllers\ChatBot\ChatController;
 
 //      Route::post('/chat/send', [ChatController::class, 'sendMessage']);
@@ -109,5 +110,21 @@ use App\Http\Controllers\Analyse\IndicateurPedagogiqueController;
      Route::get('/marge-par-eleve',[IndicateurPedagogiqueController::class,'calculMargeParEleve']);
      Route::get('/tous-indicateurs',[IndicateurPedagogiqueController::class,'calculTousIndicateursPedagogiques']);
     });
+
+    Route::prefix('effectifs-eleves')->group(function () {
+          Route::get('/', [EffectifEleveController::class, 'index']);
+          Route::post('/', [EffectifEleveController::class, 'store']);
+          Route::get('/stats', [EffectifEleveController::class, 'stats']);
+          Route::post('/check-copy', [EffectifEleveController::class, 'checkAndCopyEffectif']);
+          Route::get('/by-dates', [EffectifEleveController::class, 'getEffectifByDates']);
+          Route::get('/exercice/{exerciceId}', [EffectifEleveController::class, 'getByExercice']);
+    
+          Route::prefix('{id}')->group(function () {
+               Route::get('/', [EffectifEleveController::class, 'show']);
+               Route::put('/', [EffectifEleveController::class, 'update']);
+               Route::patch('/', [EffectifEleveController::class, 'update']);
+               Route::delete('/', [EffectifEleveController::class, 'destroy']);
+          });
+     });
 
 

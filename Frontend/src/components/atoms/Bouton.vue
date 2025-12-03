@@ -22,11 +22,6 @@ defineProps({
     padding: 12px 16px;
     font-size: 14px;
   }
-  
-  @media (max-width: 480px) {
-    padding: 10px 14px;
-    font-size: 13px;
-  }
 }
 
 .button-primary:hover {
@@ -36,6 +31,28 @@ defineProps({
 .button-input {
   cursor: pointer;
   @include bouton($primary, $light, $radius-pm, $stara-medium, 250px);
+  transition: all 0.5s ease-in-out;
+  
+  @media (max-width: 1024px) {
+    width: 220px;
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    max-width: 300px;
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}
+
+.button-input-disable {
+  cursor: pointer;
+  @include bouton(#a0a0a0, $light, $radius-pm, $stara-medium, 250px);
   transition: all 0.5s ease-in-out;
   
   @media (max-width: 1024px) {

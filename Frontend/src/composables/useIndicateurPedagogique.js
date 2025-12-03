@@ -13,28 +13,33 @@ export function useIndicateurPedagogique(filters) {
   const loading = ref(false);
   const loadingTable = ref(false);
 
-  // 📌 Données des 3 dernières années
-  const threeYearsData = ref({
-    current: null,
-    previous: null,
-    twoYearsAgo: null
+  // 📌 NOUVEAU : Données de l'année N-1 (comme useIndicateurGeneral)
+  const previousYearData = ref({
+    coutFonctionnement: null,
+    chiffreAffaires: null,
+    partMasseSalariale: null,
+    margeParEleve: null
   });
 
-  // 📌 Fonction pour obtenir les dates des années précédentes
-  const getPreviousYearsDates = (currentDateStart, currentDateEnd, yearsBack = 1) => {
+  // 📌 Fonction pour obtenir les dates de l'année précédente (identique à useIndicateurGeneral)
+  const getPreviousYearDates = (currentDateStart, currentDateEnd) => {
+    // Étape 1 : convertir en date "pure" (sans heures)
     const start = new Date(currentDateStart);
     const end = new Date(currentDateEnd);
 
+    // On force l'heure à 00:00:00 pour éviter tout décalage
     start.setHours(0, 0, 0, 0);
     end.setHours(0, 0, 0, 0);
 
+    // Étape 2 : faire les calculs de l'année précédente
     const previousStart = new Date(start);
-    previousStart.setFullYear(previousStart.getFullYear() - yearsBack);
+    previousStart.setFullYear(previousStart.getFullYear() - 1);
 
     const previousEnd = new Date(end);
-    previousEnd.setFullYear(previousEnd.getFullYear() - yearsBack);
+    previousEnd.setFullYear(previousEnd.getFullYear() - 1);
 
-    const formatDate = (d) => d.toLocaleDateString('fr-CA');
+    // Étape 3 : convertir proprement en string locale au format ISO (YYYY-MM-DD)
+    const formatDate = (d) => d.toLocaleDateString('fr-CA'); // format sûr
 
     return {
       dateStart: formatDate(previousStart),
@@ -42,147 +47,128 @@ export function useIndicateurPedagogique(filters) {
     };
   };
 
-  // 📌 Récupérer les données des 3 dernières années
-  const fetchThreeYearsData = async (currentDateStart, currentDateEnd) => {
+  // 📌 Récupérer les données de l'année N-1 (simplifié comme useIndicateurGeneral)
+  const fetchPreviousYearData = async (currentDateStart, currentDateEnd) => {
     try {
       loadingTable.value = true;
+      const previousDates = getPreviousYearDates(currentDateStart, currentDateEnd);
       
-      const previousDates = getPreviousYearsDates(currentDateStart, currentDateEnd, 1);
-      const twoYearsAgoDates = getPreviousYearsDates(currentDateStart, currentDateEnd, 2);
-
-      // Récupération des données pour les 3 années
-      const [currentData, previousData, twoYearsAgoData] = await Promise.all([
-        // Année N (actuelle)
-        fetchAllIndicateurs(currentDateStart, currentDateEnd),
+      const [coutFct, ca, masseSal, marge] = await Promise.all([
+        axios.get(`${API_URL}/analyse/cout-fonctionnement-par-eleve`, {
+          params: { 
+            date_debut: previousDates.dateStart, 
+            date_fin: previousDates.dateEnd
+            // effectif_eleves: 228 // À adapter selon votre logique
+          }
+        }).catch(() => ({ data: null })),
         
-        // Année N-1
-        fetchAllIndicateurs(previousDates.dateStart, previousDates.dateEnd),
+        axios.get(`${API_URL}/analyse/chiffre-affaires-par-eleve`, {
+          params: { 
+            date_debut: previousDates.dateStart, 
+            date_fin: previousDates.dateEnd
+            // effectif_eleves: 228 // À adapter selon votre logique
+          }
+        }).catch(() => ({ data: null })),
         
-        // Année N-2
-        fetchAllIndicateurs(twoYearsAgoDates.dateStart, twoYearsAgoDates.dateEnd)
+        axios.get(`${API_URL}/analyse/part-masse-salariale-enseignante`, {
+          params: { 
+            date_debut: previousDates.dateStart, 
+            date_fin: previousDates.dateEnd
+          }
+        }).catch(() => ({ data: null })),
+        
+        axios.get(`${API_URL}/analyse/marge-par-eleve`, {
+          params: { 
+            date_debut: previousDates.dateStart, 
+            date_fin: previousDates.dateEnd
+            // effectif_eleves: 228 // À adapter selon votre logique
+          }
+        }).catch(() => ({ data: null }))
       ]);
 
-      threeYearsData.value = {
-        current: currentData,
-        previous: previousData,
-        twoYearsAgo: twoYearsAgoData
+      previousYearData.value = {
+        coutFonctionnement: coutFct.data,
+        chiffreAffaires: ca.data,
+        partMasseSalariale: masseSal.data,
+        margeParEleve: marge.data
       };
-
-      console.log('Données 3 ans:', threeYearsData.value);
-      loadingTable.value = false;
-      return threeYearsData.value;
-    } catch (error) {
-      console.error("Erreur lors de la récupération des données sur 3 ans:", error);
-      return null;
-    }
-  };
-
-  // 📌 Récupérer tous les indicateurs pédagogiques pour une période
-  const fetchAllIndicateurs = async (dateStart, dateEnd) => {
-    try {
-      // Récupérer l'effectif élèves (vous devrez adapter cette partie)
-    //   const effectifEleves = await getEffectifEleves(dateStart, dateEnd);
       
-      const response = await axios.get(`${API_URL}/analyse/tous-indicateurs`, {
-        params: {date_debut: dateStart,
-        date_fin: dateEnd,
-        effectif_eleves: 100}
-        // masse_salariale_enseignante: await getMasseSalarialeEnseignante(dateStart, dateEnd)
-      });
-
-      return response.data.indicateurs_pedagogiques;
+      console.log("Données N-1 pédagogiques:", previousYearData.value);
+      loadingTable.value = false;
+      return previousYearData.value;
     } catch (error) {
-      console.error(`Erreur récupération indicateurs pour ${dateStart}-${dateEnd}:`, error);
+      console.error("Erreur lors de la récupération des données N-1 pédagogiques:", error);
       return null;
     }
   };
 
-  // 📌 Fonctions pour récupérer l'effectif et la masse salariale (à adapter)
-  const getEffectifEleves = async (dateStart, dateEnd) => {
-    // À implémenter selon votre logique métier
-    // Pour l'exemple, on retourne une valeur fixe
-    return 200;
-  };
+  // 📌 Fonction de comparaison entre N et N-1 (identique à useIndicateurGeneral)
+  const getComparison = (currentValue, previousValue, type = 'montant') => {
+    if (!currentValue || !previousValue) {
+      return {
+        evolution: null,
+        percentage: null,
+        trend: 'stable',
+        hasData: false
+      };
+    }
 
-  const getMasseSalarialeEnseignante = async (dateStart, dateEnd) => {
-    // À implémenter selon votre logique métier
-    // Pour l'exemple, on retourne une valeur fixe
-    return 150000;
-  };
-
-  // 📌 Fonction de comparaison améliorée pour 3 ans
-  const getComparison = (currentValue, previousValue, twoYearsAgoValue, type = 'montant') => {
     const current = type === 'pourcentage' ? currentValue : currentValue?.valeur || currentValue;
     const previous = type === 'pourcentage' ? previousValue : previousValue?.valeur || previousValue;
-    const twoYearsAgo = type === 'pourcentage' ? twoYearsAgoValue : twoYearsAgoValue?.valeur || twoYearsAgoValue;
 
-    const hasCurrent = current !== null && current !== undefined;
-    const hasPrevious = previous !== null && previous !== undefined;
-    const hasTwoYearsAgo = twoYearsAgo !== null && twoYearsAgo !== undefined;
+    if (current === null || previous === null || previous === 0) {
+      return {
+        evolution: null,
+        percentage: null,
+        trend: 'stable',
+        hasData: false
+      };
+    }
 
-    // Comparaison N vs N-1
-    const evolutionVsPrevious = hasCurrent && hasPrevious ? current - previous : null;
-    const percentageVsPrevious = hasCurrent && hasPrevious && previous !== 0 ? 
-      ((evolutionVsPrevious / Math.abs(previous)) * 100) : null;
-
-    // Comparaison N vs N-2
-    const evolutionVsTwoYearsAgo = hasCurrent && hasTwoYearsAgo ? current - twoYearsAgo : null;
-    const percentageVsTwoYearsAgo = hasCurrent && hasTwoYearsAgo && twoYearsAgo !== 0 ? 
-      ((evolutionVsTwoYearsAgo / Math.abs(twoYearsAgo)) * 100) : null;
-
-    // Tendance globale
+    const evolution = current - previous;
+    const percentage = ((evolution / Math.abs(previous)) * 100);
+    
     let trend = 'stable';
-    if (evolutionVsPrevious > 0 && evolutionVsTwoYearsAgo > 0) trend = 'up';
-    if (evolutionVsPrevious < 0 && evolutionVsTwoYearsAgo < 0) trend = 'down';
+    if (evolution > 0) trend = 'up';
+    if (evolution < 0) trend = 'down';
 
     return {
-      evolutionVsPrevious,
-      percentageVsPrevious: percentageVsPrevious ? Math.abs(percentageVsPrevious).toFixed(1) : null,
-      evolutionVsTwoYearsAgo,
-      percentageVsTwoYearsAgo: percentageVsTwoYearsAgo ? Math.abs(percentageVsTwoYearsAgo).toFixed(1) : null,
+      evolution,
+      percentage: Math.abs(percentage).toFixed(2),
       trend,
-      hasData: hasCurrent && (hasPrevious || hasTwoYearsAgo),
+      hasData: true,
       currentValue: current,
-      previousValue: previous,
-      twoYearsAgoValue: twoYearsAgo
+      previousValue: previous
     };
   };
 
-  // 📌 Computed pour les comparaisons sur 3 ans
+  // 📌 Computed pour les comparaisons N vs N-1 (comme useIndicateurGeneral)
   const comparisons = computed(() => {
-    const current = threeYearsData.value.current;
-    const previous = threeYearsData.value.previous;
-    const twoYearsAgo = threeYearsData.value.twoYearsAgo;
-
     return {
       coutFonctionnement: getComparison(
-        current?.cout_fonctionnement_par_eleve,
-        previous?.cout_fonctionnement_par_eleve,
-        twoYearsAgo?.cout_fonctionnement_par_eleve,
+        coutFonctionnement.value?.cout_fonctionnement_par_eleve?.valeur, 
+        previousYearData.value.coutFonctionnement?.cout_fonctionnement_par_eleve?.valeur,
         'montant'
       ),
       chiffreAffaires: getComparison(
-        current?.chiffre_affaires_par_eleve,
-        previous?.chiffre_affaires_par_eleve,
-        twoYearsAgo?.chiffre_affaires_par_eleve,
+        chiffreAffaires.value?.chiffre_affaires_par_eleve?.valeur, 
+        previousYearData.value.chiffreAffaires?.chiffre_affaires_par_eleve?.valeur,
         'montant'
       ),
       partMasseSalariale: getComparison(
-        current?.part_masse_salariale_enseignante,
-        previous?.part_masse_salariale_enseignante,
-        twoYearsAgo?.part_masse_salariale_enseignante,
+        partMasseSalariale.value?.part_masse_salariale_enseignante?.valeur, 
+        previousYearData.value.partMasseSalariale?.part_masse_salariale_enseignante?.valeur,
         'pourcentage'
       ),
       margeParEleve: getComparison(
-        current?.marge_par_eleve,
-        previous?.marge_par_eleve,
-        twoYearsAgo?.marge_par_eleve,
+        margeParEleve.value?.marge_par_eleve?.valeur, 
+        previousYearData.value.margeParEleve?.marge_par_eleve?.valeur,
         'montant'
       )
     };
   });
 
-  // 📌 Fonction pour formater le format de date
+  // 📌 Fonction pour formater le format de date (identique à useIndicateurGeneral)
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
@@ -195,22 +181,24 @@ export function useIndicateurPedagogique(filters) {
     return '';
   };
 
-  // 📌 Récupérer tous les exercices
+  // 📌 Récupérer tous les exercices (identique à useIndicateurGeneral)
   const fetchExercicesList = async () => {
     try {
       const response = await axios.get(`${API_URL}/exercices`);
       
+      // Filtrer les exercices avec des dates dans le futur, mais inclure l'exercice sélectionné
       const currentDate = new Date();
       exercicesList.value = response.data.filter(exercice => {
         const dateDebut = new Date(exercice.Date_debut);
         const isSelected = exercice.Id_Exercice_comptable === filters.value.idExercice;
         
+        // Inclure l'exercice s'il est terminé, en cours OU s'il est sélectionné
         return dateDebut <= currentDate || isSelected;
       });
       
       exercicesList.value.sort((a, b) => b.Annee_fiscale - a.Annee_fiscale);
       
-      console.log('Exercices pédagogiques:', exercicesList.value);
+      console.log('Exercices pédagogiques filtrés:', exercicesList.value);
       return exercicesList.value;
     } catch (error) {
       console.error("Erreur fetchExercicesList:", error);
@@ -218,7 +206,7 @@ export function useIndicateurPedagogique(filters) {
     }
   };
 
-  // 📌 Récupérer l'exercice et mettre à jour les dates
+  // 📌 Récupérer l'exercice et mettre à jour les dates (identique à useIndicateurGeneral)
   const fetchExercice = async (idExercice = null) => {
     try {
       loading.value = true;
@@ -251,7 +239,7 @@ export function useIndicateurPedagogique(filters) {
     }
   };
 
-  // 📌 Changer d'exercice
+  // 📌 Changer d'exercice (identique à useIndicateurGeneral)
   const changeExercice = async (idExercice) => {
     try {
       if (!idExercice) {
@@ -265,14 +253,15 @@ export function useIndicateurPedagogique(filters) {
     }
   };
 
-  // 📌 Récupérer les indicateurs individuels
+  // 📌 Récupérer les indicateurs individuels (inchangé)
   const getCoutFonctionnement = async () => {
     try {
-    //   const effectifEleves = await getEffectifEleves(filters.value.dateStart, filters.value.dateEnd);
       const response = await axios.get(`${API_URL}/analyse/cout-fonctionnement-par-eleve`, {
-        params:{date_debut: filters.value.dateStart,
-        date_fin: filters.value.dateEnd,
-        effectif_eleves: 100}
+        params: {
+          date_debut: filters.value.dateStart,
+          date_fin: filters.value.dateEnd
+          // effectif_eleves: 228 // À adapter selon votre logique
+        }
       });
       coutFonctionnement.value = response.data;
     } catch (error) {
@@ -283,11 +272,12 @@ export function useIndicateurPedagogique(filters) {
 
   const getChiffreAffaires = async () => {
     try {
-    //   const effectifEleves = await getEffectifEleves(filters.value.dateStart, filters.value.dateEnd);
       const response = await axios.get(`${API_URL}/analyse/chiffre-affaires-par-eleve`, {
-        params:{date_debut: filters.value.dateStart,
-        date_fin: filters.value.dateEnd,
-        effectif_eleves: 100}
+        params: {
+          date_debut: filters.value.dateStart,
+          date_fin: filters.value.dateEnd
+          // effectif_eleves: 228 // À adapter selon votre logique
+        }
       });
       chiffreAffaires.value = response.data;
     } catch (error) {
@@ -299,8 +289,10 @@ export function useIndicateurPedagogique(filters) {
   const getPartMasseSalariale = async () => {
     try {
       const response = await axios.get(`${API_URL}/analyse/part-masse-salariale-enseignante`, {
-        params:{date_debut: filters.value.dateStart,
-        date_fin: filters.value.dateEnd}
+        params: {
+          date_debut: filters.value.dateStart,
+          date_fin: filters.value.dateEnd
+        }
       });
       partMasseSalariale.value = response.data;
     } catch (error) {
@@ -311,11 +303,12 @@ export function useIndicateurPedagogique(filters) {
 
   const getMargeParEleve = async () => {
     try {
-    //   const effectifEleves = await getEffectifEleves(filters.value.dateStart, filters.value.dateEnd);
       const response = await axios.get(`${API_URL}/analyse/marge-par-eleve`, {
-        params:{date_debut: filters.value.dateStart,
-        date_fin: filters.value.dateEnd,
-        effectif_eleves: 100}
+        params: {
+          date_debut: filters.value.dateStart,
+          date_fin: filters.value.dateEnd
+          // effectif_eleves: 228 // À adapter selon votre logique
+        }
       });
       margeParEleve.value = response.data;
     } catch (error) {
@@ -324,30 +317,32 @@ export function useIndicateurPedagogique(filters) {
     }
   };
 
-  // 📌 Fonction pour rafraîchir toutes les données
+  // 📌 Fonction pour rafraîchir toutes les données (avec N-1)
   const refreshAllData = async () => {
     try {
       loading.value = true;
+      loadingTable.value = true;
       await Promise.all([
         getCoutFonctionnement(),
         getChiffreAffaires(),
         getPartMasseSalariale(),
         getMargeParEleve(),
-        fetchThreeYearsData(formatDateForInput(filters.value.dateStart), formatDateForInput(filters.value.dateEnd))
+        fetchPreviousYearData(formatDateForInput(filters.value.dateStart), formatDateForInput(filters.value.dateEnd))
       ]);
     } catch (error) {
       console.error("Erreur rafraîchissement données pédagogiques:", error);
     } finally {
       loading.value = false;
+      loadingTable.value = false;
     }
   };
 
-  // 📌 Chargement initial avec exercice
+  // 📌 Chargement initial avec exercice (identique à useIndicateurGeneral)
   const initializeData = async () => {
     try {
       loading.value = true;
-      await fetchExercicesList();
       await fetchExercice();
+      await fetchExercicesList();
       await refreshAllData();
     } catch (error) {
       console.error("Erreur initializeData pédagogique:", error);
@@ -356,7 +351,7 @@ export function useIndicateurPedagogique(filters) {
     }
   };
 
-  // 🔥 INFORMATIONS SUR L'EXERCICE
+  // 🔥 INFORMATIONS SUR L'EXERCICE (identique à useIndicateurGeneral)
   const infoExercice = computed(() => {
     if (!exercice.value) return null;
     
@@ -372,7 +367,7 @@ export function useIndicateurPedagogique(filters) {
     };
   });
 
-  // 🔥 LISTE DES EXERCICES FORMATÉE POUR LE SELECT
+  // 🔥 LISTE DES EXERCICES FORMATÉE POUR LE SELECT (identique à useIndicateurGeneral)
   const exercicesOptions = computed(() => {
     return exercicesList.value.map(exo => ({
       value: exo.Id_Exercice_comptable,
@@ -392,13 +387,13 @@ export function useIndicateurPedagogique(filters) {
     partMasseSalariale,
     margeParEleve,
     loading,
-    threeYearsData,
+    previousYearData, // 📌 NOUVEAU : Données N-1
     loadingTable,
     
     // Computed
     infoExercice,
     exercicesOptions,
-    comparisons,
+    comparisons, // 📌 NOUVEAU : Comparaisons N vs N-1
     
     // Fonctions
     getCoutFonctionnement,
@@ -410,7 +405,7 @@ export function useIndicateurPedagogique(filters) {
     changeExercice,
     fetchExercicesList,
     formatDateForInput,
-    getComparison,
-    fetchThreeYearsData
+    getComparison, // 📌 NOUVEAU : Fonction de comparaison
+    fetchPreviousYearData // 📌 NOUVEAU : Récupération données N-1
   };
 }

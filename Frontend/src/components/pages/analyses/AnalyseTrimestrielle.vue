@@ -3,6 +3,8 @@ import { ref, onMounted, computed } from 'vue';
 import { useComparaison } from '@/composables/useComparaison';
 import ColumnChart from '@/components/atoms/Chart/ColumnChart.vue';
 import Texte from '@/components/atoms/Texte.vue';
+import InterpretationCardTrimestre from '@/components/atoms/Chart/InterpretationCardTrimestre.vue';
+import FilterSelect from '@/components/atoms/Filter-select.vue';
 
 // Réactifs
 const chartData = ref([]);
@@ -141,9 +143,62 @@ const getGrandTotal = () => {
   );
   return formatMontant(total);
 };
-
-// Cycle de vie
-onMounted(() => {
+// Helper function pour le total numérique
+// Computed: Plus forte variation trimestrielle
+const plusForteVariationTrimestrielle = computed(() => {
+  if (chartData.value.length === 0 || uniqueTrimestres.value.length < 2) return null;
+  
+  const totalsByTrimestre = {};
+  
+  // Calculer le total par trimestre
+  uniqueTrimestres.value.forEach(trimestre => {
+    const total = chartData.value
+      .filter(item => item.trimestre === trimestre)
+      .reduce((sum, item) => sum + (parseFloat(item.montant_brut) || 0), 0);
+    totalsByTrimestre[trimestre] = total;
+  });
+  
+  let maxVariationPercentage = 0;
+  let maxVariationTrimestre = null;
+  let previousTrimestre = null;
+  let previousValue = 0;
+  let currentValue = 0;
+  
+  const sortedTrimestres = [...uniqueTrimestres.value].sort((a, b) => a - b);
+  
+  for (let i = 1; i < sortedTrimestres.length; i++) {
+    const currentTrim = sortedTrimestres[i];
+    const previousTrim = sortedTrimestres[i - 1];
+    
+    const currentTotal = totalsByTrimestre[currentTrim] || 0;
+    const previousTotal = totalsByTrimestre[previousTrim] || 0;
+    
+    if (previousTotal > 0) {
+      const percentage = ((currentTotal - previousTotal) / previousTotal) * 100;
+      const absPercentage = Math.abs(percentage);
+      
+      // Garde la variation la plus extrême
+      if (absPercentage > Math.abs(maxVariationPercentage)) {
+        maxVariationPercentage = percentage;
+        maxVariationTrimestre = currentTrim;
+        previousTrimestre = previousTrim;
+        previousValue = previousTotal;
+        currentValue = currentTotal;
+      }
+    }
+  }
+  
+  if (!maxVariationTrimestre) return null;
+  
+  return {
+    trimestre: maxVariationTrimestre,
+    trimestrePrecedent: previousTrimestre,
+    pourcentage: maxVariationPercentage,
+    valeurTrimestrePrecedent: previousValue,
+    valeurTrimestreActuel: currentValue,
+    difference: currentValue - previousValue
+  };
+});onMounted(() => {
   fetchData();
   fetchCentres();
   fetchTypes();
@@ -153,40 +208,30 @@ onMounted(() => {
 <template>
   <div class="analyse-trimestrielle">
     <div class="filters-container">
-      <h2>Analyse Trimestrielle des Montants</h2>
-      
+      <!-- <Texte :type="'bold-dark'" :texte="'Analyse Trimestrielle des Montants'" /> -->
       <div class="filters">
-        <div class="filter-group">
-          <label for="year">Année:</label>
-          <select id="year" v-model="filters.year" @change="fetchData">
-            <option v-for="year in availableYears" :key="year" :value="year">
-              {{ year }}
-            </option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label for="centre">Centre:</label>
-          <select id="centre" v-model="filters.id_centre" @change="fetchData">
-            <option value="">Tous les centres</option>
-            <option v-for="centre in centerdata" :key="centre.id_centre" :value="centre.id_centre">
+        <Texte :type="'thin-dark'" :texte="'Année'" />
+        <FilterSelect v-model="filters.year" :label="''" @change="fetchData">
+          <option v-for="year in availableYears" :key="year" :value="year">
+            {{ year }}
+          </option>
+        </FilterSelect>
+        
+        <Texte :type="'thin-dark'" :texte="'Centre'" />
+        <FilterSelect v-model="filters.id_centre" :label="''" @change="fetchData">
+          <option value="">Tous les centres</option>
+          <option v-for="centre in centerdata" :key="centre.id_centre" :value="centre.id_centre">
               {{ centre.nom }}
             </option>
-          </select>
-        </div>
+          </FilterSelect>
 
-        <div class="filter-group">
-          <label for="type">Type:</label>
-          <select id="type" v-model="filters.id_type" @change="fetchData">
-            <option v-for="type in typedata" :key="type.id_type" :value="type.id_type">
-              {{ type.code }}
+        <Texte :type="'thin-dark'" :texte="'Type'" />
+        <FilterSelect v-model="filters.id_type" :label="''" @change="fetchData">
+          <option v-for="type in typedata" :key="type.id_type" :value="type.id_type">
+            {{ type.code }}
             </option>
-          </select>
-        </div>
+          </FilterSelect>
 
-        <button @click="fetchData" :disabled="loading" class="refresh-btn">
-          {{ loading ? 'Chargement...' : 'Actualiser' }}
-        </button>
       </div>
     </div>
 
@@ -212,11 +257,25 @@ onMounted(() => {
         :loading="loading"
         :error="error"
       />
+      <InterpretationCardTrimestre
+        v-if="plusForteVariationTrimestrielle"
+        :dataComparaison="plusForteVariationTrimestrielle"
+        :loading="loading"
+        :idType="filters.id_type"
+      />
     </div>
 
     <!-- Tableau de données -->
 <div class="data-table" v-if="chartData.length > 0">
-  <Texte :type="'bold-dark'" :texte="'Données détaillées par trimestre'" />
+  <div class="ok">
+    <div class="info">
+    <Texte :type="'bold-dark'" :texte="'Données détaillées par trimestre'" />
+    <Texte :type="'dark'" :texte="'Montants en Ariary (Ar).'" />
+    </div>
+        <div class="iconbtn">
+          <i class="bi bi-file-earmark-pdf-fill"></i>
+        </div>
+  </div>
     <table class="table" id="axesTable">
       <thead>
         <tr>
@@ -252,6 +311,34 @@ onMounted(() => {
 </template>
 
 <style  lang="scss"  scoped>
+.iconbtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 49px;
+  height: 49px;
+  border-radius: 50%;
+  @include glass();
+  cursor: pointer;
+
+  i {
+    color: #e25252;
+    font-size: 20px;
+  }
+}
+.ok {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.info{
+  @include position-contenus(flex, flex-start, flex-start);
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: -10px 0;
+}
 .analyse-trimestrielle {
   width: 100%;
     border-radius: $radius-pm;
@@ -259,14 +346,18 @@ onMounted(() => {
 }
 
 .filters-container {
-  border-radius: 8px;
+  display: flex;
+  align-items: baseline;
+  flex-direction: column;
+  gap: 20px;
   margin-bottom: 30px;
 }
 
 .filters {
   display: flex;
-  gap: 20px;
-  align-items: end;
+  gap: 8px;
+  align-items: center;
+  justify-content: baseline;
   flex-wrap: wrap;
 }
 
@@ -331,6 +422,8 @@ onMounted(() => {
 }
 
 .chart-container {
+  display: flex;
+  gap: 20px;
   margin-bottom: 30px;
 }
 

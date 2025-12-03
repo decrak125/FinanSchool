@@ -49,7 +49,7 @@ const {
   showVentilationDetails,
   updateMultipleVentilations,
   editGroup, removeBySousCompte,
-  switchToEditMode, switchToViewMode,detailsMode,
+  switchToEditMode, switchToViewMode, detailsMode,
   affectationsGrouped,
   getTypeName,
   getCodeName, // ← NOUVEAU : Fonction pour obtenir le nom du code
@@ -60,7 +60,7 @@ const {
 const filteredAffectationsGrouped = computed(() => {
   if (filteredAffectations && filteredAffectations.value) {
     const grouped = {};
-    
+
     filteredAffectations.value.forEach(aff => {
       const key = aff.Id_Sous_compte;
       if (!grouped[key]) {
@@ -88,10 +88,10 @@ const filteredAffectationsGrouped = computed(() => {
         description: aff.description
       });
     });
-    
+
     return Object.values(grouped);
   }
-  
+
   return affectationsGrouped.value || [];
 });
 
@@ -135,13 +135,13 @@ const cancelEdit = () => {
 // S'assurer que addVentilation fonctionne avec le nouveau design
 const addVentilation = () => {
   if (!form.value.ventilations) form.value.ventilations = [];
-  
+
   const totalTaux = form.value.ventilations.reduce((sum, v) => {
     return sum + Number(Number(v.taux || 0).toFixed(2));
   }, 0);
-  
+
   const remainingTaux = Number((100 - totalTaux).toFixed(2));
-  
+
   if (remainingTaux <= 0) {
     alert("Le total des taux atteint déjà 100% !");
     return;
@@ -175,7 +175,7 @@ const showAllVentilations = (group) => {
   const completeGroup = allAffectationsGrouped.value.find(
     g => g.Id_Sous_compte === group.Id_Sous_compte
   );
-  
+
   if (completeGroup) {
     showVentilationDetails(completeGroup);
   } else {
@@ -188,212 +188,136 @@ const showAllVentilations = (group) => {
 <template>
   <PageAnalyse :menu="'Saisie Analytique'" :sousmenu="'Affectation Analytique'">
     <transition name="fade">
-  <PopUp v-if="openForm">
-    <div class="creation-popup">
-      <!-- En-tête -->
-      <div class="popuphead">
-        <Texte 
-          :texte="isEditing ? 'Modifier les ventilations de ' + searchTerm : 'Nouvelle affectation'" 
-          :type="'dark'" 
-        />
-      </div>
+      <PopUp v-if="openForm">
+        <div class="creation-popup">
+          <!-- En-tête -->
+          <div class="popuphead">
+            <Texte :texte="isEditing ? 'Modifier les ventilations de ' + searchTerm : 'Nouvelle affectation'"
+              :type="'dark'" />
+          </div>
 
-      <!-- Recherche de compte (uniquement en création) -->
-      <div v-if="!isEditing" class="compte-search mb-4">
-        <Input 
-          type="text" 
-          v-model="searchTerm" 
-          @input="searchCompte" 
-          label="Libellé du compte" 
-          required 
-        />
+          <!-- Recherche de compte (uniquement en création) -->
+          <div v-if="!form.Id_Compte && !isEditing" class="compte-search mb-4">
+            <Input type="text" v-model="searchTerm" @input="searchCompte" placeholder="Libellé du compte" required />
 
-        <ul v-if="showSuggestions" class="suggestion">
-          <li 
-            v-for="compte in suggestions" 
-            :key="compte.Id_Compte" 
-            @click="selectCompte(compte)" 
-            class="sugg-list"
-          >
-            {{ compte.Code_compte }} - {{ compte.Libelle }}
-          </li>
-        </ul>
-      </div>
+            <ul v-if="showSuggestions" class="suggestion">
+              <li v-for="compte in suggestions" :key="compte.Id_Compte" @click="selectCompte(compte)" class="sugg-list">
+                {{ compte.Code_compte }} - {{ compte.Libelle }}
+              </li>
+            </ul>
+          </div>
 
-      <!-- Affichage du compte sélectionné -->
-      <div v-if="form.Id_Compte && !isEditing" class="selected-compte mb-4">
-       <Texte
-        :texte="searchTerm"
-        :type="'dark'"
-       />
-      </div>
+          <!-- Affichage du compte sélectionné -->
+          <div v-if="form.Id_Compte && !isEditing" class="selected-compte mb-4">
+            <Texte :texte="searchTerm" :type="'bold-dark'" />
+          </div>
 
-      <!-- Tableau des ventilations -->
-      <div class="ventilation-table">
-        <table class="table" id="axesTable" v-if="form.Id_Compte && !isEditing">
-          <thead>
-            <tr>
-              <th class="col">Centre</th>
-              <th class="col">Type</th>
-              <th class="col">Code Analytique</th> <!-- ← NOUVELLE COLONNE -->
-              <th class="col">Description</th>
-              <th class="col">Taux</th>
-              <th class="col">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(vent, index) in form.ventilations" :key="index">
-              <td class="col">
-                <SelectTable 
-                  v-model="vent.id_centre" 
-                  :label="''"
-                  class="compact-select"
-                  required
-                >
-                  <option value="" disabled>Sélectionner un centre</option>
-                  <option 
-                    v-for="centre in centres" 
-                    :key="centre.id_centre" 
-                    :value="centre.id_centre"
-                  >
-                    {{ centre.nom }}
-                  </option>
-                </SelectTable>
-              </td>
-              <td class="col">
-                <SelectTable 
-                  v-model="vent.id_type" 
-                  :label="''"
-                  class="compact-select"
-                  required
-                >
-                  <option value="" disabled>Sélectionner un type</option>
-                  <option 
-                    v-for="type in types" 
-                    :key="type.id_type" 
-                    :value="type.id_type"
-                  >
-                    {{ type.code }} - {{ type.libelle }}
-                  </option>
-                </SelectTable>
-              </td>
-              <td class="col"> <!-- ← NOUVELLE COLONNE -->
-                <SelectTable 
-                  v-model="vent.id_code" 
-                  :label="''"
-                  class="compact-select"
-                >
-                  <option value="">Aucun code</option>
-                  <option 
-                    v-for="code in codesAnalytiques" 
-                    :key="code.id_code" 
-                    :value="code.id_code"
-                  >
-                    {{ code.code }} - {{ code.libelle }}
-                  </option>
-                </SelectTable>
-              </td>
-              <td class="col">
-                <TextareaTable 
-                  v-model="vent.description" 
-                  :label="''"
-                  placeholder="Description..."
-                  class="compact-input"
-                />
-              </td>
-              <td class="col">
-                <InputTable 
-                  type="number" 
-                  v-model.number="vent.taux" 
-                  :label="''"
-                  min="0" 
-                  max="100" 
-                  step="0.01"
-                  required 
-                  class="compact-input taux-input"
-                />
-                <span class="percent-symbol">%</span>
-              </td>
-              <td class="col">
-                <BoutonIcon 
-                  @click="removeVentilation(index)" 
-                  icon-name="trash" 
-                  :type="'cancel'" 
-                  title="Supprimer cette ventilation"
-                  :disabled="form.ventilations.length <= 1"
-                />
-              </td>
-            </tr>
-          </tbody>
-          <tfoot id="footable">
-            <tr>
-              <td class="col">
-              <button 
-                type="button" 
-                @click="addVentilation"
-                class="add-ventilation-btn"
-                :disabled="totalTauxForm >= 100 || !form.Id_Compte"
-                :class="{ 
-                  'opacity-50 cursor-not-allowed': totalTauxForm >= 100 || !form.Id_Compte 
-                }"
-              >
-                + Ajouter un centre
-              </button>
-            </td>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td class="col total-cell">
-              <span class="total-label">Total:</span>
-              <span class="total-value" :class="totalTauxClass">
-                {{ totalTauxForm.toFixed(2) }}%
-              </span>
-            </td>
-            <td></td>
-            </tr>
-          </tfoot>
-        </table>
+          <!-- Tableau des ventilations -->
+          <div class="ventilation-table">
+            <table class="table" id="axesTable" v-if="form.Id_Compte && !isEditing">
+              <thead>
+                <tr>
+                  <th class="col">Centre</th>
+                  <th class="col">Type</th>
+                  <th class="col">Code Analytique</th> <!-- ← NOUVELLE COLONNE -->
+                  <th class="col">Description</th>
+                  <th class="col">Taux</th>
+                  <th class="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(vent, index) in form.ventilations" :key="index">
+                  <td class="col">
+                    <SelectTable v-model="vent.id_centre" :label="''" class="compact-select" required>
+                      <option value="" disabled>Sélectionner un centre</option>
+                      <option v-for="centre in centres" :key="centre.id_centre" :value="centre.id_centre">
+                        {{ centre.nom }}
+                      </option>
+                    </SelectTable>
+                  </td>
+                  <td class="col">
+                    <SelectTable v-model="vent.id_type" :label="''" class="compact-select" required>
+                      <option value="" disabled>Sélectionner un type</option>
+                      <option v-for="type in types" :key="type.id_type" :value="type.id_type">
+                        {{ type.code }}
+                      </option>
+                    </SelectTable>
+                  </td>
+                  <td class="col"> <!-- ← NOUVELLE COLONNE -->
+                    <SelectTable v-model="vent.id_code" :label="''" class="compact-select">
+                      <option value="">Aucun code</option>
+                      <option v-for="code in codesAnalytiques" :key="code.id_code" :value="code.id_code">
+                        {{ code.code }}
+                      </option>
+                    </SelectTable>
+                  </td>
+                  <td class="col">
+                    <TextareaTable v-model="vent.description" :label="''" placeholder="Description..."
+                      class="compact-input" />
+                  </td>
+                  <td class="col">
+                    <InputTable type="number" v-model.number="vent.taux" :label="''" min="0" max="100" step="0.01"
+                      required class="compact-input taux-input" />
+                    <span class="percent-symbol">%</span>
+                  </td>
+                  <td class="col">
+                    <BoutonIcon @click="removeVentilation(index)" icon-name="trash" :type="'cancel'"
+                      title="Supprimer cette ventilation" :disabled="form.ventilations.length <= 1" />
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot id="footable">
+                <tr>
+                  <td class="col">
+                    <!-- <button type="button" @click="addVentilation" class="add-ventilation-btn"
+                      :disabled="totalTauxForm >= 100 || !form.Id_Compte" :class="{
+                        'opacity-50 cursor-not-allowed': totalTauxForm >= 100 || !form.Id_Compte
+                      }">
+                      + Ajouter un centre
+                    </button> -->
+                    <BoutonIcon :icon-name="'plus-lg'" :type="totalTauxForm >= 100 ? 'primary-disabled' : 'primary'"
+                      @click="addVentilation" :disabled="totalTauxForm >= 100" />
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="col total-cell">
+                    <span class="total-label">Total:</span>
+                    <span class="total-value" :class="totalTauxClass">
+                      {{ totalTauxForm.toFixed(2) }}%
+                    </span>
+                  </td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
 
-        <!-- Messages d'information -->
-        <div v-if="totalTauxForm !== 100 && form.Id_Compte" class="taux-warning mt-3">
-          <Texte
-            :texte="'Le total des taux doit être exactement 100%'"
-            :type="'thin-warning'"
-          />
+            <!-- Messages d'information -->
+            <div class="error">
+              <div v-if="totalTauxForm !== 100 && form.Id_Compte" class="taux-warning mt-3">
+              <Texte :texte="'Le total des taux doit être exactement 100%'" :type="'thin-error'" />
+            </div>
+
+            <div v-if="hasDuplicateCentres" class="duplicate-warning mt-3">
+              <Texte :texte="'Vous ne pouvez pas avoir plusieurs ventilations pour le même centre'"
+                :type="'thin-error'" />
+            </div>
+
+            <div v-if="!form.Id_Compte && !isEditing" class="compte-warning mt-3">
+              <Texte :texte="`Veuillez d'abord sélectionner un compte`" :type="'thin-warning'" />
+            </div>
+            </div>
+          </div>
+
+          <!-- Boutons d'action -->
+          <div class="btn-form mt-4">
+            <Bouton @click="handleSave" :type="!isFormValid ? 'input-disable' : 'input'" :texte="isEditing ? 'Valider' : 'Créer'"
+              :disabled="!isFormValid" />
+            <Bouton @click="cancelEdit" type="cancel" :texte="'Annuler'" />
+          </div>
         </div>
-
-        <div v-if="hasDuplicateCentres" class="duplicate-warning mt-3">
-          <Texte
-            :texte="'Vous ne pouvez pas avoir plusieurs ventilations pour le même centre'"
-            :type="'thin-error'"
-          />
-        </div>
-
-        <div v-if="!form.Id_Compte && !isEditing" class="compte-warning mt-3">
-          <Texte
-            :texte="`Veuillez d'abord sélectionner un compte`"
-            :type="'thin-warning'"
-          />
-        </div>
-      </div>
-
-      <!-- Boutons d'action -->
-      <div class="btn-form mt-4">
-        <Bouton 
-          @click="handleSave" 
-          type="input" 
-          :texte="isEditing ? 'Valider' : 'Créer'" 
-          :disabled="!isFormValid"
-        />
-        <Bouton 
-          @click="cancelEdit" 
-          type="cancel" 
-          :texte="'Annuler'" 
-        />
-      </div>
-    </div>
-  </PopUp>
-</transition>
+      </PopUp>
+    </transition>
 
     <!-- Popup pour l'import -->
     <transition name="fade">
@@ -410,232 +334,175 @@ const showAllVentilations = (group) => {
     </transition>
 
     <transition name="fade">
-  <PopUp v-if="showDetails">
-    <div class="details-popup">
-      <!-- En-tête avec bouton d'édition -->
-      <div class="popuphead">
-        <Texte
-          :texte="(detailsMode === 'edit' ? 'Édition des ventilations: ' : 'Détails des ventilations: ') + selectedGroup?.Code_sous_compte + ' - ' + selectedGroup?.Libelle"
-          :type="'dark'" />
-        
-        <!-- Bouton Modifier/Annuler selon le mode -->
-        <div v-if="detailsMode === 'view'">
-          <BoutonIcon 
-            @click="switchToEditMode()" 
-            icon-name="pen" 
-            :type="'edit'" 
-            title="Modifier les ventilations"
-          />
-        </div>
-        <div v-else>
-          <BoutonIcon 
-            @click="cancelTableModifications()" 
-            icon-name="x-lg" 
-            :type="'cancel'" 
-            title="Annuler les modifications"
-          />
-        </div>
-      </div>
+      <PopUp v-if="showDetails">
+        <div class="details-popup">
+          <!-- En-tête avec bouton d'édition -->
+          <div class="popuphead">
+            <Texte
+              :texte="(detailsMode === 'edit' ? 'Édition des ventilations: ' : 'Détails des ventilations: ') + selectedGroup?.Code_sous_compte + ' - ' + selectedGroup?.Libelle"
+              :type="'dark'" />
 
-      <!-- Contenu selon le mode -->
-      <div class="ventilation-details">
-        <table class="table" id="axesTable">
-          <thead>
-            <tr>
-              <th class="col">Centre</th>
-              <th class="col">Type</th>
-              <th class="col">Code Analytique</th> <!-- ← NOUVELLE COLONNE -->
-              <th class="col">Description</th>
-              <th class="col">Taux</th>
-              <th class="col" v-if="detailsMode != 'view'">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+            <!-- Bouton Modifier/Annuler selon le mode -->
+            <div v-if="detailsMode === 'view'">
+              <BoutonIcon @click="switchToEditMode()" icon-name="pen-fill" :type="'edit'"
+                title="Modifier les ventilations" />
+            </div>
+            <div v-else>
+              <BoutonIcon @click="cancelTableModifications()" icon-name="x-lg" :type="'cancel'"
+                title="Annuler les modifications" />
+            </div>
+          </div>
+
+          <!-- Contenu selon le mode -->
+          <div class="ventilation-details">
+            <table class="table" id="axesTable">
+              <thead>
+                <tr>
+                  <th class="col">Centre</th>
+                  <th class="col">Type</th>
+                  <th class="col">Code Analytique</th> <!-- ← NOUVELLE COLONNE -->
+                  <th class="col">Description</th>
+                  <th class="col">Taux</th>
+                  <th class="col" v-if="detailsMode != 'view'">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- MODE VISUALISATION -->
+                <template v-if="detailsMode === 'view'">
+                  <!-- Afficher TOUTES les ventilations du sous-compte -->
+                  <tr v-for="vent in selectedGroup?.ventilations || []" :key="vent.id_affectation">
+                    <td class="col">{{ vent.centre_nom }}</td>
+                    <td class="col">{{ vent.type_nom }}</td>
+                    <td class="col">{{ vent.code_nom }}</td> <!-- ← AJOUT colonne code -->
+                    <td class="col">{{ vent.description }}</td>
+                    <td class="col">{{ Number(vent.taux || 0).toFixed(2) }}%</td>
+                  </tr>
+                </template>
+
+                <!-- MODE ÉDITION -->
+                <template v-else>
+                  <!-- Éditer TOUTES les ventilations du sous-compte -->
+                  <tr v-for="(vent, index) in form.ventilations" :key="index">
+                    <td class="col">
+                      <selectTable v-model="vent.id_centre" :label="''" class="compact-select">
+                        <option value="" disabled>Sélectionner un centre</option>
+                        <option v-for="centre in centres" :key="centre.id_centre" :value="centre.id_centre">
+                          {{ centre.nom }}
+                        </option>
+                      </selectTable>
+                    </td>
+                    <td class="col">
+                      <selectTable v-model="vent.id_type" :label="''" class="compact-select">
+                        <option value="" disabled>Sélectionner un type</option>
+                        <option v-for="type in types" :key="type.id_type" :value="type.id_type">
+                          {{ type.code }}
+                        </option>
+                      </selectTable>
+                    </td>
+                    <td class="col"> <!-- ← NOUVELLE COLONNE -->
+                      <selectTable v-model="vent.id_code" :label="''" class="compact-select">
+                        <option value="">Aucun code</option>
+                        <option v-for="code in codesAnalytiques" :key="code.id_code" :value="code.id_code">
+                          {{ code.code }}
+                        </option>
+                      </selectTable>
+                    </td>
+                    <td class="col">
+                      <TextareaTable v-model="vent.description" :label="''" placeholder="Description..."
+                        class="compact-input" />
+                    </td>
+                    <td class="col">
+                      <InputTable type="number" v-model.number="vent.taux" :label="''" min="0" max="100" step="0.01"
+                        class="compact-input taux-input" />
+                      <span class="percent-symbol">%</span>
+                    </td>
+                    <td class="col">
+                      <BoutonIcon @click="removeVentilationFromTable(index)" icon-name="trash" :type="'cancel'"
+                        title="Supprimer cette ventilation" :disabled="form.ventilations.length <= 1" />
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+              <tfoot id="footable">
+                <!-- MODE VISUALISATION -->
+                <template v-if="detailsMode === 'view'">
+                  <td class="col">Total</td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="col">{{selectedGroup?.ventilations?.reduce((sum, v) => sum + Number(v.taux || 0),
+                    0).toFixed(2)}}%</td>
+                </template>
+
+                <!-- MODE ÉDITION -->
+                <template v-else>
+                  <td class="col">
+                    Total
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                  <td class="col">
+                    <span class="total-value" :class="totalTauxClass">
+                      {{ totalTauxForm.toFixed(2) }}%
+                    </span>
+                  </td>
+                  <td class="col">
+                  </td>
+                </template>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Boutons selon le mode -->
+          <div class="btn-form mt-4">
             <!-- MODE VISUALISATION -->
             <template v-if="detailsMode === 'view'">
-              <!-- Afficher TOUTES les ventilations du sous-compte -->
-              <tr v-for="vent in selectedGroup?.ventilations || []" :key="vent.id_affectation">
-                <td class="col">{{ vent.centre_nom }}</td>
-                <td class="col">{{ vent.type_nom }}</td>
-                <td class="col">{{ vent.code_nom }}</td> <!-- ← AJOUT colonne code -->
-                <td class="col">{{ vent.description }}</td>
-                <td class="col">{{ Number(vent.taux || 0).toFixed(2) }}%</td>
-              </tr>
+              <Bouton @click="showDetails = false" type="cancel" :texte="'Fermer'" />
             </template>
 
             <!-- MODE ÉDITION -->
             <template v-else>
-              <!-- Éditer TOUTES les ventilations du sous-compte -->
-              <tr v-for="(vent, index) in form.ventilations" :key="index">
-                <td class="col">
-                  <selectTable 
-                    v-model="vent.id_centre" 
-                    :label="''"
-                    class="compact-select"
-                  >
-                    <option value="" disabled>Sélectionner un centre</option>
-                    <option 
-                      v-for="centre in centres" 
-                      :key="centre.id_centre" 
-                      :value="centre.id_centre"
-                    >
-                      {{ centre.nom }}
-                    </option>
-                  </selectTable>
-                </td>
-                <td class="col">
-                  <selectTable 
-                    v-model="vent.id_type" 
-                    :label="''"
-                    class="compact-select"
-                  >
-                    <option value="" disabled>Sélectionner un type</option>
-                    <option 
-                      v-for="type in types" 
-                      :key="type.id_type" 
-                      :value="type.id_type"
-                    >
-                      {{ type.code }} - {{ type.libelle }}
-                    </option>
-                  </selectTable>
-                </td>
-                <td class="col"> <!-- ← NOUVELLE COLONNE -->
-                  <selectTable 
-                    v-model="vent.id_code" 
-                    :label="''"
-                    class="compact-select"
-                  >
-                    <option value="">Aucun code</option>
-                    <option 
-                      v-for="code in codesAnalytiques" 
-                      :key="code.id_code" 
-                      :value="code.id_code"
-                    >
-                      {{ code.code }} - {{ code.libelle }}
-                    </option>
-                  </selectTable>
-                </td>
-                <td class="col">
-                  <TextareaTable 
-                    v-model="vent.description" 
-                    :label="''"
-                    placeholder="Description..."
-                    class="compact-input"
-                  />
-                </td>
-                <td class="col">
-                  <InputTable 
-                    type="number" 
-                    v-model.number="vent.taux" 
-                    :label="''"
-                    min="0" 
-                    max="100" 
-                    step="0.01"
-                    class="compact-input taux-input"
-                  />
-                  <span class="percent-symbol">%</span>
-                </td>
-                <td class="col">
-                  <BoutonIcon 
-                    @click="removeVentilationFromTable(index)" 
-                    icon-name="trash" 
-                    :type="'cancel'" 
-                    title="Supprimer cette ventilation"
-                    :disabled="form.ventilations.length <= 1"
-                  />
-                </td>
-              </tr>
+              <div class="action-content">
+                <BoutonIcon :icon-name="'plus-lg'" :type="totalTauxForm >= 100 ? 'primary-disabled' : 'primary'"
+                  @click="addVentilationToTable" :disabled="totalTauxForm >= 100" />
+                <Bouton @click="saveTableModifications" type="input" :texte="'Valider'" :disabled="!isFormValid" />
+              </div>
             </template>
-          </tbody>
-          <tfoot id="footable">
-            <!-- MODE VISUALISATION -->
-            <template v-if="detailsMode === 'view'">
-              <td class="col">Total</td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td class="col">{{selectedGroup?.ventilations?.reduce((sum, v) => sum + Number(v.taux || 0), 0).toFixed(2)}}%</td>
-            </template>
-
-            <!-- MODE ÉDITION -->
-            <template v-else>
-              <td class="col">
-                Total
-              </td>
-              <td></td>
-              <td></td>
-              <td></td>
-              <td class="col">
-                <span class="total-value" :class="totalTauxClass">
-                  {{ totalTauxForm.toFixed(2) }}%
-                </span>
-              </td>
-              <td class="col">
-              </td>
-            </template>
-          </tfoot>
-        </table>
-      </div>
-
-      <!-- Boutons selon le mode -->
-      <div class="btn-form mt-4">
-        <!-- MODE VISUALISATION -->
-        <template v-if="detailsMode === 'view'">
-          <Bouton @click="showDetails = false" type="cancel" :texte="'Fermer'" />
-        </template>
-
-        <!-- MODE ÉDITION -->
-        <template v-else>
-          <div class="action-content">
-            <BoutonIcon
-                    :icon-name="'plus-lg'"
-                    :type="totalTauxForm >= 100 ? 'primary-disabled' : 'primary' "
-                     @click="addVentilationToTable"
-                     :disabled="totalTauxForm >= 100"
-                  />
-            <Bouton 
-            @click="saveTableModifications" 
-            type="input" 
-            :texte="'Valider'" 
-            :disabled="!isFormValid"
-          />
+          </div>
         </div>
-        </template>
-      </div>
-    </div>
-  </PopUp>
-</transition>
+      </PopUp>
+    </transition>
 
-      <transition name="fade">
+    <transition name="fade">
       <PopUp v-if="opendelete">
-          <Icon :color="'primary'" :icon="'bi bi-envelope'" />
+        <Icon :color="'primary'" :icon="'bi bi-envelope'" />
         <Texte :type="'bold-dark'" texte="Supprimer ces affectations ?" />
-        <Texte :type="'dark'"
-          texte="Une fois l'opération faite, la suppression sera irréversible" />
+        <Texte :type="'dark'" texte="Une fois l'opération faite, la suppression sera irréversible" />
         <div class="PPbtn">
           <Bouton @click="removeBySousCompte(id_to_delete), opendelete = false" :type="'input'" :texte="'Confirmer'" />
-        <Bouton @click="opendelete = false" :type="'cancel'" :texte="'Annuler'" />
+          <Bouton @click="opendelete = false" :type="'cancel'" :texte="'Annuler'" />
         </div>
       </PopUp>
-      </transition>
+    </transition>
 
-      <transition name="fade">
+    <transition name="fade">
       <PopUp v-if="openremove">
-          <Icon :color="'primary'" :icon="'bi bi-envelope'" />
+        <Icon :color="'primary'" :icon="'bi bi-envelope'" />
         <Texte :type="'bold-dark'" texte="Supprimer cette ventilation ?" />
-        <Texte :type="'dark'"
-          texte="Une fois l'opération faite, la suppression sera irréversible" />
+        <Texte :type="'dark'" texte="Une fois l'opération faite, la suppression sera irréversible" />
         <div class="PPbtn">
           <Bouton @click="remove(id_to_delete, selected), openremove = false" :type="'input'" :texte="'Confirmer'" />
-        <Bouton @click="openremove = false" :type="'cancel'" :texte="'Annuler'" />
+          <Bouton @click="openremove = false" :type="'cancel'" :texte="'Annuler'" />
         </div>
       </PopUp>
-      </transition>
+    </transition>
 
     <div class="main">
       <div class="informations">
         <p class="Count-content">
-          <Counter v-if="filteredAffectationsGrouped.length > 0" :number="filteredAffectationsGrouped.length" :format="'number'" />
+          <Counter v-if="filteredAffectationsGrouped.length > 0" :number="filteredAffectationsGrouped.length"
+            :format="'number'" />
           <Counter v-if="filteredAffectationsGrouped.length == 0" :number="0" />
           affectations analytique faite(s).
         </p>
@@ -647,30 +514,30 @@ const showAllVentilations = (group) => {
 
       <!-- Section Filtres -->
       <div class="filtres">
-        <searchbar v-model="filterSearchTerm" type="text" placeholder="Code ou libellé du compte..." />
-        
-        <FilterSelect v-model="filterSelectedCentre" :label="''">
-          <option value="">Tous les centres</option>
-          <option v-for="centre in centres" :key="centre.id_centre" :value="centre.id_centre">
-            {{ centre.nom }}
-          </option>
-        </FilterSelect>
+        <div class="ok">
+          <searchbar v-model="filterSearchTerm" type="text" placeholder="Code ou libellé du compte..." />
 
-        <!-- NOUVEAU : Filtre par code analytique -->
-        <FilterSelect v-model="filterSelectedCode" :label="''">
-          <option value="">Tous les codes</option>
-          <option v-for="code in codesAnalytiques" :key="code.id_code" :value="code.id_code">
-            {{ code.code }}
-          </option>
-        </FilterSelect>
-        
-        <BoutonIcon 
-        v-if="filterSearchTerm || filterSelectedCentre || filterSelectedCode"
-          @click="resetFilters" 
-          type="cancel" 
-          :icon-name="'x-lg'"
-          class="reset-filter-btn"
-        />
+          <FilterSelect v-model="filterSelectedCentre" :label="''">
+            <option value="">Tous les centres</option>
+            <option v-for="centre in centres" :key="centre.id_centre" :value="centre.id_centre">
+              {{ centre.nom }}
+            </option>
+          </FilterSelect>
+
+          <!-- NOUVEAU : Filtre par code analytique -->
+          <FilterSelect v-model="filterSelectedCode" :label="''">
+            <option value="">Tous les codes</option>
+            <option v-for="code in codesAnalytiques" :key="code.id_code" :value="code.id_code">
+              {{ code.code }}
+            </option>
+          </FilterSelect>
+
+          <BoutonIcon v-if="filterSearchTerm || filterSelectedCentre || filterSelectedCode" @click="resetFilters"
+            type="cancel" :icon-name="'x-lg'" class="reset-filter-btn" />
+        </div>
+        <div class="iconbtn">
+          <i class="bi bi-file-earmark-pdf-fill"></i>
+        </div>
       </div>
 
       <!-- Tableau des affectations -->
@@ -693,7 +560,8 @@ const showAllVentilations = (group) => {
             </thead>
             <tbody>
               <tr v-for="group in donneesPagination" :key="group.Id_Sous_compte" v-if="donneesPagination.length > 0">
-                <td class="col">{{ group.code }}</td>
+                <td class="col" v-if="group.ventilations.length > 1">Multiples</td>
+                <td class="col" v-if="group.ventilations.length == 1">{{ group.code }}</td>
                 <td class="col">{{ group.Code_sous_compte }}</td>
                 <td class="col">{{ group.centre }}</td>
                 <td class="col">{{ group.Libelle }}</td>
@@ -702,34 +570,36 @@ const showAllVentilations = (group) => {
                 <td class="col">
                   <div class="action-content">
                     <!-- Utiliser showAllVentilations au lieu de showVentilationDetails -->
-                    <BoutonIcon @click="showAllVentilations(group)" icon-name="eye" :type="'edit'" />
-                  <BoutonIcon
-                    @click="id_to_delete = group.Id_Sous_compte, opendelete=true, showDetails=false " icon-name="trash" :type="'cancel'"
-                  />
+                    <BoutonIcon @click="showAllVentilations(group)" icon-name="eye-fill" :type="'edit'" />
+                    <BoutonIcon @click="id_to_delete = group.Id_Sous_compte, opendelete = true, showDetails = false"
+                      icon-name="trash-fill" :type="'cancel'" />
                   </div>
                 </td>
               </tr>
               <tr v-if="loadingTable" v-for="n in nombreLignesLoader" :key="'loader-' + n">
-                <td class="col"><LoadingText :type="'line-1'"/></td>
-                <td class="col"><LoadingText :type="'line-1'"/></td>
-                <td class="col"><LoadingText :type="'line-1'"/></td>
-                <td class="col"><LoadingText :type="'line-1'"/></td>
-                <td class="col"><LoadingText :type="'line-1'"/></td>
+                <td class="col">
+                  <LoadingText :type="'line-1'" />
+                </td>
+                <td class="col">
+                  <LoadingText :type="'line-1'" />
+                </td>
+                <td class="col">
+                  <LoadingText :type="'line-1'" />
+                </td>
+                <td class="col">
+                  <LoadingText :type="'line-1'" />
+                </td>
+                <td class="col">
+                  <LoadingText :type="'line-1'" />
+                </td>
               </tr>
             </tbody>
           </table>
         </div>
       </transition>
 
-      <Pagination 
-        :donnees="filteredAffectationsGrouped" 
-        :current-page="currentPage" 
-        :items-per-page="itemsPerPage"
-        :total-pages="totalPages" 
-        :go-to-page="goToPage" 
-        :previous-page="previousPage" 
-        :next-page="nextPage" 
-      />
+      <Pagination :donnees="filteredAffectationsGrouped" :current-page="currentPage" :items-per-page="itemsPerPage"
+        :total-pages="totalPages" :go-to-page="goToPage" :previous-page="previousPage" :next-page="nextPage" />
     </div>
   </PageAnalyse>
 </template>
@@ -751,7 +621,30 @@ const showAllVentilations = (group) => {
   animation: appear 0.6s ease-out forwards;
 
 }
+.error{
+  @include position-contenus(flex, center, center);
+}
+.iconbtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 49px;
+  height: 49px;
+  border-radius: 50%;
+  @include glass();
+  cursor: pointer;
 
+  i {
+    color: #e25252;
+    font-size: 20px;
+  }
+}
+.ok {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+}
 #axesTable {
   @include table();
 }
@@ -849,7 +742,7 @@ const showAllVentilations = (group) => {
 .content::-webkit-scrollbar-track {
   background: transparent;
   border-radius: 10px;
-  
+
 }
 
 .content::-webkit-scrollbar-thumb {
@@ -913,10 +806,11 @@ const showAllVentilations = (group) => {
 }
 
 .filtres {
-  @include position-contenus(flex, flex-start, center);
+  @include position-contenus(flex, space-between, center);
   padding: 0 0;
   align-self: self-start;
   gap: 10px;
+  width: 100%;
 }
 
 .reset-filter-btn {
@@ -933,28 +827,28 @@ const showAllVentilations = (group) => {
 #footable {
   font-family: $stara-bold;
   font-size: 16px;
-  background-color: #f3f3f3;
+  // background-color: #f3f3f3;
 }
 
-.popuphead{
+.popuphead {
   @include position-contenus();
   justify-content: space-between;
 }
 
-.action-content{
+.action-content {
   display: flex;
   justify-content: center;
   gap: 10px;
 }
 
-.ventilation-item{
+.ventilation-item {
   background-color: $light;
   padding: 0px;
   gap: 0px;
   margin: 0px;
 }
 
-.ventilation-nb{
+.ventilation-nb {
   background-color: #5a4949;
   margin: 0;
   padding: 0;
@@ -963,7 +857,8 @@ const showAllVentilations = (group) => {
 .text-center {
   text-align: center;
 }
-.PPbtn{
+
+.PPbtn {
   display: flex;
   flex-direction: column;
   gap: 10px;
