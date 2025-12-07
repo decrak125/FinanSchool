@@ -23,6 +23,15 @@ export function useEcriture() {
   const errorMessage = ref('');
   const successMessage = ref('');
 
+  // Popups génériques
+const showSuccessModal = ref(false)
+const successModalMessage = ref('')
+
+// Confirmation suppression ligne
+const showDeleteLigneConfirm = ref(false)
+const pendingDeleteLigne = ref(null) // { mouvementId, ligneIndex }
+
+
   const mouvementForm = ref({
     Date_mouvement: "",
     Id_Journal: "",
@@ -39,6 +48,82 @@ export function useEcriture() {
   const totalLignes = computed(() => {
     return mouvements.value.reduce((total, m) => total + m.lignes.length, 0);
   });
+
+  // ========== ÉTATS POUR LA MODAL SOUS-COMPTE ==========
+const showSousCompteModal = ref(false);
+const comptes = ref([]); // Pour le dropdown du formulaire
+
+const sousCompteForm = ref({
+  Id_Compte: '',
+  suffixe: '',
+  Code_sous_compte: '',
+  Libelle: ''
+});
+
+// ========== CHARGEMENT DES COMPTES ==========
+const fetchComptes = async () => {
+  try {
+    const res = await axios.get("http://127.0.0.1:8000/api/comptes");
+    comptes.value = res.data.data || res.data;
+  } catch (error) {
+    console.error('Erreur chargement comptes:', error);
+  }
+};
+
+// ========== MISE À JOUR DU CODE SOUS-COMPTE ==========
+const updateSousCompteCode = () => {
+  const compte = comptes.value.find(c => c.Id_Compte === sousCompteForm.value.Id_Compte);
+  if (compte && compte.Code_compte) {
+    sousCompteForm.value.Code_sous_compte = compte.Code_compte + sousCompteForm.value.suffixe.padStart(3, '0');
+  } else {
+    sousCompteForm.value.Code_sous_compte = sousCompteForm.value.suffixe;
+  }
+};
+
+// ========== OUVRIR MODAL DEPUIS DROPDOWN ==========
+const openSousCompteModalFromDropdown = (mouvementId, ligneIndex) => {
+  sousCompteForm.value = {
+    Id_Compte: comptes.value[0]?.Id_Compte || '',
+    suffixe: '',
+    Code_sous_compte: '',
+    Libelle: ''
+  };
+  
+  // Stocke les infos pour auto-sélection après création
+  sousCompteForm.value._mouvementId = mouvementId;
+  sousCompteForm.value._ligneIndex = ligneIndex;
+  
+  showSousCompteModal.value = true;
+};
+
+// ========== SAUVEGARDER SOUS-COMPTE ==========
+const saveSousCompte = async () => {
+  try {
+    const res = await axios.post("http://127.0.0.1:8000/api/sous-comptes", sousCompteForm.value);
+    await axios.post("http://127.0.0.1:8000/api/assigner-toutes-automatiquement");
+
+    showSuccess('Sous-compte créé avec succès'); // ancien message
+    successModalMessage.value = 'Sous-compte créé avec succès';
+    showSuccessModal.value = true;
+
+    await fetchOptions();
+
+    const newSousCompte = res.data.data || res.data;
+    if (sousCompteForm.value._mouvementId && sousCompteForm.value._ligneIndex !== undefined) {
+      selectSousCompte(
+        sousCompteForm.value._mouvementId,
+        sousCompteForm.value._ligneIndex,
+        newSousCompte
+      );
+    }
+
+    showSousCompteModal.value = false;
+  } catch (error) {
+    handleError(error, 'Erreur lors de la création du sous-compte');
+  }
+};
+
+
 
   const handleError = (error, defaultMessage = 'Une erreur est survenue') => {
     console.error('Erreur API:', error);
@@ -129,6 +214,7 @@ const solderMouvement = async (mouvementId) => {
     }
   };
 
+  
   const deleteMouvement = async (mouvementId) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce mouvement et toutes ses lignes ?')) {
       return;
@@ -179,29 +265,30 @@ const solderMouvement = async (mouvementId) => {
     });
   };
 
-  const searchSousCompte = (mouvementId, ligneIndex, searchTerm) => {
-    const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
-    if (!mouvement || !mouvement.lignes[ligneIndex]) return;
+ const searchSousCompte = (mouvementId, ligneIndex, searchTerm) => {
+  const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
+  if (!mouvement || !mouvement.lignes[ligneIndex]) return;
 
-    const ligne = mouvement.lignes[ligneIndex];
-    ligne.sousCompteError = '';
-    
-    if (!searchTerm || searchTerm.length < 2) {
-      ligne.showSuggestions = false;
-      ligne.suggestions = [];
-      ligne.selectedSuggestionIndex = -1;
-      return;
-    }
-
-    const filtered = sousComptes.value.filter(compte =>
-      compte.Code_sous_compte.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      compte.Libelle.toLowerCase().includes(searchTerm.toLowerCase())
-    ).slice(0, 10);
-
-    ligne.suggestions = filtered;
-    ligne.showSuggestions = filtered.length > 0;
+  const ligne = mouvement.lignes[ligneIndex];
+  ligne.sousCompteError = '';
+  
+  if (!searchTerm || searchTerm.length < 2) {
+    ligne.showSuggestions = false;
+    ligne.suggestions = [];
     ligne.selectedSuggestionIndex = -1;
-  };
+    return;
+  }
+
+  const filtered = sousComptes.value.filter(compte =>
+    compte.Code_sous_compte.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    compte.Libelle.toLowerCase().includes(searchTerm.toLowerCase())
+  ).slice(0, 10);
+
+  ligne.suggestions = filtered;
+  ligne.showSuggestions = true; // ✅ TOUJOURS AFFICHER LE DROPDOWN
+  ligne.selectedSuggestionIndex = -1;
+};
+
 
   const onSousCompteFocus = (mouvementId, ligneIndex) => {
     const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
@@ -393,28 +480,29 @@ const updateLigne = async (mouvementId, ligneIndex) => {
   }
 };
 
+const askDeleteLigne = (mouvementId, ligneIndex) => {
+  pendingDeleteLigne.value = { mouvementId, ligneIndex }
+  showDeleteLigneConfirm.value = true
+}
+
 
   const deleteLigne = async (mouvementId, ligneIndex) => {
-    const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
-    if (!mouvement || !mouvement.lignes[ligneIndex]) return;
+  const mouvement = mouvements.value.find(m => m.Id_Mouvement_ecriture === mouvementId);
+  if (!mouvement || !mouvement.lignes[ligneIndex]) return;
 
-    const ligne = mouvement.lignes[ligneIndex];
+  const ligne = mouvement.lignes[ligneIndex];
 
-    if (!confirm('Supprimer cette ligne d\'écriture ?')) {
-      return;
+  try {
+    if (ligne.Id_Ligne_ecriture) {
+      await axios.delete(`http://127.0.0.1:8000/api/lignes/${ligne.Id_Ligne_ecriture}`);
+      showSuccess('Ligne supprimée avec succès');
     }
 
-    try {
-      if (ligne.Id_Ligne_ecriture) {
-        await axios.delete(`http://127.0.0.1:8000/api/lignes/${ligne.Id_Ligne_ecriture}`);
-        showSuccess('Ligne supprimée avec succès');
-      }
-      
-      mouvement.lignes.splice(ligneIndex, 1);
-    } catch (error) {
-      handleError(error, 'Erreur lors de la suppression de la ligne');
-    }
-  };
+    mouvement.lignes.splice(ligneIndex, 1);
+  } catch (error) {
+    handleError(error, 'Erreur lors de la suppression de la ligne');
+  }
+};
 
   const getTotalDebit = (mouvement) => {
     return mouvement.lignes.reduce((total, ligne) => total + (parseFloat(ligne.Debit) || 0), 0);
@@ -534,6 +622,7 @@ const updateLigne = async (mouvementId, ligneIndex) => {
   // ========== 2. CHARGEMENT DES DONNÉES ==========
   isLoading.value = true;
   try {
+    await fetchComptes();
     await fetchOptions();
     await fetchMouvements();
   } catch (error) {
@@ -553,44 +642,57 @@ const updateLigne = async (mouvementId, ligneIndex) => {
     router.push(item.route);
   };
 
+
   return {
-    mouvements,
-    journals,
-    sousComptes,
-    modesPaiement,
-    isLoading,
-    isCreatingMouvement,
-    isValidating,
-    isDeletingMouvement,
-    errorMessage,
-    successMessage,
-    mouvementForm,
-    totalLignes,
-    handleNavigation,
-    createMouvement,
-    deleteMouvement,
-    addNewLigne,
-    searchSousCompte,
-    onSousCompteFocus,
-    navigateSuggestions,
-    selectFirstSuggestion,
-    closeSuggestions,
-    selectSousCompte,
-    validateSousCompte,
-    onMontantChange,
-    updateLigne,
-    deleteLigne,
-    getTotalDebit,
-    getTotalCredit,
-    getDifference,
-    isEquilibre,
-    getTotalGeneralDebit,
-    getTotalGeneralCredit,
-    isMouvementValide,
-    validerMouvement,
-    getJournalLibelle,
-    formatDate,
-    solderMouvement,
-    formatMontant
-  };
+  mouvements,
+  journals,
+  sousComptes,
+  modesPaiement,
+  isLoading,
+  isCreatingMouvement,
+  isValidating,
+  isDeletingMouvement,
+  errorMessage,
+  successMessage,
+  mouvementForm,
+  totalLignes,
+  handleNavigation,
+  createMouvement,
+  deleteMouvement,
+  addNewLigne,
+  searchSousCompte,
+  onSousCompteFocus,
+  navigateSuggestions,
+  selectFirstSuggestion,
+  closeSuggestions,
+  selectSousCompte,
+  validateSousCompte,
+  onMontantChange,
+  updateLigne,
+  deleteLigne,
+  getTotalDebit,
+  getTotalCredit,
+  getDifference,
+  isEquilibre,
+  getTotalGeneralDebit,
+  getTotalGeneralCredit,
+  isMouvementValide,
+  validerMouvement,
+  getJournalLibelle,
+  formatDate,
+  solderMouvement,
+  formatMontant,
+  showSousCompteModal,
+  sousCompteForm,
+  comptes,
+  openSousCompteModalFromDropdown,
+  saveSousCompte,
+  updateSousCompteCode,
+  showSuccessModal,
+  successModalMessage,
+  showDeleteLigneConfirm,
+  pendingDeleteLigne,
+  askDeleteLigne
+};
+
 }

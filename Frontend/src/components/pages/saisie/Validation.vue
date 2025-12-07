@@ -87,6 +87,39 @@
     <ChatBot />
   </div>
 </transition>
+
+<!-- Popup de succès -->
+<div v-if="showSuccessModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Succès</h2>
+      <button @click="showSuccessModal = false" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <p>{{ successModalMessage }}</p>
+      <div class="modal-footer">
+        <button class="btn btn-primary" @click="showSuccessModal = false">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Popup d'erreur -->
+<div v-if="showErrorModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Erreur</h2>
+      <button @click="showErrorModal = false" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <p>{{ errorModalMessage }}</p>
+      <div class="modal-footer">
+        <button class="btn btn-primary" @click="showErrorModal = false">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
   </div>
 </template>
 
@@ -113,6 +146,11 @@ const validating = ref(false);
 const showChat = ref(false);
 
 const exerciceCourant = ref({});
+const showSuccessModal = ref(false)
+const successModalMessage = ref('')
+const showErrorModal = ref(false)
+const errorModalMessage = ref('')
+
 
 function formatDate(d) {
   return d ? new Date(d).toLocaleDateString("fr-FR") : "";
@@ -165,12 +203,18 @@ async function validerToutes() {
   validating.value = true;
   try {
     await axios.post("http://localhost:8000/api/lignes/valider-toutes");
+    showSuccessModal.value = true;
+    successModalMessage.value = "Toutes les écritures ont été validées avec succès !";
     await fetchRapport();
     await fetchEcrituresNonValidees();
+  } catch(e) {
+    showErrorModal.value = true;
+    errorModalMessage.value = e?.response?.data?.message || "Erreur lors de la validation.";
   } finally {
     validating.value = false;
   }
 }
+
 
 onMounted(async () => {
   console.log("Token récupéré :", token); // Vérifie si le token existe

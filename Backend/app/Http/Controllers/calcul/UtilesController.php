@@ -138,33 +138,68 @@ public function getSommeParCategorie(Request $request)
     //         ->first();
     // }
 
-public static function calculerSommeCategorie($codeCategorie, $dateDebut, $dateFin)
+    // ty no tena izy
+// public static function calculerSommeCategorie($codeCategorie, $dateDebut, $dateFin)
+// {
+//     // 1. Trouver les Id_Sous_compte associés à la catégorie
+//     $idsSousComptes = DB::table('compte_categories as cc')
+//         ->join('categorie_fonctionelles as cf', 'cc.id_categorie_fonctionelle', '=', 'cf.id_categorie_fonctionelle')
+//         ->where('cf.code', $codeCategorie)
+//         ->where('cc.actif', true)
+//         ->pluck('cc.id_sous_compte');
+
+//     // 2. Récupérer les codes des sous-comptes correspondants
+//     $codesSousComptes = DB::table('sous_comptes')
+//         ->whereIn('Id_Sous_compte', $idsSousComptes)
+//         ->pluck('Code_sous_compte');
+
+//     // 3. Calculer le montant total en utilisant la vue
+//     $resultat = DB::table('vue_balance_generale as vbg')
+//         ->whereIn('vbg.code_sous_compte', $codesSousComptes)
+//         ->whereBetween('vbg.date_mouvement', [$dateDebut, $dateFin])
+//         ->selectRaw(
+//             '? as code, NULL as libelle, ABS(SUM(vbg.solde_final)) as montant_total',
+//             [$codeCategorie]
+//         )
+//         ->first();
+
+//     // Structure du retour conforme à l'ancienne fonction
+//     return $resultat;
+// }
+
+public static function calculerSommeCategorie($codeCategorie, $dateDebut, $dateFin, $sensCompte = null)
 {
-    // 1. Trouver les Id_Sous_compte associés à la catégorie
     $idsSousComptes = DB::table('compte_categories as cc')
         ->join('categorie_fonctionelles as cf', 'cc.id_categorie_fonctionelle', '=', 'cf.id_categorie_fonctionelle')
         ->where('cf.code', $codeCategorie)
         ->where('cc.actif', true)
         ->pluck('cc.id_sous_compte');
 
-    // 2. Récupérer les codes des sous-comptes correspondants
     $codesSousComptes = DB::table('sous_comptes')
         ->whereIn('Id_Sous_compte', $idsSousComptes)
         ->pluck('Code_sous_compte');
 
-    // 3. Calculer le montant total en utilisant la vue
-    $resultat = DB::table('vue_balance_generale as vbg')
+    $query = DB::table('vue_balance_generale as vbg')
         ->whereIn('vbg.code_sous_compte', $codesSousComptes)
-        ->whereBetween('vbg.date_mouvement', [$dateDebut, $dateFin])
-        ->selectRaw(
-            '? as code, NULL as libelle, ABS(SUM(vbg.solde_final)) as montant_total',
-            [$codeCategorie]
-        )
-        ->first();
+        ->whereBetween('vbg.date_mouvement', [$dateDebut, $dateFin]);
 
-    // Structure du retour conforme à l'ancienne fonction
+    // Choix du calcul selon le paramètre
+    if ($sensCompte === 'credit') {
+        $selectRaw = 'SUM(vbg.total_credit) as montant_total';
+    } elseif ($sensCompte === 'debit') {
+        $selectRaw = 'SUM(vbg.total_debit) as montant_total';
+    } else {
+        $selectRaw = 'ABS(SUM(vbg.solde_final)) as montant_total'; // Comportement par défaut
+    }
+
+    $resultat = $query->selectRaw(
+        '? as code, NULL as libelle, ' . $selectRaw,
+        [$codeCategorie]
+    )->first();
+
     return $resultat;
 }
+
 
 
 public static function calculerVariationCategorie($codeCategorie, $dateDebut, $dateFin)

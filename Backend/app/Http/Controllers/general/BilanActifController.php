@@ -21,16 +21,17 @@ class BilanActifController extends Controller
         $dateFin   = $request->date_fin;
 
         // Helper brut
-        $getBrut = function ($code) use ($dateDebut, $dateFin) {
-            $r = \App\Http\Controllers\calcul\UtilesController::calculerSommeCategorie($code, $dateDebut, $dateFin);
-            return $r && $r->montant_total ? floatval($r->montant_total) : 0;
-        };
+        // Dans index() et getBilanActif()
+$getBrut = function ($code, $sens = null) use ($dateDebut, $dateFin) {
+    $r = \App\Http\Controllers\calcul\UtilesController::calculerSommeCategorie($code, $dateDebut, $dateFin, $sens);
+    return $r && $r->montant_total ? floatval($r->montant_total) : 0;
+};
 
-        // Helper amort / pertes de valeur
-        $getAmort = function ($code) use ($dateDebut, $dateFin) {
-            $r = \App\Http\Controllers\calcul\UtilesController::calculerSommeCategorie($code, $dateDebut, $dateFin);
-            return $r && $r->montant_total ? floatval($r->montant_total) : 0;
-        };
+$getAmort = function ($code, $sens = null) use ($dateDebut, $dateFin) {
+    $r = \App\Http\Controllers\calcul\UtilesController::calculerSommeCategorie($code, $dateDebut, $dateFin, $sens);
+    return $r && $r->montant_total ? floatval($r->montant_total) : 0;
+};
+
 
         // ================= ACTIFS NON COURANTS =================
 
@@ -84,10 +85,14 @@ class BilanActifController extends Controller
         $clientsDep      = $getAmort('PERTEVAL_TIERS');// 49x sur clients
         $clientsNet      = $clientsBrut - $clientsDep;
 
-        $impotsBrut      = $getBrut('IMPT');          // catégorie IMPT (impôts actifs)
+
+
+        $etat = $getBrut('ETAT','debit');           
+        
+        $impotsBrut = $etat;         // catégorie IMPT (impôts actifs)
         $impotsNet       = $impotsBrut;
 
-        $autCreancesBrut = $getBrut('AUTCREANCES');   // 420-479 côté actif
+        $autCreancesBrut = $getBrut('PROVC');   // 420-479 côté actif
         $autCreancesDep  = $getAmort('PERTEVAL_TIERS');// 49x sur autres tiers
         $autCreancesNet  = $autCreancesBrut - $autCreancesDep;
 
@@ -95,9 +100,9 @@ class BilanActifController extends Controller
         $regiesNet       = $regiesBrut;
 
         // Trésorerie et équivalents
-        $placementsBrut  = $getBrut('PLACEMENTS');    // 520-529
-        $placementsDep   = $getAmort('PERTEVAL_FIN'); // 59x
-        $placementsNet   = $placementsBrut - $placementsDep;
+        $placementsBrut  = $getBrut('TRESO');    // 520-529
+         // 59x
+        $placementsNet   = $placementsBrut;
 
         $tresofondsBrut  = $getBrut('TRESOFONDS');    // 530-539
         $tresofondsNet   = $tresofondsBrut;
@@ -119,8 +124,8 @@ class BilanActifController extends Controller
         $totalACAmort =
               $stocksDep
             + $clientsDep
-            + $autCreancesDep
-            + $placementsDep;
+            + $autCreancesDep;
+           
 
         $totalACNet = $totalACBrut - $totalACAmort;
 
@@ -158,7 +163,7 @@ class BilanActifController extends Controller
             ['label' => '  Régies d\'avance et avances de caisse', 'note' => '9.4', 'brut' => $regiesBrut, 'amort' => 0, 'net' => $regiesNet, 'isTotal' => false],
 
             ['label' => 'Trésorerie et équivalents de trésorerie', 'note' => '10', 'brut' => null, 'amort' => null, 'net' => null, 'isSubtitle' => true],
-            ['label' => '  Placements et autres équivalents de trésorerie', 'note' => '10.1', 'brut' => $placementsBrut, 'amort' => $placementsDep, 'net' => $placementsNet, 'isTotal' => false],
+            ['label' => '  Placements et autres équivalents de trésorerie', 'note' => '10.1', 'brut' => $placementsBrut, 'amort' => 0, 'net' => $placementsNet, 'isTotal' => false],
             ['label' => '  Trésorerie fonds en caisse et dépôts à vue', 'note' => '10.2', 'brut' => $tresofondsBrut, 'amort' => 0, 'net' => $tresofondsNet, 'isTotal' => false],
             ['label' => '  Virements internes', 'note' => '10.3', 'brut' => $virintBrut, 'amort' => 0, 'net' => $virintNet, 'isTotal' => false],
 

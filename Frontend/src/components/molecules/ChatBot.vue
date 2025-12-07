@@ -3,7 +3,7 @@
     <div class="chatbot-container">
       <div class="chat-header">
         <h3>Assistant Financier</h3>
-        <p>Analyse de l'établissement scolaire</p>
+        
       </div>
       <div class="chat-messages" ref="messagesContainer">
         <div 
@@ -106,7 +106,7 @@ export default {
     },
     addWelcomeMessage() {
       this.messages.push({
-        content: "👋 Bonjour ! Je suis votre assistant financier pour établissements scolaires. Je suis actuellement en phase de configuration, mais je peux déjà répondre à vos questions basiques !",
+        content: "Bonjour ! Comment puis-je vous aider aujourd'hui ?",
         type: 'bot',
         time: new Date().toLocaleTimeString()
       });

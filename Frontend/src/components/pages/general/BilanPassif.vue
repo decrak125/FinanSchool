@@ -96,10 +96,10 @@
                     {{ ligne.label }}
                   </td>
                   <td class="text-center">{{ ligne.note || "" }}</td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
+                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal, 'text-red': ligne.montantN < 0 }">
                     {{ formatMontant(ligne.montantN) }}
                   </td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
+                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal, 'text-red': ligne.montantN1 < 0 }">
                     {{ formatMontant(ligne.montantN1) }}
                   </td>
                 </tr>
@@ -122,6 +122,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
@@ -134,11 +135,13 @@ import html2pdf from 'html2pdf.js';
 import * as XLSX from 'xlsx-js-style';
 import { getUser } from "../../../services/Auth";
 
+
 const router = useRouter();
 const user = ref(null);
 const showChat = ref(false);
 const goBack = () => { router.push("/journal"); };
 const handleNavigation = item => { router.push(item.route); };
+
 
 const loading = ref(false);
 const listeComplete = ref([]);
@@ -151,9 +154,11 @@ const exerciceInfo = ref({
   statut: ""
 });
 
+
 const exercices = ref([]);
 const selectedExercice = ref("");
 const exerciceCourantId = ref("");
+
 
 // ---------- LOGO ----------
 const logoBase64 = ref(null);
@@ -168,12 +173,14 @@ async function fetchImageAsBase64(url) {
   });
 }
 
+
 const token = localStorage.getItem("token");
 if (!token) {
   window.location.href = "/";
 } else {
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
+
 
 const fetchExerciceCourant = async () => {
   try {
@@ -184,6 +191,7 @@ const fetchExerciceCourant = async () => {
   }
 };
 
+
 const loadExercices = async () => {
   try {
     const { data } = await axios.get("http://localhost:8000/api/exercices");
@@ -192,6 +200,7 @@ const loadExercices = async () => {
     exercices.value = [];
   }
 };
+
 
 const onExerciceChange = () => {
   const ex = exercices.value.find(e => e.Id_Exercice_comptable == selectedExercice.value);
@@ -212,6 +221,7 @@ const onExerciceChange = () => {
   }
   fetchBilanPassif();
 };
+
 
 onMounted(async () => {
   logoBase64.value = await fetchImageAsBase64("/01Raitra kidz 300px.png");
@@ -238,6 +248,7 @@ onMounted(async () => {
     }
   }
 });
+
 
 const fetchBilanPassif = async () => {
   loading.value = true;
@@ -273,10 +284,13 @@ const fetchBilanPassif = async () => {
   }
 };
 
+
+// ✅ Affiche la valeur absolue (comme dans le compte de résultat)
 const formatMontant = n => {
   if (n === null || n === undefined) return "";
-  return Math.abs(Number(n)).toLocaleString("fr-FR", { minimumFractionDigits: 2 });
+  return Math.abs(Number(n)).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 };
+
 
 const formatDate = d => {
   if (!d) return "";
@@ -284,9 +298,8 @@ const formatDate = d => {
   return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
 };
 
+
 // ------ EXPORT PDF AVEC LOGO & STYLES ------
-
-
 const exportToPDF = () => {
   if (!listeComplete.value.length) {
     alert("Aucune donnée à exporter !");
@@ -294,7 +307,6 @@ const exportToPDF = () => {
   }
   const now = new Date();
 
-  // Header branding
   const bilanHeader = `
     <div style="display: flex; align-items: flex-start; border-bottom: 3px solid #2980b9; padding-bottom: 13px; margin-bottom: 11px; width : 745px;">
       <div style="flex: 0 0 75px;">
@@ -325,9 +337,11 @@ const exportToPDF = () => {
       </div>
     </div>`;
 
-  // tableau dynamique avec styling adapté
-  const tableRows = listeComplete.value.map(l =>
-    `<tr
+  // ✅ Détection des négatifs pour le PDF
+  const tableRows = listeComplete.value.map(l => {
+    const isNegativeN = l.montantN < 0;
+    const isNegativeN1 = l.montantN1 < 0;
+    return `<tr
       style="
         ${l.isTitle ? 'background:#dbeafe;font-weight:bold;font-size:10px;color:#1e40af;' : ''}
         ${l.isSubtitle ? 'background:#f0f9ff;font-style:italic;font-size:9px;color:#0369a1;' : ''}
@@ -337,10 +351,10 @@ const exportToPDF = () => {
       ">
       <td style="padding:5px 4px;${l.isSubtitle?'padding-left:16px;':''}${!l.isTitle && !l.isSubtitle && !l.isTotal && !l.isSubtotal?'padding-left:24px;':''}border:1px solid #ddd;">${l.label}</td>
       <td style="padding:5px 3px;text-align:center;border:1px solid #ddd;">${l.note || ''}</td>
-      <td style="padding:5px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.montantN)}</td>
-      <td style="padding:5px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.montantN1)}</td>
-    </tr>`
-  ).join('');
+      <td style="padding:5px 3px;text-align:right;border:1px solid #ddd;${isNegativeN ? 'color:#dc2626;font-weight:600;' : ''}">${formatMontant(l.montantN)}</td>
+      <td style="padding:5px 3px;text-align:right;border:1px solid #ddd;${isNegativeN1 ? 'color:#dc2626;font-weight:600;' : ''}">${formatMontant(l.montantN1)}</td>
+    </tr>`;
+  }).join('');
   
   const htmlContent = `
     <div style="font-family: 'Helvetica', Arial, sans-serif; max-width: 210mm; padding: 0 10px;">
@@ -398,8 +412,6 @@ const exportToPDF = () => {
 
 
 // ------ EXPORT EXCEL STYLE PRO ------
-
-
 const exportToExcel = async () => {
   if (!listeComplete.value.length) {
     alert("Aucune donnée à exporter !");
@@ -414,7 +426,6 @@ const exportToExcel = async () => {
     email: "contact@raitrakidz.mg"
   };
 
-  // En-tête informations
   const titre = [[`BILAN PASSIF ET CAPITAUX PROPRES – RAITRA KIDZ`]];
   const info = [
     [etablissement.nom],
@@ -429,12 +440,10 @@ const exportToExcel = async () => {
     ['']
   ];
 
-  // En-têtes du tableau
   const headers = [
     ['PASSIF ET CAPITAUX PROPRES', 'NOTE', 'N', 'N-1']
   ];
 
-  // Données
   const dataRows = listeComplete.value.map(l => [
     l.label,
     l.note || "",
@@ -442,35 +451,29 @@ const exportToExcel = async () => {
     l.montantN1 !== null && l.montantN1 !== undefined ? parseFloat(l.montantN1) : ''
   ]);
 
-  // Création de la feuille Excel
   const ws = XLSX.utils.aoa_to_sheet([]);
   XLSX.utils.sheet_add_aoa(ws, titre, { origin: 'A1' });
   info.forEach((val, i) => XLSX.utils.sheet_add_aoa(ws, [val], { origin: `A${i+2}` }));
   XLSX.utils.sheet_add_aoa(ws, headers, { origin: 'A13' });
   XLSX.utils.sheet_add_aoa(ws, dataRows, { origin: 'A14' });
 
-  // Largeurs colonnes
   ws['!cols'] = [
-    { wch: 45 }, // PASSIF ET CAPITAUX PROPRES
-    { wch: 12 }, // NOTE
-    { wch: 18 }, // N
-    { wch: 18 }  // N-1
+    { wch: 45 },
+    { wch: 12 },
+    { wch: 18 },
+    { wch: 18 }
   ];
 
-  // Fusion de cellules pour titres/en-têtes
   ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }, // fusion titre
-    ...[1,2,3,4,5,6,7,8,9,10,11,12].map(i => ({ s: { r: i, c: 0 }, e: { r: i, c: 3 } })) // infos
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } },
+    ...[1,2,3,4,5,6,7,8,9,10,11,12].map(i => ({ s: { r: i, c: 0 }, e: { r: i, c: 3 } }))
   ];
 
-  // Styles Excel Avancés
-  // Titre principal
   ws['A1'].s = {
     font: { bold: true, sz: 20, color: { rgb: "1C45BD" } },
     alignment: { horizontal: "center", vertical: "center" }
   };
 
-  // Infos établissement
   for (let i = 2; i <= 5; ++i) {
     const cell = `A${i}`;
     if (ws[cell]) ws[cell].s = {
@@ -479,7 +482,6 @@ const exportToExcel = async () => {
     };
   }
 
-  // Infos supplémentaires
   for (let i = 6; i <= 12; ++i) {
     const cell = `A${i}`;
     if (ws[cell]) ws[cell].s = {
@@ -488,7 +490,6 @@ const exportToExcel = async () => {
     };
   }
 
-  // En-tête du tableau
   ['A13', 'B13', 'C13', 'D13'].forEach(cell => {
     if (ws[cell]) ws[cell].s = {
       font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
@@ -503,7 +504,7 @@ const exportToExcel = async () => {
     };
   });
 
-  // Données du tableau avec styles conditionnels
+  // ✅ Détection des négatifs pour Excel
   const firstDataRow = 14;
   for (let i = 0; i < dataRows.length; ++i) {
     const rowIdx = firstDataRow + i;
@@ -513,10 +514,11 @@ const exportToExcel = async () => {
       const cell = `${col}${rowIdx}`;
       if (!ws[cell]) return;
 
-      // Style pour lignes de titre
+      const isNegative = (j === 2 && ligne.montantN < 0) || (j === 3 && ligne.montantN1 < 0);
+
       if (ligne.isTitle) {
         ws[cell].s = {
-          font: { bold: true, sz: 13, color: { rgb: "1e40af" } },
+          font: { bold: true, sz: 13, color: { rgb: isNegative ? "dc2626" : "1e40af" } },
           fill: { fgColor: { rgb: "dbeafe" } },
           alignment: { horizontal: j===0?"left":"center", vertical: "center" },
           border: {
@@ -527,10 +529,9 @@ const exportToExcel = async () => {
           }
         };
       }
-      // Style pour lignes de total
       else if (ligne.isTotal) {
         ws[cell].s = {
-          font: { bold: true, sz: 12, color: { rgb: "1e40af" } },
+          font: { bold: true, sz: 12, color: { rgb: isNegative ? "dc2626" : "1e40af" } },
           fill: { fgColor: { rgb: "e0e7ff" } },
           alignment: { horizontal: j===0?"left":"center", vertical: "center" },
           border: {
@@ -541,10 +542,9 @@ const exportToExcel = async () => {
           }
         };
       }
-      // Style pour sous-titres
       else if (ligne.isSubtitle) {
         ws[cell].s = {
-          font: { sz: 11, italic: true, color: { rgb: "0369a1" } },
+          font: { sz: 11, italic: true, color: { rgb: isNegative ? "dc2626" : "0369a1" } },
           fill: { fgColor: { rgb: "f0f9ff" } },
           alignment: { horizontal: j===0?"left":"center", vertical: "center" },
           border: {
@@ -555,10 +555,9 @@ const exportToExcel = async () => {
           }
         };
       }
-      // Style pour sous-totaux
       else if (ligne.isSubtotal) {
         ws[cell].s = {
-          font: { sz: 11, bold: true, color: { rgb: "5b21b6" } },
+          font: { sz: 11, bold: true, color: { rgb: isNegative ? "dc2626" : "5b21b6" } },
           fill: { fgColor: { rgb: "ede9fe" } },
           alignment: { horizontal: j===0?"left":"center", vertical: "center" },
           border: {
@@ -569,10 +568,9 @@ const exportToExcel = async () => {
           }
         };
       }
-      // Style pour lignes de détail
       else {
         ws[cell].s = {
-          font: { sz: 11 },
+          font: { sz: 11, color: { rgb: isNegative ? "dc2626" : "000000" } },
           alignment: { horizontal: j===0?"left":"right", vertical: "center" },
           border: {
             top:    { style: "thin", color: { rgb: "e5e7eb" } },
@@ -581,7 +579,6 @@ const exportToExcel = async () => {
             bottom: { style: "thin", color: { rgb: "e5e7eb" } }
           }
         };
-        // Format nombre pour colonnes numériques
         if (j >= 2 && ws[cell].v !== '') {
           ws[cell].z = "#,##0.00";
         }
@@ -589,13 +586,13 @@ const exportToExcel = async () => {
     });
   }
 
-  // Classeur & sauvegarde
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Bilan Passif");
   XLSX.writeFile(wb, `bilan_passif_${now.toISOString().split("T")[0]}.xlsx`);
 };
 
 </script>
+
 
 
 <style scoped>
@@ -627,6 +624,13 @@ const exportToExcel = async () => {
 .detail-row { background-color: #ffffff;}
 .detail-row:hover { background-color: #f9fafb; transition: background-color 0.2s ease;}
 .detail-row td { padding: 0.6rem 1rem; color: #374151;}
+
+/* ✅ Classe pour les négatifs en rouge */
+.text-red { 
+  color: #dc2626 !important; 
+  font-weight: 600;
+}
+
 .chatbot-float-btn {
   position: fixed;
   bottom: 55px;
@@ -668,7 +672,6 @@ const exportToExcel = async () => {
   flex-direction: column;
 }
 
-/* Animation d'apparition */
 .chatbot-fade-enter-active, .chatbot-fade-leave-active {
   transition: opacity 0.25s;
 }

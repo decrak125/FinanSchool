@@ -191,6 +191,47 @@ VALUES
   (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PASSIF'),
   (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
 
+('ETAT', 'Etat, collectivites publiques, organismes internationaux', true, (SELECT id_duree FROM durees WHERE code='LT'),
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PASSIF'),
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('DETTE_ASSOC', 'Etat, collectivites publiques, organismes internationaux', true, (SELECT id_duree FROM durees WHERE code='LT'),
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PASSIF'),
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('SOCGEN', 'Etat, collectivites publiques, organismes internationaux', true, (SELECT id_duree FROM durees WHERE code='LT'),
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PASSIF'),
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('PERS_CRED', 'Personnel Crediteur', true, (SELECT id_duree FROM durees WHERE code='LT'),
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PASSIF'),
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('AUTCREC', 'Personnel Crediteur', true, (SELECT id_duree FROM durees WHERE code='LT'),
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PASSIF'),
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('TERR_CONST', 'Personnel Crediteur', true, (SELECT id_duree FROM durees WHERE code='LT'),
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PASSIF'),
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('CPTCOURANT', 'Personnel Crediteur', true, (SELECT id_duree FROM durees WHERE code='LT'),
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PASSIF'),
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+('PROVRISQUE', 'Personnel Crediteur', true, (SELECT id_duree FROM durees WHERE code='LT'),
+  (SELECT id_fonction_economique FROM fonction_economiques WHERE code='FINANCE'),
+  (SELECT id_nature_comptable FROM nature_comptables WHERE code_nature='PASSIF'),
+  (SELECT id_type_categorie FROM type_categories WHERE code_type='BILAN')),
+
+
 ------------------
 -- Passifs courants
 ('DETTECT', 'Dettes court terme', true, (SELECT id_duree FROM durees WHERE code='CT'),

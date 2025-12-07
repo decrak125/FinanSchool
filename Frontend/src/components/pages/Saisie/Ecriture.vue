@@ -121,13 +121,14 @@
             <i class="bi bi-lock me-1"></i> Validé
           </span>
           <button 
-            @click="deleteMouvement(m.Id_Mouvement_ecriture)"
+            @click="askDeleteMouvement(m.Id_Mouvement_ecriture)"
             :disabled="isMouvementValide(m) || isDeletingMouvement"
             class="btn btn-sm btn-error"
             style="margin-left: 10px;"
           >
             <i class="bi bi-trash"></i>
           </button>
+
         </div>
       </td>
     </tr>
@@ -160,22 +161,37 @@
             style="width: 65px;"
           />
           <!-- Dropdown de suggestions -->
-          <div
-            v-if="ligne.showSuggestions && ligne.suggestions?.length"
-            class="absolute z-30 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto top-full mt-1 left-0"
-            style="background-color: white;">
-            <div
-              v-for="(suggestion, suggIndex) in ligne.suggestions"
-              :key="suggestion.Id_Sous_compte"
-              @mousedown="selectSousCompte(m.Id_Mouvement_ecriture, index, suggestion)"
-              :class="{'bg-secondary-light': suggIndex === ligne.selectedSuggestionIndex}"
-              class="p-2 cursor-pointer border-b border-gray-200 hover:bg-secondary-light"
-              @mouseover="ligne.selectedSuggestionIndex = suggIndex"
-            >
-              <div class="font-semibold text-xs">{{ suggestion.Code_sous_compte }}</div>
-              <div class="text-xs text-gray-600">{{ suggestion.Libelle }}</div>
-            </div>
-          </div>
+          <!-- Dropdown de suggestions -->
+<div
+  v-if="ligne.showSuggestions"
+  class="absolute z-30 w-full bg-white border border-gray-300 rounded-md shadow-lg max-h-40 overflow-y-auto top-full mt-1 left-0"
+  style="background-color: white;">
+  
+  <!-- ✅ SUGGESTIONS EXISTANTES -->
+  <div
+    v-for="(suggestion, suggIndex) in ligne.suggestions"
+    :key="suggestion.Id_Sous_compte"
+    @mousedown="selectSousCompte(m.Id_Mouvement_ecriture, index, suggestion)"
+    :class="{'bg-secondary-light': suggIndex === ligne.selectedSuggestionIndex}"
+    class="p-2 cursor-pointer border-b border-gray-200 hover:bg-secondary-light"
+    @mouseover="ligne.selectedSuggestionIndex = suggIndex"
+  >
+    <div class="font-semibold text-xs">{{ suggestion.Code_sous_compte }}</div>
+    <div class="text-xs text-gray-600">{{ suggestion.Libelle }}</div>
+  </div>
+  
+  <!-- ✅ BOUTON "CRÉER UN NOUVEAU SOUS-COMPTE" -->
+  <div
+    @mousedown="openSousCompteModalFromDropdown(m.Id_Mouvement_ecriture, index)"
+    class="p-2 cursor-pointer border-t-2 border-primary hover:bg-blue-50 bg-blue-50"
+  >
+    <div class="flex items-center gap-2 text-primary font-semibold text-xs">
+      <i class="bi bi-plus-circle"></i>
+      <span>Créer un nouveau sous-compte</span>
+    </div>
+  </div>
+</div>
+
           <div v-if="ligne.sousCompteError" class="form-error">{{ ligne.sousCompteError }}</div>
         </div>
       </td>
@@ -255,15 +271,17 @@
       <!-- Actions -->
       <td class="text-center" style="vertical-align: middle;">
         <button
-          @click="deleteLigne(m.Id_Mouvement_ecriture, index)"
-          :disabled="isMouvementValide(m)"
-          class="btn btn-xs btn-ghost text-error"
-          title="Supprimer la ligne"
-          style="width: 28px; height: 32px; font-size: 16px;"
-        >
-          <i class="bi bi-trash"></i>
-        </button>
+            @click="askDeleteLigne(m.Id_Mouvement_ecriture, index)"
+            :disabled="isMouvementValide(m)"
+            class="btn btn-xs btn-ghost text-error"
+            style="width: 28px; height: 32px; font-size: 16px;"
+          >
+            <i class="bi bi-trash"></i>
+          </button>
+
       </td>
+   
+
     </tr>
     <!-- Bouton pour ajouter une nouvelle ligne -->
     <tr v-if="!isMouvementValide(m)" class="bg-secondary-light ligne-table">
@@ -343,6 +361,139 @@
     <ChatBot />
   </div>
 </transition>
+
+<!-- MODAL CRÉATION SOUS-COMPTE -->
+<div v-if="showSousCompteModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Nouveau sous-compte</h2>
+      <button @click="showSousCompteModal = false" class="modal-close">×</button>
+    </div>
+    <form @submit.prevent="saveSousCompte" class="modal-body">
+      <div class="form-group">
+        <label class="form-label required">Compte</label>
+        <select
+          v-model="sousCompteForm.Id_Compte"
+          @change="updateSousCompteCode"
+          class="form-select w-full"
+          required
+        >
+          <option v-for="compte in comptes" :key="compte.Id_Compte" :value="compte.Id_Compte">
+            {{ compte.Code_compte }} - {{ compte.Libelle }}
+          </option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Suffixe (3 chiffres)</label>
+        <input
+          type="text"
+          v-model="sousCompteForm.suffixe"
+          @input="updateSousCompteCode"
+          maxlength="3"
+          placeholder="001"
+          class="form-input w-full"
+          required
+        />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Code complet (généré automatiquement)</label>
+        <input
+          type="text"
+          v-model="sousCompteForm.Code_sous_compte"
+          readonly
+          class="form-input w-full bg-gray-100"
+          style="background-color: #f3f4f6;"
+        />
+      </div>
+      <div class="form-group">
+        <label class="form-label required">Libellé</label>
+        <input
+          type="text"
+          v-model="sousCompteForm.Libelle"
+          class="form-input w-full"
+          placeholder="Ex: Fournisseur XYZ"
+          required
+        />
+      </div>
+      <div class="modal-footer">
+        <button type="button" @click="showSousCompteModal = false" class="btn btn-ghost">
+          Annuler
+        </button>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-save me-2"></i>
+          Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+   <div v-if="showDeleteLigneConfirm" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Supprimer la ligne</h2>
+      <button @click="showDeleteLigneConfirm = false" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <p>Voulez-vous vraiment supprimer cette ligne d'écriture ?</p>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" @click="showDeleteLigneConfirm = false">
+          Annuler
+        </button>
+        <button
+          class="btn btn-primary"
+          @click="
+            deleteLigne(pendingDeleteLigne.mouvementId, pendingDeleteLigne.ligneIndex);
+            showDeleteLigneConfirm = false;
+          "
+        >
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div v-if="showDeleteMouvementConfirm" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Supprimer le mouvement</h2>
+      <button @click="showDeleteMouvementConfirm = false" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <p>Voulez-vous vraiment supprimer ce mouvement et toutes ses lignes ?</p>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" @click="showDeleteMouvementConfirm = false">
+          Annuler
+        </button>
+        <button
+          class="btn btn-primary"
+          @click="
+            deleteMouvement(pendingDeleteMouvement);
+            showDeleteMouvementConfirm = false;
+          "
+        >
+          Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div v-if="showSuccessModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title">Succès</h2>
+      <button @click="showSuccessModal = false" class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <p>{{ successMessage || successModalMessage }}</p>
+      <div class="modal-footer">
+        <button class="btn btn-primary" @click="showSuccessModal = false">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
   </div>
 </template>
 
@@ -391,6 +542,7 @@ onMounted(async () => {
 });
 
 // ========== UTILISATION DU COMPOSABLE ==========
+// ========== UTILISATION DU COMPOSABLE ==========
 const {
   mouvements,
   journals,
@@ -429,8 +581,27 @@ const {
   getJournalLibelle,
   formatDate,
   solderMouvement,
-  formatMontant
+  formatMontant,
+  
+  // ✅ AJOUTS POUR LA MODAL SOUS-COMPTE
+  showSousCompteModal,
+  sousCompteForm,
+  comptes,
+  openSousCompteModalFromDropdown,
+  saveSousCompte,
+  updateSousCompteCode,
+  showDeleteLigneConfirm,
+  pendingDeleteLigne,
+  askDeleteLigne,
+  showDeleteMouvementConfirm,
+  pendingDeleteMouvement,
+  askDeleteMouvement,
+
+  // succès générique
+  showSuccessModal,
+  successModalMessage
 } = useEcriture();
+
 </script>
 
 
@@ -540,6 +711,67 @@ input, select {
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgba(37,99,235,0.16);
 }
+
+/* Modal styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.modal {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s;
+}
+
+.modal-close:hover {
+  color: #111827;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+}
+
 
 
 @media print {
