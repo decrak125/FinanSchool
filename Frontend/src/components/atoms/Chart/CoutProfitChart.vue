@@ -9,7 +9,7 @@
             <div class="chart-with-separate-legend">
         <div class="chart-container">
           <div class="table-title">
-              <Texte :type="'bold-dark'" :texte="'Évolution Coûts vs Profits'" />
+              <Texte :type="'bold-dark'" :texte="'Évolution Charges vs Produits'" />
         </div>
           <div class="graphic-wrapper">
             <apexchart
@@ -157,15 +157,15 @@
     // 6. Préparer les séries pour ApexCharts
     series.value = [
       {
-        name: 'Profits',
+        name: 'Produits',
         data: profitsData
       },
       {
-        name: 'Coûts',
+        name: 'Charges',
         data: costsData
       },
       {
-        name: 'Solde Net',
+        name: 'Bénéfice/perte cumulé',
         data: soldeData
       }
     ];

@@ -28,7 +28,7 @@ const menuConfig = [
       },
       {
         id: 'repartition_profits',
-        texte: 'Répartition des profits',
+        texte: 'Répartition des produits',
         redirection: '/profits'
       },
       {

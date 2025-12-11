@@ -143,7 +143,7 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <PageAnalyse :menu="showGlobalView ? 'Analyse des profits' : selectedCentre" :sousmenu="'Répartition des profits'">
+  <PageAnalyse :menu="showGlobalView ? 'Analyse des produits' : selectedCentre" :sousmenu="'Répartition des produits'">
     <div class="main">
       <!-- Bouton retour vers la vue globale -->
 
@@ -203,9 +203,9 @@ onMounted(async () => {
           <div class="graphic">
             <div class="cartes" v-if="statsGlobales != null">
               <div class="hauteur">
-                <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantVentile" :texte="'Total des profits.'"
+                <Card v-if="showGlobalView" :chiffre="statsGlobales.totalMontantVentile" :texte="'Total des produits.'"
                   :icon="'bi bi-currency-dollar'" :icon-color="'orange'" :format="'money'" />
-                <Card v-else :chiffre="statsGlobales.totalMontantVentile" :texte="'Total des profits.'"
+                <Card v-else :chiffre="statsGlobales.totalMontantVentile" :texte="'Total des produits.'"
                   :icon="'bi bi-currency-dollar'" :icon-color="'orange'" :format="'money'" />
 
                 <Card v-if="showGlobalView" :chiffre="filters.dateEnd" :texte="'Année d\'exercice.'"
@@ -258,7 +258,7 @@ onMounted(async () => {
               <div class="table-title">
                 
                 <div class="info">
-                  <Texte :type="'bold-dark'" :texte="'Profits ventilés par centre'" />
+                  <Texte :type="'bold-dark'" :texte="'produits ventilés par centre'" />
                   <Texte :type="'dark'" :texte="'Montants en Ariary (Ar).'" />
                 </div>
                 <div class="iconbtn">
@@ -330,7 +330,7 @@ onMounted(async () => {
               </table>
             </div>
             <div class="classement" v-if="showGlobalView">
-              <Leaderboard  :depenses="classementFiltrees" :texte="'Top 5 des profits'" />
+              <Leaderboard  :depenses="classementFiltrees" :texte="'Top 5 des produits'" />
             </div>
 
           </div>

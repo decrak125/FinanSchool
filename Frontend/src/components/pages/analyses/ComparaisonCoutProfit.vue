@@ -412,7 +412,7 @@ onMounted(() => {
             <!-- Ligne des Coûts -->
             <tr>
               <td>
-                <span>Coûts</span>
+                <span>Charges</span>
               </td>
               <td v-for="month in allMonths" :key="`costs-${month.numero}`">
                 {{ formatMontant(costsByMonth[month.numero]) }}
@@ -425,7 +425,7 @@ onMounted(() => {
             <!-- Ligne des Profits -->
             <tr>
               <td>
-                <span>Profits</span>
+                <span>Produits</span>
               </td>
               <td v-for="month in allMonths" :key="`profits-${month.numero}`">
                 {{ formatMontant(profitsByMonth[month.numero]) }}
@@ -438,7 +438,7 @@ onMounted(() => {
             <!-- Ligne du Solde Net -->
             <tr>
               <td>
-                <span>Solde Net</span>
+                <span>Bénéfice/perte mensuel</span>
               </td>
               <td v-for="month in allMonths" :key="`solde-${month.numero}`" 
                   >
@@ -511,7 +511,7 @@ onMounted(() => {
 }
 
 .filters-container {
-  position: fixed;
+  position: absolute;
   left: 612px;
   top: 112px;
   display: flex;

@@ -533,7 +533,7 @@ onMounted(() => {
 }
 
 .filters-container {
-  position: fixed;
+  position: absolute;
   left: 635px;
   top: 112px;
   display: flex;

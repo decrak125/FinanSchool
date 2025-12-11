@@ -548,7 +548,7 @@ opacity: 0;
         font-size: 14px;
     }}
 .filters-container {
-  position: fixed;
+  position: absolute;
   left: 612px;
   top: 112px;
   display: flex;
