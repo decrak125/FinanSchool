@@ -111,8 +111,8 @@ const centresList = computed(() => {
       centre.evolution = ((centre.dernierPoint.montant - centre.premierPoint.montant) / centre.premierPoint.montant) * 100;
 
       console.log(`📈 ${centre.name}: ` +
-        `${centre.premierPoint.date.toLocaleDateString('fr-FR')} = ${centre.premierPoint.montant.toLocaleString()}€ → ` +
-        `${centre.dernierPoint.date.toLocaleDateString('fr-FR')} = ${centre.dernierPoint.montant.toLocaleString()}€ → ` +
+        `${centre.premierPoint.date.toLocaleDateString('fr-FR')} = ${centre.premierPoint.montant.toLocaleString()}Ar → ` +
+        `${centre.dernierPoint.date.toLocaleDateString('fr-FR')} = ${centre.dernierPoint.montant.toLocaleString()}Ar → ` +
         `${centre.evolution.toFixed(1)}%`);
     } else {
       centre.evolution = null;

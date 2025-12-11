@@ -17,6 +17,8 @@ use App\Http\Controllers\ParametresAnalytique\InterpretationIndicateurController
 use App\Http\Controllers\ParametresAnalytique\CodeAnalytiqueController;
 use App\Http\Controllers\Analyse\IndicateurPedagogiqueController;
 use App\Http\Controllers\EffectifEleveController;
+use App\Http\Controllers\Analyse\DiagnosticController;
+use App\Http\Controllers\Analyse\DiagnosticControllerUnifie;
 // use App\Http\Controllers\ChatBot\ChatController;
 
 //      Route::post('/chat/send', [ChatController::class, 'sendMessage']);
@@ -126,5 +128,9 @@ use App\Http\Controllers\EffectifEleveController;
                Route::delete('/', [EffectifEleveController::class, 'destroy']);
           });
      });
+
+     Route::prefix('dashboard')->group(function () {
+    Route::get('/complet', [DiagnosticControllerUnifie::class, 'getDashboardComplet']);
+});
 
 

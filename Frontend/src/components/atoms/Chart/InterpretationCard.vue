@@ -1,4 +1,5 @@
 <script setup>
+import { ref, computed } from 'vue';
 import Texte from '../Texte.vue';
 defineProps({
     texte: String,
@@ -12,6 +13,14 @@ defineProps({
     colorVariation: String,
     interpretation: String
 })
+function unite(f) {
+    if (f) {
+      if (f === 'money') return ' Ar';
+      if (f === 'percentage') return '';
+      if (f === 'number') return ' année(s)';
+    }
+    return '';
+}
 </script>
 <template>
     <div class="container">
@@ -22,11 +31,12 @@ defineProps({
         <div class="data">
           <Texte v-if="parseFloat(chiffre) > 0" :texte="'+'" :type="'title-dark'"/>
           <Texte :texte="chiffre" :type="'title-dark'"/>
+          <Texte v-if="format === 'money'" :texte="'Ar'" :type="'black-dark'"/>
             <p :class="colorVariation">{{ icon }}</p>
         </div>
         
         <Texte :texte="interpretation+
-        '. Une évolution de '+chiffre+' et une variation de '+variation+'% '
+        '. Une évolution de ' +chiffre + unite(format) + ' et une variation de '+variation+'% '
         " :type="'dark'"/>
     </div>
 </template>

@@ -11,16 +11,15 @@
 <style lang="scss" scoped>
     .popup {
     position: fixed;
-    // top: 0;
-    // left: 0;
+    top: 102px;
+    left: 260px;
     @include position-contenus(flex, center, center);
     margin-top: -1%;
     width: 82%;
-    height: 85%;
+    height: 88vh;
     // box-shadow: 0px 4px 75px 1000px rgba(0, 0, 0, 0.75) inset;
     backdrop-filter: blur(15px);
     z-index: 9999;
-    border-radius: $radius-pm;
     }
 
     .popup-content {

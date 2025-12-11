@@ -224,7 +224,7 @@
         categories: xaxisCategories.value, // Les catégories générées
         labels: {
           style: {
-            fontFamily: 'stara',
+            fontFamily: 'ninetea',
             colors: '#6b7280',
             fontSize: '11px'
           },
@@ -244,15 +244,15 @@
         title: {
           text: 'Montant (Ar)',
           style: {
-            fontFamily: 'stara',
+            fontFamily: 'ninetea',
             fontWeight: '600',
-            color: '#2c3e50',
+            color: 'black',
             fontSize: '12px'
           }
         },
         labels: {
           style: {
-            fontFamily: 'stara',
+            fontFamily: 'ninetea',
             colors: '#6b7280',
             fontSize: '11px'
           },
@@ -270,7 +270,7 @@
         intersect: false,
         theme: 'light',
         style: {
-          fontFamily: 'stara',
+          fontFamily: 'ninetea',
           fontSize: '12px'
         },
         x: {

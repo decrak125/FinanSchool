@@ -42,8 +42,8 @@ class IndicateurLiquiditeController extends Controller
         $formule = $interpretationData['formule'];
 
         if ($passifCourtTerme > 0) {
-            $ratio = $actifCirculant / $passifCourtTerme;
-            
+            $ratio = ($actifCirculant / $passifCourtTerme);
+            $interpretationData = $this->getInterpretation('Ratio de liquidité générale', $ratio);
             // Récupérer l'interprétation depuis la table
             // $interpretationData = $this->getInterpretation('Ratio de liquidité générale', $ratio);
             $interpretation = $interpretationData['interpretation'];
@@ -55,6 +55,7 @@ class IndicateurLiquiditeController extends Controller
             'success' => true,
             'ratio_liquidite_generale' => [
                 'valeur' => round($ratio, 2),
+                'unite' =>'%',
                 'interpretation' => $interpretation,
                 'niveau_alerte' => $niveauAlerte,
                 'seuil_reference' => "> 1 indique une bonne solvabilité à court terme"
@@ -96,6 +97,7 @@ class IndicateurLiquiditeController extends Controller
             'success' => true,
             'tresorerie_nette' => [
                 'valeur' => round($tresorerieNette, 2),
+                'unite' => 'Ar',
                 'interpretation' => $interpretationData['interpretation'],
                 'niveau_alerte' => $interpretationData['niveau_alerte']
             ],

@@ -5,6 +5,7 @@ import Footer from '../molecules/Analyse/Footer.vue';
 import { useNotificationStore } from '@/stores/notificationStore'; // ← IMPORTANT
 import ChatBot from '@/components/template/ChatBot.vue';
 import Card from '../atoms/Chart/Card.vue';
+import Notifications from '../molecules/Analyse/Notifications.vue';
 
 defineProps({
   menu: String,
@@ -43,6 +44,7 @@ onMounted(() => {
       </div>
       <div class="main">
         <div class="header">
+          <Notifications />
           <Header :menu="menu" :sousmenu="sousmenu"/>
         </div>
         <div class="content">
@@ -225,7 +227,7 @@ onMounted(() => {
   //   #ffffff, 
   //   #ffe0e0, 
   //   #ffffff);
-  background: url('@/assets/img/télécharger1.jpg') center no-repeat;
+  background: url('@/assets/img/26.png') center no-repeat;
   background-color: $light;
   background-size:cover;
   // animation: gradient 15s ease infinite;

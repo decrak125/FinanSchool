@@ -217,7 +217,7 @@ const chartOptions = computed(() => {
                         },
                         value: {
                             show: true,
-                            fontFamily: 'sans-serif',
+                            fontFamily: 'ninetea',
                             fontSize: '18px',
                             fontWeight: 'bold',
                             color: '#373d3f',
@@ -308,7 +308,7 @@ watch(() => props.data, (newData) => {
                                     <div class="legend-content">
                                         <div class="legend-label">{{ item.label }}</div>
                                         <div class="legend-values">
-                                            <span class="legend-value">{{ item.formattedValue }}</span>
+                                            <span class="legend-value">{{ item.formattedValue }} Ar</span>
                                             <span class="legend-percentage">({{ item.percentage }}%)</span>
                                         </div>
                                     </div>

@@ -224,6 +224,40 @@ export function useIndicateursUnifies(filters) {
       loading.value = false;
     }
   };
+  const convertYearToExerciseDates = (year) => {
+  return {
+    dateStart: `${year}-01-01`,
+    dateEnd: `${year}-12-31`
+  };
+};
+  const fetchExerciceByYear = async (year) => {
+    try {
+      loading.value = true;
+      
+      // Chercher un exercice pour cette année
+      const allExercices = await fetchExercicesList();
+      const exerciceForYear = allExercices.find(exo => 
+        exo.Annee_fiscale === parseInt(year) || 
+        exo.Date_debut.startsWith(year)
+      );
+      
+      if (exerciceForYear) {
+        return await fetchExercice(exerciceForYear.Id_Exercice_comptable);
+      } else {
+        // Si aucun exercice trouvé, créer des dates par défaut
+        exercice.value = null;
+        filters.value.dateStart = `${year}-01-01`;
+        filters.value.dateEnd = `${year}-12-31`;
+        filters.value.idExercice = "";
+        return null;
+      }
+    } catch (error) {
+      console.error("Erreur fetchExerciceByYear:", error);
+      return null;
+    } finally {
+      loading.value = false;
+    }
+  };
 
   // 📌 Changer d'exercice
   const changeExercice = async (idExercice) => {
@@ -342,7 +376,8 @@ export function useIndicateursUnifies(filters) {
     exercicesList,
     infoExercice,
     exercicesOptions,
-
+convertYearToExerciseDates,
+  fetchExerciceByYear,
     // 📊 TOUS LES INDICATEURS
     // Général
     totalProduits,

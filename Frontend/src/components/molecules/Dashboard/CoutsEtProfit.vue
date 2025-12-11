@@ -1,298 +1,336 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { useCout } from "@/composables/useCout";
-import PageAnalyse from '@/components/template/Page-analyse.vue';
-import DonutChart from "@/components/atoms/Chart/DonutChart.vue";
-import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
-import Card from "@/components/atoms/Chart/Card.vue";
-import Texte from "@/components/atoms/Texte.vue";
-import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
-import searchbar from "@/components/atoms/searchbar.vue";
-import FilterInput from "@/components/atoms/Filter-input.vue";
-import FilterSelect from "@/components/atoms/Filter-select.vue";
-import Leaderboard from "@/components/atoms/Chart/Leaderboard.vue";
+import { ref, onMounted, computed, defineProps, watch } from 'vue'; // Ajouter watch
+import { useComparaison } from '@/composables/useComparaison';
+import CoutProfitChart from '@/components/atoms/Chart/CoutProfitChart.vue';
+import Texte from '@/components/atoms/Texte.vue';
+import InterpretationCardCoutProfit from '@/components/atoms/Chart/InterpretationCardCoutProfit.vue';
+import FilterSelect from '@/components/atoms/Filter-select.vue';
 
-const {
-  filters,
-  selectedCentre,
-  centresFiltres,
-  exercicesOptions,
+const props = defineProps({
+  annee: {
+    type: String,
+    default: () => new Date().getFullYear().toString()
+  }
+});
 
-  // API
-  fetchCentres,
-  fetchVerificationVentilations,
+const chartData = ref([]);
+const loading = ref(false);
+const error = ref('');
+const typedata = ref([]);
 
-  // 🔥 NOUVELLES FONCTIONS
-  initializeData,
-  changeExercice,
-  resetFilters,
+const filters = ref({
+  annee: props.annee,
+  mois: '',
+  id_type: '',
+  limit: 1000,
+  offset: 0
+});
 
-  // Utils
-  formatMontant,
 
-} = useCout(1);
 
-// Gestion du changement d'exercice
-const handleExerciceChange = async (event) => {
-  const idExercice = event.target.value;
-  await changeExercice(idExercice);
+
+// Computed: Obtenir les 12 mois de l'année sélectionnée
+const allMonths = computed(() => {
+  const months = [];
+  for (let i = 1; i <= 12; i++) {
+    const monthNum = i.toString().padStart(2, '0');
+    const date = new Date(parseInt(filters.value.annee), i - 1, 1);
+    months.push({
+      numero: i,
+      numeroFormate: monthNum,
+      nom: date.toLocaleDateString('fr-FR', { month: 'long' }),
+      nomCourt: date.toLocaleDateString('fr-FR', { month: 'short' }),
+      periode: `${filters.value.annee}-${monthNum}`
+    });
+  }
+  return months;
+});
+
+// Computed: Mois qui ont des données
+const monthsWithData = computed(() => {
+  if (chartData.value.length === 0) return [];
+  
+  const monthsSet = new Set();
+  chartData.value.forEach(item => {
+    if (item.mois && item.annee === filters.value.annee) {
+      monthsSet.add(parseInt(item.mois));
+    }
+  });
+  
+  return Array.from(monthsSet).sort((a, b) => a - b);
+});
+
+// Computed: Total des coûts par mois
+const costsByMonth = computed(() => {
+  const costs = {};
+  
+  // Initialiser tous les mois à 0
+  allMonths.value.forEach(month => {
+    costs[month.numero] = 0;
+  });
+  
+  // Remplir avec les données
+  chartData.value.forEach(item => {
+    if (item.annee === filters.value.annee && item.mois) {
+      const mois = parseInt(item.mois);
+      costs[mois] += parseFloat(item.total_couts_ventiles) || 0;
+    }
+  });
+  
+  return costs;
+});
+
+// Computed: Total des profits par mois
+const profitsByMonth = computed(() => {
+  const profits = {};
+  
+  // Initialiser tous les mois à 0
+  allMonths.value.forEach(month => {
+    profits[month.numero] = 0;
+  });
+  
+  // Remplir avec les données
+  chartData.value.forEach(item => {
+    if (item.annee === filters.value.annee && item.mois) {
+      const mois = parseInt(item.mois);
+      profits[mois] += parseFloat(item.total_profits_ventiles) || 0;
+    }
+  });
+  
+  return profits;
+});
+
+// Computed: Totaux globaux
+const totalCosts = computed(() => {
+  return Object.values(costsByMonth.value).reduce((sum, cost) => sum + cost, 0);
+});
+
+const totalProfits = computed(() => {
+  return Object.values(profitsByMonth.value).reduce((sum, profit) => sum + profit, 0);
+});
+
+const totalSolde = computed(() => {
+  return totalProfits.value - totalCosts.value;
+});
+
+// Fonction pour formater les montants
+const formatMontant = (montant) => {
+  return new Intl.NumberFormat('mg-MG', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(parseFloat(montant) || 0);
 };
 
-const activeTab = ref('centres');
-const showGlobalView = ref(true);
-
-// 🔥 MODIFICATION : Utiliser les données filtrées pour les charts
-const centresChartData = computed(() => ({
-  data: centresFiltres.value.map(c => parseFloat(c.montant_ventile) || 0),
-  labels: centresFiltres.value.map(c => c.centre),
-  title: 'Répartition des charges'
-}));
-
-
-// Retour à la vue globale
-const handleBackToGlobal = () => {
-  selectedCentre.value = '';
-  showGlobalView.value = true;
-  activeTab.value = 'centres';
-  // 🔥 Réinitialiser les filtres de recherche
-  filters.searchCentre = "";
+const fetchData = async () => {
+  loading.value = true;
+  error.value = '';
+  
+  try {
+    // Utiliser filters.value qui contient maintenant la nouvelle année
+    const data = await useComparaison.getComparaisonCoutProfit(filters.value);
+    chartData.value = data;
+    console.log('Données coûts vs profits reçues pour l\'année:', filters.value.annee, data);
+  } catch (err) {
+    error.value = 'Erreur lors du chargement des données';
+    console.error('Erreur détaillée:', err);
+  } finally {
+    loading.value = false;
+  }
 };
 
-// 🔥 CORRECTION : FONCTION POUR RÉINITIALISER TOUT
-const handleReset = async () => {
-  await resetFilters();
-  // S'assurer qu'on revient à la vue globale
-  showGlobalView.value = true;
-  selectedCentre.value = '';
+const fetchTypes = async () => {
+  try {
+    const type = await useComparaison.getType();
+    typedata.value = type;
+  } catch (err) {
+    console.error('Erreur lors du chargement des types:', err);
+  }
 };
-
-// Charger toutes les données au montage
-const loadAllData = async () => {
-  await fetchCentres();
-  await fetchVerificationVentilations();
-};
-
-onMounted(async () => {
-  await initializeData();
+// Computed: Données d'analyse pour la carte d'interprétation
+const analyseData = computed(() => {
+  if (chartData.value.length === 0) {
+    console.log('❌ analyseData: chartData est vide');
+    return {
+      pointBascule: null,
+      moisRentables: 0,
+      totalMois: 12,
+      meilleurMois: null,
+      pireMois: null,
+      totalProfits: 0,
+      totalCosts: 0,
+      soldeAnnuel: 0
+    };
+  }
+  // AJOUTER CE WATCH POUR SURVEILLER LES CHANGEMENTS DE LA PROP ANNEE
+// watch(() => props.annee, (newYear) => {
+//   console.log('Année reçue du parent:', newYear);
+//   filters.value.annee = newYear;
+//   fetchData();
+// },{ immediate: true });
+  
+  // 1. Créer un tableau des 12 mois
+  const moisLabels = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                     'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+  
+  // 2. Calculer le solde pour chaque mois
+  const soldeParMois = {};
+  const moisInfos = {};
+  
+  for (let i = 1; i <= 12; i++) {
+    const moisNum = i;
+    const moisStr = i.toString();
+    
+    // Filtrer les données pour ce mois et cette année
+    const items = chartData.value.filter(item => 
+      item.mois === moisStr && item.annee === filters.value.annee
+    );
+    
+    const profit = items.reduce((sum, item) => sum + (parseFloat(item.total_profits_ventiles) || 0), 0);
+    const cost = items.reduce((sum, item) => sum + (parseFloat(item.total_couts_ventiles) || 0), 0);
+    const solde = profit - cost;
+    
+    soldeParMois[moisNum] = solde;
+    moisInfos[moisNum] = {
+      nomMois: moisLabels[i-1],
+      nomCourt: moisLabels[i-1].substring(0, 3) + '.',
+      profit,
+      cost,
+      solde
+    };
+  }
+  
+  console.log('📊 Solde par mois:', soldeParMois);
+  console.log('📋 Détails par mois:', moisInfos);
+  
+  // 3. Trouver le point de bascule (premier mois rentable)
+  let pointBascule = null;
+  let moisAvantBascule = 0;
+  let trouve = false;
+  
+  for (let i = 1; i <= 12; i++) {
+    if (!trouve) {
+      if (soldeParMois[i] > 0) {
+        pointBascule = {
+          numero: i,
+          nomMois: moisInfos[i].nomMois,
+          solde: soldeParMois[i],
+          moisAvantBascule: moisAvantBascule
+        };
+        trouve = true;
+        console.log('🎯 Point de bascule trouvé:', pointBascule);
+      } else if (soldeParMois[i] < 0) {
+        moisAvantBascule++;
+        console.log(`Mois ${i} déficitaire, compteur: ${moisAvantBascule}`);
+      } else {
+        console.log(`Mois ${i} équilibré (solde=0)`);
+      }
+    }
+  }
+  
+  // 4. Compter les mois rentables
+  const moisRentables = Object.values(soldeParMois).filter(solde => solde > 0).length;
+  const moisDeficitaires = Object.values(soldeParMois).filter(solde => solde < 0).length;
+  const moisEquilibre = Object.values(soldeParMois).filter(solde => solde === 0).length;
+  
+  console.log('📈 Statistiques:', {
+    rentables: moisRentables,
+    deficitaires: moisDeficitaires,
+    equilibre: moisEquilibre,
+    total: moisRentables + moisDeficitaires + moisEquilibre
+  });
+  
+  // 5. Trouver le meilleur et pire mois
+  let meilleurMois = null;
+  let pireMois = null;
+  let maxSolde = -Infinity;
+  let minSolde = Infinity;
+  
+  for (let i = 1; i <= 12; i++) {
+    const solde = soldeParMois[i];
+    
+    // Meilleur mois (solde le plus élevé)
+    if (solde > maxSolde) {
+      maxSolde = solde;
+      meilleurMois = {
+        numero: i,
+        nomMois: moisInfos[i].nomMois,
+        solde: solde
+      };
+    }
+    
+    // Pire mois (solde le plus bas)
+    if (solde < minSolde) {
+      minSolde = solde;
+      pireMois = {
+        numero: i,
+        nomMois: moisInfos[i].nomMois,
+        solde: solde
+      };
+    }
+  }
+  
+  console.log('🏆 Meilleur mois:', meilleurMois);
+  console.log('📉 Pire mois:', pireMois);
+  
+  // 6. Calculer les totaux
+  let totalProfits = 0;
+  let totalCosts = 0;
+  
+  for (let i = 1; i <= 12; i++) {
+    totalProfits += moisInfos[i].profit;
+    totalCosts += moisInfos[i].cost;
+  }
+  
+  const soldeAnnuel = totalProfits - totalCosts;
+  
+  console.log('💰 Totaux:', {
+    profits: totalProfits,
+    costs: totalCosts,
+    solde: soldeAnnuel
+  });
+  
+  return {
+    pointBascule,
+    moisRentables,
+    totalMois: 12,
+    meilleurMois,
+    pireMois,
+    totalProfits,
+    totalCosts,
+    soldeAnnuel
+  };
+});
+onMounted(() => {
+  fetchData();
+  fetchTypes();
 });
 </script>
+
 <template>
-      <!-- Bouton retour vers la vue globale -->
-
-      <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
-      <!-- <div class="filtres">
-        <BoutonIcon v-if="!showGlobalView" @click="handleBackToGlobal" icon-name="arrow-left" :type="'cancel-stroke'"
-          :texte="'Retour à la vue globale'" />
-        <Texte :type="'thin-dark'" :texte="'Du'" />
-        <div>
-
-          <FilterInput type="date" v-model="filters.dateStart" />
-        </div>
-        <Texte :type="'thin-dark'" :texte="'au'" />
-        <div>
-          <FilterInput type="date" v-model="filters.dateEnd" />
-        </div>
-        <FilterSelect v-if="showGlobalView" v-model="filters.idExercice" @change="handleExerciceChange">
-          <option value="">Actuel</option>
-          <option v-for="exo in exercicesOptions" :key="exo.value" :value="exo.value"
-            :selected="exo.value === filters.idExercice">
-            {{ exo.label }}
-          </option>
-        </FilterSelect>
-
-        <div v-if="!showGlobalView" class="filtre-affectation mb-4">
-          <div class="relative">
-            <searchbar v-model="filters.searchAffectation" type="text"
-              placeholder="Rechercher une affectation, montant..." />
-            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-            </div>
-          </div>
-        </div>
-      </div> -->
-
-
-      <!-- Le reste du template reste identique -->
-      <!-- ... -->
-      <!-- Statistiques globales -->
-            <div class="donuts">
-              <!-- Vue Globale : Donut de tous les centres -->
-              <div class="chart-container">
-                <DonutChart :data="centresChartData.data" :labels="centresChartData.labels"
-                  :title="centresChartData.title" chart-id="chartCentres" :formatter="formatMontant"
-                  :separate-legend="true" :legend-height="'500px'" :height="293" />
-              </div>
-            </div>
+  <div class="comparaison-cout-profit">
+    <div class="chart-container">
+      <CoutProfitChart 
+        :chartData="chartData"
+        :loading="loading"
+        :error="error"
+      />
+      <InterpretationCardCoutProfit 
+        :data-analyse="analyseData"
+        :annee="filters.annee"
+        :loading="loading"
+      />
+    </div>
+  </div>
 </template>
 
-
 <style lang="scss" scoped>
-html,
-body {
-  height: 100%;
-  margin: 0;
-}
-.milieu{
-  display: flex;
-  // flex-direction: column;
-  gap: 24px;
-}
-.table-div {
+.comparaison-cout-profit {
   width: 100%;
-  height: 100%;
-  @include glass();
-  border-radius: $radius-pm;
-  padding: 18px;
-  gap: 8px;
+  margin: 0 auto;
 }
-
-.table-title {
-  padding: 12px
-}
-
-.content {
-  @include position-contenus(flex, flex-start, flex-start);
-  // overflow-y: auto;
-  width: 100%;
-  height: 100%;
-  // max-height: 60vh;
-  border-radius: $radius-pm;
-  align-self: stretch;
-  gap: 24px;
-
-  // @media (max-width: $mobile) {
-  //   max-height: 50vh;
-  // }
-}
-
-
-// .content::-webkit-scrollbar {
-//   width: 10px;
-// }
-
-// .content::-webkit-scrollbar-track {
-//   background: $light;
-//   border-radius: 10px;
-// }
-
-// .content::-webkit-scrollbar-thumb {
-//   background: $gris;
-//   border-radius: 10px;
-// }
-
-// .content::-webkit-scrollbar-thumb:hover {
-//   background: $light;
-// }
-
-.graphic {
-  @include position-contenus(flex, flex-start, flex-start);
-  padding: 18px 0;
-  align-self: stretch;
-  gap: 24px;
-}
-
-.cartes {
-  @include position-contenus(grid, center, center);
-  padding: 0;
-  gap: 24px;
-}
-
-.hauteur {
-  @include position-contenus(flex, center, center);
-  padding: 0;
-  gap: 24px;
-}
-
-.gauche {
-  @include position-contenus(grid, center, center);
-  gap: 9px;
-}
-
-.droite {
-  padding: 10px 0;
-  height: 100%;
-  @include position-contenus(flex, center, center);
-  gap: 24px;
-
-  @media (max-width: $tablet) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: $mobile) {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-}
-
-#axesTable {
-  @include table();
-  // @include glass();
-  border-radius: $radius-pm;
-}
-
 .chart-container {
-  width: fit-content;
-  height: fit-content;
-}
-
-.chart-container :deep(.apexcharts-pie-series) path {
-  transition: all 0.3s ease;
-  transform-origin: center;
-}
-
-.chart-container :deep(.apexcharts-pie-series):hover path {
-  transform: scale(1.02);
-  filter: brightness(1.3);
-}
-
-.chart-container :deep(.apexcharts-donut-series) path,
-.chart-container :deep(.apexcharts-pie-series) path {
-  transition: transform 0.3s ease, filter 0.3s ease;
-}
-
-.main {
-  @include position-contenus(flex, center, center);
-  padding: 0 18px;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1 0 0;
-  align-self: stretch;
-  animation: appear 0.6s ease-out forwards;
-}
-
-.informations {
-  @include position-contenus(flex, center, center);
-  padding: 10px 0;
-  align-self: stretch;
-  border-bottom: 1px solid #C5C5C5;
-  gap: 10px;
-}
-
-.filtres {
-  @include position-contenus(flex, flex-start, center);
-  padding: 0 0;
-  align-self: self-start;
-  gap: 10px;
-}
-
-.donuts {
-  @include position-contenus(flex, flex-start, flex-start);
-  gap: 32px;
-}
-
-.back-button {
-  margin-top: 20px;
-}
-
-.info-lalina {
-  align-self: baseline;
-  @include position-contenus(flex, center, center);
-  gap: 16px;
-}
-
-.filtres {
-  @include position-contenus(flex, flex-start, center);
-  padding: 0 0;
-  align-self: self-start;
-  gap: 10px;
+  border-radius: 8px;
+  display: flex;
+  gap: 20px;
 }
 </style>

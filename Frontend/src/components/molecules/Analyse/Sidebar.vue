@@ -80,11 +80,11 @@ const menuConfig = [
     redirection: '#',
     type: 'dropdown',
     children: [
-      {
-        id: 'Axes',
-        texte: 'Axes analytiques',
-        redirection: '/axe-analytique'
-      },
+      // {
+      //   id: 'Axes',
+      //   texte: 'Axes analytiques',
+      //   redirection: '/axe-analytique'
+      // },
       {
         id: 'Centres',
         texte: 'Centres analytiques',
@@ -107,7 +107,7 @@ const menuConfig = [
       },
       {
         id: 'parametres',
-        texte: 'Configurations des indicateurs',
+        texte: 'Saisie des indicateurs',
         redirection: '/parametres'
       }
     ]
@@ -599,7 +599,7 @@ hr {
   
   .bottom-menu {
     position: fixed;
-    padding-top: 16px;
+    padding-top: 26px;
   }
 }
 </style>

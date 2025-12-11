@@ -1,0 +1,223 @@
+<script setup>
+import Page from '@/components/template/Page.vue';
+import formCard from '@/components/molecules/Form-card.vue';
+import Texte from '@/components/atoms/Texte.vue';
+import Input from '@/components/atoms/Input.vue';
+import Bouton from '@/components/atoms/Bouton.vue';
+
+</script>
+
+<script>
+import { login, getUser, logout } from '../../../services/Auth';
+import BoutonLoading from '@/components/atoms/Bouton-loading.vue';
+
+export default {
+  data() {
+    return {
+      email: '',
+      password: '',
+      token: '',
+      user: null,
+      errorMessage: '',
+      successMessage: '',
+      loading: false
+    };
+  },
+  methods: {
+    async handleLogin() {
+      try {
+        this.loading = true; // démarrer le loader
+        const res = await login(this.email, this.password);
+        this.token = res.data.token;
+        this.user = res.data.user;
+
+        // Stocker le token
+        localStorage.setItem('token', this.token);
+
+        // Message de succès
+        this.successMessage = `Bonjour ${this.user.name}, connexion réussie !`;
+        this.errorMessage = '';
+
+        // Redirection après 1.5s
+        // setTimeout(() => {
+        this.$router.push('/home');
+        // }, 500);
+
+      } catch (err) {
+        console.log(err); // Debug pour voir exactement la réponse
+        // Affiche le message envoyé par Laravel
+        this.errorMessage = 'Email ou mot de passe incorrect';
+        this.successMessage = '';
+      }
+      finally {
+        this.loading = false; // arrêter le loader
+      }
+    },
+
+    async fetchUser() {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const res = await getUser(token);
+        this.user = res.data;
+      } catch (err) {
+        console.error(err.response?.data);
+      }
+    },
+
+    async handleLogout() {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          await logout(token);
+          localStorage.removeItem('token');
+          this.user = null;
+          this.token = '';
+        }
+      } catch (err) {
+        console.error(err.response?.data);
+      }
+    }
+  },
+  mounted() {
+    this.fetchUser();
+  }
+};
+</script>
+
+
+<template>
+  <div class="main">
+    <div class="window">
+      <div class="gauche">
+        <img src="../../../assets/img/Dribble.jpg" alt="">
+      </div>
+      <div class="droite">
+        <img class="logo" src="../../../assets/img/01Raitra kidz 300px.png" alt="">
+        <Texte type="dark" texte="Connectez-vous !" />
+        <form @submit.prevent="handleLogin">
+          <Input :placeholder="'Email'" :type="'email'" v-model="email" :required="'true'" />
+          <Input :placeholder="'Mot de passe'" :type="'password'" v-model="password" :required="'true'" />
+          <div class="forgot-pwd">
+            <Texte :type="'thin-dark'" :texte="'Mot de passe oublié ?'" />
+            <a href="/forgot-password">
+              <Texte :type="'thin-primary'" :texte="'Cliquez ici.'" />
+            </a>
+          </div>
+          <div class="button">
+            <Bouton v-if="!loading" :type="'input'" :texte="'Se connecter'" />
+            <BoutonLoading v-if="loading" :type="'input'" :texte="'Connexion ...'" />
+            <div class="forgot-pwd">
+              <Texte :type="'thin-dark'" :texte="'Vous venez d\'arriver ?'" />
+              <a href="/signup">
+                <Texte :type="'thin-primary'" :texte="'Inscrivez-vous.'" />
+              </a>
+            </div>
+          </div>
+        </form>
+        <Texte v-if="errorMessage" :type="'thin-error'" :texte="errorMessage" />
+        <Texte v-if="successMessage" :type="'thin-success'" :texte="successMessage" />
+      </div>
+    </div>
+  </div>
+  <!-- <div v-if="user">
+    <h2>Utilisateur connecté :</h2>
+    <pre>{{ user }}</pre>
+    <button @click="handleLogout">Déconnecter</button>
+  </div> -->
+
+  <!-- Message d'erreur -->
+  <!-- <p v-if="errorMessage" style="color:red">{{ errorMessage }}</p> -->
+
+  <!-- Message de succès -->
+  <!-- <p v-if="successMessage" style="color:green">{{ successMessage }}</p> -->
+</template>
+<style lang="scss" scoped>
+.window {
+  @include popupglass();
+  padding: 12px;
+  @include position-contenus(flex, center, center);
+  // flex-direction: column;
+  border-radius: $radius-pm;
+}
+
+.forgot-pwd {
+  display: flex;
+  width: auto;
+  gap: 8px;
+  justify-content: center;
+
+  a {
+    text-decoration: none;
+    height: 0px;
+    margin: 0%;
+    padding: 0%;
+  }
+}
+
+.gauche {
+  img {
+    @include glass();
+    border-radius: $radius-pm;
+  }
+}
+
+.droite {
+  @include position-contenus(flex, center, center);
+  flex-direction: column;
+  padding: 32px;
+}
+
+.logo {
+  width: 140px;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+.main {
+  @include position-contenus(flex, center, center);
+  position: fixed;
+  width: 100%;
+  height: 100vh;
+  // background: linear-gradient(
+  //   -45deg,
+  //   #f2c6b8, 
+  //   #ffffff, 
+  //   #ffe0e0, 
+  //   #ffffff);
+  background: url('@/assets/img/26.png') center no-repeat;
+  background-color: $light;
+  background-size: cover;
+  // animation: scroll-bg 60s linear infinite;
+
+  // animation: gradient 15s ease infinite;
+
+}
+
+.welcome {
+  display: flex;
+  width: 494px;
+  flex-direction: column;
+  align-items: flex-start;
+  opacity: 0;
+  transform: translateY(40px);
+  transform: translateX(400px);
+  animation: fadeInUp 1s ease-out forwards;
+  // animation-delay: 0.3s;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+</style>

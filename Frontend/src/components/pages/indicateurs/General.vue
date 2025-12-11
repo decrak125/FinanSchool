@@ -444,7 +444,13 @@ const handleRefresh = () => {
       <!-- Tableau de comparaison N vs N-1 -->
       <div class="comparison-section">
         <div class="section-header">
-          <Texte :type="'bold-dark'" :texte="'Vue et évolution des indicateurs'" />
+          <div class="infos">
+            <Texte :type="'bold-dark'" :texte="'Vue et évolution des indicateurs'" />
+          <Texte :type="'dark'" :texte="'Montants en Ariary (Ar).'" />
+          </div>
+          <div class="iconbtn">
+                  <i class="bi bi-file-earmark-pdf-fill"></i>
+          </div>
         </div>
 
           <table class="table" id="axesTable">
@@ -479,7 +485,7 @@ const handleRefresh = () => {
                   {{ comparisons.produits?.hasData ? `${comparisons.produits.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsProduits = !detailsProduits" />
                 </td>
               </tr>
@@ -504,7 +510,7 @@ const handleRefresh = () => {
                   {{ comparisons.charges?.hasData ? `${comparisons.charges.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsCharges = !detailsCharges" />
                 </td>
               </tr>
@@ -529,7 +535,7 @@ const handleRefresh = () => {
                   {{ comparisons.resultatNet?.hasData ? `${comparisons.resultatNet.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsResultat = !detailsResultat" />
                 </td>
               </tr>
@@ -555,7 +561,7 @@ const handleRefresh = () => {
                   {{ comparisons.margeExploitation?.hasData ? `${comparisons.margeExploitation.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsMarge = !detailsMarge" />
                 </td>
               </tr>
@@ -624,7 +630,7 @@ const handleRefresh = () => {
 #footable {
   font-family: $stara-bold;
   // font-size: 16px;
-  background-color: $light;
+  // background-color: $light;
 }
 
 #detail {
@@ -781,13 +787,28 @@ const handleRefresh = () => {
 }
 
 .section-header {
-  margin-bottom: 16px;
+  @include position-contenus(flex, space-between, baseline);
+  // margin-bottom: 16px;
   padding: 12px;
   h3 {
     margin: 0;
     color: #2c3e50;
     font-size: 18px;
     font-weight: 600;
+  }
+}
+.iconbtn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  @include glass();
+  cursor: pointer;
+  i{
+    color: #e25252;
+    font-size: 20px;
   }
 }
 

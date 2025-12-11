@@ -11,8 +11,14 @@ import CodeAnalytique from "@/components/pages/configAnalytique/CodeAnalytique.v
 import Pedagogique from "@/components/pages/indicateurs/Pedagogique.vue";
 import Parametres from "@/components/pages/configAnalytique/Parametres.vue";
 import EffectifEleve from "@/components/pages/configAnalytique/EffectifEleve.vue";
+import Connexion from "@/components/pages/loginAnalyse/Connexion.vue";
 
 export default [
+  {
+    path: "/GetStarted",
+    name: "Connexion",
+    component: Connexion
+  },
   {
     path: "/analyse",
     name: "Analyse",

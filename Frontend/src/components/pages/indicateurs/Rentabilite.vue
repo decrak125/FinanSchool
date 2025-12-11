@@ -434,7 +434,13 @@ const handleRefresh = () => {
       <!-- Tableau de comparaison N vs N-1 -->
       <div class="comparison-section">
         <div class="section-header">
-          <Texte :type="'bold-dark'" :texte="'Vue et évolution des indicateurs'" />
+          <div class="infos">
+            <Texte :type="'bold-dark'" :texte="'Vue et évolution des indicateurs'" />
+          <Texte :type="'dark'" :texte="'Montants en Ariary (Ar).'" />
+          </div>
+          <div class="iconbtn">
+                  <i class="bi bi-file-earmark-pdf-fill"></i>
+          </div>
         </div>
         
           <table class="table" id="axesTable">
@@ -760,13 +766,28 @@ const handleRefresh = () => {
 }
 
 .section-header {
-  margin-bottom: 16px;
+  @include position-contenus(flex, space-between, baseline);
+  // margin-bottom: 16px;
   padding: 12px;
   h3 {
     margin: 0;
     color: #2c3e50;
     font-size: 18px;
     font-weight: 600;
+  }
+}
+.iconbtn{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  @include glass();
+  cursor: pointer;
+  i{
+    color: #e25252;
+    font-size: 20px;
   }
 }
 

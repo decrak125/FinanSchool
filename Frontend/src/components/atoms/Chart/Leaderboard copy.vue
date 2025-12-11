@@ -54,7 +54,7 @@ const formatMontant = (val) => {
           <span class="rank-number">{{ index + 1 }}</span>
           <div>
             <div class="name">{{ item.libelle_sous_compte }}</div>
-            <div class="amount">{{ formatMontant(item.montant_ventile) }} Ar</div>
+            <div class="amount">{{ formatMontant(item.montant_ventile) }}</div>
 
             <!-- JAUGE -->
             <div class="progress-bar">
@@ -76,7 +76,7 @@ const formatMontant = (val) => {
           <span class="rank-number">{{ index + 4 }}</span>
           <div>
             <div class="name">{{ item.libelle_sous_compte }}</div>
-            <div class="amount">{{ formatMontant(item.montant_ventile) }} Ar</div>
+            <div class="amount">{{ formatMontant(item.montant_ventile) }}</div>
 
             <!-- JAUGE -->
             <div class="progress-bar">
@@ -121,7 +121,7 @@ const formatMontant = (val) => {
   height: 6px;
   background: $light;
   border-radius: 6px;
-  margin-top: 6px;
+  margin-top: 4px;
   overflow: hidden;
 }
 
@@ -133,15 +133,15 @@ const formatMontant = (val) => {
 }
 
 .table-title {
-  padding: 12px
+  padding: 5px
 }
 .leaderboard-card {
   @include glass();
   border-radius: $radius-pm;
-    padding: 18px;
+  padding: 14px;
   width:100%;
   // width: 100%;
-  height: 100%;
+  height: 416px;
   transition: transform 0.3s ease, filter 0.3s ease-in-out;
 //   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }

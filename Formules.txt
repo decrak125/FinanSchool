@@ -11,7 +11,7 @@
 1.1 Indicateurs de rentabilité
 | Indicateur                      | Formule                                                     | Interprétation                                   |
 | ------------------------------- | ----------------------------------------------------------- | ------------------------------------------------ |
-| **Marge brute**                 | (Chiffre d’affaires – Coût des ventes) / Chiffre d’affaires | Mesure la rentabilité opérationnelle de base.    |
+| **Marge brute**                 | (Chiffre d’affaires – Coût des ventes) / Chiffre d’affaires x 100 | Mesure la rentabilité opérationnelle de base.    |
 | **Marge d’exploitation (EBIT)** | Résultat d’exploitation / Chiffre d’affaires                | Évalue la performance des activités principales. |
 | **Marge nette**                 | Résultat net / Chiffre d’affaires                           | Montre le bénéfice final par euro de ventes.     |
 | **ROE (Return on Equity)**      | Résultat net / Capitaux propres                             | Rendement des fonds propres.                     |
@@ -37,6 +37,6 @@
 | Indicateur                             | Formule                                                        | Interprétation                                                      |
 | -------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------- |
 | Coût de Fonctionnement par élève       | Total des Charges d'Exploitation / Effectif total des élèves   | Donne le "prix de revient" moyen d'un élève. KPI de base essentiel. |
-| Chiffre d'Affaires par Élève           | Total des Produits d'Exploitation / Effectif total des élèves  | Montant moyen des ressources générées par élève.                    |
+| Chiffre d'Affaires par élève           | Total des Produits d'Exploitation / Effectif total des élèves  | Montant moyen des ressources générées par élève.                    |
 | Part de la Masse Salariale Enseignante |	(Masse Salariale Enseignante / Total des Charges) * 100       | Poids du coût des enseignants dans le budget total.                 |
 | Marge par Élève                        | (Total Produits - Total Charges) / Effectif total des élèves   | Marge nette dégagée par élève. Le moteur de la rentabilité.         |

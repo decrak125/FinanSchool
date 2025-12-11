@@ -89,7 +89,7 @@ export default {
       this.loading = true;
       this.suggestions = [];
       try {
-        const response = await axios.post('http://localhost:8000/api/chat/sending', {
+        const response = await axios.post('http://localhost:8000/api/chat/send', {
           message: userMessage,
           session_id: this.sessionId
         });
@@ -145,7 +145,7 @@ export default {
 <transition name="fade">
     <div class="chatbot-container" v-if="isOpen">
     <div class="chat-header">
-      <h3>🤖 Assistant Financier</h3>
+      <h3>Assistant Financier</h3>
       <p>Analyse de l'établissement scolaire</p>
     </div>
     
@@ -156,17 +156,18 @@ export default {
         :class="['message', message.type]"
       >
         <div class="message-content" v-html="formatMessage(message.content)"></div>
-        <div class="message-time">{{ message.time }}
+        <div class="detail-msg">
+          <div class="message-time">{{ message.time }}
           <!-- Bouton écouter la réponse pour les réponses bot -->
-            <button
+        </div>
+        <button
               v-if="message.type === 'bot'"
               class="listen-btn"
               @click="speakMessage(sanitizeText(message.content))"
               title="Écouter la réponse"
-              style="margin-left:8px;padding:2px 7px;"
-            >🔊</button>
-        </div>
+            ><i class="bi bi-volume-up-fill"></i></button>
       </div>
+        </div>
       
       <div v-if="loading" class="message bot">
         <div class="message-content typing-indicator">
@@ -199,16 +200,16 @@ export default {
         class="send-btn"
       >
         <span v-if="loading">⏳</span>
-        <span v-else>📤</span>
+        <span v-else><i class="bi bi-send-fill"></i></span>
       </button>
       <button
           @click="toggleRecording"
-          class="micro-btn"
+          class="send-btn"
           :disabled="loading"
           :title="recording ? 'Arrêter' : 'Dicter une question au micro'"
           style="margin-left:8px"
         >
-          <span v-if="!recording"><i class="bi bi-mic"></i></span>
+          <span v-if="!recording"><i class="bi bi-mic-fill"></i></span>
           <span v-else><i class="bi bi-record-circle-fill" style="color: red;"></i></span>
         </button>
     </div>
@@ -223,7 +224,21 @@ export default {
 
 
 <style lang="scss" scoped>
-
+.detail-msg{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: transparent;
+}
+.listen-btn{
+  border: none;
+  // @include glass();
+  // border-radius: $radius-pm;
+  background-color: transparent;
+  padding: 3px;
+  margin-left: 5px;
+  color : $primary;
+}
 .bouton-open {
   position: fixed;
   bottom: 32px;
@@ -243,6 +258,7 @@ export default {
   }
 }
 .chatbot-container {
+  @include glass();
     font-family: $stara-medium;
     font-size: 14px;
     position: fixed;
@@ -255,7 +271,7 @@ export default {
   border-radius: $radius-pm;
   display: flex;
   flex-direction: column;
-  background: white;
+  // background: white;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 9999999999;
 }
@@ -291,13 +307,14 @@ export default {
   flex: 1;
   padding: 15px;
   overflow-y: auto;
-  background: #fafafa;
+  // @include glass();
 }
 
 .message {
   margin-bottom: 15px;
   display: flex;
   flex-direction: column;
+  
 }
 
 .message.user {
@@ -309,28 +326,35 @@ export default {
 }
 
 .message-content {
-  padding: 10px 15px;
-  border-radius: 18px;
+  padding: 10px 20px;
+  display: flex;
+  border-radius: $radius-pm;
   max-width: 80%;
   word-wrap: break-word;
   line-height: 1.4;
 }
 
 .message.user .message-content {
-  background: #007bff;
+  border-radius: $radius-pm;
+  @include glass();
+  background: $primary;
   color: white;
 }
 
 .message.bot .message-content {
-  background: white;
+  border-radius: $radius-pm;
+  @include glass();
   color: #333;
-  border: 1px solid #dee2e6;
+  // border: 1px solid #dee2e6;
 }
 
 .message-time {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   font-size: 0.7em;
-  color: #999;
-  margin-top: 5px;
+  color: $dark;
+  // margin-top: 5px;
 }
 
 .typing-indicator {
@@ -356,6 +380,7 @@ export default {
 }
 
 .suggestions {
+  @include glass();
   display: flex;
   padding: 10px;
   gap: 5px;
@@ -365,17 +390,18 @@ export default {
 }
 
 .suggestion-btn {
+  @include glass();
   padding: 6px 12px;
   background: white;
-  border: 1px solid #007bff;
+  // border: 1px solid #007bff;
   border-radius: 15px;
   cursor: pointer;
   font-size: 0.8em;
-  color: #007bff;
+  color: $primary;
 }
 
 .suggestion-btn:hover {
-  background: #007bff;
+  background: $primary;
   color: white;
 }
 
@@ -383,22 +409,23 @@ export default {
   display: flex;
   padding: 15px;
   border-top: 1px solid #ddd;
-  background: white;
+  // background: white;
   border-radius: 0 0 $radius-pm $radius-pm;
 }
 
 .chat-input input {
+  @include glass();
   flex: 1;
   padding: 10px;
-  border: 1px solid #ddd;
+  // border: 1px solid #ddd;
   border-radius: 20px;
   outline: none;
 }
 
 .send-btn {
   margin-left: 10px;
-  padding: 10px 15px;
-  background: #007bff;
+  padding: 10px 12px;
+  background: $primary;
   color: white;
   border: none;
   border-radius: 20px;

@@ -51,7 +51,7 @@ const {
   formatMontant,
   formatPourcentage,
 
-} = useCout(1);
+} = useCout(2);
 
 // Fonction pour trouver l'exercice correspondant à l'année
 const findExerciseIdByYear = async (year) => {
@@ -203,7 +203,7 @@ onMounted(async () => {
               :separate-legend="true" :legend-height="'500px'" :height="293" />
   </div> -->
     <div class="leaderboard">
-      <Leaderboard :depenses="classementFiltrees" :texte="'Top 5 des charges'" />
+      <Leaderboard :depenses="classementFiltrees" :texte="'Top 5 des revenus'" />
     </div>
 
 </template>

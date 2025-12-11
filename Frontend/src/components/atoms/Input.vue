@@ -66,6 +66,7 @@ input{
     width: 250px;
     &::placeholder{
         color: $gris;
+        font-size: 12px;
     }
 }
 

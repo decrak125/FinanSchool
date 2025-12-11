@@ -1,0 +1,71 @@
+Aspect SOLVABILITE :
+    - RATIO D'ENDETTEMENT
+{
+    "success": true,
+    "ratio_endettement": {
+        "valeur": 40.65,
+        "interpretation": "Endettement très élevé - Situation risquée",
+        "niveau_alerte": {
+            "id_niveau_alerte": 1,
+            "libelle": "Mauvais",
+            "couleur": "#FE0000"
+        },
+        "seuil_reference": "Plus il est faible, plus la structure est solide"
+    },
+    "details_calcul": {
+        "dettes_financieres": 3050000,
+        "capitaux_propres": 7502900
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "Dettes financières / Capitaux propres",
+    "definition": "Mesure le niveau d'endettement de l'établissement"
+}
+    - CAPACITE DE REMBOURSEMENT
+{
+    "success": true,
+    "capacite_remboursement": {
+        "valeur": -0.19,
+        "unite": "années",
+        "interpretation": "Aucune interprétation trouvée pour cette valeur",
+        "niveau_alerte": null,
+        "seuil_reference": "Nombre d'années nécessaires pour rembourser la dette"
+    },
+    "details_calcul": {
+        "endettement_net": -1402900,
+        "caf": 7502900
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "Endettement net / CAF (Cash Flow)",
+    "definition": "Mesure le temps nécessaire pour rembourser la dette avec la CAF"
+}
+    - AUTONOMIE FINANCIERE
+{
+    "success": true,
+    "autonomie_financiere": {
+        "valeur": 71.1,
+        "unite": "%",
+        "interpretation": "Très forte autonomie financière - Structure excellente",
+        "niveau_alerte": {
+            "id_niveau_alerte": 3,
+            "libelle": "Bon",
+            "couleur": "#01CC00"
+        },
+        "seuil_reference": "> 30% = bonne autonomie financière"
+    },
+    "details_calcul": {
+        "capitaux_propres": 7502900,
+        "total_bilan": 10552900
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "Capitaux propres / Total bilan",
+    "definition": "Mesure l'indépendance financière de l'établissement"
+}

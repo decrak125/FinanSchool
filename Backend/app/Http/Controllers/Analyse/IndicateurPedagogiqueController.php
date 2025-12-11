@@ -153,7 +153,7 @@ class IndicateurPedagogiqueController extends Controller
             'success' => true,
             'cout_fonctionnement_par_eleve' => [
                 'valeur' => round($coutParEleve, 2),
-                'unite' => '€',
+                'unite' => 'Ar',
                 'interpretation' => $interpretationData['interpretation'],
                 'niveau_alerte' => $interpretationData['niveau_alerte']
             ],
@@ -215,7 +215,7 @@ class IndicateurPedagogiqueController extends Controller
             'success' => true,
             'chiffre_affaires_par_eleve' => [
                 'valeur' => round($caParEleve, 2),
-                'unite' => '€',
+                'unite' => 'Ar',
                 'interpretation' => $interpretationData['interpretation'],
                 'niveau_alerte' => $interpretationData['niveau_alerte']
             ],
@@ -285,7 +285,7 @@ class IndicateurPedagogiqueController extends Controller
             'success' => true,
             'marge_par_eleve' => [
                 'valeur' => round($margeParEleve, 2),
-                'unite' => '€',
+                'unite' => 'Ar',
                 'interpretation' => $interpretationData['interpretation'],
                 'niveau_alerte' => $interpretationData['niveau_alerte']
             ],
@@ -398,13 +398,13 @@ public function calculPartMasseSalarialeEnseignante(Request $request)
             'indicateurs_pedagogiques' => [
                 'cout_fonctionnement_par_eleve' => [
                     'valeur' => round($coutFonctionnement, 2),
-                    'unite' => '€',
+                    'unite' => 'Ar',
                     'interpretation' => $interpretationCout['interpretation'],
                     'niveau_alerte' => $interpretationCout['niveau_alerte']
                 ],
                 'chiffre_affaires_par_eleve' => [
                     'valeur' => round($chiffreAffaires, 2),
-                    'unite' => '€',
+                    'unite' => 'Ar',
                     'interpretation' => $interpretationCA['interpretation'],
                     'niveau_alerte' => $interpretationCA['niveau_alerte']
                 ],
@@ -416,7 +416,7 @@ public function calculPartMasseSalarialeEnseignante(Request $request)
                 ],
                 'marge_par_eleve' => [
                     'valeur' => round($margeParEleve, 2),
-                    'unite' => '€',
+                    'unite' => 'Ar',
                     'interpretation' => $interpretationMarge['interpretation'],
                     'niveau_alerte' => $interpretationMarge['niveau_alerte']
                 ]

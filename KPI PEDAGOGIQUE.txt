@@ -1,0 +1,132 @@
+Aspect PEDAGOGIQUE :
+   - COUT PAR ELEVE
+{
+    "success": true,
+    "cout_fonctionnement_par_eleve": {
+        "valeur": 54460.96,
+        "unite": "Ar",
+        "interpretation": "Coût de fonctionnement élevé - Nécessite une optimisation",
+        "niveau_alerte": {
+            "id_niveau_alerte": 1,
+            "libelle": "Mauvais",
+            "couleur": "#FE0000"
+        }
+    },
+    "details_calcul": {
+        "total_charges_exploitation": 12417100,
+        "effectif_eleves": 228,
+        "charges_par_categorie": {
+            "achats_consommes": 5457100,
+            "services_exterieurs": 0,
+            "charges_personnel": 6960000,
+            "autres_charges": 0,
+            "dotations_amortissements": 0
+        }
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "Total des Charges d'Exploitation / Effectif total des élèves",
+    "definition": "Donne le \"prix de revient\" moyen d'un élève. KPI de base essentiel.",
+    "source_effectif": {
+        "type": "requested_exercice",
+        "exercice_id": 8,
+        "annee_fiscale": 2025,
+        "message": "Effectif utilisé depuis l'exercice demandé"
+    }
+}
+   - CA PAR ELEVE
+{
+    "success": true,
+    "chiffre_affaires_par_eleve": {
+        "valeur": 87368.42,
+        "unite": "Ar",
+        "interpretation": "Très bon chiffre d'affaires par élève - Excellente valorisation",
+        "niveau_alerte": {
+            "id_niveau_alerte": 3,
+            "libelle": "Bon",
+            "couleur": "#01CC00"
+        }
+    },
+    "details_calcul": {
+        "total_produits_exploitation": 19920000,
+        "effectif_eleves": 228,
+        "produits_par_categorie": {
+            "chiffre_affaires": 19920000,
+            "production_stockee": 0,
+            "production_immobilisee": 0,
+            "subventions": 0,
+            "autres_produits": 0
+        }
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "Total des Produits d'Exploitation / Effectif total des élèves",
+    "definition": "Montant moyen des ressources générées par élève.",
+    "source_effectif": {
+        "type": "requested_exercice",
+        "exercice_id": 8,
+        "annee_fiscale": 2025,
+        "message": "Effectif utilisé depuis l'exercice demandé"
+    }
+}
+   - PART MASSE SALARIALE
+{
+    "success": true,
+    "part_masse_salariale_enseignante": {
+        "valeur": 24.16,
+        "unite": "%",
+        "interpretation": "Part enseignante excellente, bravo",
+        "niveau_alerte": {
+            "id_niveau_alerte": 3,
+            "libelle": "Bon",
+            "couleur": "#01CC00"
+        }
+    },
+    "details_calcul": {
+        "masse_salariale_enseignante": "3000000.0000000000000000000000",
+        "total_charges": 12417100,
+        "autres_charges": 9417100
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "(Masse Salariale Enseignante / Total des Charges) * 100",
+    "definition": "Poids du coût des enseignants dans le budget total."
+}
+   - MARGE PAR ELEVE
+{
+    "success": true,
+    "marge_par_eleve": {
+        "valeur": 32907.46,
+        "unite": "Ar",
+        "interpretation": "Excellente marge par élève - Rentabilité très forte",
+        "niveau_alerte": {
+            "id_niveau_alerte": 3,
+            "libelle": "Bon",
+            "couleur": "#01CC00"
+        }
+    },
+    "details_calcul": {
+        "total_produits": 19920000,
+        "total_charges": 12417100,
+        "resultat_net": 7502900,
+        "effectif_eleves": 228
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "(Total Produits - Total Charges) / Effectif total des élèves",
+    "definition": "Marge nette dégagée par élève. Le moteur de la rentabilité.",
+    "source_effectif": {
+        "type": "requested_exercice",
+        "exercice_id": 8,
+        "annee_fiscale": 2025,
+        "message": "Effectif utilisé depuis l'exercice demandé"
+    }
+}

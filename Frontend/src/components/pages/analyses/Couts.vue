@@ -140,7 +140,7 @@ onMounted(async () => {
 
       <!-- 🔥 FILTRES PRINCIPAUX (DATES ET CENTRES) - DYNAMIQUES -->
       <div class="filtres">
-        <BoutonIcon v-if="!showGlobalView" @click="handleBackToGlobal" icon-name="arrow-left" :type="'cancel-stroke'"
+        <BoutonIcon v-if="!showGlobalView" @click="handleBackToGlobal" icon-name="arrow-left" :type="'cancel'" 
           :texte="'Retour à la vue globale'" />
         <Texte :type="'thin-dark'" :texte="'Du'" />
         <div>

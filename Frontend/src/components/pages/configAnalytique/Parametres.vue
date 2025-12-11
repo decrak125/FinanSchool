@@ -4,7 +4,9 @@ import { useParametresAnalytique } from "@/composables/useParametresAnalytique";
 import PageAnalyse from '@/components/template/Page-analyse.vue';
 import Bouton from "@/components/atoms/Bouton.vue";
 import Input from "@/components/atoms/Input.vue";
+import InputTable from "@/components/atoms/Input-table.vue";
 import Textarea from "@/components/atoms/Textarea.vue";
+import TextareaTable from "@/components/atoms/Textarea-table.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
@@ -13,6 +15,7 @@ import Counter from "@/components/atoms/counter.vue";
 import Pagination from "@/components/molecules/Pagination.vue";
 import { usePagination } from "@/composables/usePagination";
 import Select from '@/components/atoms/Select.vue';
+import SelectTable from "@/components/atoms/select-table.vue";
 import FilterSelect from '@/components/atoms/Filter-select.vue';
 import LoadingText from '@/components/atoms/Loading-text.vue';
 import Icon from '@/components/atoms/Icon.vue';
@@ -37,7 +40,6 @@ const {
 
 // États UI
 const showIndicateurForm = ref(false);
-const showInterpretationForm = ref(false);
 const showDetails = ref(false);
 const showDeleteConfirm = ref(false);
 const editingIndicateur = ref(null);
@@ -46,6 +48,9 @@ const itemToDelete = ref(null);
 const deleteType = ref(''); // 'indicateur' ou 'interpretation'
 const searchTerm = ref('');
 const nombreLignesLoader = ref(10);
+
+// États pour le mode d'affichage (similaire à AffectationAnalytique)
+const detailsMode = ref('view'); // 'view' ou 'edit'
 
 // Filtres
 const filterSearchTerm = ref('');
@@ -58,11 +63,7 @@ const formIndicateur = ref({
   formule: ''
 });
 
-const formInterpretation = ref({
-  valeur: '',
-  interpretation: '',
-  id_niveau_alerte: ''
-});
+const formInterpretations = ref([]); // Pour stocker les interprétations en édition
 
 // Chargement initial
 onMounted(async () => {
@@ -76,6 +77,7 @@ onMounted(async () => {
 // 📌 Ouvrir les détails d'un indicateur
 const openIndicateurDetails = async (indicateur) => {
   await fetchIndicateurDetails(indicateur.id_indicateur_analytique);
+  detailsMode.value = 'view';
   showDetails.value = true;
 };
 
@@ -117,6 +119,7 @@ const handleDeleteIndicateur = async () => {
   try {
     await deleteIndicateur(itemToDelete.value);
     showDeleteConfirm.value = false;
+    showDetails.value = false;
     itemToDelete.value = null;
     deleteType.value = '';
   } catch (error) {
@@ -133,66 +136,87 @@ const resetFormIndicateur = () => {
   editingIndicateur.value = null;
 };
 
-// 📌 GESTION DES INTERPRÉTATIONS
-const handleCreateInterpretation = async () => {
-  try {
-    const data = {
-      ...formInterpretation.value,
-      id_indicateur_analytique: currentIndicateur.value.id_indicateur_analytique
-    };
-    await createInterpretation(data);
-    showInterpretationForm.value = false;
-    resetFormInterpretation();
-  } catch (error) {
-    console.error("Erreur création interprétation:", error);
-  }
+// 📌 GESTION DES INTERPRÉTATIONS (similaire à AffectationAnalytique)
+const switchToEditMode = () => {
+  detailsMode.value = 'edit';
+  // Initialiser formInterpretations avec les interprétations actuelles
+  formInterpretations.value = interpretations.value.map(interp => ({
+    id_interpretation_indicateur: interp.id_interpretation_indicateur,
+    valeur: interp.valeur.toString(),
+    interpretation: interp.interpretation,
+    id_niveau_alerte: interp.id_niveau_alerte.toString()
+  }));
 };
 
-const handleEditInterpretation = (interpretation) => {
-  editingInterpretation.value = interpretation.id_interpretation_indicateur;
-  formInterpretation.value = { 
-    valeur: interpretation.valeur,
-    interpretation: interpretation.interpretation,
-    id_niveau_alerte: interpretation.id_niveau_alerte.toString()
-  };
-  showInterpretationForm.value = true;
+const switchToViewMode = () => {
+  detailsMode.value = 'view';
+  formInterpretations.value = [];
 };
 
-const handleUpdateInterpretation = async () => {
-  try {
-    await updateInterpretation(editingInterpretation.value, formInterpretation.value);
-    showInterpretationForm.value = false;
-    resetFormInterpretation();
-    editingInterpretation.value = null;
-  } catch (error) {
-    console.error("Erreur mise à jour interprétation:", error);
-  }
+const cancelTableModifications = () => {
+  switchToViewMode();
 };
 
-const confirmDeleteInterpretation = (id) => {
-  itemToDelete.value = id;
-  deleteType.value = 'interpretation';
-  showDeleteConfirm.value = true;
-};
-
-const handleDeleteInterpretation = async () => {
-  try {
-    await deleteInterpretation(itemToDelete.value);
-    showDeleteConfirm.value = false;
-    itemToDelete.value = null;
-    deleteType.value = '';
-  } catch (error) {
-    console.error("Erreur suppression interprétation:", error);
-  }
-};
-
-const resetFormInterpretation = () => {
-  formInterpretation.value = {
+const addInterpretationToTable = () => {
+  formInterpretations.value.push({
+    id_interpretation_indicateur: null,
     valeur: '',
     interpretation: '',
     id_niveau_alerte: ''
-  };
-  editingInterpretation.value = null;
+  });
+};
+
+const removeInterpretationFromTable = (index) => {
+  if (formInterpretations.value.length > 1) {
+    formInterpretations.value.splice(index, 1);
+  }
+};
+
+const saveTableModifications = async () => {
+  try {
+    // Identifier les nouvelles, modifiées et supprimées
+    const currentIds = interpretations.value.map(i => i.id_interpretation_indicateur);
+    const newIds = formInterpretations.value
+      .filter(i => !i.id_interpretation_indicateur)
+      .map(i => ({ 
+        valeur: parseFloat(i.valeur), 
+        interpretation: i.interpretation, 
+        id_niveau_alerte: parseInt(i.id_niveau_alerte),
+        id_indicateur_analytique: currentIndicateur.value.id_indicateur_analytique
+      }));
+
+    const updated = formInterpretations.value
+      .filter(i => i.id_interpretation_indicateur)
+      .map(i => ({
+        id_interpretation_indicateur: i.id_interpretation_indicateur,
+        valeur: parseFloat(i.valeur),
+        interpretation: i.interpretation,
+        id_niveau_alerte: parseInt(i.id_niveau_alerte)
+      }));
+
+    const deleted = currentIds.filter(id => 
+      !formInterpretations.value.some(i => i.id_interpretation_indicateur === id)
+    );
+
+    // Exécuter les opérations
+    for (const newInterp of newIds) {
+      await createInterpretation(newInterp);
+    }
+
+    for (const updateInterp of updated) {
+      await updateInterpretation(updateInterp.id_interpretation_indicateur, updateInterp);
+    }
+
+    for (const deleteId of deleted) {
+      await deleteInterpretation(deleteId);
+    }
+
+    // Recharger les données
+    await fetchIndicateurDetails(currentIndicateur.value.id_indicateur_analytique);
+    switchToViewMode();
+  } catch (error) {
+    console.error("Erreur sauvegarde interprétations:", error);
+  }
 };
 
 // 📌 FILTRES
@@ -207,9 +231,6 @@ const filteredIndicateurs = computed(() => {
       indicateur.formule.toLowerCase().includes(term)
     );
   }
-  
-  // Note: Pour les indicateurs, le filtre par niveau n'est pas applicable
-  // car un indicateur peut avoir plusieurs interprétations avec différents niveaux
   
   return filtered;
 });
@@ -262,7 +283,7 @@ const {
         <Texte :type="'bold-dark'" texte="Confirmation de suppression" />
         <Texte :type="'dark'" :texte="getDeleteMessage" />
         <div class="PPbtn">
-          <Bouton @click="deleteType === 'indicateur' ? handleDeleteIndicateur() : handleDeleteInterpretation()" 
+          <Bouton @click="deleteType === 'indicateur' ? handleDeleteIndicateur() : deleteInterpretation(itemToDelete)" 
                  :type="'input'" :texte="'Confirmer'" />
           <Bouton @click="showDeleteConfirm = false" :type="'cancel'" :texte="'Annuler'" />
         </div>
@@ -272,142 +293,188 @@ const {
     <!-- POPUP Formulaire Indicateur -->
     <transition name="fade">
       <PopUp v-if="showIndicateurForm">
-        <form @submit.prevent="editingIndicateur ? handleUpdateIndicateur() : handleCreateIndicateur()" 
-              class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
-          <Texte :texte="editingIndicateur ? 'Modifier l\'indicateur' : 'Nouvel indicateur'" :type="'dark'" />
-          <div class="popupContent">
+        <div class="creation-popup">
+          <div class="popuphead">
+            <Texte :texte="editingIndicateur ? 'Modifier l\'indicateur' : 'Nouvel indicateur'" :type="'dark'" />
+          </div>
+
+          <div class="form-content">
+            <div class="form-row">
               <Input v-model="formIndicateur.libelle" 
                      placeholder="Libellé de l'indicateur" 
                      type="text" 
                      required />
+            </div>
             
+            <div class="form-row">
               <Textarea v-model="formIndicateur.description" 
                        placeholder="Description" 
                        required />
-            
-              <Textarea v-model="formIndicateur.formule" 
-                     placeholder="Formule de calcul" 
-                     required />
-          </div>
-          <div class="btn-form">
-            <Bouton v-if="!editingIndicateur" type="input" :texte="'Créer'" />
-            <Bouton v-if="editingIndicateur" type="input" :texte="'Modifier'" />
-            <Bouton type="cancel" :texte="'Annuler'" 
-                    @click="showIndicateurForm = false, resetFormIndicateur()" />
-          </div>
-        </form>
-      </PopUp>
-    </transition>
-
-    <!-- POPUP Formulaire Interprétation -->
-    <transition name="fade">
-      <PopUp v-if="showInterpretationForm">
-        <form @submit.prevent="editingInterpretation ? handleUpdateInterpretation() : handleCreateInterpretation()" 
-              class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
-          <Texte :texte="editingInterpretation ? 'Modifier l\'interprétation' : 'Nouvelle interprétation'" 
-                :type="'dark'" />
-          <div class="popupContent">
-            <div class="form-row">
-              <Input v-model="formInterpretation.valeur" 
-                     placeholder="Valeur seuil" 
-                     type="number" 
-                     step="0.01" 
-                     required />
-              <small class="form-help">Valeur à partir de laquelle cette interprétation s'applique</small>
             </div>
             
             <div class="form-row">
-              <Textarea v-model="formInterpretation.interpretation" 
-                       placeholder="Interprétation" 
+              <Textarea v-model="formIndicateur.formule" 
+                       placeholder="Formule de calcul" 
                        required />
             </div>
-            
-            <div class="form-row">
-              <Select v-model="formInterpretation.id_niveau_alerte" 
-                      :placeholder="'Niveau d\'alerte'" 
-                      required>
-                <option value="" disabled>Sélectionner un niveau</option>
-                <option v-for="niveau in niveaux" 
-                        :key="niveau.id_niveau_alerte"
-                        :value="niveau.id_niveau_alerte">
-                  {{ niveau.libelle }}
-                </option>
-              </Select>
-            </div>
           </div>
+
           <div class="btn-form">
-            <Bouton v-if="!editingInterpretation" type="input" :texte="'Créer'" />
-            <Bouton v-if="editingInterpretation" type="input" :texte="'Modifier'" />
-            <Bouton type="cancel" :texte="'Annuler'" 
-                    @click="showInterpretationForm = false, resetFormInterpretation()" />
+            <Bouton @click="editingIndicateur ? handleUpdateIndicateur() : handleCreateIndicateur()" 
+                   type="input" 
+                   :texte="editingIndicateur ? 'Modifier' : 'Créer'" />
+            <Bouton @click="showIndicateurForm = false, resetFormIndicateur()" 
+                   type="cancel" 
+                   :texte="'Annuler'" />
           </div>
-        </form>
+        </div>
       </PopUp>
     </transition>
 
-    <!-- POPUP Détails Indicateur -->
+    <!-- POPUP Détails Indicateur (similaire à AffectationAnalytique) -->
     <transition name="fade">
       <PopUp v-if="showDetails && currentIndicateur">
         <div class="details-popup">
+          <!-- En-tête avec bouton d'édition -->
           <div class="popuphead">
-            <Texte :type="'bold-dark'" 
-                   :texte="'Détails: ' + currentIndicateur.libelle" />
-            <div class="popup-actions">
-              <BoutonIcon @click="handleEditIndicateur(currentIndicateur)" 
-                         icon-name="pen-fill" :type="'edit'" />
-              <BoutonIcon @click="confirmDeleteIndicateur(currentIndicateur.id_indicateur_analytique)" 
-                         icon-name="trash-fill" :type="'cancel'" />
+            <Texte
+              :texte="(detailsMode === 'edit' ? 'Édition des interprétations: ' : 'Détails de l\'indicateur: ') + currentIndicateur.libelle"
+              :type="'dark'" />
+
+            <!-- Bouton Modifier/Annuler selon le mode -->
+            <div v-if="detailsMode === 'view'">
               <BoutonIcon @click="showDetails = false" 
-                         icon-name="x-lg" :type="'cancel'" />
+                         icon-name="x-lg" 
+                         :type="'cancel'"
+                         title="Modifier les interprétations" />
+              <!-- <BoutonIcon @click="confirmDeleteIndicateur(currentIndicateur.id_indicateur_analytique)" 
+                         icon-name="trash-fill" 
+                         :type="'cancel'"
+                         title="Supprimer l'indicateur" /> -->
+            </div>
+            <div v-else>
+              <BoutonIcon @click="cancelTableModifications()" 
+                         icon-name="x-lg" 
+                         :type="'cancel'"
+                         title="Annuler les modifications" />
             </div>
           </div>
-          
-          <div class="details-content">
-            <div class="detail-section">
-              <Texte :type="'small-dark'" :texte="'Description'" />
-              <p class="detail-text">{{ currentIndicateur.description }}</p>
+
+          <!-- Informations de l'indicateur -->
+          <div class="indicateur-info mb-4">
+            <div class="info-section">
+              <Texte :type="'bold-dark'" :texte="'Description'" />
+              <Texte :type="'dark'" :texte="currentIndicateur.description" />
             </div>
             
-            <div class="detail-section">
-              <Texte :type="'small-dark'" :texte="'Formule'" />
-              <div class="formule-box">
-                <code>{{ currentIndicateur.formule }}</code>
-              </div>
+            <div class="info-section">
+              <Texte :type="'bold-dark'" :texte="'Formule'" />
+              <Texte :type="'dark'" :texte="currentIndicateur.formule" />
             </div>
+          </div>
+
+          <!-- Tableau des interprétations -->
+          <div class="interpretations-table">
+            <Texte :type="'bold-dark'" :texte="'Interprétations'" />
             
-            <div class="interpretations-header">
-              <Texte :type="'bold-dark'" :texte="'Interprétations'" />
-              <BoutonIcon @click="resetFormInterpretation(), showInterpretationForm = true" 
-                         icon-name="plus-lg" :type="'add'" />
-            </div>
-            
-            <div class="interpretations-list">
-              <div v-if="interpretations.length === 0" class="no-interpretations">
-                <i class="bi bi-info-circle"></i>
-                <Texte :type="'dark'" :texte="'Aucune interprétation définie'" />
+            <table class="table" id="interpretationsTable">
+              <thead>
+                <tr>
+                  <th class="col">Valeur seuil</th>
+                  <th class="col">Interprétation</th>
+                  <th class="col">Niveau d'alerte</th>
+                  <th class="col" v-if="detailsMode === 'edit'">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- MODE VISUALISATION -->
+                <template v-if="detailsMode === 'view'">
+                  <tr v-for="interpretation in interpretations.sort((a, b) => b.valeur - a.valeur)" 
+                      :key="interpretation.id_interpretation_indicateur">
+                    <td class="col"> {{ (interpretation.valeur >= 0 ? '≥ ' : '≤ ') + interpretation.valeur }}</td>
+                    <td class="col">{{ interpretation.interpretation }}</td>
+                    <td class="col">
+                      <span class="niveau-badge" 
+                            :style="{ color: getNiveauCouleur(interpretation.id_niveau_alerte) }">
+                        {{ getNiveauLibelle(interpretation.id_niveau_alerte) }}
+                      </span>
+                    </td>
+                  </tr>
+                </template>
+
+                <!-- MODE ÉDITION -->
+                <template v-else>
+                  <tr v-for="(interpretation, index) in formInterpretations" 
+                      :key="index">
+                    <td class="col">
+                      <InputTable type="number" 
+                                 v-model="interpretation.valeur" 
+                                 :label="''" 
+                                 step="0.01" 
+                                 required 
+                                 class="compact-input" />
+                    </td>
+                    <td class="col">
+                      <TextareaTable v-model="interpretation.interpretation" 
+                                    :label="''" 
+                                    placeholder="Interprétation..." 
+                                    class="compact-input" />
+                    </td>
+                    <td class="col">
+                      <SelectTable v-model="interpretation.id_niveau_alerte" 
+                                  :label="''" 
+                                  class="compact-select" 
+                                  required>
+                        <option value="" disabled>Sélectionner un niveau</option>
+                        <option v-for="niveau in niveaux" 
+                                :key="niveau.id_niveau_alerte"
+                                :value="niveau.id_niveau_alerte">
+                          {{ niveau.libelle }}
+                        </option>
+                      </SelectTable>
+                    </td>
+                    <td class="col">
+                      <BoutonIcon @click="removeInterpretationFromTable(index)" 
+                                 icon-name="trash" 
+                                 :type="'cancel'"
+                                 title="Supprimer cette interprétation" 
+                                 :disabled="formInterpretations.length <= 1" />
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+              <tfoot v-if="detailsMode === 'edit'">
+                <tr>
+                  <td class="col">
+                    <BoutonIcon :icon-name="'plus-lg'" 
+                               :type="'primary'" 
+                               @click="addInterpretationToTable" />
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Boutons selon le mode -->
+          <div class="btn-form mt-4">
+            <!-- MODE VISUALISATION -->
+            <template v-if="detailsMode === 'view'">
+              <Bouton @click="switchToEditMode()" 
+                     type="input" 
+                     :texte="'Modifier'" />
+            </template>
+
+            <!-- MODE ÉDITION -->
+            <template v-else>
+              <div class="action-content">
+                <Bouton @click="saveTableModifications" 
+                       type="input" 
+                       :texte="'Valider'" />
               </div>
-              
-              <div v-for="interpretation in interpretations.sort((a, b) => b.valeur - a.valeur)" 
-                   :key="interpretation.id_interpretation_indicateur" 
-                   class="interpretation-item">
-                <div class="interpretation-header">
-                  <span class="seuil-badge">≥ {{ interpretation.valeur }}</span>
-                  <span class="niveau-badge" 
-                        :style="{ backgroundColor: getNiveauCouleur(interpretation.id_niveau_alerte) }">
-                    {{ getNiveauLibelle(interpretation.id_niveau_alerte) }}
-                  </span>
-                </div>
-                <div class="interpretation-body">
-                  <p>{{ interpretation.interpretation }}</p>
-                </div>
-                <div class="interpretation-actions">
-                  <BoutonIcon @click="handleEditInterpretation(interpretation)" 
-                             icon-name="pen-fill" :type="'edit'" />
-                  <BoutonIcon @click="confirmDeleteInterpretation(interpretation.id_interpretation_indicateur)" 
-                             icon-name="trash-fill" :type="'cancel'" />
-                </div>
-              </div>
-            </div>
+            </template>
           </div>
         </div>
       </PopUp>
@@ -420,6 +487,12 @@ const {
           <Counter v-if="filteredIndicateurs.length == 0" :number="0" /> 
           indicateur{{ filteredIndicateurs.length !== 1 ? 's' : '' }} analytique{{ filteredIndicateurs.length !== 1 ? 's' : '' }}
         </p>
+        <div class="btn">
+          <Bouton type="primary" 
+                 texte="Ajouter" 
+                 redirection="" 
+                 @click="resetFormIndicateur(), showIndicateurForm = true" />
+        </div>
       </div>
 
       <!-- Section Filtres -->
@@ -429,17 +502,7 @@ const {
                      type="text" 
                      placeholder="Rechercher un indicateur..." />
 
-          <!-- Filtre par niveau d'alerte (optionnel pour les indicateurs) -->
-          <!-- <FilterSelect v-model="filterSelectedNiveau" :label="''">
-            <option value="">Tous les niveaux</option>
-            <option v-for="niveau in niveaux" 
-                    :key="niveau.id_niveau_alerte" 
-                    :value="niveau.id_niveau_alerte">
-              {{ niveau.libelle }}
-            </option>
-          </FilterSelect>
- -->
-          <BoutonIcon v-if="filterSearchTerm || filterSelectedNiveau" 
+          <BoutonIcon v-if="filterSearchTerm" 
                      @click="resetFilters" 
                      type="cancel" 
                      :icon-name="'x-lg'" 
@@ -451,10 +514,6 @@ const {
       </div>
 
       <!-- Tableau des indicateurs -->
-      <!-- <div class="loading" v-if="loading">
-        <LoadingText :type="'line-1'" />
-      </div> -->
-      
       <transition name="fade">
         <div class="content">
           <table class="table" id="indicateursTable">
@@ -483,11 +542,11 @@ const {
                 <td class="col">
                   <div class="action-content">
                     <BoutonIcon @click="openIndicateurDetails(indicateur)" 
-                               icon-name="eye-fill" :type="'edit'" />
+                               icon-name="eye-fill" 
+                               :type="'edit'" />
                     <BoutonIcon @click="handleEditIndicateur(indicateur)" 
-                               icon-name="pen-fill" :type="'edit'" />
-                    <BoutonIcon @click="confirmDeleteIndicateur(indicateur.id_indicateur_analytique)" 
-                               icon-name="trash-fill" :type="'cancel'" />
+                               icon-name="pen-fill" 
+                               :type="'edit'" />
                   </div>
                 </td>
               </tr>
@@ -520,7 +579,7 @@ const {
                   :current-page="currentPage" 
                   :items-per-page="itemsPerPage"
                   :total-pages="totalPages" 
-                  :go-to-page="goToPage" 
+                  :go-to-page="goTo-page" 
                   :previous-page="previousPage" 
                   :next-page="nextPage" />
     </div>
@@ -565,54 +624,8 @@ const {
   gap: 10px;
 }
 
-#indicateursTable {
+#indicateursTable, #interpretationsTable {
   @include table();
-  
-  th {
-    font-weight: 600;
-  }
-  
-  td {
-    vertical-align: middle;
-  }
-  
-  .indicateur-name {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 500;
-    
-    .bi-graph-up {
-      color: $secondary;
-    }
-  }
-  
-  .formule-code {
-    background: #f8f9fa;
-    padding: 4px 8px;
-    border-radius: $radius-pm;
-    font-family: 'Courier New', monospace;
-    color: $primary;
-    font-size: 13px;
-  }
-  
-  .no-data {
-    text-align: center;
-    padding: 40px 20px !important;
-    
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      color: #adb5bd;
-      
-      .bi-graph-up {
-        font-size: 48px;
-        opacity: 0.5;
-      }
-    }
-  }
 }
 
 .informations {
@@ -693,8 +706,7 @@ const {
 
 .popupContent {
   @include position-contenus(flex, center, flex-start);
-  flex-direction: column;
-  // gap: 10px;
+  gap: 10px;
 }
 
 .filtres {
@@ -712,12 +724,7 @@ const {
 .popuphead {
   @include position-contenus(flex, space-between, center);
   width: 100%;
-  margin-bottom: 20px;
-}
-
-.popup-actions {
-  display: flex;
-  gap: 8px;
+  // margin-bottom: 20px;
 }
 
 .action-content {
@@ -732,125 +739,96 @@ const {
   gap: 10px;
 }
 
+/* Styles pour le popup de détails (similaire à AffectationAnalytique) */
 .details-popup {
-  min-width: 600px;
-  max-width: 800px;
+  min-width: 700px;
+  max-width: 900px;
   max-height: 80vh;
   overflow-y: auto;
   
-  .details-content {
-    .detail-section {
-      margin-bottom: 20px;
+  .indicateur-info {
+    .info-section {
+      margin-bottom: 16px;
       
-      .detail-text {
+      .info-text {
         margin-top: 8px;
         color: #666;
         line-height: 1.6;
+        background: #f8f9fa;
+        padding: 12px;
+        border-radius: 8px;
       }
       
       .formule-box {
         background: #f8f9fa;
-        padding: 16px;
+        padding: 12px;
         border-radius: 8px;
         border-left: 4px solid $secondary;
         margin-top: 8px;
         
         code {
           font-family: 'Courier New', monospace;
-          font-size: 15px;
+          font-size: 14px;
           color: #2c3e50;
         }
       }
     }
+  }
+  
+  .interpretations-table {
+    margin-top: 24px;
     
-    .interpretations-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin: 30px 0 20px 0;
-      padding-top: 20px;
-      border-top: 1px solid #f1f3f4;
-    }
-    
-    .interpretations-list {
-      .no-interpretations {
-        text-align: center;
-        padding: 40px 20px;
-        color: #adb5bd;
-        
-        .bi-info-circle {
-          font-size: 32px;
-          margin-bottom: 16px;
-          opacity: 0.5;
-        }
-      }
-      
-      .interpretation-item {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 12px;
-        border-left: 4px solid $vert;
-        
-        .interpretation-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-          
-          .seuil-badge {
-            font-weight: 600;
-            color: #2c3e50;
-            background: white;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-          }
-          
-          .niveau-badge {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: white;
-            text-transform: uppercase;
-          }
-        }
-        
-        .interpretation-body {
-          p {
-            color: #666;
-            line-height: 1.6;
-            margin: 0;
-            font-size: 14px;
-          }
-        }
-        
-        .interpretation-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 8px;
-          margin-top: 12px;
-          padding-top: 12px;
-          border-top: 1px solid #e9ecef;
-        }
-      }
+    .niveau-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: white;
+      text-transform: uppercase;
+      display: inline-block;
     }
   }
 }
 
-.form-help {
-  display: block;
-  margin-top: 6px;
-  color: #6c757d;
-  font-size: 12px;
+.form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+  
+  .form-row {
+    width: 100%;
+  }
 }
 
-.form-row {
+.compact-input {
   width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+}
+
+.compact-select {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 14px;
+  height: 40px;
+}
+
+/* Styles pour le tableau dans le popup */
+#interpretationsTable {
+  margin-top: 16px;
   
-  input, textarea, select {
-    width: 100%;
+  .col {
+    padding: 12px 8px;
+    vertical-align: middle;
+  }
+  
+  tfoot {
+    background: #f8f9fa;
+    
+    .col {
+      padding: 12px 8px;
+    }
   }
 }
 

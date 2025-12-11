@@ -22,7 +22,7 @@ import Texte from './Texte.vue';
     border: none;
     outline: none;
     background: transparent;
-    font-family: Stara;
+    font-family: $stara-medium;
     font-size: 14px;
     font-style: normal;
     font-weight: 400;

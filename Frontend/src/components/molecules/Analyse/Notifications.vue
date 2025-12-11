@@ -87,7 +87,7 @@ onMounted(() => {
 .notification-btn-new {
   position: relative;
   padding: 10px 15px;
-  color: #e6d053;
+  color: $primary;
   border: none;
   border-radius: 5px;
   cursor: pointer;
@@ -95,12 +95,12 @@ onMounted(() => {
 
 .badge {
   position: absolute;
-  top: -5px;
+  top: -7px;
   right: -5px;
   background: red;
   color: white;
   border-radius: 50%;
-  padding: 2px 6px;
+  padding: 4px 8px;
   font-size: 8px;
     font-family: $stara-medium;
 
@@ -108,15 +108,15 @@ onMounted(() => {
 
 .notifications-list {
   position: absolute;
-  top: 72px;
+  top: 50px;
   right: 0;
-  width: 400px;
+  width: 300px;
   max-height: 500px;
   overflow-y: auto;
   @include glass();
   border-radius: $radius-pm;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  z-index: 1000;
+  z-index: 9999;
   scrollbar-width: none;
 }
 

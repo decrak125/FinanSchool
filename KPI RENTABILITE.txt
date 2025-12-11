@@ -1,0 +1,101 @@
+Aspect RENTABILITE :
+    - MARGE BRUTE
+{
+    "success": true,
+    "marge_brute": {
+        "valeur": 72.6,
+        "unite": "%",
+        "interpretation": "Excellente marge brute - Très bonne performance commerciale",
+        "niveau_alerte": {
+            "id_niveau_alerte": 3,
+            "libelle": "Bon",
+            "couleur": "#01CC00"
+        }
+    },
+    "details_calcul": {
+        "chiffre_affaires": 19920000,
+        "cout_ventes": 5457100,
+        "marge_absolue": 14462900
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "(Chiffre d'affaires – Coût des ventes) / Chiffre d'affaires x 100",
+    "comptes_utilises": {
+        "chiffre_affaires": "Comptes 700-709 (CA)",
+        "cout_ventes": "Comptes 601-609 (ACHATCONSOM)"
+    }
+}
+    - MARGE NETTE
+{
+    "success": true,
+    "marge_nette": {
+        "valeur": 37.67,
+        "unite": "%",
+        "interpretation": "Excellente rentabilité nette - Très bon bénéfice final",
+        "niveau_alerte": {
+            "id_niveau_alerte": 3,
+            "libelle": "Bon",
+            "couleur": "#01CC00"
+        }
+    },
+    "details_calcul": {
+        "resultat_net": 7502900,
+        "chiffre_affaires": 19920000
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "Résultat net / Chiffre d'affaires",
+    "definition": "Montre le bénéfice final par euro de ventes"
+}
+    - ROE
+{
+    "success": true,
+    "roe": {
+        "valeur": 100,
+        "unite": "%",
+        "interpretation": "Excellente rentabilité des fonds propres",
+        "niveau_alerte": {
+            "id_niveau_alerte": 3,
+            "libelle": "Bon",
+            "couleur": "#01CC00"
+        }
+    },
+    "details_calcul": {
+        "resultat_net": 7502900,
+        "capitaux_propres": 7502900
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "Résultat net / Capitaux propres",
+    "definition": "Rendement des fonds propres"
+}
+    - ROA
+{
+    "success": true,
+    "roa": {
+        "valeur": 68.38,
+        "unite": "%",
+        "interpretation": "Excellente efficacité des actifs",
+        "niveau_alerte": {
+            "id_niveau_alerte": 3,
+            "libelle": "Bon",
+            "couleur": "#01CC00"
+        }
+    },
+    "details_calcul": {
+        "resultat_net": 7502900,
+        "total_actif": 10972900
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "Résultat net / Total actif",
+    "definition": "Efficacité globale des actifs"
+}

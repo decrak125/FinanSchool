@@ -511,6 +511,9 @@ onMounted(() => {
 }
 
 .filters-container {
+  position: fixed;
+  left: 612px;
+  top: 112px;
   display: flex;
   align-items: baseline;
   flex-direction: column;

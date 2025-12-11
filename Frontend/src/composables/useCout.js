@@ -359,17 +359,17 @@ export function useCout(type) {
   };
 
   // // 🔥 WATCH POUR RECHARGER AUTOMATIQUEMENT LES DONNÉES
-  // watch(
-  //   () => [filters.value.dateStart, filters.value.dateEnd, filters.value.idCentre],
-  //   async () => {
-  //     if (filters.value.dateStart && filters.value.dateEnd) {
-  //       await fetchCentres();
-  //       // await fetchVerificationVentilations();
-  //       await fetchClassement();
-  //     }
-  //   },
-  //   { immediate: false }
-  // );
+  watch(
+    () => [filters.value.dateStart, filters.value.dateEnd, filters.value.idCentre],
+    async () => {
+      if (filters.value.dateStart && filters.value.dateEnd) {
+        await fetchCentres();
+        // await fetchVerificationVentilations();
+        await fetchClassement();
+      }
+    },
+    { immediate: false }
+  );
 
   // // 🔥 NOUVEAU WATCH : Recharger quand le code change
   // watch(

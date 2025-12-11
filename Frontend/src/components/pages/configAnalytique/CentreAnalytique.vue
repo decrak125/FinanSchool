@@ -90,7 +90,7 @@ const filteredCount = computed(() => {
 </script>
 
 <template>
-  <PageAnalyse :menu="'Saisie Analytique'" :sousmenu="'Centre Analytique'">
+  <PageAnalyse :menu="'Saisie Analytique'" :sousmenu="'Centre de coûts'">
     <transition name="fade">
       <PopUp v-if="opendelete">
         <Icon :color="'primary'" :icon="'bi bi-envelope'" />
@@ -105,7 +105,7 @@ const filteredCount = computed(() => {
     <transition name="fade">
       <PopUp v-if="openForm">
         <form @submit.prevent="saveCentre" class="mb-6 space-y-3 bg-gray-100 p-4 rounded">
-          <Texte :texte="'Créer un centre analytique'" :type="'dark'" />
+          <Texte :texte="'Créer un centre de coûts'" :type="'dark'" />
           <div class="popupContent">
             <div class="gauche">
               <Input v-model="form.nom" placeholder="Nom du centre" type="text" required />
@@ -113,8 +113,8 @@ const filteredCount = computed(() => {
             </div>
             <div class="droite">
               <div>
-                <Select v-model="form.id_axe" :placeholder="'Axe analytique'">
-                  <option value="" disabled>Choisir un axe</option>
+                <Select v-model="form.id_axe"  :placeholder="'Axe analytique'" hidden>
+                  <option value="2" :key="2">Choisir un axe</option>
                   <option v-for="axe in axes" :key="axe.id_axe" :value="axe.id_axe">{{ axe.axe }}</option>
                 </Select>
               </div>
@@ -150,7 +150,7 @@ const filteredCount = computed(() => {
       <div class="informations">
         <p class="Count-content">
           <Counter v-if="centres.length > 0" :number="filteredCentres.length" />
-          <Counter v-if="centres.length == 0" :number="0" /> centres analytique disponibles.
+          <Counter v-if="centres.length == 0" :number="0" /> centres de coûts disponibles.
         </p>
         <div class="btn">
           <Bouton type="primary" texte="Importer" redirection="" @click="openImport = !openImport" />
@@ -163,12 +163,12 @@ const filteredCount = computed(() => {
         <div class="ok">
           <searchbar v-model="searchTerm" type="text" placeholder="Nom du centre..." />
           <!-- Filtre par axe -->
-          <FilterSelect v-model="selectedAxe">
+          <!-- <FilterSelect v-model="selectedAxe">
             <option value="">Axes</option>
             <option v-for="axe in axes" :key="axe.id_axe" :value="axe.id_axe">
               {{ axe.axe }}
             </option>
-          </FilterSelect>
+          </FilterSelect> -->
           <BoutonIcon v-if="searchTerm || selectedAxe" @click="resetFilters" type="cancel" :icon-name="'x-lg'" />
         </div>
         <div class="iconbtn">
@@ -185,7 +185,7 @@ const filteredCount = computed(() => {
                 <th class="col">#</th>
                 <th class="col">Nom</th>
                 <th class="col">Description</th>
-                <th class="col">Axe</th>
+                <!-- <th class="col">Axe</th> -->
                 <!-- <th class="col">Type</th> -->
                 <th class="col">Actions</th>
               </tr>
@@ -195,7 +195,7 @@ const filteredCount = computed(() => {
                 <td class="col">{{ centre.id_centre }}</td>
                 <td class="col">{{ centre.nom }}</td>
                 <td class="col">{{ centre.description }}</td>
-                <td class="col">{{ getAxeName(centre.id_axe) }}</td>
+                <!-- <td class="col">{{ getAxeName(centre.id_axe) }}</td> -->
                 <!-- <td class="col">{{ getTypeName(centre.id_type) }}</td> -->
                 <td class="col text-center">
                   <div class="action-content">

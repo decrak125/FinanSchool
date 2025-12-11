@@ -55,6 +55,10 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  tooltip: {
+    type: Boolean,
+    default: true
+  },
   error: {
     type: String,
     default: ''
@@ -79,7 +83,7 @@ const chartOptions = computed(() => {
       height: props.height,
       stacked: false,
       toolbar: {
-        show: true
+        show: props.loading
       },
       animations: {
         enabled: true,
@@ -138,9 +142,10 @@ const chartOptions = computed(() => {
       title: {
         text: 'Montant (Ar)',
         style: {
-          fontFamily: 'stara',
-          fontWeight: '500',
-          color: '#373d3f'
+          fontFamily: 'ninetea',
+          fontWeight: '600',
+          color: 'black',
+          fontSize: '12px'
         }
       },
       labels: {
@@ -153,7 +158,7 @@ const chartOptions = computed(() => {
   }).format(value);
         },
         style: {
-          fontFamily: 'stara',
+          fontFamily: 'ninetea',
           colors: '#6b7280'
         }
       }
@@ -163,7 +168,7 @@ const chartOptions = computed(() => {
       theme: 'dark',
       style: {
         fontSize: '12px',
-        fontFamily: 'stara'
+        fontFamily: 'ninetea'
       },
       y: {
         formatter: function (value) {

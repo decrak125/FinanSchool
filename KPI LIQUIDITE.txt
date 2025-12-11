@@ -1,0 +1,72 @@
+Aspect LIQUIDITE :
+    - LIQUIDITE GENERALE
+{
+    "success": true,
+    "ratio_liquidite_generale": {
+        "valeur": 0,
+        "unite": "%",
+        "interpretation": "Non définie",
+        "niveau_alerte": null,
+        "seuil_reference": "> 1 indique une bonne solvabilité à court terme"
+    },
+    "details_calcul": {
+        "actif_circulant": 10972900,
+        "passif_court_terme": 0
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "Actif circulant / Passif à court terme",
+    "definition": "Mesure la capacité à honorer les dettes à court terme"
+}
+    - BFR
+{
+    "success": true,
+    "bfr": {
+        "valeur": 0,
+        "interpretation": "BFR positif - Besoin de financement du cycle d'exploitation",
+        "niveau_alerte": {
+            "id_niveau_alerte": 2,
+            "libelle": "Moyen",
+            "couleur": "#F89400"
+        }
+    },
+    "details_calcul": {
+        "stocks": 0,
+        "creances_clients": 0,
+        "dettes_fournisseurs": 0,
+        "actif_circulant_exploitation": 0
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "(Stocks + Créances clients) - Dettes fournisseurs",
+    "definition": "Permet d'évaluer le besoin financier d'exploitation"
+}
+    - TRESORERIE NETTE
+{
+    "success": true,
+    "tresorerie_nette": {
+        "valeur": 4452900,
+        "interpretation": "Excédent de trésorerie - Situation favorable",
+        "niveau_alerte": {
+            "id_niveau_alerte": 3,
+            "libelle": "Bon",
+            "couleur": "#01CC00"
+        }
+    },
+    "details_calcul": {
+        "comptes_tresorerie": {
+            "banque": "4452900.00",
+            "decouverts": 0
+        }
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "Encaissements - Décaissements",
+    "definition": "Solde de trésorerie sur la période"
+}

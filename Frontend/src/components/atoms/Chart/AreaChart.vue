@@ -122,11 +122,12 @@ const chartOptions = computed(() => {
     yaxis: {
       title: {
         text: 'Montant (Ar)',
-        style: {
-          fontFamily: 'ninetea',
-          fontWeight: '500',
-          color: '#373d3f'
-        }
+          style: {
+            fontFamily: 'ninetea',
+            fontWeight: '600',
+            color: 'black',
+            fontSize: '12px'
+          }
       },
       labels: {
         formatter: function (value) {
