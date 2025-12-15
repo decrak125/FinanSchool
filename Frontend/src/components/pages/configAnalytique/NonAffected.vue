@@ -164,7 +164,7 @@ onMounted(() => {
                     <SelectTable v-model="vent.id_type" :label="''" required>
                       <option value="" disabled>Sélectionner un type</option>
                       <option v-for="type in types" :key="type.id_type" :value="type.id_type">
-                        {{ type.code }} - {{ type.libelle }}
+                        {{ type.code }}
                       </option>
                     </SelectTable>
                   </td>
@@ -180,7 +180,7 @@ onMounted(() => {
                     :key="code.id_code" 
                     :value="code.id_code"
                   >
-                    {{ code.code }} - {{ code.libelle }}
+                    {{ code.code }}
                   </option>
                 </SelectTable>
               </td>

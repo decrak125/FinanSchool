@@ -3,14 +3,13 @@ import { ref, onMounted, watch } from "vue";
 import PageAnalyse from '@/components/template/Page-analyse.vue';
 import { useIndicateurLiquidite } from "@/composables/useIndicateurLiquidite";
 import Card from "@/components/atoms/Chart/Card.vue";
-import ContentHeader from "@/components/molecules/Analyse/Content-header.vue";
 import Texte from "@/components/atoms/Texte.vue";
 import FilterSelect from "@/components/atoms/Filter-select.vue";
 import LoadingText from "@/components/atoms/Loading-text.vue";
 import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 import InterpretationCarousel from "@/components/molecules/Analyse/InterpretationCarousel.vue";
-
+import { useExportPDF } from "@/composables/useExportPDF";
 
 const nombreLignesLoader = 3;
 
@@ -41,6 +40,10 @@ const {
     changeExercice,
 } = useIndicateurLiquidite(filters);
 
+// Initialisez le composable d'export PDF
+const { exportLiquiditePDF } = useExportPDF();
+
+
 // Formater les valeurs monétaires
 const formatMoney = (value) => {
   if (value === null || value === undefined) return 'N/A';
@@ -48,7 +51,7 @@ const formatMoney = (value) => {
     // style: 'currency',
     // currency: 'MGA',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 2
   }).format(value);
 };
 
@@ -84,6 +87,7 @@ const updateInterpretationCards = () => {
 
   interpretationCardsData.value = [
     {
+      valeur: formatMoney(TresorerieNette.value?.tresorerie_nette?.valeur),
       texte: "Trésorerie nette",
       chiffre: formatMoney(comparisons.value.Tresorerie.evolution),
       icon: getTrendIcon(comparisons.value?.Tresorerie),
@@ -93,6 +97,7 @@ const updateInterpretationCards = () => {
       format: 'money'
     },
     {
+      valeur: formatMoney(BFR.value?.bfr?.valeur),
       texte: "BFR",
       chiffre: formatMoney(comparisons.value.fondRoulement.evolution),
       icon: getTrendIcon(comparisons.value?.fondRoulement),
@@ -102,6 +107,7 @@ const updateInterpretationCards = () => {
       format: 'percentage'
     },
     {
+      valeur: formatPercentage(LiquiditeGenerale.value?.ratio_liquidite_generale?.valeur),
       texte: "Ratio de liquidité générale",
       chiffre: formatPercentage(comparisons.value.Liquidite.evolution),
       icon: getTrendIcon(comparisons.value?.Liquidite),
@@ -151,6 +157,19 @@ const handleExerciceChange = async (event) => {
 const handleRefresh = () => {
   refreshAllData();
   updateInterpretationCards();
+};
+
+const handleExportPDF = () => {
+  const data = {
+    exercice: exercice.value,
+    TresorerieNette: TresorerieNette.value,
+    BFR: BFR.value,
+    LiquiditeGenerale: LiquiditeGenerale.value,
+    previousYearData: previousYearData.value,
+    comparisons: comparisons.value
+  };
+  
+  exportLiquiditePDF(data, loading.value);
 };
 
 </script>
@@ -382,7 +401,7 @@ const handleRefresh = () => {
             <Texte :type="'bold-dark'" :texte="'Vue et évolution des indicateurs'" />
           <Texte :type="'dark'" :texte="'Montants en Ariary (Ar).'" />
           </div>
-          <div class="iconbtn">
+          <div class="iconbtn" @click="handleExportPDF">
                   <i class="bi bi-file-earmark-pdf-fill"></i>
           </div>
         </div>

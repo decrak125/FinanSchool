@@ -9,6 +9,8 @@ import LoadingText from "@/components/atoms/Loading-text.vue";
 import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 import InterpretationCarousel from "@/components/molecules/Analyse/InterpretationCarousel.vue";
+import { reverse } from "lodash";
+import { useExportPedagogie } from "@/composables/useExportPedagogie";
 
 const filters = ref({
   dateStart: "",
@@ -39,12 +41,16 @@ const {
   changeExercice
 } = useIndicateurPedagogique(filters);
 
+const {
+  exportPedagogiquePDF
+} = useExportPedagogie();
+
 // Formater les valeurs monétaires
 const formatMoney = (value) => {
   if (value === null || value === undefined) return '';
   return new Intl.NumberFormat('mg-MG', {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 2
   }).format(value);
 };
 
@@ -82,6 +88,7 @@ const updateInterpretationCards = () => {
 
   interpretationCardsData.value = [
     {
+      valeur: formatMoney(coutFonctionnement.value?.cout_fonctionnement_par_eleve?.valeur),
       texte: "Coût par élève",
       chiffre: comparisons.value.coutFonctionnement?.hasData ? 
                formatMoney(comparisons.value.coutFonctionnement.evolution) : 'N/A',
@@ -90,9 +97,11 @@ const updateInterpretationCards = () => {
       colorVariation: getTrendClass(comparisons.value?.coutFonctionnement),
       interpretation: coutFonctionnement.value?.cout_fonctionnement_par_eleve?.interpretation || 
                      "Évolution du coût de fonctionnement par élève",
-      format: 'money'
+      format: 'money',
+      reverse: true
     },
     {
+      valeur: formatMoney(chiffreAffaires.value?.chiffre_affaires_par_eleve?.valeur),
       texte: "CA par élève",
       chiffre: comparisons.value.chiffreAffaires?.hasData ? 
                formatMoney(comparisons.value.chiffreAffaires.evolution) : 'N/A',
@@ -104,6 +113,7 @@ const updateInterpretationCards = () => {
       format: 'money'
     },
     {
+      valeur: formatPercentage(partMasseSalariale.value?.part_masse_salariale_enseignante?.valeur),
       texte: "Part masse salariale",
       chiffre: comparisons.value.partMasseSalariale?.hasData ? 
                formatPercentage(comparisons.value.partMasseSalariale.evolution) : 'N/A',
@@ -112,9 +122,11 @@ const updateInterpretationCards = () => {
       colorVariation: getTrendClass(comparisons.value?.partMasseSalariale),
       interpretation: partMasseSalariale.value?.part_masse_salariale_enseignante?.interpretation || 
                      "Évolution de la part de la masse salariale enseignante",
-      format: 'percentage'
+      format: 'percentage',
+      reverse: true
     },
     {
+      valeur: formatMoney(margeParEleve.value?.marge_par_eleve?.valeur),
       texte: "Marge par élève",
       chiffre: comparisons.value.margeParEleve?.hasData ? 
                formatMoney(comparisons.value.margeParEleve.evolution) : 'N/A',
@@ -160,6 +172,21 @@ const handleRefresh = () => {
   refreshAllData();
   updateInterpretationCards();
 };
+
+const handleExportPDF = () => {
+  const data = {
+    exercice: exercice.value,
+    coutFonctionnement: coutFonctionnement.value,
+    chiffreAffaires: chiffreAffaires.value,
+    partMasseSalariale: partMasseSalariale.value,
+    margeParEleve: margeParEleve.value,
+    previousYearData: previousYearData.value,
+    comparisons: comparisons.value
+  };
+  
+  exportPedagogiquePDF(data, loading.value);
+};
+
 </script>
 
 <template>
@@ -375,6 +402,7 @@ const handleRefresh = () => {
               :negative="false"
               :variation="getTrendIcon(comparisons.coutFonctionnement) + ' ' + comparisons.coutFonctionnement.percentage"
               :colorVariation="getTrendClass(comparisons.coutFonctionnement)"
+              :reverse="true"
             />
             <Card 
               :texte="'CA par élève'"
@@ -397,6 +425,7 @@ const handleRefresh = () => {
               :negative="false"
               :variation="getTrendIcon(comparisons.partMasseSalariale) + ' ' + comparisons.partMasseSalariale.percentage"
               :colorVariation="getTrendClass(comparisons.partMasseSalariale)"
+              :reverse="true"
             />
             <Card 
               :texte="'Marge par élève'" 
@@ -425,7 +454,7 @@ const handleRefresh = () => {
             <Texte :type="'bold-dark'" :texte="'Vue et évolution des indicateurs'" />
           <Texte :type="'dark'" :texte="'Montants en Ariary (Ar).'" />
           </div>
-          <div class="iconbtn">
+          <div class="iconbtn" @click="handleExportPDF">
                   <i class="bi bi-file-earmark-pdf-fill"></i>
           </div>
         </div>
@@ -454,11 +483,11 @@ const handleRefresh = () => {
               <td class="col">
                 {{ formatMoney(previousYearData.coutFonctionnement?.cout_fonctionnement_par_eleve?.valeur) }}
               </td>
-              <td :class="['evolution', getTrendClass(comparisons.coutFonctionnement)]">
+              <td :class="['evolution', getTrendClass(comparisons.coutFonctionnement)+'-reverse']">
                 <span class="trend-icon">{{ getTrendIcon(comparisons.coutFonctionnement) }}</span>
                 {{ comparisons.coutFonctionnement?.hasData ? formatMoney(comparisons.coutFonctionnement.evolution) : 'N/A' }}
               </td>
-              <td :class="['percentage', getTrendClass(comparisons.coutFonctionnement)]">
+              <td :class="['percentage', getTrendClass(comparisons.coutFonctionnement)+'-reverse']">
                 {{ comparisons.coutFonctionnement?.hasData ? `${comparisons.coutFonctionnement.percentage}%` : 'N/A' }}
               </td>
               <td>
@@ -504,11 +533,11 @@ const handleRefresh = () => {
               <td class="col">
                 {{ formatPercentage(previousYearData.partMasseSalariale?.part_masse_salariale_enseignante?.valeur) }}
               </td>
-              <td :class="['evolution', getTrendClass(comparisons.partMasseSalariale)]">
+              <td :class="['evolution', getTrendClass(comparisons.partMasseSalariale)+'-reverse']">
                 <span class="trend-icon">{{ getTrendIcon(comparisons.partMasseSalariale) }}</span>
                 {{ comparisons.partMasseSalariale?.hasData ? formatPercentage(comparisons.partMasseSalariale.evolution) : 'N/A' }}
               </td>
-              <td :class="['percentage', getTrendClass(comparisons.partMasseSalariale)]">
+              <td :class="['percentage', getTrendClass(comparisons.partMasseSalariale)+'-reverse']">
                 {{ comparisons.partMasseSalariale?.hasData ? `${comparisons.partMasseSalariale.percentage}%` : 'N/A' }}
               </td>
               <td>
@@ -746,6 +775,14 @@ const handleRefresh = () => {
 }
 
 .trend-down {
+  color: #dc3545;
+}
+
+.trend-down-reverse {
+  color: #28a745;
+}
+
+.trend-up-reverse {
   color: #dc3545;
 }
 

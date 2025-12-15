@@ -11,7 +11,8 @@ defineProps({
   negative: Boolean,
   loading: { type: Boolean, default: false },
   variation: String,
-  colorVariation: String
+  colorVariation: String,
+  reverse : {type: Boolean, default: false}
 })
 </script>
 <template>
@@ -24,8 +25,12 @@ defineProps({
       <Counter v-if="chiffre === null || chiffre === undefined" :number="0" :format="format"
         :allowNegative="negative" />
       <Counter v-else :number="chiffre" :format="format" :allowNegative="negative" />
-      <div class="variation" v-if="variation">
+      <div class="variation" v-if="variation && !reverse">
         <p :class="colorVariation">{{  variation ? variation : 'N/A' }}%</p>
+        <p class="texte-info">VS l'année précédente</p>
+      </div>
+      <div class="variation" v-if="variation && reverse">
+        <p :class="colorVariation+'-reverse'">{{  variation ? variation : 'N/A' }}%</p>
         <p class="texte-info">VS l'année précédente</p>
       </div>
     </div>
@@ -191,6 +196,30 @@ i {
 }
 
 .trend-down {
+  color: $rouge;
+  font-family: $stara-bold;
+  font-size: 12px;
+  font-style: normal;
+  line-height: normal;
+  margin: 5px 0px;
+  padding: 0 5px ;
+  background-color: #ffe2e2;
+  border-radius: $radius-pm;
+}
+
+.trend-down-reverse {
+  color: $vert;
+  font-family: $stara-bold;
+  font-size: 12px;
+  font-style: normal;
+  line-height: normal;
+  margin: 5px 0px;
+  padding: 0 5px ;
+  background-color: #e2ffe3;
+  border-radius: $radius-pm;
+}
+
+.trend-up-reverse {
   color: $rouge;
   font-family: $stara-bold;
   font-size: 12px;

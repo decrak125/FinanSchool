@@ -11,6 +11,7 @@ import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 // Correction du chemin d'importation
 import InterpretationCarousel from "@/components/molecules/Analyse/InterpretationCarousel.vue";
+import html2pdf from "html2pdf.js";
 
 const filters = ref({
   dateStart: "",
@@ -85,24 +86,29 @@ const updateInterpretationCards = () => {
 
   interpretationCardsData.value = [
     {
+      valeur: formatMoney(totalProduits.value?.total_produits?.valeur),
       texte: "Revenus",
       chiffre: formatMoney(comparisons.value.produits.evolution),
       icon: getTrendIcon(comparisons.value?.produits),
       variation: comparisons.value?.produits?.percentage || '0',
       colorVariation: getTrendClass(comparisons.value?.produits),
       interpretation: totalProduits.value?.total_produits?.interpretation || "Évolution des revenus totaux",
-      format: 'money'
+      format: 'money',
+      reverse: false
     },
     {
+      valeur: formatMoney(totalCharges.value?.total_charges?.valeur),
       texte: "Dépenses",
       chiffre: formatMoney(comparisons.value.charges.evolution),
       icon: getTrendIcon(comparisons.value?.charges),
       variation: comparisons.value?.charges?.percentage || '0',
       colorVariation: getTrendClass(comparisons.value?.charges),
       interpretation: totalCharges.value?.total_charges?.interpretation || "Évolution des dépenses totales",
-      format: 'money'
+      format: 'money',
+      reverse: true
     },
     {
+      valeur: formatMoney(resultatNet.value?.resultat_net?.valeur),
       texte: "Bénéfices/Pertes",
       chiffre: formatMoney(comparisons.value.resultatNet.evolution),
       icon: getTrendIcon(comparisons.value?.resultatNet),
@@ -110,9 +116,11 @@ const updateInterpretationCards = () => {
       colorVariation: getTrendClass(comparisons.value?.resultatNet),
       interpretation: resultatNet.value?.resultat_net?.interpretation || "Évolution du résultat net",
       format: 'money',
-      negative: true
+      negative: true,
+      reverse: false
     },
     {
+      valeur: formatPercentage(margeExploitation.value?.marge_exploitation?.valeur),
       texte: "Marge d'exploitation",
       chiffre: comparisons.value?.margeExploitation?.hasData ? 
         formatPercentage(comparisons.value.margeExploitation.evolution) : 'N/A',
@@ -120,7 +128,8 @@ const updateInterpretationCards = () => {
       variation: comparisons.value?.margeExploitation?.percentage || '0',
       colorVariation: getTrendClass(comparisons.value?.margeExploitation),
       interpretation: margeExploitation.value?.marge_exploitation?.interpretation || "Évolution de la marge d'exploitation",
-      format: 'percentage'
+      format: 'percentage',
+      reverse: false
     }
   ].filter(card => card.chiffre !== undefined && card.chiffre !== null);
   
@@ -154,7 +163,482 @@ const handleRefresh = () => {
   refreshAllData();
   updateInterpretationCards();
 };
+// ---------------------------------------------
+const generatePDFContent = () => {
+  const currentYear = exercice.value?.Annee_fiscale || '';
+  const previousYear = currentYear - 1;
+  const dateGeneration = new Date().toLocaleDateString('fr-FR');
+  
+  return `
+    <div style="font-family: Arial, sans-serif;">
+      <!-- Page 1: Résumé général -->
+      <div style="page-break-after: always; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #2c3e50; margin-bottom: 5px;">Rapport des Indicateurs Généraux</h1>
+          <h3 style="color: #6c757d;">Exercice ${currentYear}</h3>
+          <p style="color: #888;">Généré le ${dateGeneration}</p>
+        </div>
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e9ecef; color: #6c757d; font-size: 12px;">
+          <p><strong>Note :</strong> Tous les montants sont exprimés en Ariary (Ar).</p>
+        </div>
+        <div style="margin-bottom: 30px;">
+          <h2 style="color: #2c3e50; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">
+            Comparaison ${previousYear} vs ${currentYear}
+          </h2>
+          
+          <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <thead>
+              <tr style="background-color: #f8f9fa;">
+                <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Indicateur</th>
+                <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">${currentYear}</th>
+                <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">${previousYear}</th>
+                <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">Évolution</th>
+                <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">Variation</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">Total des revenus</td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatMoney(totalProduits.value?.total_produits?.valeur)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatMoney(previousYearData.value.totalProduits?.total_produits?.valeur)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatMoney(comparisons.value.produits.evolution)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${comparisons.value.produits.percentage}%
+                </td>
+              </tr>
+              
+              <tr>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">Total des dépenses</td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatMoney(totalCharges.value?.total_charges?.valeur)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatMoney(previousYearData.value.totalCharges?.total_charges?.valeur)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatMoney(comparisons.value.charges.evolution)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${comparisons.value.charges.percentage}%
+                </td>
+              </tr>
+              
+              <tr>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">Bénéfices/Pertes</td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatMoney(resultatNet.value?.resultat_net?.valeur)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatMoney(previousYearData.value.resultatNet?.resultat_net?.valeur)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatMoney(comparisons.value.resultatNet.evolution)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${comparisons.value.resultatNet.percentage}%
+                </td>
+              </tr>
+              
+              <tr>
+                <td style="padding: 12px; border: 1px solid #dee2e6;">Marge d'exploitation</td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatPercentage(margeExploitation.value?.marge_exploitation?.valeur)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatPercentage(previousYearData.value.margeExploitation?.marge_exploitation?.valeur)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${formatPercentage(comparisons.value.margeExploitation.evolution)}
+                </td>
+                <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                  ${comparisons.value.margeExploitation.percentage}%
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <!-- Page 2: Détails des produits -->
+      <div style="page-break-after: always; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="color: #2c3e50; margin-bottom: 10px;">Détails des Revenus</h2>
+          <p style="color: #6c757d;">Exercice ${currentYear}</p>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <p style="color: #495057; font-style: italic;">
+            ${totalProduits.value?.total_produits?.definition || "Détail des revenus totaux"}
+          </p>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+          <thead>
+            <tr style="background-color: #f8f9fa;">
+              <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Indicateur</th>
+              <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">${currentYear}</th>
+              <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">${previousYear}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Chiffres d'affaires</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalProduits.value?.details_comptes?.chiffre_affaires)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalProduits?.details_comptes?.chiffre_affaires)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Produits d'exploitation</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalProduits.value?.details_comptes?.produits_exploitation)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalProduits?.details_comptes?.produits_exploitation)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Produits financiers</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalProduits.value?.details_comptes?.produits_financiers)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalProduits?.details_comptes?.produits_financiers)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Produits exceptionnels</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalProduits.value?.details_comptes?.produits_exceptionnels)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalProduits?.details_comptes?.produits_exceptionnels)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Reprises/Provisions</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalProduits.value?.details_comptes?.reprises_provisions)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalProduits?.details_comptes?.reprises_provisions)}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="background-color: #f1f3f4;">
+              <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">TOTAL</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6; font-weight: bold;">
+                ${formatMoney(totalProduits.value?.total_produits?.valeur)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6; font-weight: bold;">
+                ${formatMoney(previousYearData.value.totalProduits?.total_produits?.valeur)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      
+      <!-- Page 3: Détails des charges -->
+      <div style="page-break-after: always; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="color: #2c3e50; margin-bottom: 10px;">Détails des Dépenses</h2>
+          <p style="color: #6c757d;">Exercice ${currentYear}</p>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <p style="color: #495057; font-style: italic;">
+            ${totalCharges.value?.total_charges?.definition || "Détail des dépenses totales"}
+          </p>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+          <thead>
+            <tr style="background-color: #f8f9fa;">
+              <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Indicateur</th>
+              <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">${currentYear}</th>
+              <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">${previousYear}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Achats et consommations</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalCharges.value?.details_comptes?.achats_consommes)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalCharges?.details_comptes?.achats_consommes)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Services extérieurs</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalCharges.value?.details_comptes?.services_exterieurs)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalCharges?.details_comptes?.services_exterieurs)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Charges personnelles</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalCharges.value?.details_comptes?.charges_personnel)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalCharges?.details_comptes?.charges_personnel)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Autres charges d'exploitation</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalCharges.value?.details_comptes?.autres_charges_exploitation)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalCharges?.details_comptes?.autres_charges_exploitation)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Dotations aux amortissements</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalCharges.value?.details_comptes?.dotations_amortissements)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalCharges?.details_comptes?.dotations_amortissements)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Charges financières</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalCharges.value?.details_comptes?.charges_financieres)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalCharges?.details_comptes?.charges_financieres)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Charges exceptionnelles</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(totalCharges.value?.details_comptes?.charges_exceptionnelles)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.totalCharges?.details_comptes?.charges_exceptionnelles)}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="background-color: #f1f3f4;">
+              <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">TOTAL</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6; font-weight: bold;">
+                ${formatMoney(totalCharges.value?.total_charges?.valeur)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6; font-weight: bold;">
+                ${formatMoney(previousYearData.value.totalCharges?.total_charges?.valeur)}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      
+      <!-- Page 4: Détails du résultat net -->
+      <div style="page-break-after: always; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="color: #2c3e50; margin-bottom: 10px;">Détails du Résultat Net</h2>
+          <p style="color: #6c757d;">Exercice ${currentYear}</p>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <p style="color: #495057; font-style: italic;">
+            ${resultatNet.value?.resultat_net?.definition || "Détail du résultat net"}
+          </p>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+          <thead>
+            <tr style="background-color: #f8f9fa;">
+              <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Indicateur</th>
+              <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">${currentYear}</th>
+              <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">${previousYear}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Produits</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(resultatNet.value?.details_calcul?.total_produits)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.resultatNet?.details_calcul?.total_produits)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Charges</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(resultatNet.value?.details_calcul?.total_charges)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.resultatNet?.details_calcul?.total_charges)}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="background-color: #f1f3f4;">
+              <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">RESULTAT</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6; font-weight: bold;">
+                ${formatMoney(resultatNet.value?.resultat_net?.valeur)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6; font-weight: bold;">
+                ${formatMoney(previousYearData.value.resultatNet?.resultat_net?.valeur)}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="3" style="padding: 12px; border: 1px solid #dee2e6; font-style: italic;">
+                <strong>Formule :</strong> ${resultatNet.value?.formule || "Produits - Charges"}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      
+      <!-- Page 5: Détails de la marge d'exploitation -->
+      <div style="padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h2 style="color: #2c3e50; margin-bottom: 10px;">Détails de la Marge d'Exploitation</h2>
+          <p style="color: #6c757d;">Exercice ${currentYear}</p>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <p style="color: #495057; font-style: italic;">
+            ${margeExploitation.value?.description || "Détail de la marge d'exploitation"}
+          </p>
+        </div>
+        
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+          <thead>
+            <tr style="background-color: #f8f9fa;">
+              <th style="padding: 12px; text-align: left; border: 1px solid #dee2e6;">Indicateur</th>
+              <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">${currentYear}</th>
+              <th style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">${previousYear}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Produits d'exploitation</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(margeExploitation.value?.details_calcul?.produits_exploitation)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.margeExploitation?.details_calcul?.produits_exploitation)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Charges d'exploitation</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(margeExploitation.value?.details_calcul?.charges_exploitation)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.margeExploitation?.details_calcul?.charges_exploitation)}
+              </td>
+            </tr>
+            
+            <tr>
+              <td style="padding: 12px; border: 1px solid #dee2e6;">Resultat d'exploitation</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(margeExploitation.value?.details_calcul?.resultat_exploitation)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6;">
+                ${formatMoney(previousYearData.value.margeExploitation?.details_calcul?.resultat_exploitation)}
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr style="background-color: #f1f3f4;">
+              <td style="padding: 12px; border: 1px solid #dee2e6; font-weight: bold;">Marge d'exploitation</td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6; font-weight: bold;">
+                ${formatPercentage(margeExploitation.value?.marge_exploitation?.valeur)}
+              </td>
+              <td style="padding: 12px; text-align: right; border: 1px solid #dee2e6; font-weight: bold;">
+                ${formatPercentage(previousYearData.value.margeExploitation?.marge_exploitation?.valeur)}
+              </td>
+            </tr>
+            <tr>
+              <td colspan="3" style="padding: 12px; border: 1px solid #dee2e6; font-style: italic;">
+                <strong>Formule :</strong> ${margeExploitation.value?.formule || "(Résultat d'exploitation / Produits d'exploitation) × 100"}
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+        
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e9ecef; color: #6c757d; font-size: 12px; text-align: center;">
+          <p>--- Fin du rapport ---</p>
+          <p>Document généré automatiquement par le système de gestion financière.</p>
+        </div>
+      </div>
+    </div>
+  `;
+};
 
+// Fonction pour générer et télécharger le PDF
+const generatePDF = () => {
+  if (loading.value) {
+    alert('Veuillez attendre le chargement des données...');
+    return;
+  }
+
+  const content = generatePDFContent();
+  
+  const element = document.createElement('div');
+  element.innerHTML = content;
+  document.body.appendChild(element);
+
+  const options = {
+    margin: [15, 15, 15, 15],
+    filename: `rapport-indicateurs-generaux-${exercice.value?.Annee_fiscale || 'non-specifie'}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 2,
+      useCORS: true,
+      letterRendering: true
+    },
+    jsPDF: { 
+      unit: 'mm', 
+      format: 'a4', 
+      orientation: 'portrait' 
+    }
+  };
+
+  html2pdf()
+    .set(options)
+    .from(element)
+    .save()
+    .finally(() => {
+      document.body.removeChild(element);
+    });
+};
+
+// Fonction pour gérer l'export PDF
+const handleExport = () => {
+  generatePDF();
+};
 </script>
 <template>
   <PageAnalyse :menu="'Indicateurs & ratios'" :sousmenu="'Indicateurs généraux'">
@@ -418,7 +902,10 @@ const handleRefresh = () => {
             <Card :texte="'Total des dépenses'" :chiffre="parseInt(totalCharges?.total_charges?.valeur)"
               :format="'money'" :icon="'bi bi-arrow-down-circle'" :icon-color="'red'"
               :variation="getTrendIcon(comparisons.charges) + ' ' + comparisons.charges.percentage"
-              :colorVariation="getTrendClass(comparisons.charges)" />
+              :colorVariation="getTrendClass(comparisons.charges)" 
+              :reverse = true
+              />
+              
           </div>
           <div class="hauteur">
 
@@ -448,7 +935,7 @@ const handleRefresh = () => {
             <Texte :type="'bold-dark'" :texte="'Vue et évolution des indicateurs'" />
           <Texte :type="'dark'" :texte="'Montants en Ariary (Ar).'" />
           </div>
-          <div class="iconbtn">
+          <div class="iconbtn" @click="handleExport">
                   <i class="bi bi-file-earmark-pdf-fill"></i>
           </div>
         </div>
@@ -502,11 +989,11 @@ const handleRefresh = () => {
                 <td class="col">
                   {{ formatMoney(previousYearData.totalCharges?.total_charges?.valeur) }}
                 </td>
-                <td :class="['evolution', getTrendClass(comparisons.charges)]">
+                <td :class="['evolution', getTrendClass(comparisons.charges)+'-reverse']">
                   <span class="trend-icon">{{ getTrendIcon(comparisons.charges) }}</span>
                   {{ comparisons.charges?.hasData ? formatMoney(comparisons.charges.evolution) : 'N/A' }}
                 </td>
-                <td :class="['percentage', getTrendClass(comparisons.charges)]">
+                <td :class="['percentage', getTrendClass(comparisons.charges)+'-reverse']">
                   {{ comparisons.charges?.hasData ? `${comparisons.charges.percentage}%` : 'N/A' }}
                 </td>
                 <td>
@@ -919,6 +1406,16 @@ const handleRefresh = () => {
 }
 
 .trend-down {
+  color: #dc3545;
+  //   background-color: rgba(220, 53, 69, 0.1);
+}
+
+.trend-down-reverse {
+  color: #28a745;
+  //   background-color: rgba(40, 167, 69, 0.1);
+}
+
+.trend-up-reverse {
   color: #dc3545;
   //   background-color: rgba(220, 53, 69, 0.1);
 }

@@ -21,7 +21,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       unreadCount.value = Math.max(0, unreadCount.value - 1)
     }
     try {
-      await axios.post(`http://localhost:8000/api/${notificationId}/marquer-lue`)
+      await axios.post(`http://localhost:8000/api/${notificationId}/read`)
       notification.statut = 'lu'
       notification.lu_a = new Date().toISOString()
       unreadCount.value = Math.max(0, unreadCount.value - 1)

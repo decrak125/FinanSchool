@@ -47,7 +47,7 @@ const formatMoney = (value) => {
     style: 'currency',
     currency: 'MGA',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 2
   }).format(value);
 };
 
@@ -83,6 +83,7 @@ const updateInterpretationCards = () => {
 
   interpretationCardsData.value = [
     {
+      valeur: formatPercentage(AutonomieFinanciere.value?.autonomie_financiere?.valeur),
       texte: "Autonomie financière",
       chiffre: formatPercentage(comparisons.value.Autonomie.evolution),
       icon: getTrendIcon(comparisons.value?.Autonomie),
@@ -92,6 +93,7 @@ const updateInterpretationCards = () => {
       format: 'percentage'
     },
     {
+      valeur: formatPercentage(CapaciteRemboursement.value?.capacite_remboursement?.valeur),
       texte: "Capacité de remboursement",
       chiffre: comparisons.value.Remboursement.evolution,
       icon: getTrendIcon(comparisons.value?.Remboursement),
@@ -101,6 +103,7 @@ const updateInterpretationCards = () => {
       format: 'number'
     },
     {
+      valeur: formatPercentage(RatioEndettement.value?.ratio_endettement?.valeur),
       texte: "Ratio d'endettement",
       chiffre: formatPercentage(comparisons.value.Endettement.evolution),
       icon: getTrendIcon(comparisons.value?.Endettement),

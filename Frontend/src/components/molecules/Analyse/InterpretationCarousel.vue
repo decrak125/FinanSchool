@@ -22,6 +22,7 @@
       >
         <InterpretationCard
           v-for="(card, index) in cards"
+          :valeur="card.valeur"
           :key="index"
           :texte="card.texte"
           :chiffre="card.chiffre"
@@ -33,6 +34,7 @@
           :variation="card.variation"
           :colorVariation="card.colorVariation"
           :interpretation="card.interpretation"
+          :reverse="card.reverse"
           class="carousel-card"
           :class="{ active: currentIndex === index }"
         />

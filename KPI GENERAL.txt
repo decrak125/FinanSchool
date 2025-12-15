@@ -1,0 +1,92 @@
+Aspect general :
+    - TOTAL DES PRODUITS
+{
+    "success": true,
+    "total_produits": {
+        "valeur": 19920000,
+        "definition": "Tous les revenus de l'école"
+    },
+    "details_comptes": {
+        "chiffre_affaires": 19920000,
+        "produits_exploitation": 0,
+        "produits_financiers": 0,
+        "produits_exceptionnels": 0,
+        "reprises_provisions": 0
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    }
+}
+    - TOTAL DES CHARGES
+{
+    "success": true,
+    "total_charges": {
+        "valeur": 12417100,
+        "definition": "Ensemble des dépenses"
+    },
+    "details_comptes": {
+        "achats_consommes": 5457100,
+        "services_exterieurs": 0,
+        "charges_personnel": 6960000,
+        "autres_charges_exploitation": 0,
+        "dotations_amortissements": 0,
+        "charges_financieres": 0,
+        "charges_exceptionnelles": 0
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    }
+}
+    - RESULTAT NET
+{
+    "success": true,
+    "resultat_net": {
+        "valeur": 7502900,
+        "interpretation": "Bénéfice de l'exercice",
+        "niveau_alerte": {
+            "id_niveau_alerte": 3,
+            "libelle": "Bon",
+            "couleur": "#01CC00"
+        },
+        "definition": "Bénéfice ou perte de l'exercice"
+    },
+    "details_calcul": {
+        "total_produits": 19920000,
+        "total_charges": 12417100
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "formule": "Produits – Charges"
+}
+    - MARGE D'EXPLOITATION
+{
+    "success": true,
+    "marge_exploitation": {
+        "valeur": 37.67,
+        "unite": "%",
+        "interpretation": "Excellente santé financière - Forte rentabilité",
+        "niveau_alerte": {
+            "id_niveau_alerte": 3,
+            "libelle": "Bon",
+            "couleur": "#01CC00"
+        }
+    },
+    "details_calcul": {
+        "produits_exploitation": 19920000,
+        "charges_exploitation": 12417100,
+        "resultat_exploitation": 7502900
+    },
+    "periode": {
+        "date_debut": "2025-01-01",
+        "date_fin": "2025-12-31"
+    },
+    "description": "Capacité de l'école à dégager une marge sur son activité.",
+    "formule": "(Produits d'exploitation – Charges d'exploitation) / Produits d'exploitation × 100"
+}
+
+
+    

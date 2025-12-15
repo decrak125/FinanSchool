@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import SidebarMenu from '@/components/atoms/sidebar-menu.vue';
 import {useAuth} from "@/composables/useAuth.js";
 
@@ -16,6 +16,34 @@ defineProps({
 });
 const cliqued = ref(false);
 
+// Fonction pour obtenir les initiales de l'utilisateur
+const getUserInitials = computed(() => {
+    if (!user.value?.name) return '?';
+    
+    const nameParts = user.value.name.trim().split(' ');
+    if (nameParts.length === 1) {
+        return nameParts[0].charAt(0).toUpperCase();
+    } else {
+        return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+    }
+});
+
+// Fonction pour générer une couleur basée sur le nom de l'utilisateur
+const getAvatarColor = computed(() => {
+    if (!user.value?.name) return '#4f46e5'; // Couleur par défaut
+    
+    const colors = [
+        '#4f46e5', '#0ea5e9', '#10b981', '#f59e0b', 
+        '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'
+    ];
+    
+    let hash = 0;
+    for (let i = 0; i < user.value.name.length; i++) {
+        hash = user.value.name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    return colors[Math.abs(hash) % colors.length];
+});
 </script>
 <template>
     <div class="containersolo" @click="cliqued = !cliqued">
@@ -30,12 +58,18 @@ const cliqued = ref(false);
                 {{ user?.name }}
             </p>
         </div>
-        <img src="@/assets/img/pp.jpg" alt="" class="avatarsolo" />
+        <!-- Avatar avec initiales -->
+        <div class="avatar-initials" :style="{ backgroundColor: getAvatarColor }">
+            {{ getUserInitials }}
+        </div>
     </div>
     <transition name="fade">
         <div class="pop" v-if="cliqued">
         <div class="container">
-            <img src="@/assets/img/pp.jpg" alt="" class="avatar" />
+            <!-- Avatar avec initiales dans le popup -->
+            <div class="avatar-initials large" :style="{ backgroundColor: getAvatarColor }">
+                {{ getUserInitials }}
+            </div>
             <div class="info">
                 <p class="nom">
                     {{ user?.name }}
@@ -48,7 +82,7 @@ const cliqued = ref(false);
         </div>
         <hr>
             <div class="log">
-                <SidebarMenu :texte="'Se déconnecter'" :icon="'bi bi-door-closed-fill'" :redirection="'/'"
+                <SidebarMenu :texte="'Se déconnecter'" :icon="'bi bi-door-closed-fill'" :redirection="'/'" 
                     @click="logout" />
             </div>
     </div>
@@ -59,11 +93,11 @@ const cliqued = ref(false);
     position: absolute;
     display: block;
     flex-direction: column;
-    top: 100px;
+    top: 80px;
     right: 24px;
     @include glass();
+    background-color: #fff;
     padding: 12px 32px;
-    // border: 1px solid #dbdbdb;
     border-radius: $radius-pm;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     z-index: 1000;
@@ -73,16 +107,12 @@ const cliqued = ref(false);
     @include glass();
     cursor: pointer;
     display: inline-flex;
-    // height: 54px;
     padding: 0 12px;
-    // background-color: #ffff;
     justify-content: flex-end;
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
-    // border: 1px solid #dbdbdb;
     border-radius: $radius-pm;
-
 }
 
 .container {
@@ -92,29 +122,40 @@ const cliqued = ref(false);
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
-
 }
 
 .info {
-    // background-color: #ce6d6d;
+    cursor: pointer;
     display: flex;
     height: 100%;
-    // padding: 9px 0;
     flex-direction: column;
     justify-content: center;
     align-items: flex-start;
     align-self: stretch;
 }
 
-.avatarsolo {
+// Avatar avec initiales (petit)
+.avatar-initials {
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background-color: #dbdbdb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: Stara;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    
+    &.large {
+        width: 48px;
+        height: 48px;
+        font-size: 18px;
+    }
 }
 
 .nomsolo {
-    // margin-top: 0;
     font-family: Stara;
     font-size: 14px;
     font-style: normal;
@@ -124,7 +165,6 @@ const cliqued = ref(false);
 }
 
 .nom {
-    // margin-top: 0;
     margin-bottom: 0;
     font-family: Stara;
     font-size: 14px;
@@ -136,20 +176,12 @@ const cliqued = ref(false);
 
 .role {
     margin-top: 0;
-    // margin-bottom: 100px;
     color: #575757;
     font-family: Stara;
     font-size: 12px;
     font-style: normal;
     font-weight: 600;
     line-height: normal;
-}
-
-.avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: #dbdbdb;
 }
 
 .fade-enter-active,

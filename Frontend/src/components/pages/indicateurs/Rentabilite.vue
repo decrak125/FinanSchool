@@ -10,7 +10,7 @@ import LoadingText from "@/components/atoms/Loading-text.vue";
 import PopUp from "@/components/molecules/Analyse/Pop-up.vue";
 import BoutonIcon from "@/components/atoms/Bouton-icon.vue";
 import InterpretationCarousel from "@/components/molecules/Analyse/InterpretationCarousel.vue";
-
+import { useExportPDF } from "@/composables/useExportPDF";
 
 const nombreLignesLoader = 5;
 
@@ -41,7 +41,8 @@ const {
   changeExercice
 } = useIndicateurRentabilite(filters);
 
-
+// Initialisez le composable d'export PDF
+const { exportRentabilitePDF } = useExportPDF();
 
 // Formater les valeurs monétaires
 const formatMoney = (value) => {
@@ -50,7 +51,7 @@ const formatMoney = (value) => {
     style: 'currency',
     currency: 'MGA',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 2
   }).format(value);
 };
 
@@ -88,6 +89,7 @@ const updateInterpretationCards = () => {
 
   interpretationCardsData.value = [
     {
+      valeur: formatPercentage(MargeBrute.value?.marge_brute?.valeur),
       texte: "Marge brute",
       chiffre: formatPercentage(comparisons.value.brute.evolution),
       icon: getTrendIcon(comparisons.value?.brute),
@@ -97,6 +99,7 @@ const updateInterpretationCards = () => {
       format: 'percentage'
     },
     {
+      valeur: formatPercentage(MargeNette.value?.marge_nette?.valeur),
       texte: "Marge nette",
       chiffre: formatPercentage(comparisons.value.nette.evolution),
       icon: getTrendIcon(comparisons.value?.nette),
@@ -106,6 +109,7 @@ const updateInterpretationCards = () => {
       format: 'percentage'
     },
     {
+      valeur: formatPercentage(ROE.value?.roe?.valeur),
       texte: "ROE",
       chiffre: formatPercentage(comparisons.value.ROE.evolution),
       icon: getTrendIcon(comparisons.value?.ROE),
@@ -116,6 +120,7 @@ const updateInterpretationCards = () => {
       negative: true
     },
     {
+      valeur: formatPercentage(ROA.value?.roa?.valeur),
       texte: "ROA",
       chiffre: formatPercentage(comparisons.value.ROA.evolution),
       icon: getTrendIcon(comparisons.value?.ROA),
@@ -157,7 +162,19 @@ const handleRefresh = () => {
   updateInterpretationCards();
 };
 
-
+const handleExportPDF = () => {
+  const data = {
+    exercice: exercice.value,
+    MargeBrute: MargeBrute.value,
+    MargeNette: MargeNette.value,
+    ROE: ROE.value,
+    ROA: ROA.value,
+    previousYearData: previousYearData.value,
+    comparisons: comparisons.value
+  };
+  
+  exportRentabilitePDF(data, loading.value);
+};
 </script>
 
 <template>
@@ -438,7 +455,7 @@ const handleRefresh = () => {
             <Texte :type="'bold-dark'" :texte="'Vue et évolution des indicateurs'" />
           <Texte :type="'dark'" :texte="'Montants en Ariary (Ar).'" />
           </div>
-          <div class="iconbtn">
+          <div class="iconbtn" @click="handleExportPDF">
                   <i class="bi bi-file-earmark-pdf-fill"></i>
           </div>
         </div>

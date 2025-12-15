@@ -132,7 +132,7 @@ class ChatController extends Controller
             return "Désolé, une erreur s'est produite lors de l'accès aux données financières.";
         }
     }
-        
+
     return "Je suis votre assistant financier pour établissements scolaires. Actuellement en cours de configuration, je pourrai bientôt vous aider avec :\n\n• 📊 Analyse des budgets\n• 📈 Suivi des dépenses  \n• 🎓 Indicateurs par élève\n• ⚖️ Équilibre financier\n\nPosez-moi une question simple pour tester !";
 }
 private function containsNormalized($haystack, $needles)

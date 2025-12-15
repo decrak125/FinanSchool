@@ -40,7 +40,7 @@ const formatMoney = (value) => {
   if (value === null || value === undefined) return '';
   return new Intl.NumberFormat('mg-MG', {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0
+    maximumFractionDigits: 2
   }).format(value);
 };
 
@@ -71,7 +71,8 @@ const updateInterpretationCards = () => {
   console.log('Updating carousel data pédagogique pour l\'année:', props.annee);
 
   interpretationCardsData.value = [
-    {
+    { 
+      valeur: formatMoney(coutFonctionnement.value?.cout_fonctionnement_par_eleve?.valeur),
       texte: "Coût par élève",
       chiffre: comparisons.value.coutFonctionnement?.hasData ? 
                formatMoney(comparisons.value.coutFonctionnement.evolution) : 'N/A',
@@ -83,6 +84,7 @@ const updateInterpretationCards = () => {
       format: 'money'
     },
     {
+      valeur: formatMoney(chiffreAffaires.value?.chiffre_affaires_par_eleve?.valeur),
       texte: "CA par élève",
       chiffre: comparisons.value.chiffreAffaires?.hasData ? 
                formatMoney(comparisons.value.chiffreAffaires.evolution) : 'N/A',
@@ -94,6 +96,7 @@ const updateInterpretationCards = () => {
       format: 'money'
     },
     {
+      valeur: formatPercentage(partMasseSalariale.value?.part_masse_salariale_enseignante?.valeur),
       texte: "Part masse salariale",
       chiffre: comparisons.value.partMasseSalariale?.hasData ? 
                formatPercentage(comparisons.value.partMasseSalariale.evolution) : 'N/A',
@@ -105,6 +108,7 @@ const updateInterpretationCards = () => {
       format: 'percentage'
     },
     {
+      valeur: formatMoney(margeParEleve.value?.marge_par_eleve?.valeur),
       texte: "Marge par élève",
       chiffre: comparisons.value.margeParEleve?.hasData ? 
                formatMoney(comparisons.value.margeParEleve.evolution) : 'N/A',

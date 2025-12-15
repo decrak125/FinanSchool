@@ -91,10 +91,10 @@ export default {
   <div class="main">
     <div class="window">
       <div class="gauche">
-        <img src="../../../assets/img/Dribble.jpg" alt="">
+        <img src="../../../assets/img/Dribble.jpg">
       </div>
       <div class="droite">
-        <img class="logo" src="../../../assets/img/01Raitra kidz 300px.png" alt="">
+        <img class="logo" src="../../../assets/img/01Raitra kidz 300px.png">
         <Texte type="dark" texte="Connectez-vous !" />
         <form @submit.prevent="handleLogin">
           <Input :placeholder="'Email'" :type="'email'" v-model="email" :required="'true'" />
@@ -157,7 +157,13 @@ export default {
 }
 
 .gauche {
+  // background-color: #9e6060;
+  height: fit-content;
+  padding: 0;
+  margin: 0;
   img {
+    padding: 0;
+    margin: 0;
     @include glass();
     border-radius: $radius-pm;
   }

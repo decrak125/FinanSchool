@@ -27,15 +27,15 @@ defineProps({
 
   .button-input {
     cursor: pointer;
-      @include bouton($primary, $light, $radius-pm, $stara-medium, 270px);
+      @include bouton($primary, $light, $radius-pm, $stara-medium, 250px);
       transition: all 0.5s ease-in-out;
   }
   .button-input:hover {
-    @include bouton($secondary, $light, $radius-pm, $stara-medium, 270px);
+    @include bouton($secondary, $light, $radius-pm, $stara-medium, 250px);
   }
   .button-transparent {
     cursor: pointer;
-      @include bouton(transparent, $light, $radius-pm, $stara-medium, 270px);
+      @include bouton(transparent, $light, $radius-pm, $stara-medium, 250px);
       transition: all 0.5s ease-in-out;
       .bar{
         background-color: rgb(37, 38, 73);

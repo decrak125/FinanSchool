@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import Texte from '../Texte.vue';
 defineProps({
+    valeur: String,
     texte: String,
     chiffre: { type: [Number, String] },
     icon: String,
@@ -11,7 +12,8 @@ defineProps({
     loading: { type: Boolean, default: false },
     variation: String,
     colorVariation: String,
-    interpretation: String
+    interpretation: String,
+    reverse: {type: Boolean, default: false}
 })
 function unite(f) {
     if (f) {
@@ -32,11 +34,12 @@ function unite(f) {
           <Texte v-if="parseFloat(chiffre) > 0" :texte="'+'" :type="'title-dark'"/>
           <Texte :texte="chiffre" :type="'title-dark'"/>
           <Texte v-if="format === 'money'" :texte="'Ar'" :type="'black-dark'"/>
-            <p :class="colorVariation">{{ icon }}</p>
+            <p :class="colorVariation" v-if="!reverse">{{ icon }}</p>
+            <p :class="colorVariation + '-reverse'" v-if="reverse">{{ icon }}</p>
         </div>
         
-        <Texte :texte="interpretation+
-        '. Une évolution de ' +chiffre + unite(format) + ' et une variation de '+variation+'% '
+        <Texte :texte="'Avec une valeur de ' + valeur+unite(format) + ', ' + interpretation +
+        ', marqué par une évolution de ' +chiffre + unite(format) + ' soit une variation de '+variation+'% '
         " :type="'dark'"/>
     </div>
 </template>
@@ -127,6 +130,26 @@ function unite(f) {
 }
 
 .trend-down {
+  color: $rouge;
+  font-family: $stara-bold;
+  font-size: 48px;
+  font-style: normal;
+  line-height: normal;
+  margin: 5px 0px;
+}
+
+.trend-down-reverse {
+  color: $vert;
+  font-family: $stara-bold;
+  font-size: 48px;
+  font-style: normal;
+  line-height: normal;
+  margin: 5px 0px;
+  padding: 0 5px ;
+  border-radius: $radius-pm;
+}
+
+.trend-up-reverse {
   color: $rouge;
   font-family: $stara-bold;
   font-size: 48px;

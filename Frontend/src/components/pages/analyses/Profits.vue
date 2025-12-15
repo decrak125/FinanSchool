@@ -78,7 +78,7 @@ const centresChartData = computed(() => ({
 const affectationsChartData = computed(() => ({
   data: affectationsFiltrees.value.map(a => parseFloat(a.montant_ventile) || 0),
   labels: affectationsFiltrees.value.map(a => a.libelle_sous_compte || a.affectation_description || a.centre),
-  title: selectedCentre.value ? `Détails ventilés - ${selectedCentre.value}` : 'Détails des affectations ventilées'
+  title: selectedCentre.value ? `Détails - ${selectedCentre.value}` : 'Détails des affectations ventilées'
 }));
 
 // const sousComptesChartData = computed(() => ({
