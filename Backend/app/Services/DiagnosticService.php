@@ -68,28 +68,65 @@ private $aspectWeights = [
      * NOUVELLE VERSION : Utilise le contrôleur unifié
      */
     private function calculerDiagnosticV2($dateDebut, $dateFin)
-    {
-        try {
-            // Appeler le contrôleur unifié
-            $controller = app(\App\Http\Controllers\Analyse\DiagnosticControllerUnifie::class);
-            $request = new \Illuminate\Http\Request([
+{
+    try {
+        // Appeler le contrôleur unifié
+        $controller = app(\App\Http\Controllers\Analyse\DiagnosticControllerUnifie::class);
+        $request = new \Illuminate\Http\Request([
+            'date_debut' => $dateDebut,
+            'date_fin' => $dateFin
+        ]);
+        
+        // CORRECTION : Utiliser getDashboardComplet() au lieu de getTousIndicateurs()
+        $response = $controller->getDashboardComplet($request); // <-- CHANGÉ ICI
+        $data = json_decode($response->getContent(), true);
+        
+        if (!$data['success']) {
+            throw new \Exception("Erreur dans la collecte des indicateurs");
+        }
+        
+        return $this->analyserAspects($data['aspects']);
+        
+    } catch (\Exception $e) {
+        return $this->getDiagnosticErreur($e->getMessage(), $dateDebut, $dateFin);
+    }
+}
+
+private function calculerDiagnosticV2Json($dateDebut, $dateFin)
+{
+    try {
+        \Log::info("DiagnosticService::calculerDiagnosticV2 - Début avec dates: {$dateDebut} à {$dateFin}");
+        
+        // Option 1: Appeler via une requête HTTP (simuler un appel API)
+        $url = url('/api/diagnostic/dashboard-complet');
+        $client = new \GuzzleHttp\Client();
+        
+        $response = $client->post($url, [
+            'form_params' => [
                 'date_debut' => $dateDebut,
                 'date_fin' => $dateFin
-            ]);
-            
-            $response = $controller->getTousIndicateurs($request);
-            $data = json_decode($response->getContent(), true);
-            
-            if (!$data['success']) {
-                throw new \Exception("Erreur dans la collecte des indicateurs");
-            }
-            
-            return $this->analyserAspects($data['aspects']);
-            
-        } catch (\Exception $e) {
-            return $this->getDiagnosticErreur($e->getMessage(), $dateDebut, $dateFin);
+            ],
+            'headers' => [
+                'Accept' => 'application/json',
+            ]
+        ]);
+        
+        $data = json_decode($response->getBody()->getContents(), true);
+        
+        \Log::info("DiagnosticService::calculerDiagnosticV2 - Données reçues, success: " . ($data['success'] ?? 'non défini'));
+        
+        if (!$data['success']) {
+            throw new \Exception("Erreur dans la collecte des indicateurs: " . ($data['error'] ?? 'inconnue'));
         }
+        
+        return $this->analyserAspects($data['aspects']);
+        
+    } catch (\Exception $e) {
+        \Log::error("DiagnosticService::calculerDiagnosticV2 - Erreur: " . $e->getMessage());
+        
+        return $this->getDiagnosticErreur($e->getMessage(), $dateDebut, $dateFin);
     }
+}
 
     private function analyserAspects($aspectsData)
     {

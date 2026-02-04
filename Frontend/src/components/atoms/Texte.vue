@@ -234,11 +234,11 @@ defineProps({
     @include title-xl($stara-medium, $dark);
     
     @media (max-width: 1024px) {
-        font-size: 72px;
+        font-size: 68px;
     }
     
     @media (max-width: 768px) {
-        font-size: 48px;
+        font-size: 42px;
     }
     
     @media (max-width: 480px) {

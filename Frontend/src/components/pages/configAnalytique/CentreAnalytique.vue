@@ -113,10 +113,10 @@ const filteredCount = computed(() => {
             </div>
             <div class="droite">
               <div>
-                <Select v-model="form.id_axe"  :placeholder="'Axe analytique'" hidden>
+                <!-- <Select v-model="form.id_axe"  :placeholder="'Axe analytique'" hidden>
                   <option value="2" :key="2">Choisir un axe</option>
                   <option v-for="axe in axes" :key="axe.id_axe" :value="axe.id_axe">{{ axe.axe }}</option>
-                </Select>
+                </Select> -->
               </div>
               <!-- <div>
               <Select v-model="form.id_type" :label="'Type de centre'">

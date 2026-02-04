@@ -53,6 +53,7 @@ sous_compte;centre;code_type;taux;description;code_analytique
 617003;Fonctionnement;charge;100;Contrat entreprise de sécurité;SEC01
 618001;Administratif;charge;100;Abonnement revues professionnelles;COM01
 619001;Fonctionnement;charge;100;Remises sur entretien et gardiennage;CLEAN1
+621001;Personnel;charge;100;Eau;SAL02
 622001;Personnel;charge;100;Salaires personnel administratif;SAL02
 622002;Personnel;charge;100;Indemnités personnel administratif;SAL02
 623001;Administratif;charge;100;Publicité institutionnelle;COM01
@@ -119,7 +120,6 @@ sous_compte;centre;code_type;taux;description;code_analytique
 215002;Investissements;charge;100;Materiel pedagogique;CAP02
 218001;Investissements;charge;100;Mobilier scolaire;CAP02
 218002;Investissements;charge;100;Vehicules de transport scolaire;CAP02
-531001;Financier;charge;100;Caisse générale;BAN01
 701001;Pédagogie;produit;100;Ventes de manuels scolaires produits en interne;ACT01
 701002;Pédagogie;produit;100;Ventes de cahiers personnalises ecole;ACT01
 701003;Pédagogie;produit;100;Ventes de uniformes scolaires fabriques;ACT01

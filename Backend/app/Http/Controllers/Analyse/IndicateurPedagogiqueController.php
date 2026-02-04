@@ -147,7 +147,7 @@ class IndicateurPedagogiqueController extends Controller
         $coutParEleve = $chargesExploitation / $effectifEleves;
 
         // Récupérer l'interprétation depuis la table
-        $interpretationData = $this->getInterpretation('Coût de Fonctionnement par élève', $coutParEleve);
+        $interpretationData = $this->getInterpretation('Coût par élève', $coutParEleve);
 
         return response()->json([
             'success' => true,
@@ -209,7 +209,7 @@ class IndicateurPedagogiqueController extends Controller
         $caParEleve = $produitsExploitation / $effectifEleves;
 
         // Récupérer l'interprétation depuis la table
-        $interpretationData = $this->getInterpretation('Chiffre d\'Affaires par élève', $caParEleve);
+        $interpretationData = $this->getInterpretation('CA par élève', $caParEleve);
 
         return response()->json([
             'success' => true,
@@ -334,7 +334,7 @@ public function calculPartMasseSalarialeEnseignante(Request $request)
     }
 
     // Récupérer l'interprétation depuis la table
-    $interpretationData = $this->getInterpretation('Part de la Masse Salariale Enseignante', $partMasseSalariale);
+    $interpretationData = $this->getInterpretation('Part de la masse salariale', $partMasseSalariale);
 
     return response()->json([
         'success' => true,
@@ -388,9 +388,9 @@ public function calculPartMasseSalarialeEnseignante(Request $request)
         $margeParEleve = $this->calculMargeParEleveDirect($dateDebut, $dateFin, $effectifEleves);
 
         // Récupérer les interprétations
-        $interpretationCout = $this->getInterpretation('Coût de Fonctionnement par élève', $coutFonctionnement);
-        $interpretationCA = $this->getInterpretation('Chiffre d\'Affaires par élève', $chiffreAffaires);
-        $interpretationMasse = $this->getInterpretation('Part de la Masse Salariale Enseignante', $partMasseSalariale);
+        $interpretationCout = $this->getInterpretation('Coût par élève', $coutFonctionnement);
+        $interpretationCA = $this->getInterpretation('CA par élève', $chiffreAffaires);
+        $interpretationMasse = $this->getInterpretation('Part de la masse salariale', $partMasseSalariale);
         $interpretationMarge = $this->getInterpretation('Marge par élève', $margeParEleve);
 
         return response()->json([

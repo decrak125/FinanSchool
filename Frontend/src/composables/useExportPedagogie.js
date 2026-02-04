@@ -122,6 +122,7 @@ export const useExportPedagogie = () => {
                 </tr>
               </tbody>
             </table>
+            
           </div>
           
         </div>
@@ -185,6 +186,8 @@ export const useExportPedagogie = () => {
               </tr>
             </tfoot>
           </table>
+          <p>Interpretations ${currentYear} : ${coutFonctionnement?.cout_fonctionnement_par_eleve?.interpretation}</p>
+          <p>Interpretations ${previousYear} : ${previousYearData?.coutFonctionnement?.cout_fonctionnement_par_eleve?.interpretation}</p>
         </div>
         
         <!-- Page 3: Détails du CA par élève -->
@@ -246,6 +249,8 @@ export const useExportPedagogie = () => {
               </tr>
             </tfoot>
           </table>
+          <p>Interpretations ${currentYear} : ${chiffreAffaires?.chiffre_affaires_par_eleve?.interpretation}</p>
+          <p>Interpretations ${previousYear} : ${previousYearData?.chiffreAffaires?.chiffre_affaires_par_eleve?.interpretation}</p>
         </div>
         
         <!-- Page 4: Détails de la part masse salariale -->
@@ -307,6 +312,8 @@ export const useExportPedagogie = () => {
               </tr>
             </tfoot>
           </table>
+          <p>Interpretations ${currentYear} : ${partMasseSalariale?.part_masse_salariale_enseignante?.interpretation}</p>
+          <p>Interpretations ${previousYear} : ${previousYearData?.partMasseSalariale?.part_masse_salariale_enseignante?.interpretation}</p>
         </div>
         
         <!-- Page 5: Détails de la marge par élève -->
@@ -368,11 +375,9 @@ export const useExportPedagogie = () => {
               </tr>
             </tfoot>
           </table>
-          
-          <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e9ecef; color: #6c757d; font-size: 12px; text-align: center;">
-            <p>--- Fin du rapport pédagogique ---</p>
-            <p>Document généré automatiquement par le système de gestion pédagogique.</p>
-          </div>
+          <p>Interpretations ${currentYear} : ${margeParEleve?.marge_par_eleve?.interpretation}</p>
+            <p>Interpretations ${previousYear} : ${previousYearData?.margeParEleve?.marge_par_eleve?.interpretation}</p>
+
         </div>
       </div>
     `;

@@ -287,7 +287,7 @@ class IndicateurRentabiliteController extends Controller
         $resultatNet = $resultatNet['structure'][29]['montant'];
 
         // CAPITAUX PROPRES (Comptes 100-149)
-        $capitauxPropres = $bilanPassif['structure'][7]['montant'];
+        $capitauxPropres = $bilanPassif['structure'][11]['montant'];
 
         // CALCUL DU ROE
         $roe = 0;

@@ -169,7 +169,7 @@ const filteredCount = computed(() => {
               <!-- Message si aucun résultat -->
               <tr v-if="!loading && filteredCodes.length === 0">
                 <td colspan="4" class="no-results text-center py-8 text-gray-500">
-                  Aucun code ne correspond aux critères de recherche.
+                  Aucun code analytique disponible.
                 </td>
               </tr>
               <tr v-if="loading" v-for="n in nombreLignesLoader" :key="'loader-' + n">
@@ -311,6 +311,8 @@ const filteredCount = computed(() => {
 }
 
 .no-results {
+  font-size: 16px;
+  font-family: $stara-medium;
   text-align: center;
   padding: 40px !important;
 }

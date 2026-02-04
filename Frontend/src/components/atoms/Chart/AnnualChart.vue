@@ -229,7 +229,8 @@ const chartOptions = computed(() => {
       show: true,
       position: 'top',
       horizontalAlign: 'left',
-      fontFamily: 'stara',
+      fontFamily: 'ninetea',
+      fontWeight: '800',
       
       markers: {
         width: 12,

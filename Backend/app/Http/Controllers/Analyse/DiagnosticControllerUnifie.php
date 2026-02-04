@@ -27,7 +27,7 @@ class DiagnosticControllerUnifie extends Controller
             return $this->collecterDashboardComplet($dateDebut, $dateFin);
         });
     }
-    
+
     private function collecterDashboardComplet($dateDebut, $dateFin)
     {
         $resultats = [
@@ -206,5 +206,64 @@ class DiagnosticControllerUnifie extends Controller
         } catch (\Exception $e) {
             return $dateString; // La validation s'en occupera
         }
+    }
+
+// LOCAL ---------------------------------------------------------- LOCAL
+
+        public function getDashboardCompletLocal($dateDebut, $dateFin)
+    {
+        // $request->validate([
+        //     'date_debut' => 'required|date',
+        //     'date_fin' => 'required|date|after_or_equal:date_debut'
+        // ]);
+
+        // $dateDebut = $this->formatDate($request->date_debut);
+        // $dateFin = $this->formatDate($request->date_fin);
+        
+        // Appel direct de la méthode sans cache
+        return $this->collecterDashboardComplet($dateDebut, $dateFin);
+    }
+
+    // Ou si vous voulez explicitement retourner un tableau :
+    public function getDashboardCompletLocalVersion2(Request $request): array
+    {
+        $request->validate([
+            'date_debut' => 'required|date',
+            'date_fin' => 'required|date|after_or_equal:date_debut'
+        ]);
+
+        $dateDebut = $this->formatDate($request->date_debut);
+        $dateFin = $this->formatDate($request->date_fin);
+        
+        // Retour direct en tableau
+        return $this->collecterDashboardComplet($dateDebut, $dateFin);
+    }
+
+    // Version avec typage strict si vous utilisez PHP 8+
+    public function getDashboardCompletLocalVersion3(Request $request): array
+    {
+        $validated = $request->validate([
+            'date_debut' => 'required|date',
+            'date_fin' => 'required|date|after_or_equal:date_debut'
+        ]);
+
+        $dateDebut = $this->formatDate($validated['date_debut']);
+        $dateFin = $this->formatDate($validated['date_fin']);
+        
+        return $this->collecterDashboardComplet($dateDebut, $dateFin);
+    }
+
+    // Version simplifiée si vous n'avez pas besoin de formater les dates
+    public function getDashboardCompletLocalSimple(Request $request): array
+    {
+        $request->validate([
+            'date_debut' => 'required|date',
+            'date_fin' => 'required|date|after_or_equal:date_debut'
+        ]);
+        
+        return $this->collecterDashboardComplet(
+            $request->date_debut,
+            $request->date_fin
+        );
     }
 }

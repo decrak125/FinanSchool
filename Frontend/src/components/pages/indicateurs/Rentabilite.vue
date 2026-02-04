@@ -492,7 +492,7 @@ const handleExportPDF = () => {
                   {{ comparisons.brute?.hasData ? `${comparisons.brute.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsMargebrute = !detailsMargebrute" />
                 </td>
               </tr>
@@ -517,7 +517,7 @@ const handleExportPDF = () => {
                   {{ comparisons.nette?.hasData ? `${comparisons.nette.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsMargenette = !detailsMargenette" />
                 </td>
               </tr>
@@ -542,7 +542,7 @@ const handleExportPDF = () => {
                   {{ comparisons.ROE?.hasData ? `${comparisons.ROE.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsRoe = !detailsRoe" />
                 </td>
               </tr>
@@ -567,7 +567,7 @@ const handleExportPDF = () => {
                   {{ comparisons.ROA?.hasData ? `${comparisons.ROA.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsRoa = !detailsRoa" />
                 </td>
               </tr>

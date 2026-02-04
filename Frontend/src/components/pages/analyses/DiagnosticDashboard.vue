@@ -8,19 +8,11 @@
                     <p class="indicator">Analyse complète de la santé financière</p>
                 </div>
                 <div class="period-inputs">
-                    <input 
-        type="date" 
-        :value="dateDebut" 
-        class="date-input" 
-        @input="$emit('update:dateDebut', $event.target.value)"
-    />
-    <span class="separator">→</span>
-    <input 
-        type="date" 
-        :value="dateFin" 
-        class="date-input" 
-        @input="$emit('update:dateFin', $event.target.value)"
-    />
+                    <input type="date" :value="dateDebut" class="date-input"
+                        @input="$emit('update:dateDebut', $event.target.value)" />
+                    <span class="separator">→</span>
+                    <input type="date" :value="dateFin" class="date-input"
+                        @input="$emit('update:dateFin', $event.target.value)" />
                 </div>
             </div>
         </div>
@@ -70,17 +62,21 @@
 
                     
                 </div> -->
-                        <!-- <span class="total-label">Diagnostic</span> -->
+                <!-- <span class="total-label">Diagnostic</span> -->
                 <span class="total-value" :class="getDiagnosticClass(aspect.score)">
-                            {{ aspect.diagnostic }}
-            </span>
+                    {{ aspect.diagnostic }}
+                </span>
             </div>
-            
+
         </div>
 
         <!-- État de chargement -->
         <div v-else-if="loading" class="loading-state">
-            <div class="loader"></div>
+            <div class="loader">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
             <!-- <p>Calcul du diagnostic en cours...</p> -->
         </div>
 
@@ -93,7 +89,7 @@ import { ref, watch, onMounted } from 'vue';
 
 export default {
     name: 'DashboardFinancier',
-    
+
     props: {
         dateDebut: {
             type: String,
@@ -112,19 +108,19 @@ export default {
             }
         }
     },
-    
+
     setup(props) {
         const voir = ref(false);
         const dashboard = ref(null);
         const loading = ref(false);
         const error = ref(null);
-        
+
         // Fonction pour charger le dashboard
         const loadDashboard = async () => {
             loading.value = true;
             dashboard.value = null;
             error.value = null;
-            
+
             try {
                 // Importer dynamiquement le service
                 const DiagnosticService = await import('@/composables/diagnosticService');
@@ -139,7 +135,7 @@ export default {
                 loading.value = false;
             }
         };
-        
+
         // Formater une date au format fr-FR
         const formatDate = (dateStr) => {
             if (!dateStr) return '';
@@ -154,7 +150,7 @@ export default {
                 return dateStr;
             }
         };
-        
+
         // Formater une heure
         const formatTime = (dateStr) => {
             if (!dateStr) return '';
@@ -168,13 +164,13 @@ export default {
                 return '';
             }
         };
-        
+
         // Formater une valeur numérique
         const formatValue = (value) => {
             if (typeof value !== 'number') return value;
             return value.toFixed(2);
         };
-        
+
         // Interprétation du score global
         const getInterpretationScore = (score) => {
             if (score >= 80) return 'Excellente santé financière';
@@ -183,7 +179,7 @@ export default {
             if (score >= 20) return 'Situation financière fragile';
             return 'Situation financière critique';
         };
-        
+
         // Couleur du score
         const getScoreColor = (score) => {
             if (score >= 80) return '#4CAF50';
@@ -192,7 +188,7 @@ export default {
             if (score >= 20) return '#FF5722';
             return '#FE0000';
         };
-        
+
         // Classe CSS pour un KPI
         const getKpiClass = (kpi) => {
             if (!kpi?.niveau) return '';
@@ -202,20 +198,20 @@ export default {
             if (kpi.niveau === 'bon') {
                 return 'moyen';
             }
-            if (kpi.niveau === 'excellent' ) {
+            if (kpi.niveau === 'excellent') {
                 return 'positive';
             }
-            
+
             return '';
         };
-        
+
         // Classe CSS pour le diagnostic
         const getDiagnosticClass = (score) => {
             if (score >= 60) return 'positive';
             if (score >= 40) return 'moyen';
             return 'negative';
         };
-        
+
         // Formater une date pour input type="date"
         const formatDateForInput = (date) => {
             if (!date) return '';
@@ -226,7 +222,7 @@ export default {
                 return '';
             }
         };
-        
+
         // Observer les changements de props
         watch(
             () => [props.dateDebut, props.dateFin],
@@ -234,12 +230,12 @@ export default {
                 loadDashboard();
             }
         );
-        
+
         // Chargement initial
         onMounted(() => {
             loadDashboard();
         });
-        
+
         // Exposer les variables et méthodes au template
         return {
             voir,
@@ -260,20 +256,60 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-    .iconbtn{
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        @include popupglass();
-        cursor: pointer;
-        i{
-            color: $jaune;
-            font-size: 20px;
-        }
+.loader {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  justify-content: center;
+}
+
+.bar {
+  display: inline-block;
+  width: 3px;
+  height: 12px;
+  background-color: rgba(255, 255, 255, .5);
+  border-radius: 10px;
+  animation: scale-up4 1s linear infinite;
+}
+
+.bar:nth-child(2) {
+  height: 20px;
+  margin: 0 5px;
+  animation-delay: .25s;
+}
+
+.bar:nth-child(3) {
+  animation-delay: .5s;
+}
+
+@keyframes scale-up4 {
+  20% {
+    background-color: #ffff;
+    transform: scaleY(1);
+  }
+
+  40% {
+    transform: scaleY(0.5);
+  }
+}
+
+
+.iconbtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    @include popupglass();
+    cursor: pointer;
+
+    i {
+        color: $jaune;
+        font-size: 20px;
     }
+}
+
 .dashboard-container {
     @include popupglass();
     width: 100%;
@@ -452,9 +488,11 @@ export default {
     &.positive {
         color: $primary;
     }
+
     &.moyen {
         color: $jaune;
     }
+
     &.negative {
         color: $rouge;
     }
@@ -485,11 +523,15 @@ export default {
     font-family: $stara-bold;
     font-size: 12px;
     color: $dark;
-    
+
     // text-align: right;
 
     &.positive {
         color: $vert;
+    }
+
+    &.moyen {
+        color: $jaune;
     }
 
     &.negative {
@@ -552,17 +594,17 @@ export default {
     align-items: center;
     justify-content: center;
     width: 100%;
-    // padding: 60px 0;
+    padding: 20px 0;
 
-    .loader {
-        border: 3px solid rgba($gris, 0.2);
-        border-top: 3px solid $primary;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        // margin-bottom: 16px;
-    }
+    // .loader {
+    //     border: 3px solid rgba($gris, 0.2);
+    //     border-top: 3px solid $primary;
+    //     border-radius: 50%;
+    //     width: 40px;
+    //     height: 40px;
+    //     animation: spin 1s linear infinite;
+    //     // margin-bottom: 16px;
+    // }
 
     p {
         font-family: $stara-medium;

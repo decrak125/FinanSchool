@@ -18,9 +18,9 @@ const isDropdownOpen = ref(false);
 
 // Options disponibles
 const componentOptions = [
-  { id: 'coutProfit', label: 'Coûts vs Profits', icon: '' },
-  { id: 'mensuelle', label: 'Analyse Mensuelle', icon: '' },
-  { id: 'trimestrielle', label: 'Analyse Trimestrielle', icon: '' },
+  { id: 'coutProfit', label: 'Charges vs Produits', icon: '' },
+  { id: 'mensuelle', label: 'Comparaison Mensuelle', icon: '' },
+  { id: 'trimestrielle', label: 'Comparaison Trimestrielle', icon: '' },
   { id: 'annuelle', label: 'Comparaison Annuelle', icon: '' }
 ];
 

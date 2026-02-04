@@ -57,6 +57,11 @@ const formatPercentage = (value) => {
   return `${parseFloat(value).toFixed(2)}%`;
 };
 
+const formatNumber = (value) => {
+  if (value === null || value === undefined) return 'N/A';
+  return `${parseFloat(value).toFixed(2)}`;
+};
+
 // Obtenir la classe CSS pour la tendance
 const getTrendClass = (comparison) => {
   if (!comparison?.hasData) return 'trend-neutral';
@@ -95,7 +100,7 @@ const updateInterpretationCards = () => {
     {
       valeur: formatPercentage(CapaciteRemboursement.value?.capacite_remboursement?.valeur),
       texte: "Capacité de remboursement",
-      chiffre: comparisons.value.Remboursement.evolution,
+      chiffre: formatNumber(comparisons.value.Remboursement.evolution),
       icon: getTrendIcon(comparisons.value?.Remboursement),
       variation: comparisons.value?.Remboursement?.percentage || '0',
       colorVariation: getTrendClass(comparisons.value?.Remboursement),
@@ -417,7 +422,7 @@ const handleRefresh = () => {
                   {{ comparisons.Autonomie?.hasData ? `${comparisons.Autonomie.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsAutonomie = !detailsAutonomie" />
                 </td>
               </tr>
@@ -436,13 +441,13 @@ const handleRefresh = () => {
                 </td>
                 <td :class="['evolution', getTrendClass(comparisons.Remboursement)]">
                   <span class="trend-icon">{{ getTrendIcon(comparisons.Remboursement) }}</span>
-                  {{ comparisons.Remboursement?.hasData ? comparisons.Remboursement.evolution + 'an' : 'N/A' }}
+                  {{ comparisons.Remboursement?.hasData ? formatNumber(comparisons.Remboursement.evolution) + 'an' : 'N/A' }}
                 </td>
                 <td :class="['percentage', getTrendClass(comparisons.Remboursement)]">
                   {{ comparisons.Remboursement?.hasData ? `${comparisons.Remboursement.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsRemboursement = !detailsRemboursement" />
                 </td>
               </tr>
@@ -467,7 +472,7 @@ const handleRefresh = () => {
                   {{ comparisons.Endettement?.hasData ? `${comparisons.Endettement.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsEndettement = !detailsEndettement" />
                 </td>
               </tr>

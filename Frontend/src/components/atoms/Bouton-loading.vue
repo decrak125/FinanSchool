@@ -60,7 +60,7 @@ defineProps({
 }
 
 .bar:nth-child(2) {
-  height: 23px;
+  height: 20px;
   margin: 0 5px;
   animation-delay: .25s;
 }

@@ -3,7 +3,7 @@
     <div v-if="loading" class="loading">Chargement...</div>
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else-if="series.length === 0" class="no-data">
-      Aucune donnée disponible pour les filtres sélectionnés
+      <Texte :type="'dark'" :texte="'Aucune donnée disponible, veuillez procéder à une affectation analytique'" />
     </div>
     <div v-else class="column-chart-wrapper">
     <div class="chart-with-separate-legend">
@@ -299,15 +299,27 @@ watch(() => props.chartData, (newData) => {
   font-family: 'stara';
 }
 
+.no-data {
+  @include position-contenus(flex, center, center);
+  @include glass();
+    width: 650px;
+    height: 410px;
+    gap: 12px;
+    padding: 32px;
+    border-radius: $radius-pm;
+    animation: appear 0.6s ease-out forwards;
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    
+    @media (max-width: 768px) {
+        border-radius: $radius-sm;
+    }
+}
+
 .error {
   color: #ff0000;
   background: #ffe6e6;
 }
 
-.no-data {
-  color: #666;
-  background: #f0f0f0;
-}
 .apexcharts-bar-series .apexcharts-legend-marker {
   border-radius: 50% !important;
 }

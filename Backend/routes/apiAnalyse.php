@@ -19,6 +19,7 @@ use App\Http\Controllers\Analyse\IndicateurPedagogiqueController;
 use App\Http\Controllers\EffectifEleveController;
 use App\Http\Controllers\Analyse\DiagnosticController;
 use App\Http\Controllers\Analyse\DiagnosticControllerUnifie;
+use App\Http\Controllers\Export\ExportDataController;
 // use App\Http\Controllers\ChatBot\ChatController;
 
 //      Route::post('/chat/send', [ChatController::class, 'sendMessage']);
@@ -131,6 +132,16 @@ use App\Http\Controllers\Analyse\DiagnosticControllerUnifie;
 
      Route::prefix('dashboard')->group(function () {
     Route::get('/complet', [DiagnosticControllerUnifie::class, 'getDashboardComplet']);
-});
+     });
+
+     Route::prefix('export')->group(function () {
+     // Route GET avec paramètre dans l'URL
+          Route::get('/donnees/{annee}', [ExportDataController::class, 'getDonneesExport']);
+          
+          // Route POST pour compatibilité
+          Route::post('/donnees', [ExportDataController::class, 'postDonneesExport']);
+          
+          Route::get('/annees-exercices', [ExportDataController::class, 'getAnneesExercices']);
+     });
 
 

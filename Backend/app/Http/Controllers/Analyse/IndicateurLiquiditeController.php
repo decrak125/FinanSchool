@@ -33,7 +33,7 @@ class IndicateurLiquiditeController extends Controller
         $actifCirculant = $bilanActif['structure'][19]['net'] + $bilanActif['structure'][18]['net'];
 
         // PASSIF À COURT TERME
-        $passifCourtTerme = $bilanPassif['structure'][17]['montant'];
+        $passifCourtTerme = $bilanPassif['structure'][32]['montant'];
         // CALCUL DU RATIO
         $ratio = 0;
         $interpretation = "Non définie";

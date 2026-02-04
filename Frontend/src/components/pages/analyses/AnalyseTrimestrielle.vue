@@ -347,7 +347,7 @@ const plusForteVariationTrimestrielle = computed(() => {
 
 .filters-container {
   position: absolute;
-  left: 625px;
+  left: 660px;
   top: 112px;
   display: flex;
   align-items: baseline;

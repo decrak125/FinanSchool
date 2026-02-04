@@ -37,7 +37,7 @@ class IndicateurSolvabiliteController extends Controller
         ], $dateDebut, $dateFin);
 
         // CAPITAUX PROPRES
-        $capitauxPropres = $bilanPassif['structure'][7]['montant'];
+        $capitauxPropres = $bilanPassif['structure'][11]['montant'];
 
         // CALCUL DU RATIO D'ENDETTEMENT
         $ratio = 0;
@@ -85,10 +85,10 @@ class IndicateurSolvabiliteController extends Controller
         $dateFin = $request->date_fin;
         // CAPITAUX PROPRES
         $bilanPassif = BilanPassifController::getBilanPassif($dateDebut, $dateFin);
-        $capitauxPropres = $bilanPassif['structure'][7]['montant'];
+        $capitauxPropres = $bilanPassif['structure'][11]['montant'];
 
         // TOTAL BILAN (Actif total ou Passif total)
-        $totalBilan = $bilanPassif['structure'][18]['montant'];
+        $totalBilan = $bilanPassif['structure'][22]['montant'];
 
         // CALCUL DE L'AUTONOMIE FINANCIÈRE
         $autonomie = 0;

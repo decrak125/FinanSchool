@@ -2,8 +2,8 @@
     <div>
       <div v-if="loading" class="loading">Chargement...</div>
       <div v-else-if="error" class="error">{{ error }}</div>
-      <div v-else-if="series.length === 0" class="no-data">
-        Aucune donnée disponible pour les filtres sélectionnés
+      <div v-else-if="series.length === 0" class="blank">
+        <Texte :type="'dark'" :texte="'Aucune donnée disponible, veuillez procéder à une affectation analytique'" />
       </div>
       <div v-else class="cout-profit-chart-wrapper">
             <div class="chart-with-separate-legend">
@@ -297,7 +297,6 @@
             }).format(value);
             
             return `<div style="display: flex; justify-content: space-between; min-width: 150px;">
-                      <span style="font-weight: 600; margin-right: 10px;">${seriesName}:</span>
                       <span>${formattedValue} Ar</span>
                     </div>`;
           }
@@ -416,6 +415,22 @@
     width: 100%;
     height: 100%;
     gap: 12px;
+    border-radius: $radius-pm;
+    animation: appear 0.6s ease-out forwards;
+    transition: transform 0.3s ease, filter 0.3s ease-in-out;
+    
+    @media (max-width: 768px) {
+        border-radius: $radius-sm;
+    }
+}
+
+.blank {
+  @include position-contenus(flex, center, center);
+  @include glass();
+    width: 600px;
+    height: 100%;
+    gap: 12px;
+    padding: 32px;
     border-radius: $radius-pm;
     animation: appear 0.6s ease-out forwards;
     transition: transform 0.3s ease, filter 0.3s ease-in-out;

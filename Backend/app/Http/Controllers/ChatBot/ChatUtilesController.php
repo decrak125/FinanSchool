@@ -94,6 +94,60 @@ public static function extractMonthFromMessage($message)
     }
     return null;
 }
+// À ajouter dans ChatUtilesController.php
+// Dans ChatUtilesController.php, ajoutez ces méthodes :
 
+public static function extractDatesFromMessage($message)
+{
+    $dates = [
+        'date_debut' => null,
+        'date_fin' => null
+    ];
+    
+    // Détection des dates au format YYYY-MM-DD
+    preg_match_all('/(\d{4}-\d{2}-\d{2})/', $message, $matches);
+    
+    if (isset($matches[1]) && count($matches[1]) >= 1) {
+        $dates['date_debut'] = $matches[1][0];
+        if (count($matches[1]) >= 2) {
+            $dates['date_fin'] = $matches[1][1];
+        }
+    }
+    
+    // Détection des périodes comme "janvier 2024 à mars 2024"
+    elseif (preg_match('/(janvier|février|mars|avril|mai|juin|juillet|août|septembre|octobre|novembre|décembre)\s*(\d{4})/i', $message)) {
+        // Implémentez la logique de conversion mois/année en dates
+        // ...
+    }
+    
+    return $dates;
+}
 
+public static function extractMultipleYearsFromMessage($message)
+{
+    $years = [];
+    
+    // Détection des années seules
+    preg_match_all('/\b(20\d{2})\b/', $message, $matches);
+    
+    if (isset($matches[1])) {
+        $years = $matches[1];
+    }
+    
+    // Si pas d'années détectées, essayer avec "l'année dernière", "cette année"
+    if (empty($years)) {
+        $currentYear = date('Y');
+        if (str_contains($message, 'année dernière') || str_contains($message, 'last year')) {
+            $years[] = $currentYear - 1;
+        }
+        if (str_contains($message, 'cette année') || str_contains($message, 'this year')) {
+            $years[] = $currentYear;
+        }
+        if (str_contains($message, 'année prochaine') || str_contains($message, 'next year')) {
+            $years[] = $currentYear + 1;
+        }
+    }
+    
+    return array_unique($years);
+}
 }

@@ -546,6 +546,7 @@ const showAllVentilations = (group) => {
       </div>
       <transition name="fade">
         <div class="content">
+          
           <table class="table" id="axesTable">
             <thead>
               <tr>
@@ -595,6 +596,9 @@ const showAllVentilations = (group) => {
               </tr>
             </tbody>
           </table>
+          <div v-if="filteredAffectationsGrouped.length === 0" class="no-results text-center py-8 text-gray-500">
+            Aucune affectation analytique disponible.
+          </div>
         </div>
       </transition>
 
@@ -606,6 +610,11 @@ const showAllVentilations = (group) => {
 
 <!-- Le CSS reste identique -->
 <style lang="scss" scoped>
+  .no-results {
+  font-family: $stara-medium;
+  text-align: center;
+  padding: 40px !important;
+}
 .main {
   @include glass();
   border-radius: $radius-pm;
@@ -613,7 +622,7 @@ const showAllVentilations = (group) => {
   padding: 0 24px 24px 24px;
   margin: 12px;
   // height: 100%;
-  height: 82vh;
+  max-height: 82vh;
   flex-direction: column;
   gap: 10px;
   flex: 1 0 0;

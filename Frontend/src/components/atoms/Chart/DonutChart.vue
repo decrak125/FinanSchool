@@ -30,7 +30,7 @@ const props = defineProps({
     },
     colors: {
         type: Array,
-        default: () => ['#017AFF', '#F34971', '#FF9382', '#F5C900', '#6C47FF', '#39C0C8', '#00D4AA', '#FF6B8B', '#9C27B0', '#3F51B5']
+        default: () => ['#017AFF', '#F34971', '#FF9382', '#F5C900', '#3F51B5', '#39C0C8', '#00D4AA', '#FF6B8B']
     },
     // Nouvelle prop pour synchroniser les couleurs avec AreaChart
     centreColors: {

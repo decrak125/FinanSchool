@@ -87,7 +87,7 @@ const menuConfig = [
       // },
       {
         id: 'Centres',
-        texte: 'Centres analytiques',
+        texte: 'Centres de coûts',
         redirection: '/centre-analytique'
       },
       {

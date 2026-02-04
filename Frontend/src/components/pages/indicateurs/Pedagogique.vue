@@ -114,7 +114,7 @@ const updateInterpretationCards = () => {
     },
     {
       valeur: formatPercentage(partMasseSalariale.value?.part_masse_salariale_enseignante?.valeur),
-      texte: "Part masse salariale",
+      texte: "Part de la masse salariale",
       chiffre: comparisons.value.partMasseSalariale?.hasData ? 
                formatPercentage(comparisons.value.partMasseSalariale.evolution) : 'N/A',
       icon: getTrendIcon(comparisons.value?.partMasseSalariale),
@@ -297,7 +297,7 @@ const handleExportPDF = () => {
             </thead>
             <tbody>
               <tr>
-                <td id="detailTitle">Masse salariale enseignante</td>
+                <td id="detailTitle">Part de la masse salariale</td>
                 <td id="detail">{{ formatMoney(partMasseSalariale?.details_calcul?.masse_salariale_enseignante) }}</td>
                 <td id="detail">{{ formatMoney(previousYearData.partMasseSalariale?.details_calcul?.masse_salariale_enseignante) }}</td>
               </tr>
@@ -309,7 +309,7 @@ const handleExportPDF = () => {
             </tbody>
             <tfoot id="footable">
               <tr>
-                <td id="detailTitle">Part masse salariale</td>
+                <td id="detailTitle">Part de la masse salariale</td>
                 <td id="detail">{{ formatPercentage(partMasseSalariale?.part_masse_salariale_enseignante?.valeur) }}</td>
                 <td id="detail">{{ formatPercentage(previousYearData.partMasseSalariale?.part_masse_salariale_enseignante?.valeur) }}</td>
               </tr>
@@ -417,7 +417,7 @@ const handleExportPDF = () => {
           </div>
           <div class="hauteur">
             <Card 
-              :texte="'Part masse salariale'"
+              :texte="'Part de la masse salariale'"
               :chiffre="parseFloat(partMasseSalariale?.part_masse_salariale_enseignante?.valeur)" 
               :format="'percentage'" 
               :icon="'bi bi-people-fill'" 
@@ -491,7 +491,7 @@ const handleExportPDF = () => {
                 {{ comparisons.coutFonctionnement?.hasData ? `${comparisons.coutFonctionnement.percentage}%` : 'N/A' }}
               </td>
               <td>
-                <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                   @click="detailsCoutFonctionnement = !detailsCoutFonctionnement" />
               </td>
             </tr>
@@ -516,7 +516,7 @@ const handleExportPDF = () => {
                 {{ comparisons.chiffreAffaires?.hasData ? `${comparisons.chiffreAffaires.percentage}%` : 'N/A' }}
               </td>
               <td>
-                <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                   @click="detailsChiffreAffaires = !detailsChiffreAffaires" />
               </td>
             </tr>
@@ -541,7 +541,7 @@ const handleExportPDF = () => {
                 {{ comparisons.partMasseSalariale?.hasData ? `${comparisons.partMasseSalariale.percentage}%` : 'N/A' }}
               </td>
               <td>
-                <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                   @click="detailsPartMasseSalariale = !detailsPartMasseSalariale" />
               </td>
             </tr>
@@ -566,7 +566,7 @@ const handleExportPDF = () => {
                 {{ comparisons.margeParEleve?.hasData ? `${comparisons.margeParEleve.percentage}%` : 'N/A' }}
               </td>
               <td>
-                <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                   @click="detailsMargeParEleve = !detailsMargeParEleve" />
               </td>
             </tr>

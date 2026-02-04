@@ -80,7 +80,7 @@
   })
   </script>
     
-  <style scoped>
+  <style lang="scss" scoped>
   .animated-digit {
     display: inline-block;
   }
@@ -95,7 +95,7 @@
   
   .digit-scroll {
     position: absolute;
-    top: 0;
+    top: 1px;
     left: 0;
     width: 100%;
     transition: transform 0.8s cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -103,11 +103,11 @@
   
   .digit-number {
     display: block;
-    height: 1em;
-    line-height: 1.4;
+    height: 2em;
+    line-height: 1.3;
     text-align: center;
     font-size: inherit;
     font-weight: 600;
-    /* font-family: sans-serif; */
+    font-family: $stara-black;
   }
   </style>

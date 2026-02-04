@@ -328,7 +328,7 @@ onMounted(() => {
 .main {
   @include glass();
   border-radius: $radius-pm;
-  min-height: 82vh;
+  max-height: 82vh;
   @include position-contenus(flex, baseline, center);
   padding: 0 24px 24px 24px;
   margin: 12px;
@@ -409,7 +409,7 @@ onMounted(() => {
   /* Scroll vertical */
   // background-color: #fff;
   width: 100%;
-  height: 60vh;
+    height: 60vh;
   /* Ajuste selon tes besoins */
   border-radius: $radius-pm;
 }

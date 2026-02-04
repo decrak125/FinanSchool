@@ -14,28 +14,57 @@ export const useNotificationStore = defineStore('notifications', () => {
   
   // Marquer comme lu
 
-   const markAsRead = async (notificationId) => {
+const markAsRead = async (notificationId) => {
+  try {
     const notification = notifications.value.find(n => n.id === notificationId)
-    if (notification && notification.statut === 'non_lu') {
-      notification.statut = 'lu'
+    
+    if (!notification || notification.statut === 'lu') {
+      return
+    }
+    
+    // Appeler l'API
+    await axios.patch(`http://localhost:8000/api/notifications/${notificationId}/read`)
+    
+    // Mettre à jour localement
+    notification.statut = 'lu'
+    notification.lu_a = new Date().toISOString()
+    
+    // Mettre à jour le compteur
+    if (unreadCount && unreadCount.value !== undefined) {
       unreadCount.value = Math.max(0, unreadCount.value - 1)
     }
-    try {
-      await axios.post(`http://localhost:8000/api/${notificationId}/read`)
-      notification.statut = 'lu'
-      notification.lu_a = new Date().toISOString()
-      unreadCount.value = Math.max(0, unreadCount.value - 1)
-      
-      // REDIRECTION DYNAMIQUE
-      if (notification.evenement?.donnees_evenement?.lien_redirection) {
-        window.location.href = notification.evenement.donnees_evenement.lien_redirection
+    
+    // REDIRECTION DYNAMIQUE - avec parsing JSON
+    if (notification.evenement?.donnees_evenement) {
+      try {
+        // Parser la chaîne JSON (les \/ seront automatiquement gérés)
+        const donnees = JSON.parse(notification.evenement.donnees_evenement)
+        
+        // Vérifier si le lien existe
+        if (donnees.lien_redirection) {
+          // Optionnel: décoder les slashes si nécessaire
+          const lienDecode = donnees.lien_redirection.replace(/\\\//g, '/')
+          window.location.href = lienDecode
+        }
+      } catch (parseError) {
+        console.error('Erreur de parsing JSON:', parseError)
+        console.error('Données brutes:', notification.evenement.donnees_evenement)
       }
-      
-    } catch (error) {
-      console.error('Erreur marquer comme lu:', error)
+    }
+    
+  } catch (err) {
+    console.error('Erreur lors du marquage comme lu:', err)
+    // Vous pourriez vouloir remettre le statut à 'non_lu' en cas d'erreur
+    if (notification) {
+      notification.statut = 'non_lu'
+      if (unreadCount && unreadCount.value !== undefined) {
+        unreadCount.value += 1
+      }
     }
   }
-  
+}
+
+
   // Supprimer une notification
   const removeNotification = async(notificationId) => {
     const notification = notifications.value.find(n => n.id === notificationId)

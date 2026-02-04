@@ -17,7 +17,11 @@ export default {
       isSpeaking: false,
       currentlySpeakingId: null,
       speechUtterance: null,
-      voicesLoaded: false
+      voicesLoaded: false,
+      // Nouvel état pour suivre si le dernier message était vocal
+      lastMessageWasVoice: false,
+      // Optionnel : lecture automatique activée par défaut
+      autoReadEnabled: true
     }
   },
   setup() {
@@ -131,14 +135,21 @@ export default {
         this.recognition.onresult = (event) => {
           const transcript = event.results[0][0].transcript;
           this.newMessage = transcript;
+          // Marquer que le dernier message était vocal
+          this.lastMessageWasVoice = true;
         };
         this.recognition.onend = () => {
           this.recording = false;
           this.recognition = null;
+          // Si un message a été transcrit, l'envoyer automatiquement
+          if (this.newMessage.trim() && this.lastMessageWasVoice) {
+            this.sendMessage();
+          }
         };
         this.recognition.onerror = () => {
           this.recording = false;
           this.recognition = null;
+          this.lastMessageWasVoice = false;
         };
         this.recording = true;
         this.recognition.start();
@@ -187,25 +198,49 @@ export default {
       this.newMessage = '';
       this.loading = true;
       this.suggestions = [];
+      
+      // Si le message vient du vocal, marquer pour lecture automatique
+      const shouldAutoRead = this.lastMessageWasVoice;
+      
       try {
         const response = await axios.post('http://localhost:8000/api/chat/send', {
           message: userMessage,
           session_id: this.sessionId
         });
-        this.addMessage(response.data.response, 'bot');
+        
+        const botMessage = this.addMessage(response.data.response, 'bot');
         this.suggestions = response.data.suggestions || [];
-        // NE PAS déclencher la synthèse vocale automatiquement
+        
+        // Lire automatiquement la réponse si le message venait du vocal
+        if (shouldAutoRead && this.autoReadEnabled) {
+          // Petit délai pour un meilleur UX
+          setTimeout(() => {
+            this.speakMessage(botMessage);
+          }, 500);
+        }
+        
       } catch (error) {
         console.error('Erreur:', error);
-        this.addMessage('Désolé, une erreur est survenue. Veuillez réessayer.', 'bot');
+        const errorMessage = this.addMessage('Désolé, une erreur est survenue. Veuillez réessayer.', 'bot');
+        
+        // Lire aussi le message d'erreur si en mode vocal
+        if (shouldAutoRead && this.autoReadEnabled) {
+          setTimeout(() => {
+            this.speakMessage(errorMessage);
+          }, 500);
+        }
       } finally {
         this.loading = false;
+        // Réinitialiser le flag
+        this.lastMessageWasVoice = false;
       }
     },
+    
     selectSuggestion(suggestion) {
       this.newMessage = suggestion;
       this.sendMessage();
     },
+    
     addMessage(content, type) {
       const message = {
         content,
@@ -220,9 +255,11 @@ export default {
       });
       return message;
     },
+    
     formatMessage(content) {
       return content.replace(/\n/g, '<br>');
     },
+    
     scrollToBottom() {
       const container = this.$refs.messagesContainer;
       container.scrollTop = container.scrollHeight;
@@ -335,10 +372,18 @@ export default {
 
 <template>
 <transition name="fade">
-    <div class="chatbot-container" v-if="isOpen">
+  <div class="chatbot-container" v-if="isOpen">
     <div class="chat-header">
       <h3>Assistant Financier</h3>
       <p>Analyse de l'établissement scolaire</p>
+      <!-- Bouton toggle lecture auto -->
+      <button 
+        @click="autoReadEnabled = !autoReadEnabled"
+        :class="['auto-read-btn', { active: autoReadEnabled }]"
+        :title="autoReadEnabled ? 'Lecture auto activée' : 'Lecture auto désactivée'"
+      >
+        <i class="bi" :class="autoReadEnabled ? 'bi-volume-up-fill' : 'bi-volume-mute-fill'"></i>
+      </button>
     </div>
     
     <div class="chat-messages" ref="messagesContainer">
@@ -403,25 +448,24 @@ export default {
         <span v-else><i class="bi bi-send-fill"></i></span>
       </button>
       <button
-          @click="toggleRecording"
-          class="send-btn"
-          :disabled="loading"
-          :title="recording ? 'Arrêter' : 'Dicter une question au micro'"
-          style="margin-left:8px"
-        >
-          <span v-if="!recording"><i class="bi bi-mic-fill"></i></span>
-          <span v-else><i class="bi bi-record-circle-fill" style="color: red;"></i></span>
-        </button>
+        @click="toggleRecording"
+        class="send-btn"
+        :disabled="loading"
+        :title="recording ? 'Arrêter' : 'Dicter une question au micro'"
+        style="margin-left:8px"
+      >
+        <span v-if="!recording"><i class="bi bi-mic-fill"></i></span>
+        <span v-else><i class="bi bi-record-circle-fill" style="color: red;"></i></span>
+      </button>
     </div>
   </div>
-
 </transition>
-<div class="bouton-open" @click="openChat">
-    <i class="bi bi-chat-dots-fill" v-if="!isOpen"></i>
-    <i class="bi bi-x" v-else></i>
-  </div>
-</template>
 
+<div class="bouton-open" @click="openChat">
+  <i class="bi bi-chat-dots-fill" v-if="!isOpen"></i>
+  <i class="bi bi-x" v-else></i>
+</div>
+</template>
 
 <style lang="scss" scoped>
 .detail-msg{
@@ -430,6 +474,7 @@ export default {
   align-items: center;
   background: transparent;
 }
+
 .listen-btn{
   border: none;
   background-color: transparent;
@@ -454,6 +499,25 @@ export default {
   }
 }
 
+.auto-read-btn {
+  position: absolute;
+  top: 42px;
+  right: 40px;
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  
+  &.active {
+    color: #4CAF50;
+  }
+  
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
 @keyframes pulse {
   0% { opacity: 1; }
   50% { opacity: 0.6; }
@@ -474,18 +538,19 @@ export default {
   border-radius: 50%;
   background-color: $primary;
   color: white;
+  
   i{
     font-size: 24px;
   }
 }
+
 .chatbot-container {
   @include glass();
-    font-family: $stara-medium;
-    font-size: 14px;
-    position: fixed;
-  bottom: 116px;
+  font-family: $stara-medium;
+  font-size: 14px;
+  position: fixed;
+  bottom: 100px;
   right: 32px;
-
   width: 360px;
   height: 500px;
   border: 1px solid #ddd;
@@ -495,6 +560,7 @@ export default {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   z-index: 9999999999;
 }
+
 .fade-enter-active,
 .fade-leave-active {
   transition: all 0.3s ease;
@@ -505,7 +571,9 @@ export default {
   opacity: 0;
   transform: scale(0.9);
 }
+
 .chat-header {
+  position: relative;
   background-color: $primary;
   color: white;
   padding: 15px;
@@ -533,15 +601,17 @@ export default {
   margin-bottom: 15px;
   display: flex;
   flex-direction: column;
-  
 }
 
 .message.user {
   align-items: flex-end;
+  font-size: 12px;
 }
 
 .message.bot {
   align-items: flex-start;
+  text-wrap: wrap;
+  font-size: 12px;
 }
 
 .message-content {

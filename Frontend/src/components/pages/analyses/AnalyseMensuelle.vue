@@ -549,7 +549,7 @@ opacity: 0;
     }}
 .filters-container {
   position: absolute;
-  left: 612px;
+  left: 642px;
   top: 112px;
   display: flex;
   align-items: baseline;

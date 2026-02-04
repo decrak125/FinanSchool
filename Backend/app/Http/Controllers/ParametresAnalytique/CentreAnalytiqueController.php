@@ -20,16 +20,23 @@ class CentreAnalytiqueController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'nom' => 'required|string|max:150',
-            'description' => 'required|string|max:100',
-            'id_axe' => 'required|integer',
-            // 'id_type' => 'required|integer',
-        ]);
+{
+    $request->validate([
+        'nom' => 'required|string|max:150',
+        'description' => 'required|string|max:100',
+        // Ne validez pas id_axe ici car on va le forcer à 2
+        // 'id_type' => 'required|integer',
+    ]);
 
-        return CentreAnalytique::create($request->all());
-    }
+    // Récupérer toutes les données de la requête
+    $data = $request->all();
+    
+    // Forcer id_axe à 2
+    $data['id_axe'] = 2;
+    
+    // Créer l'enregistrement avec les données modifiées
+    return CentreAnalytique::create($data);
+}
 
     public function update(Request $request, $id)
     {

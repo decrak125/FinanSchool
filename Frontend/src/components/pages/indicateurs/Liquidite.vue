@@ -438,7 +438,7 @@ const handleExportPDF = () => {
                   {{ comparisons.Tresorerie?.hasData ? `${comparisons.Tresorerie.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsTresorerieNette = !detailsTresorerieNette" />
                 </td>
               </tr>
@@ -463,7 +463,7 @@ const handleExportPDF = () => {
                   {{ comparisons.fondRoulement?.hasData ? `${comparisons.fondRoulement.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsBFR = !detailsBFR" />
                 </td>
               </tr>
@@ -488,7 +488,7 @@ const handleExportPDF = () => {
                   {{ comparisons.Liquidite?.hasData ? `${comparisons.Liquidite.percentage}%` : 'N/A' }}
                 </td>
                 <td>
-                  <BoutonIcon icon-name="eye" type="edit" title="Voir les détails"
+                  <BoutonIcon icon-name="eye-fill" type="edit" title="Voir les détails"
                     @click="detailsLiquiditeGenerale = !detailsLiquiditeGenerale" />
                 </td>
               </tr>
