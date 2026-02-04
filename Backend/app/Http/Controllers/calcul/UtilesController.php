@@ -200,20 +200,46 @@ public static function calculerSommeCategorie($codeCategorie, $dateDebut, $dateF
     return $resultat;
 }
 
-
-
 public static function calculerVariationCategorie($codeCategorie, $dateDebut, $dateFin)
 {
-    // Solde à la date de début
-    $resultatDebut = self::calculerSommeCategorie($codeCategorie, $dateDebut, $dateDebut);
-    $montantDebut = $resultatDebut && $resultatDebut->montant_total ? floatval($resultatDebut->montant_total) : 0;
+    // 1. Récupérer les ID des sous-comptes liés à la catégorie
+    $idsSousComptes = DB::table('compte_categories as cc')
+        ->join('categorie_fonctionelles as cf', 'cc.id_categorie_fonctionelle', '=', 'cf.id_categorie_fonctionelle')
+        ->where('cf.code', $codeCategorie)
+        ->where('cc.actif', true)
+        ->pluck('cc.id_sous_compte');
 
-    // Solde à la date de fin
-    $resultatFin = self::calculerSommeCategorie($codeCategorie, $dateFin, $dateFin);
-    $montantFin = $resultatFin && $resultatFin->montant_total ? floatval($resultatFin->montant_total) : 0;
+    $codesSousComptes = DB::table('sous_comptes')
+        ->whereIn('Id_Sous_compte', $idsSousComptes)
+        ->pluck('Code_sous_compte');
 
-    return $montantFin - $montantDebut; // Variation N - N-1
+    // 2. Calculer DIRECTEMENT la variation (Mouvements de la période)
+    // Variation = Somme(Débit) - Somme(Crédit) sur la période
+    // On n'utilise PAS ABS() ici car le signe indique le sens de la variation
+    $resultat = DB::table('vue_balance_generale as vbg')
+        ->whereIn('vbg.code_sous_compte', $codesSousComptes)
+        ->whereBetween('vbg.date_mouvement', [$dateDebut, $dateFin])
+        // On suppose que votre vue a des colonnes total_debit/total_credit ou solde_final (signé)
+        // Si vbg.solde_final = debit - credit, alors :
+        ->selectRaw('SUM(vbg.solde_final) as variation_nette')
+        ->first();
+
+    return $resultat ? floatval($resultat->variation_nette) : 0;
 }
+
+
+// public static function calculerVariationCategorie($codeCategorie, $dateDebut, $dateFin)
+// {
+//     // Solde à la date de début
+//     $resultatDebut = self::calculerSommeCategorie($codeCategorie, $dateDebut, $dateDebut);
+//     $montantDebut = $resultatDebut && $resultatDebut->montant_total ? floatval($resultatDebut->montant_total) : 0;
+
+//     // Solde à la date de fin
+//     $resultatFin = self::calculerSommeCategorie($codeCategorie, $dateFin, $dateFin);
+//     $montantFin = $resultatFin && $resultatFin->montant_total ? floatval($resultatFin->montant_total) : 0;
+
+//     return $montantFin - $montantDebut; // Variation N - N-1
+// }
 
 public static function SommeCodeAnalytique($dateStart, $dateEnd, $code)
 {

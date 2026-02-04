@@ -40,7 +40,7 @@ use App\Http\Controllers\notifications\EvenementController;
 
 
 Route::middleware('api')->group(function () {
-    
+
     Route::post('/chat/sending', [ChatsController::class, 'sendMessage']);
     Route::post('/chat/send', [ChatController::class, 'sendMessage']);
     Route::get('/chat/history/{sessionId}', [ChatsController::class, 'getChatHistory']);
@@ -57,18 +57,18 @@ Route::middleware('api')->group(function () {
 
     Route::post('/login', [AuthController::class, 'login']);
     Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/user', [AuthController::class, 'user']);
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::post('/mouvements', [LigneEcritureController::class, 'createMouvement']);
-    Route::delete('/mouvements/{mouvementId}', [LigneEcritureController::class, 'deleteMouvement']);
-});
+        Route::get('/user', [AuthController::class, 'user']);
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::post('/mouvements', [LigneEcritureController::class, 'createMouvement']);
+        Route::delete('/mouvements/{mouvementId}', [LigneEcritureController::class, 'deleteMouvement']);
+    });
 
     Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink'])
-    ->name('password.reset');
+        ->name('password.reset');
     Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
 
     Route::get('password/reset/{token}', [ForgotPasswordController::class, 'showResetForm'])
-    ->name('password.reset');
+        ->name('password.reset');
 
     Route::post('/request-verification', [AuthController::class, 'requestVerification']);
     Route::post('/verify-code', [AuthController::class, 'verifyCode']);
@@ -94,7 +94,7 @@ Route::middleware('api')->group(function () {
     Route::apiResource('journals', JournalController::class);
     Route::apiResource('mouvements', MouvementEcritureController::class);
     // Route::post('mouvements/{id}/valider', [MouvementEcritureController::class, 'valider']);
-Route::apiResource('devises', DeviseController::class);
+    Route::apiResource('devises', DeviseController::class);
     // Validation globale
     Route::post('/lignes/valider-toutes', [LigneEcritureController::class, 'validerToutesLesEcritures']);
 
@@ -104,7 +104,7 @@ Route::apiResource('devises', DeviseController::class);
     // Rapport avant validation
     Route::get('/lignes/rapport-validation', [LigneEcritureController::class, 'getRapportValidation']);
 
-        Route::apiResource('lignes', LigneEcritureController::class);
+    Route::apiResource('lignes', LigneEcritureController::class);
     Route::post('lignes/{id}/valider', [LigneEcritureController::class, 'valider']);
 
     Route::post('/mouvements/{id}/solder', [LigneEcritureController::class, 'solderMouvement']);
@@ -114,7 +114,7 @@ Route::apiResource('devises', DeviseController::class);
     Route::post('/mouvements/{id}/valider', [LigneEcritureController::class, 'validerMouvementComplet']);
     Route::delete('/mouvements/{id}', [LigneEcritureController::class, 'deleteMouvement']);
     Route::get('/sous-comptes/search', [LigneEcritureController::class, 'searchSousComptes']);
- 
+
 
 
     // Routes pour les performances améliorées {Ecritures et Mouvements}
@@ -128,7 +128,7 @@ Route::apiResource('devises', DeviseController::class);
     Route::get('/options-formulaires', [LigneEcritureController::class, 'getOptions']);
 
     // Routes pour la gestion des mouvements
-    
+
 
     // Routes pour la gestion des lignes d'écriture
     Route::apiResource('lignes', LigneEcritureController::class);
@@ -155,75 +155,83 @@ Route::apiResource('devises', DeviseController::class);
     // routes/api.php
     Route::get('/compte-resultat/fonction', [CompteResultatFonctionController::class, 'index']);
 
-    
-
-Route::prefix('exercices')->group(function () {
-    Route::get('/', [ExerciceComptableController::class, 'index']);
-    Route::get('/ouvert', [ExerciceComptableController::class, 'getExerciceOuvert']);
-    Route::get('/courant', [ExerciceComptableController::class, 'getExerciceCourant']);
-    Route::get('/verifier/courant', [ExerciceComptableController::class, 'verifierExerciceCourant']);
-    Route::get('/{id}', [ExerciceComptableController::class, 'show']);
-    Route::get('/{id}/dates', [ExerciceComptableController::class, 'getDates']);
-    Route::post('/{id}/ouvrir', [ExerciceComptableController::class, 'ouvrir']);
-    Route::post('/{id}/cloturer', [ExerciceComptableController::class, 'cloturer']);
-});
 
 
-
-Route::get('/bilan/actif', [BilanActifController::class, 'index']);
-Route::get('/bilan/passif', [BilanPassifController::class, 'index']);
-Route::get('/flux-tresorerie', [FluxTresorerieController::class, 'index']);
-Route::get('/variations-capitaux', [VariationsCapitauxController::class, 'index']);
-
-Route::get('/ecritures/imports/historique', [ImportEcritureController::class, 'historique']);
-Route::post('/ecritures/import', [ImportEcritureController::class, 'import']);
-Route::post('/ecritures/import/validate', [ImportEcritureController::class, 'validateImport']);
+    Route::prefix('exercices')->group(function () {
+        Route::get('/', [ExerciceComptableController::class, 'index']);
+        Route::get('/ouvert', [ExerciceComptableController::class, 'getExerciceOuvert']);
+        Route::get('/courant', [ExerciceComptableController::class, 'getExerciceCourant']);
+        Route::get('/verifier/courant', [ExerciceComptableController::class, 'verifierExerciceCourant']);
+        Route::get('/{id}', [ExerciceComptableController::class, 'show']);
+        Route::get('/{id}/dates', [ExerciceComptableController::class, 'getDates']);
+        Route::post('/{id}/ouvrir', [ExerciceComptableController::class, 'ouvrir']);
+        Route::post('/{id}/cloturer', [ExerciceComptableController::class, 'cloturer']);
+    });
 
 
 
-// routes/api.php
+    Route::get('/bilan/actif', [BilanActifController::class, 'index']);
+    Route::get('/bilan/passif', [BilanPassifController::class, 'index']);
+    Route::get('/flux-tresorerie', [FluxTresorerieController::class, 'index']);
+    Route::get('/variations-capitaux', [VariationsCapitauxController::class, 'index']);
 
-Route::prefix('dashboard')->group(function () {
-    // 1. Évolution du Chiffre d'Affaires (CA) par mois
-    Route::get('/evolution-ca', [DashboardController::class, 'evolutionCA']);
-    
-    // 2. Évolution de la Trésorerie par mois
-    Route::get('/evolution-tresorerie', [DashboardController::class, 'evolutionTresorerie']);
-    
-    // 3. Composition du Bilan
-    Route::get('/composition-bilan', [DashboardController::class, 'compositionBilan']);
-    
-    // 4. Décomposition du résultat
-    Route::get('/decomposition-resultat', [DashboardController::class, 'decompositionResultat']);
-    Route::get('/resume', [DashboardController::class, 'resumeDashboard']);
-
-});
+    Route::get('/ecritures/imports/historique', [ImportEcritureController::class, 'historique']);
+    Route::post('/ecritures/import', [ImportEcritureController::class, 'import']);
+    Route::post('/ecritures/import/validate', [ImportEcritureController::class, 'validateImport']);
 
 
 
-// routes/api.php
+    // routes/api.php
+
+    Route::prefix('dashboard')->group(function () {
+        // 1. Évolution du Chiffre d'Affaires (CA) par mois
+        Route::get('/evolution-ca', [DashboardController::class, 'evolutionCA']);
+
+        // 2. Évolution de la Trésorerie par mois
+        Route::get('/evolution-tresorerie', [DashboardController::class, 'evolutionTresorerie']);
+
+        // 3. Composition du Bilan
+        Route::get('/composition-bilan', [DashboardController::class, 'compositionBilan']);
+
+        // 4. Décomposition du résultat
+        Route::get('/decomposition-resultat', [DashboardController::class, 'decompositionResultat']);
+        Route::get('/resume', [DashboardController::class, 'resumeDashboard']);
+
+    });
 
 
 
-// Liste des immobilisations (avec amortissement exercice courant)
-Route::get('/amortissement', [AmortissementController::class, 'index']);
-Route::apiResource('amortissement', AmortissementController::class);
-// Création d'une immobilisation
-Route::post('/amortissement', [AmortissementController::class, 'store']);
-
-// Détail d'une immobilisation (avec calcul d'amortissement)
-Route::get('/amortissement/{id}', [AmortissementController::class, 'show']);
-
-// Liste des taux d'amortissement
-Route::get('/taux-amortissement', [AmortissementController::class, 'getTaux']);
+    // routes/api.php
 
 
-Route::apiResource('evenements', EvenementController::class);
-Route::apiResource('notifications', NotificationController::class);
 
-// Routes supplémentaires pour les notifications
+    // Liste des immobilisations (avec amortissement exercice courant)
+    Route::get('/amortissement', [AmortissementController::class, 'index']);
+    Route::apiResource('amortissement', AmortissementController::class);
+    // Création d'une immobilisation
+    Route::post('/amortissement', [AmortissementController::class, 'store']);
+
+    // Détail d'une immobilisation (avec calcul d'amortissement)
+    Route::get('/amortissement/{id}', [AmortissementController::class, 'show']);
+
+    // Liste des taux d'amortissement
+    Route::get('/taux-amortissement', [AmortissementController::class, 'getTaux']);
+
+
+    Route::apiResource('evenements', EvenementController::class);
+    Route::apiResource('notifications', NotificationController::class);
+
+    // Routes supplémentaires pour les notifications
     Route::get('/notifications', [NotificationsController::class, 'index']);
     Route::patch('/notifications/{id}/read', [NotificationsController::class, 'markAsRead']);
     // routes/api.php
+
+    Route::prefix('simulations')->group(function () {
+        Route::get('/', [App\Http\Controllers\Simulation\SimulationController::class, 'index']);
+        Route::post('/', [App\Http\Controllers\Simulation\SimulationController::class, 'store']);
+        Route::get('/historical', [App\Http\Controllers\Simulation\SimulationController::class, 'getHistoricalData']);
+        Route::get('/{id}', [App\Http\Controllers\Simulation\SimulationController::class, 'show']);
+        Route::delete('/{id}', [App\Http\Controllers\Simulation\SimulationController::class, 'destroy']);
+    });
 
 });

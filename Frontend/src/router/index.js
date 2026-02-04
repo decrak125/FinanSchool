@@ -35,6 +35,7 @@ import Import from "@/components/pages/import/Import.vue";
 import Amortissement from "@/components/pages/configuration/Amortissement.vue";
 import ListeEcriture from "@/components/pages/saisie/ListeEcriture.vue";
 import Validation from "@/components/pages/saisie/Validation.vue";
+import SimulationList from "@/components/pages/Simulation/SimulationList.vue";
 const routes = [
   {
     path: "/",
@@ -215,6 +216,11 @@ const routes = [
     path: "/validation",
     name : "Validation",
     component : Validation
+  },
+  {
+    path: "/simulations",
+    name: "Simulations",
+    component: SimulationList
   }
 
 

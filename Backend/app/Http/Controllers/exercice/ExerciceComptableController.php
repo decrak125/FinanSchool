@@ -195,4 +195,21 @@ class ExerciceComptableController extends Controller
             'est_ouvert' => $exerciceCourant->isOuvert()
         ]);
     }
+
+        public static function getExerciceCourantStatic()
+    {
+        $dateActuelle = Carbon::now();
+
+        $exerciceCourant = ExerciceComptable::getExerciceByDate($dateActuelle);
+
+        if (!$exerciceCourant) {
+            return null; // à tester côté appelant
+        }
+
+        return $exerciceCourant; // ->Id_Exercice_comptable, ->Date_debut, ->Date_fin, etc.
+    }
+
+    
+
+    
 }

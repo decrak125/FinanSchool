@@ -195,7 +195,6 @@ class ChatSousCompteController extends Controller
         $response .= "**Code** : {$sousCompte->Code_sous_compte},\n";
         $response .= "**Libellé** : {$sousCompte->Libelle},\n";
         $response .= "**Compte parent** : {$sousCompte->compte->Code_compte} - {$sousCompte->compte->Libelle},\n";
-        $response .= "**ID** : {$sousCompte->Id_Sous_compte},\n";
         $response .= "Avez-vous d'autres questions sur ce sous-compte ?";
         
         return $response;

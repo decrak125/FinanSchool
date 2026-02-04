@@ -15,7 +15,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // C'est ICI et seulement ici qu'on met le scheduling !
-        $schedule->command('exercice:cloture-alertes')->daily();
+        $schedule->command('exercice:cloture-alertes')->everyMinute();
     }
 
     protected function commands()

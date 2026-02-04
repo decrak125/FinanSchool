@@ -104,7 +104,7 @@ class ChatsController extends Controller
         // 2. DÉTECTION ÉTATS FINANCIERS (Nouveau bloc)
         // Liste des mots-clés liés au Bilan et Compte de Résultat
         $keywordsEtatsFinanciers = [
-            'chiffre affaire', 'ca ', 'resultat', 'benefice', 'perte', 
+            'chiffre d\affaire', 'ca ', 'resultat', 'benefice', 'perte', 
             'immobilisation', 'stock', 'creance', 'dette', 'emprunt', 
             'capital', 'tresorerie', 'charge personnel', 'achat', 'impot'
         ];

@@ -121,7 +121,7 @@
             <i class="bi bi-lock me-1"></i> Validé
           </span>
           <button 
-            @click="askDeleteMouvement(m.Id_Mouvement_ecriture)"
+            @click="deleteMouvement(m.Id_Mouvement_ecriture)"
             :disabled="isMouvementValide(m) || isDeletingMouvement"
             class="btn btn-sm btn-error"
             style="margin-left: 10px;"
@@ -722,6 +722,7 @@ input, select {
   justify-content: center;
   z-index: 9999;
   padding: 1rem;
+  font-family: 'Manrope', sans-serif;
 }
 
 .modal {
@@ -732,6 +733,7 @@ input, select {
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  font-family: 'Manrope', sans-serif;
 }
 
 .modal-header {
@@ -740,6 +742,7 @@ input, select {
   align-items: center;
   padding: 1.5rem;
   border-bottom: 1px solid #e5e7eb;
+  font-family: 'Manrope', sans-serif;
 }
 
 .modal-title {

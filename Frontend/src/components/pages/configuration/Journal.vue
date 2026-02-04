@@ -74,7 +74,7 @@
                   <td class="p-4 text-base">{{ journal.sous_compte?.Libelle || '-' }}</td>
                   <td class="text-center">
                     <button @click="editJournal(journal)" class="btn btn-primary text-base">Modifier</button>
-                    <button @click="deleteJournal(journal.Id_Journal)" class="btn btn-error text-base" style="height: 40px; margin-top: 10px; margin-left: 20px;">Supprimer</button>
+                    <button @click="deleteJournal(journal.Id_Journal)" class="btn btn-error text-base" style="height: 40px; margin-top: 10px; margin-left: 20px;">Desactiver</button>
                     <button @click="viewEcritures(journal.Id_Journal)" class="btn btn-primary text-base" style="height: 40px; margin-top: 10px; margin-left: 20px;">Voir Écritures</button>
                   </td>
                 </tr>

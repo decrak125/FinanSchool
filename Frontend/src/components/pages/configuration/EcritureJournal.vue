@@ -237,7 +237,7 @@ const exportToPDF = async () => {
   }).join('');
 
   const htmlContent = `
-    <div style="font-family: 'Helvetica', Arial, sans-serif; padding: 15px; max-width: 100%; margin: 0;">
+    <div style="font-family: 'Helvetica', Arial, sans-serif; padding: 15px; width:725px; margin: 0;">
       <!-- En-tête -->
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 3px solid #2980b9;">
         <div style="flex: 1;">
@@ -262,13 +262,13 @@ const exportToPDF = async () => {
       </div>
       
       <!-- Métadonnées -->
-      <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 10px; color: #666; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 10px; color: #666; padding: 10px; background: #f8f9fa; border-radius: 5px;width:725px;">
         <div><strong>Date de tirage:</strong> ${dateTirage}</div>
         <div><strong>Plage:</strong> Du ${dateFilter.value.date_debut || '-'} au ${dateFilter.value.date_fin || '-'}</div>
       </div>
 
       <!-- Tableau -->
-      <table style="width: 100%; border-collapse: collapse; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+      <table style="width:725px; border-collapse: collapse; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
         <thead>
           <tr style="background: linear-gradient(135deg, #2980b9 0%, #3498db 100%); color: white;">
             <th style="padding: 10px 8px; text-align: left; font-weight: 600; font-size: 10px; border: 1px solid #2980b9;">Jour</th>

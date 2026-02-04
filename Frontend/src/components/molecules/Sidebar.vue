@@ -376,6 +376,16 @@
             </div>
           </transition>
         </div>
+
+        <!-- Simulations -->
+        <div 
+          class="nav-item"
+          :class="{ active: currentRoute === '/simulations' }"
+          @click="navigateTo({ route: '/simulations', name: 'Simulations' })"
+        >
+          <i class="bi bi-magic"></i>
+          <span>Simulations</span>
+        </div>
       </div>
     </nav>
 
@@ -495,6 +505,12 @@ export default {
           children: [
             { name: 'Import', route: '/import', icon: 'bi bi-pie-chart' },
           ],
+          isOpen: false
+        },
+        'simulations': {
+          name: 'Simulations',
+          route: '/simulations',
+          icon: 'bi bi-magic',
           isOpen: false
         },
         referentiels: {

@@ -59,7 +59,7 @@ class JournalController extends Controller
     // Prépare la requête lignes avec les relations
     $journal = Journal::with([
         'lignes' => function ($query) use ($request) {
-            $query->where('statut', 'brouillon'); // ou "brouillon" selon le statut souhaité
+            // $query->where('statut', 'brouillon'); // ou "brouillon" selon le statut souhaité
 
             // Ajoute le filtre sur la date de mouvement
             if ($request->date_debut) {

@@ -60,7 +60,7 @@
             <table v-if="loading" class="table table-bordered table-striped w-full">
               <tbody>
                 <tr>
-                  <td colspan="8" class="p-4 text-center text-base">
+                  <td colspan="6" class="p-4 text-center text-base">
                     <span class="spinner spinner-lg"></span> Chargement...
                   </td>
                 </tr>
@@ -72,8 +72,6 @@
                   <th class="w-30">CAPITAUX PROPRES</th>
                   <th class="text-right">Capital</th>
                   <th class="text-right">Primes & Réserves</th>
-                  <th class="text-right">Écarts évaluation</th>
-                  <th class="text-right">Écart équivalence</th>
                   <th class="text-right">Résultat</th>
                   <th class="text-right">Report à nouveau</th>
                   <th class="text-right">Total</th>
@@ -89,25 +87,29 @@
                   }"
                 >
                   <td :class="{ 'font-bold': ligne.isTotal }">{{ ligne.label }}</td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
+                  
+                  <!-- CAPITAL -->
+                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal, 'text-red': ligne.capital < 0 }">
                     {{ formatMontant(ligne.capital) }}
                   </td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
-                    {{ formatMontant(ligne.prime) }}
+                  
+                  <!-- RESERVES -->
+                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal, 'text-red': ligne.reserves < 0 }">
+                    {{ formatMontant(ligne.reserves) }}
                   </td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
-                    {{ formatMontant(ligne.eval) }}
-                  </td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
-                    {{ formatMontant(ligne.equiv) }}
-                  </td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
+                  
+                  <!-- RESULTAT -->
+                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal, 'text-red': ligne.result < 0 }">
                     {{ formatMontant(ligne.result) }}
                   </td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
-                    {{ formatMontant(ligne.autcpro) }}
+                  
+                  <!-- REPORT -->
+                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal, 'text-red': ligne.report < 0 }">
+                    {{ formatMontant(ligne.report) }}
                   </td>
-                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal }">
+                  
+                  <!-- TOTAL -->
+                  <td class="text-right" :class="{ 'font-bold': ligne.isTotal, 'text-red': ligne.total < 0 }">
                     {{ formatMontant(ligne.total) }}
                   </td>
                 </tr>
@@ -129,7 +131,6 @@
   </transition>
   </div>
 </template>
-
 
 <script setup>
 import { ref, onMounted } from "vue";
@@ -243,18 +244,20 @@ const fetchVariationsCapitaux = async () => {
       const { data } = await axios.get("http://localhost:8000/api/variations-capitaux", {
         params: { date_debut: exerciceInfo.value.date_debut, date_fin: exerciceInfo.value.date_fin }
       });
-      listeComplete.value = data;
+      listeComplete.value = Array.isArray(data) ? data : (data.structure || []);
     }
   } catch (error) {
     console.error("Erreur chargement variations capitaux:", error);
-    alert("Erreur lors du chargement des données");
+    alert("Erreur lors du chargement des données. Vérifiez que vous avez bien 3 exercices consécutifs.");
   } finally {
     loading.value = false;
   }
 };
 
+// ================= MODIFICATION ICI (SUPPRESSION DU SIGNE MOINS) =================
 const formatMontant = n => {
   if (n === null || n === undefined) return "";
+  // Math.abs() transforme le nombre en positif (enlève le signe moins)
   return Math.abs(Number(n)).toLocaleString("fr-FR", { minimumFractionDigits: 2 });
 };
 
@@ -265,7 +268,7 @@ const formatDate = d => {
 };
 
 
-
+// ================= EXPORT PDF =================
 const exportToPDF = () => {
   if (!listeComplete.value.length) {
     alert("Aucune donnée à exporter !");
@@ -273,7 +276,6 @@ const exportToPDF = () => {
   }
   const now = new Date();
 
-  // Header (branding)
   const header = `
     <div style="display: flex; align-items: flex-start; border-bottom: 3px solid #2980b9; padding-bottom: 11px; margin-bottom: 8px;">
       <div style="flex: 0 0 70px;">
@@ -299,20 +301,17 @@ const exportToPDF = () => {
       </div>
     </div>`;
 
-  // Table rows
   const tableRows = listeComplete.value.map(l =>
     `<tr
       style="${l.isTotal ? 'background:#e0e7ff;font-weight:700;font-size:10px;color:#1e40af;' : 'font-size:9px;background:#f0f9ff;'}">
       <td style="padding:6px 4px;${l.isTotal?'font-weight:700;':''}border:1px solid #ddd;">
         ${l.label ?? ""}
       </td>
-      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.capital)}</td>
-      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.prime)}</td>
-      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.eval)}</td>
-      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.equiv)}</td>
-      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.result)}</td>
-      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;">${formatMontant(l.autcpro)}</td>
-      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;${l.isTotal?'font-weight:700;':''}">${formatMontant(l.total)}</td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;${l.capital < 0 ? 'color:#dc2626;':''}">${formatMontant(l.capital)}</td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;${l.reserves < 0 ? 'color:#dc2626;':''}">${formatMontant(l.reserves)}</td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;${l.result < 0 ? 'color:#dc2626;':''}">${formatMontant(l.result)}</td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;${l.report < 0 ? 'color:#dc2626;':''}">${formatMontant(l.report)}</td>
+      <td style="padding:6px 3px;text-align:right;border:1px solid #ddd;${l.isTotal?'font-weight:700;':''}${l.total < 0 ? 'color:#dc2626;':''}">${formatMontant(l.total)}</td>
     </tr>`
   ).join('');
 
@@ -325,8 +324,6 @@ const exportToPDF = () => {
             <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;">CAPITAUX PROPRES</th>
             <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Capital</th>
             <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Primes & Réserves</th>
-            <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Écarts évaluation</th>
-            <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Écart équivalence</th>
             <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Résultat</th>
             <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Report à nouveau</th>
             <th style="padding:8px 4px;border:1px solid #1e40af;font-size:10px;text-align:right;">Total</th>
@@ -367,8 +364,7 @@ const exportToPDF = () => {
 };
 
 
-
-
+// ================= EXPORT EXCEL (MODIFICATION SIGNE) =================
 const exportToExcel = () => {
   if (!listeComplete.value.length) return alert("Aucune donnée à exporter !");
   const now = new Date();
@@ -395,21 +391,18 @@ const exportToExcel = () => {
   ];
 
   const headers = [
-    ["CAPITAUX PROPRES", "Capital", "Primes & Réserves", "Écarts évaluation", "Écart équivalence", "Résultat", "Report à nouveau", "Total"]
+    ["CAPITAUX PROPRES", "Capital", "Primes & Réserves", "Résultat", "Report à nouveau", "Total"]
   ];
 
   const dataRows = listeComplete.value.map(l => [
     l.label,
-    l.capital !== null && l.capital !== undefined ? formatMontant(l.capital) : '',
-    l.prime !== null && l.prime !== undefined ? formatMontant(l.prime) : '',
-    l.eval !== null && l.eval !== undefined ? formatMontant(l.eval) : '',
-    l.equiv !== null && l.equiv !== undefined ? formatMontant(l.equiv) : '',
-    l.result !== null && l.result !== undefined ? formatMontant(l.result) : '',
-    l.autcpro !== null && l.autcpro !== undefined ? formatMontant(l.autcpro) : '',
-    l.total !== null && l.total !== undefined ? formatMontant(l.total) : ''
+    l.capital ?? 0,
+    l.reserves ?? 0,
+    l.result ?? 0,
+    l.report ?? 0,
+    l.total ?? 0
   ]);
 
-  // Sheet création
   const ws = XLSX.utils.aoa_to_sheet([]);
   XLSX.utils.sheet_add_aoa(ws, titre, { origin: 'A1' });
   info.forEach((val, i) => XLSX.utils.sheet_add_aoa(ws, [val], { origin: `A${i+2}` }));
@@ -417,15 +410,14 @@ const exportToExcel = () => {
   XLSX.utils.sheet_add_aoa(ws, dataRows, { origin: 'A15' });
 
   ws['!cols'] = [
-    { wch: 30 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }, { wch: 22 }
+    { wch: 30 }, { wch: 18 }, { wch: 20 }, { wch: 18 }, { wch: 20 }, { wch: 22 }
   ];
 
   ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 7 } },
-    ...[1,2,3,4,5,6,7,8,9,10,11,12,13].map(i => ({ s: { r: i, c: 0 }, e: { r: i, c: 7 } }))
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } },
+    ...[1,2,3,4,5,6,7,8,9,10,11,12,13].map(i => ({ s: { r: i, c: 0 }, e: { r: i, c: 5 } }))
   ];
 
-  // Titre principal
   ws['A1'].s = {
     font: { bold: true, sz: 18, color: { rgb: "1C45BD" } },
     alignment: { horizontal: "center", vertical: "center" }
@@ -445,8 +437,7 @@ const exportToExcel = () => {
     };
   }
 
-  // En-tête du tableau
-  ['A14','B14','C14','D14','E14','F14','G14','H14'].forEach(cell => {
+  ['A14','B14','C14','D14','E14','F14'].forEach(cell => {
     if (ws[cell]) ws[cell].s = {
       font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } },
       fill: { fgColor: { rgb: "1C45BD" } },
@@ -460,12 +451,11 @@ const exportToExcel = () => {
     };
   });
 
-  // Données tableau
   const firstDataRow = 15;
   for (let i = 0; i < dataRows.length; ++i) {
     const rowIdx = firstDataRow + i;
     const ligne = listeComplete.value[i];
-    ['A','B','C','D','E','F','G','H'].forEach((col, j) => {
+    ['A','B','C','D','E','F'].forEach((col, j) => {
       const cell = `${col}${rowIdx}`;
       if (!ws[cell]) return;
       if (ligne.isTotal) {
@@ -494,6 +484,11 @@ const exportToExcel = () => {
         // Format nombre pour colonnes numériques
         if (j >= 1 && ws[cell].v !== '') {
           ws[cell].z = "#,##0.00";
+          // Couleur rouge si négatif ET ON ENLÈVE LE SIGNE DANS LA CELLULE
+          if(ws[cell].v < 0) {
+            ws[cell].s.font.color = { rgb: "dc2626" };
+            ws[cell].v = Math.abs(ws[cell].v); // Le nombre devient positif dans Excel
+          }
         }
       }
     });
@@ -505,7 +500,6 @@ const exportToExcel = () => {
 };
 
 </script>
-
 
 <style scoped>
 .dashboard-container { display: flex; min-height: 100vh; flex-direction: column; }
@@ -527,6 +521,9 @@ const exportToExcel = () => {
 
 .detail-row { background-color: #f0f9ff;}
 .detail-row td { padding: 0.6rem 1rem; color: #374151;}
+
+.text-red { color: #dc2626 !important; font-weight: 600; } /* Style pour nombres négatifs */
+
 .chatbot-float-btn {
   position: fixed;
   bottom: 55px;

@@ -8,22 +8,25 @@ import Header from "../../molecules/Header.vue";
 import AppFooter from "../../molecules/Footer.vue";
 import { getUser } from "../../../services/Auth";
 
+// --- Configuration ---
 const router = useRouter();
+const API_URL = 'http://localhost:8000/api'
+const itemsPerPage = 10
+
+// --- State ---
 const user = ref(null);
 const showChat = ref(false);
-
-const handleNavigation = (item) => {
-  router.push(item.route);
-};
-
-const API_URL = 'http://localhost:8000/api'
-
 const comptes = ref([])
 const sousComptes = ref([])
 const showModal = ref(false)
 const isEditing = ref(false)
 const currentPage = ref(1)
-const itemsPerPage = 10
+
+// --- State Popups (Nouveau) ---
+const showSuccessModal = ref(false)
+const successModalMessage = ref('')
+const showErrorModal = ref(false)
+const errorModalMessage = ref('')
 
 const filters = ref({
   compte_id: '',
@@ -38,6 +41,7 @@ const form = ref({
   Libelle: ''
 })
 
+// --- Auth & Init ---
 const token = localStorage.getItem("token");
 
 if (!token) {
@@ -46,6 +50,32 @@ if (!token) {
   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 }
 
+onMounted(async () => {
+  if (!token) {
+    window.location.href = "/";
+    return;
+  }
+  
+  try {
+    const res = await getUser(token);
+    user.value = res.data;
+  } catch (err) {
+    console.error("Erreur Auth:", err);
+    localStorage.removeItem("token");
+    window.location.href = "/";
+    return;
+  }
+
+  loadComptes();
+  loadSousComptes();
+});
+
+// --- Methods: Navigation ---
+const handleNavigation = (item) => {
+  router.push(item.route);
+};
+
+// --- Methods: Data Loading ---
 const loadComptes = async () => {
   try {
     const response = await axios.get(`${API_URL}/comptes`)
@@ -59,6 +89,16 @@ const loadComptes = async () => {
   }
 }
 
+const loadSousComptes = async () => {
+  try {
+    const res = await axios.get(`${API_URL}/sous-comptes`)
+    sousComptes.value = res.data.data || res.data
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+// --- Methods: Form Handling ---
 const updateCode = () => {
   const compte = comptes.value.find(c => c.Id_Compte === form.value.Id_Compte)
   if (compte && compte.Code_compte) {
@@ -70,7 +110,13 @@ const updateCode = () => {
 
 const openCreateModal = () => {
   isEditing.value = false
-  form.value = { id: null, Id_Compte: comptes.value[0]?.Id_Compte || '', suffixe: '', Code_sous_compte: '', Libelle: '' }
+  form.value = { 
+    id: null, 
+    Id_Compte: comptes.value[0]?.Id_Compte || '', 
+    suffixe: '', 
+    Code_sous_compte: '', 
+    Libelle: '' 
+  }
   showModal.value = true
 }
 
@@ -88,49 +134,52 @@ const saveSousCompte = async () => {
   try {
     if (isEditing.value) {
       await axios.put(`${API_URL}/sous-comptes/${form.value.id}`, form.value)
-      alert('Sous-compte modifié avec succès')
+      // MODIFIÉ : Utilisation du popup succès
+      successModalMessage.value = 'Sous-compte modifié avec succès'
+      showSuccessModal.value = true
     } else {
       await axios.post(`${API_URL}/sous-comptes`, form.value)
-      alert('Sous-compte créé avec succès')
-
-      // Appel API d’assignation automatique juste après la création
+      // MODIFIÉ : Utilisation du popup succès
+      successModalMessage.value = 'Sous-compte créé avec succès'
+      showSuccessModal.value = true
+      
       await axios.post(`${API_URL}/assigner-toutes-automatiquement`);
     }
     showModal.value = false
     loadSousComptes()
     currentPage.value = 1
   } catch (error) {
-    console.error('Erreur enregistrement sous-compte:', error.response?.data || error.message)
-    alert('Erreur enregistrement sous-compte')
+    console.error('Erreur enregistrement:', error)
+    // MODIFIÉ : Utilisation du popup erreur
+    errorModalMessage.value = error.response?.data?.message || 'Erreur lors de l\'enregistrement du sous-compte'
+    showErrorModal.value = true
   }
 }
 
-
 const deleteSousCompte = async (id) => {
+  // On garde le confirm natif pour la question "Êtes-vous sûr ?"
   if (confirm('Voulez-vous vraiment supprimer ce sous-compte ?')) {
     try {
       await axios.delete(`${API_URL}/sous-comptes/${id}`)
-      alert('Sous-compte supprimé avec succès')
+      
+      // MODIFIÉ : Utilisation du popup succès
+      successModalMessage.value = 'Sous-compte supprimé avec succès'
+      showSuccessModal.value = true
+      
       loadSousComptes()
       if (filteredSousComptes.value.length <= (currentPage.value - 1) * itemsPerPage) {
         currentPage.value = Math.max(1, currentPage.value - 1)
       }
     } catch (error) {
-      console.error('Erreur suppression sous-compte:', error.response?.data || error.message)
-      alert('Erreur suppression sous-compte')
+      console.error('Erreur suppression:', error)
+      // MODIFIÉ : Utilisation du popup erreur
+      errorModalMessage.value = error.response?.data?.message || 'Erreur lors de la suppression'
+      showErrorModal.value = true
     }
   }
 }
 
-const loadSousComptes = async () => {
-  try {
-    const res = await axios.get(`${API_URL}/sous-comptes`)
-    sousComptes.value = res.data.data || res.data
-  } catch (err) {
-    console.error(err)
-  }
-}
-
+// --- Computed & Pagination ---
 const debounceSearch = debounce((val) => {
   filters.value.search = val
   currentPage.value = 1
@@ -156,58 +205,25 @@ const totalPages = computed(() => {
   return Math.ceil(filteredSousComptes.value.length / itemsPerPage)
 })
 
-const prevPage = () => {
-  if (currentPage.value > 1) {
-    currentPage.value--
-  }
-}
-
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) {
-    currentPage.value++
-  }
-}
-
-const goToPage = (page) => {
-  currentPage.value = page
-}
-
-onMounted(async () => {
-  console.log("Token récupéré :", token); // Vérifie si le token existe
-  
-  if (!token) {
-    console.log("Pas de token → Redirection vers /");
-    window.location.href = "/";
-  } else {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    try {
-      console.log("Appel getUser en cours...");
-      const res = await getUser(token);
-      user.value = res.data;
-      console.log("User récupéré :", user.value);
-    } catch (err) {
-      console.error("Erreur lors de getUser :", err);
-      localStorage.removeItem("token");
-      window.location.href = "/";
-      return; // Important : arrête l'exécution
-    }
-    loadComptes();
-    loadSousComptes();
-  }
-});
-
+const prevPage = () => { if (currentPage.value > 1) currentPage.value-- }
+const nextPage = () => { if (currentPage.value < totalPages.value) currentPage.value++ }
+const goToPage = (page) => { currentPage.value = page }
 </script>
 
 <template>
   <div class="dashboard-container">
     <Header v-if="user" :user="user" />
     <Sidebar :current-route="$route.path" @navigation-change="handleNavigation" />
+    
     <div class="main-content p-4">
       <div class="card card-form">
+        <!-- En-tête Carte -->
         <div class="card-header">
           <h1 class="card-title text-2xl">Gestion des Sous-comptes</h1>
         </div>
+
         <div class="card-body">
+          <!-- Filtres -->
           <div class="d-flex flex-column md:flex-row gap-3 mb-4">
             <div class="form-group w-full">
               <label for="compte" class="form-label">Compte</label>
@@ -229,10 +245,14 @@ onMounted(async () => {
               />
             </div>
           </div>
-          <button @click="openCreateModal" class="btn btn-primary mb-4">
+
+          <!-- Actions -->
+          <button @click="openCreateModal" class="btn btn-primary mb-4" style="margin-bottom: 15px;">
             Nouveau sous-compte
           </button>
-          <div class="table-container" style="margin-top: 20px;">
+
+          <!-- Tableau -->
+          <div class="table-container mt-5">
             <table class="table table-bordered table-striped">
               <thead>
                 <tr>
@@ -251,7 +271,7 @@ onMounted(async () => {
                     <button @click="openEditModal(sc)" class="btn btn-primary text-base">
                       Modifier
                     </button>
-                    <button @click="deleteSousCompte(sc.Id_Sous_compte)" class="btn btn-error text-base" style="height: 40px; margin-top: 10px;">
+                    <button @click="deleteSousCompte(sc.Id_Sous_compte)" class="btn btn-error text-base h-10 mt-2" style="height: 45px; margin-top: 10px;">
                       Supprimer
                     </button>
                   </td>
@@ -259,13 +279,10 @@ onMounted(async () => {
               </tbody>
             </table>
           </div>
+
+          <!-- Pagination -->
           <div v-if="totalPages > 1" class="d-flex justify-center mt-6 gap-2">
-            <button
-              @click="prevPage"
-              :disabled="currentPage === 1"
-              class="btn btn-ghost btn-sm text-base"
-              aria-label="Page précédente"
-            >
+            <button @click="prevPage" :disabled="currentPage === 1" class="btn btn-ghost btn-sm text-base">
               <i class="bi bi-chevron-left"></i>
             </button>
             <button
@@ -274,101 +291,105 @@ onMounted(async () => {
               @click="goToPage(page)"
               class="btn"
               :class="{'btn-primary': currentPage === page, 'btn-ghost': currentPage !== page}"
-              aria-label="Page {{ page }}"
             >
               {{ page }}
             </button>
-            <button
-              @click="nextPage"
-              :disabled="currentPage === totalPages"
-              class="btn btn-ghost btn-sm text-base"
-              aria-label="Page suivante"
-            >
+            <button @click="nextPage" :disabled="currentPage === totalPages" class="btn btn-ghost btn-sm text-base">
               <i class="bi bi-chevron-right"></i>
             </button>
           </div>
-          <div v-if="showModal" class="modal-overlay">
-            <div class="modal">
-              <div class="modal-header">
-                <h2 class="modal-title">
-                  {{ isEditing ? 'Modifier le sous-compte' : 'Nouveau sous-compte' }}
-                </h2>
-                <button @click="showModal = false" class="modal-close">×</button>
-              </div>
-              <form @submit.prevent="saveSousCompte" class="modal-body">
-                <div class="form-group">
-                  <label for="compte" class="form-label required">Compte</label>
-                  <select
-                    v-model="form.Id_Compte"
-                    @change="updateCode"
-                    class="form-select w-full"
-                    required
-                  >
-                    <option v-for="compte in comptes" :key="compte.Id_Compte" :value="compte.Id_Compte">
-                      {{ compte.Code_compte }} - {{ compte.Libelle }}
-                    </option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="suffixe" class="form-label required">Suffixe</label>
-                  <input
-                    type="text"
-                    v-model="form.suffixe"
-                    @input="updateCode"
-                    maxlength="3"
-                    placeholder="001"
-                    class="form-input w-full"
-                    required
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="code-sous-compte" class="form-label">Code complet</label>
-                  <input
-                    type="text"
-                    v-model="form.Code_sous_compte"
-                    readonly
-                    class="form-input w-full"
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="libelle" class="form-label required">Libellé</label>
-                  <input
-                    type="text"
-                    v-model="form.Libelle"
-                    class="form-input w-full"
-                    required
-                  />
-                </div>
-                <div class="modal-footer">
-                  <button type="button" @click="showModal = false" class="btn btn-ghost">
-                    Annuler
-                  </button>
-                  <button type="submit" class="btn btn-primary">
-                    {{ isEditing ? 'Modifier' : 'Enregistrer' }}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
         </div>
+        
         <AppFooter />
       </div>
     </div>
-     <button class="chatbot-float-btn" @click="showChat = !showChat">
-  <span v-if="!showChat">💬</span>
-  <span v-else>✖</span>
-</button>
 
-<!-- POPIN CHATBOT (fixe à droite, petite taille) -->
-<transition name="chatbot-fade">
-  <div v-if="showChat">
-    <ChatBot />
-  </div>
-</transition>
+    <!-- MODAL PRINCIPAL (Création/Edition) -->
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            {{ isEditing ? 'Modifier le sous-compte' : 'Nouveau sous-compte' }}
+          </h2>
+          <button @click="showModal = false" class="modal-close">×</button>
+        </div>
+        <form @submit.prevent="saveSousCompte" class="modal-body">
+          <div class="form-group">
+            <label class="form-label required">Compte</label>
+            <select v-model="form.Id_Compte" @change="updateCode" class="form-select w-full" required>
+              <option v-for="compte in comptes" :key="compte.Id_Compte" :value="compte.Id_Compte">
+                {{ compte.Code_compte }} - {{ compte.Libelle }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Suffixe</label>
+            <input type="text" v-model="form.suffixe" @input="updateCode" maxlength="3" placeholder="001" class="form-input w-full" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Code complet</label>
+            <input type="text" v-model="form.Code_sous_compte" readonly class="form-input w-full" />
+          </div>
+          <div class="form-group">
+            <label class="form-label required">Libellé</label>
+            <input type="text" v-model="form.Libelle" class="form-input w-full" required />
+          </div>
+          <div class="modal-footer">
+            <button type="button" @click="showModal = false" class="btn btn-ghost">Annuler</button>
+            <button type="submit" class="btn btn-primary">{{ isEditing ? 'Modifier' : 'Enregistrer' }}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- POPUP DE SUCCÈS -->
+    <div v-if="showSuccessModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title text-green-600">Succès</h2>
+          <button @click="showSuccessModal = false" class="modal-close">×</button>
+        </div>
+        <div class="modal-body text-center">
+          <p class="text-lg">{{ successModalMessage }}</p>
+          <div class="modal-footer justify-center mt-4">
+            <button class="btn btn-primary" @click="showSuccessModal = false">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POPUP D'ERREUR -->
+    <div v-if="showErrorModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 class="modal-title text-red-600">Erreur</h2>
+          <button @click="showErrorModal = false" class="modal-close">×</button>
+        </div>
+        <div class="modal-body text-center">
+          <p class="text-lg">{{ errorModalMessage }}</p>
+          <div class="modal-footer justify-center mt-4">
+            <button class="btn btn-primary" @click="showErrorModal = false">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHATBOT -->
+    <button class="chatbot-float-btn" @click="showChat = !showChat">
+      <span v-if="!showChat">💬</span>
+      <span v-else>✖</span>
+    </button>
+    
+    <transition name="chatbot-fade">
+      <div v-if="showChat">
+        <ChatBot />
+      </div>
+    </transition>
   </div>
 </template>
 
 <style scoped>
+/* --- Layout Global --- */
 .dashboard-container {
   display: flex;
   min-height: 100vh;
@@ -383,23 +404,81 @@ onMounted(async () => {
   min-height: calc(100vh - 80px);
 }
 
-.filter-container, .export-container {
+/* --- Typographie Globale --- */
+.card-title, .form-label, .form-input, .form-select, .btn, .table th, .table td {
+  font-family: var(--font-family);
+}
+
+/* --- Composants : Filtres --- */
+.filter-container {
   background: #fff;
   padding: 16px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.card-title,
-.form-label,
-.form-input,
-.form-select,
-.btn,
-.table th,
-.table td {
-  font-family: var(--font-family); /* Use global Stara font from style.css */
+/* --- MODAL (Centré Fixe) --- */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  font-family: 'Manrope', sans-serif;
 }
 
+.modal {
+  background: white;
+  width: 90%;
+  max-width: 500px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
+  font-family: 'Manrope', sans-serif;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Manrope', sans-serif;
+}
+
+.modal-body {
+  padding: 1.5rem;
+  font-family: 'Manrope', sans-serif;
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #64748b;
+}
+
+/* --- CHATBOT --- */
 .chatbot-float-btn {
   position: fixed;
   bottom: 55px;
@@ -413,12 +492,13 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 101;
+  z-index: 200;
   border: none;
   box-shadow: 0 6px 16px rgba(102,126,234,0.22);
   cursor: pointer;
   transition: box-shadow 0.2s;
 }
+
 .chatbot-float-btn:hover {
   box-shadow: 0 10px 22px rgba(102,126,234,0.32);
   background: linear-gradient(135deg,#011244 0%,#1c45bd 100%);
@@ -432,7 +512,7 @@ onMounted(async () => {
   max-width: 99vw;
   height: 520px;
   max-height: 80vh;
-  z-index: 100;
+  z-index: 199;
   background: #fff;
   border-radius: 15px;
   box-shadow: 0 8px 36px rgba(90,60,130,0.14);
@@ -441,7 +521,6 @@ onMounted(async () => {
   flex-direction: column;
 }
 
-/* Animation d'apparition */
 .chatbot-fade-enter-active, .chatbot-fade-leave-active {
   transition: opacity 0.25s;
 }
@@ -449,12 +528,13 @@ onMounted(async () => {
   opacity: 0;
 }
 
+/* --- Responsive Mobile --- */
 @media (max-width: 768px) {
   .main-content {
     margin-left: 0;
     padding: 16px;
   }
-
+  
   .dashboard-chatbot-chatbox {
     right: 5vw;
     bottom: 80px;
@@ -462,6 +542,7 @@ onMounted(async () => {
     height: 90vh;
     border-radius: 8px;
   }
+  
   .chatbot-float-btn {
     right: 8vw;
     bottom: 18px;

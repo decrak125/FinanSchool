@@ -341,7 +341,7 @@ onMounted(async () => {
   font-weight: bold;
   text-align: center;
 }
-.badge-warning { background: #fcd34d; color: #8a5705; }
+.badge-warning { background: #faeec8; color: #757219; margin-left: 10px;}
 .badge-success { background: #d1fae5; color: #047857; }
 .badge-danger { background: #fca5a5; color: #991b1b; }
 .badge-primary { background: #c7d2fe; color: #1e40af; }

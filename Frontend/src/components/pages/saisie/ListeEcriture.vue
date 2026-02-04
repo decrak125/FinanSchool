@@ -90,6 +90,7 @@
               <tr>
                 <th class="w-10 text-center"><input type="checkbox" v-model="allChecked" @change="toggleAllRows" :disabled="isLoading" /></th>
                 <th>Date</th>
+                <th>Numero de pièce</th>
                 <th>Sous-compte</th>
                 <th>Libellé</th>
                 <th class="text-right">Débit</th>
@@ -120,14 +121,15 @@
                     <input v-if="ligne.statut !== 'valide'" type="checkbox" :value="ligne.Id_Ligne_ecriture" v-model="selectedRows" />
                   </td>
                   <td>{{ formatDate(ligne.mouvement?.Date_mouvement) }}</td>
+                  <td class="font-mono text-sm">{{ ligne.mouvement?.Numero_piece }}</td>
                   <td class="font-mono text-sm">{{ ligne.sous_compte?.Code_sous_compte }}</td>
                   <td class="max-w-[200px] truncate" :title="ligne.Libelle">{{ ligne.Libelle }}</td>
                   <td class="text-right">{{ formatMontant(ligne.Debit) }}</td>
                   <td class="text-right">{{ formatMontant(ligne.Credit) }}</td>
                   <td class="text-sm text-gray-500">{{ ligne.Reference }}</td>
                   <td class="text-center">
-                    <span v-if="ligne.statut === 'valide'" class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">Validé</span>
-                    <span v-else class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">Brouillon</span>
+                    <span v-if="ligne.statut === 'valide'" class="badge badge-success" style="font-size: 12px;">Validé</span>
+                    <span v-else class="badge badge-warning" style="font-size: 12px;">Brouillon</span>
                   </td>
                   <td class="text-right">
                     <button v-if="ligne.statut !== 'valide'" @click="editLigne(ligne)" class="btn btn-xs btn-primary" style="margin-right: 20px;">Modifier</button>
@@ -427,7 +429,8 @@ onMounted(() => {
 .form-input { padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
 .form-input:focus { border-color: #3b82f6; }
 .form-input:disabled { background-color: #f1f5f9; cursor: not-allowed; color: #94a3b8; }
-
+.badge-warning { background: #ffe3bd; color: #995c0c; border-color: #995c0c; border-width: 1px;}
+.badge-success { background: #d1fae5; color: #047857; }
 /* Boutons */
 .btn { padding: 8px 16px; border-radius: 6px; font-weight: 500; font-size: 0.9rem; transition: 0.2s; }
 

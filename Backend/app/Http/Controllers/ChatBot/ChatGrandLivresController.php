@@ -147,15 +147,16 @@ class ChatGrandLivresController extends Controller
             }
 
             // 4. Formatage
-            $soldeFormatted = number_format($data->solde, 2, ',', ' ');
+            $soldeAbsolu = abs($data->solde);
+            $soldeFormatted = number_format($soldeAbsolu, 2, ',', ' ');
             $debitFormatted = number_format($data->debit, 2, ',', ' ');
             $creditFormatted = number_format($data->credit, 2, ',', ' ');
             
             $statut = $data->solde > 0 ? "Débiteur" : ($data->solde < 0 ? "Créditeur" : "Soldé");
 
             // 5. Réponse détaillée
-            $response = "**Solde actuel du compte {$codeCompte}**\n";
-            $response .= "• **Solde : {$soldeFormatted} ({$statut})**";
+            $response = "**Solde actuel du compte {$codeCompte}**,\n";
+            $response .= "• **Solde : {$soldeFormatted} ,(Compte {$statut})**";
             
             return $response;
 
